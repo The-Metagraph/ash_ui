@@ -126,8 +126,15 @@ defmodule AshUI.DSLIntegrationTest do
       valid_types = [:value, :list, :action]
 
       Enum.each(valid_types, fn type ->
+        source =
+          case type do
+            :value -> %{"resource" => "Test", "field" => "test"}
+            :list -> %{"resource" => "Test", "relationship" => "items"}
+            :action -> %{"resource" => "Test", "action" => "submit"}
+          end
+
         attrs = %{
-          source: %{"resource" => "Test", "field" => "test"},
+          source: source,
           target: "target",
           binding_type: type,
           element_id: element.id,
@@ -154,20 +161,40 @@ defmodule AshUI.DSLIntegrationTest do
   end
 
   describe "Invalid DSL options" do
-    test "invalid binding_type produces validation error" do
-      # Note: Ash atom type constraint allows any atom
-      # Additional validation would need to be added via changeset
-      # This test documents current behavior
+    setup do
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs: %{
+            name: "invalid_dsl_binding_test",
+            unified_dsl: %{"type" => "screen"},
+            layout: :row
+          }
+        )
+
+      {:ok, element} =
+        AshUI.Data.create(Element,
+          attrs: %{
+            type: :textinput,
+            props: %{},
+            screen_id: screen.id,
+            position: 1
+          }
+        )
+
+      %{screen: screen, element: element}
+    end
+
+    test "invalid binding_type produces validation error", %{screen: screen, element: element} do
       attrs = %{
-        source: %{"field" => "test"},
+        source: %{"resource" => "Test", "field" => "test"},
         target: "test",
         binding_type: :invalid_type,
-        element_id: nil,
-        screen_id: nil
+        element_id: element.id,
+        screen_id: screen.id
       }
 
-      # Should fail due to nil foreign keys, not invalid type
-      assert {:error, _error} = AshUI.Data.create(Binding, attrs: attrs)
+      assert {:error, error} = AshUI.Data.create(Binding, attrs: attrs)
+      assert Exception.message(error) =~ "binding_type"
     end
   end
 end

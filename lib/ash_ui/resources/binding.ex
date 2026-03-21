@@ -52,6 +52,14 @@ defmodule AshUI.Resources.Binding do
     end
   end
 
+  validations do
+    validate {AshUI.Resources.Validations.BindingSource, []}, on: [:create]
+
+    validate {AshUI.Resources.Validations.BindingSource, []},
+      on: [:update],
+      where: [any([changing(:source), changing(:binding_type)])]
+  end
+
   actions do
     defaults [:read, :destroy]
 
@@ -62,6 +70,7 @@ defmodule AshUI.Resources.Binding do
 
     update :update do
       primary? true
+      require_atomic? false
       accept [:source, :target, :binding_type, :transform, :element_id, :screen_id, :metadata, :active]
       change increment(:version)
     end

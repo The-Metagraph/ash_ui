@@ -52,7 +52,7 @@ defmodule AshUI.Resources.Element do
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:read]
 
     create :create do
       primary? true
@@ -63,6 +63,11 @@ defmodule AshUI.Resources.Element do
       primary? true
       accept [:type, :props, :variants, :position, :screen_id, :metadata, :active]
       change increment(:version)
+    end
+
+    destroy :destroy do
+      primary? true
+      change cascade_destroy(:bindings)
     end
   end
 

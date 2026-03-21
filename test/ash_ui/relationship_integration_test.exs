@@ -41,7 +41,7 @@ defmodule AshUI.RelationshipIntegrationTest do
           {:ok, binding} =
             AshUI.Data.create(Binding,
               attrs: %{
-                source: %{"field" => "field_#{j}"},
+                source: %{"resource" => "User", "field" => "field_#{j}"},
                 target: "target_#{j}",
                 binding_type: :value,
                 element_id: element.id,

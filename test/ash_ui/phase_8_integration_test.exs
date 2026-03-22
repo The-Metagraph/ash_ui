@@ -84,7 +84,11 @@ defmodule AshUI.Phase8IntegrationTest do
                 "action" => "update",
                 "id" => fixtures.user.id
               },
-              transform: %{"params" => %{"name" => {"event", "display_name"}}}
+              transform: %{
+                "params" => %{
+                  "name" => %{"from" => "event", "key" => "display_name"}
+                }
+              }
             }
           }
         )

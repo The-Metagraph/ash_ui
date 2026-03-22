@@ -1,6 +1,6 @@
 defmodule BasicDashboard do
   @moduledoc """
-  Minimal Ash UI example seed module.
+  Minimal Ash UI example seed module backed by ETS data.
   """
 
   alias AshUI.DSL.Builder
@@ -8,8 +8,11 @@ defmodule BasicDashboard do
   alias AshUI.Resources.Binding
   alias AshUI.Resources.Element
   alias AshUI.Resources.Screen
+  alias BasicDashboard.Data
 
   def seed! do
+    cleanup_existing_screen!()
+
     {:ok, screen} =
       Domain.create(Screen,
         attrs: %{
@@ -21,7 +24,10 @@ defmodule BasicDashboard do
               spacing: 12,
               children: [
                 Builder.text("Basic Dashboard", size: 24, weight: :bold),
-                Builder.input("display_name", placeholder: "Enter your name", bind_to: "user-name"),
+                Builder.input("display_name",
+                  placeholder: "Enter your name",
+                  bind_to: "user-name"
+                ),
                 Builder.button("Save", on_click: "save-profile")
               ]
             )
@@ -58,7 +64,11 @@ defmodule BasicDashboard do
           element_id: input.id,
           binding_type: :value,
           target: "value",
-          source: %{"resource" => "User", "field" => "name", "id" => "current-user"}
+          source: %{
+            "resource" => "BasicDashboard.User",
+            "field" => "name",
+            "id" => Data.current_user_id()
+          }
         }
       )
 
@@ -69,16 +79,29 @@ defmodule BasicDashboard do
           element_id: button.id,
           binding_type: :action,
           target: "submit",
-          source: %{"resource" => "User", "action" => "save_profile"},
+          source: %{
+            "resource" => "BasicDashboard.User",
+            "action" => "save_profile",
+            "id" => Data.current_user_id()
+          },
           transform: %{
             "params" => %{
-              "display_name" => {"event", "display_name"},
-              "actor_id" => {"context", "user_id"}
+              "display_name" => %{"from" => "event", "key" => "display_name"},
+              "actor_id" => %{"from" => "context", "key" => "user_id"}
             }
           }
         }
       )
 
     screen
+  end
+
+  defp cleanup_existing_screen! do
+    Screen
+    |> Ash.read!(domain: AshUI.Domain, authorize?: false)
+    |> Enum.filter(&(&1.name == "basic_dashboard"))
+    |> Enum.each(fn screen ->
+      :ok = Domain.destroy(screen, authorize?: false)
+    end)
   end
 end

@@ -19,9 +19,9 @@ defmodule AshUI.Runtime.ActionBindingTest do
         binding_type: :action,
         transform: %{
           "params" => %{
-            "name" => {"event", "name"},
-            "email" => {"event", "email"},
-            "nickname" => {"static", "Created"}
+            "name" => %{"from" => "event", "key" => "name"},
+            "email" => %{"from" => "event", "key" => "email"},
+            "nickname" => %{"from" => "static", "value" => "Created"}
           }
         }
       }
@@ -39,6 +39,30 @@ defmodule AshUI.Runtime.ActionBindingTest do
       assert result.status == :ok
       assert %User{} = result.data
       assert result.data.name == "John"
+      assert result.data.nickname == "Created"
+    end
+
+    test "supports legacy tuple mappings for in-memory bindings", %{context: context} do
+      binding = %{
+        id: "legacy-action-binding-test",
+        source: %{"resource" => "User", "action" => "create"},
+        target: "submit-button",
+        binding_type: :action,
+        transform: %{
+          "params" => %{
+            "name" => {"event", "name"},
+            "email" => {"event", "email"},
+            "nickname" => {"static", "Created"}
+          }
+        }
+      }
+
+      event_data = %{"name" => "Legacy", "email" => "legacy@example.com"}
+
+      assert {:ok, result} = ActionBinding.execute_action(binding, event_data, context)
+      assert result.status == :ok
+      assert %User{} = result.data
+      assert result.data.name == "Legacy"
       assert result.data.nickname == "Created"
     end
 
@@ -68,8 +92,8 @@ defmodule AshUI.Runtime.ActionBindingTest do
         metadata: %{"success_message" => "Created"},
         transform: %{
           "params" => %{
-            "name" => {"event", "name"},
-            "email" => {"event", "email"}
+            "name" => %{"from" => "event", "key" => "name"},
+            "email" => %{"from" => "event", "key" => "email"}
           }
         }
       }

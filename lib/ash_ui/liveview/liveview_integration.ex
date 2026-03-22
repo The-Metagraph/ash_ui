@@ -253,15 +253,19 @@ defmodule AshUI.LiveView.Integration do
   end
 
   defp assign_screen_state(socket, screen, iur, bindings, user, params) do
+    ash_domains =
+      Map.get(
+        socket.assigns,
+        :ash_ui_domains,
+        Application.get_env(:ash_ui, :ash_domains, [Domain])
+      )
+
     socket
     |> Phoenix.Component.assign(:ash_ui_screen, screen)
     |> Phoenix.Component.assign(:ash_ui_iur, iur)
     |> Phoenix.Component.assign(:ash_ui_bindings, bindings)
     |> Phoenix.Component.assign(:ash_ui_params, params)
-    |> Phoenix.Component.assign(
-      :ash_ui_domains,
-      Application.get_env(:ash_ui, :ash_domains, [Domain])
-    )
+    |> Phoenix.Component.assign(:ash_ui_domains, ash_domains)
     |> Phoenix.Component.assign(:ash_ui_user, user)
     |> Phoenix.Component.assign(:ash_ui_loaded_at, DateTime.utc_now())
     |> sync_runtime_binding_assigns(bindings)

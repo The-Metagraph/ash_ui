@@ -26,6 +26,7 @@ defmodule AshUI.Examples.BasicDashboardTest do
       |> Ash.read!(domain: AshUI.Domain)
 
     assert screen.name == "basic_dashboard"
+    assert Code.ensure_loaded?(BasicDashboardLive)
     assert function_exported?(BasicDashboardLive, :mount, 3)
 
     assert Enum.any?(bindings, fn binding ->

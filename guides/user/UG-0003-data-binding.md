@@ -118,13 +118,21 @@ Use `:action` when the UI should trigger an Ash-side operation.
       source: %{"resource" => "Profile", "action" => "save"},
       transform: %{
         "params" => %{
-          "display_name" => {"event", "display_name"},
-          "actor_id" => {"context", "user_id"}
+          "display_name" => %{"from" => "event", "key" => "display_name"},
+          "actor_id" => %{"from" => "context", "key" => "user_id"}
         }
       }
     }
   )
 ```
+
+Persisted bindings should keep parameter mappings JSON-safe:
+
+- event values: `%{"from" => "event", "key" => "display_name"}`
+- context values: `%{"from" => "context", "key" => "user_id"}`
+- static values: `%{"from" => "static", "value" => "Created"}`
+
+Tuple mappings are still accepted for in-memory compatibility, but map-based mappings are the stable stored format.
 
 Execute an action binding:
 
@@ -146,7 +154,7 @@ context = %{user_id: "user-1", params: %{}, assigns: %{}}
   AshUI.Runtime.BidirectionalBinding.write_binding(binding, "Updated Name", socket, context)
 ```
 
-The current implementation returns mock update results, but the call shape is the one LiveView integration already uses.
+Successful writes now return the real Ash update result metadata, including the updated record and resolved field value.
 
 ## Event Handling in LiveView
 
@@ -190,7 +198,7 @@ Your `source` is not a map in the expected shape.
 
 ### Empty or placeholder values
 
-The runtime currently resolves resource data through placeholder loaders in some paths. Verify the binding shape first before assuming the renderer is broken.
+The runtime now resolves binding data through real Ash reads. If you see empty values, check authorization, record identifiers, and transformation defaults before assuming the renderer is broken.
 
 ### Writes fail with forbidden errors
 

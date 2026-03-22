@@ -50,6 +50,15 @@ defmodule AshUI.Test.UIStorageScreen do
 
     read :mount do
       get? true
+
+      argument :user_id, :string do
+        allow_nil? false
+      end
+
+      argument :params, :map do
+        allow_nil? false
+        default %{}
+      end
     end
 
     create :create do

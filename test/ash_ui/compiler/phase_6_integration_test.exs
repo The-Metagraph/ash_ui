@@ -100,16 +100,16 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
         metadata: %{}
       }
 
-      {:ok, screen} =
-        AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "invalid_screen",
-            unified_dsl: invalid_dsl,
-            layout: :row
-          }
-        )
+      assert {:error, error} =
+               AshUI.Data.create(AshUI.Resources.Screen,
+                 attrs: %{
+                   name: "invalid_screen",
+                   unified_dsl: invalid_dsl,
+                   layout: :row
+                 }
+               )
 
-      assert {:error, {:invalid_dsl, _errors}} = Compiler.compile_from_unified_dsl(screen)
+      assert Exception.message(error) =~ "unsupported type"
     end
 
     test "cache hit returns cached IUR" do
@@ -357,16 +357,16 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
         metadata: %{}
       }
 
-      {:ok, screen} =
-        AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "error_screen",
-            unified_dsl: invalid_dsl,
-            layout: :row
-          }
-        )
+      assert {:error, error} =
+               AshUI.Data.create(AshUI.Resources.Screen,
+                 attrs: %{
+                   name: "error_screen",
+                   unified_dsl: invalid_dsl,
+                   layout: :row
+                 }
+               )
 
-      assert {:error, _reason} = Compiler.compile_from_unified_dsl(screen)
+      assert Exception.message(error) =~ "unsupported type"
     end
   end
 

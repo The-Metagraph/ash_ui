@@ -51,4 +51,4 @@ Defines persisted runtime bindings for value reads, list reads, and action execu
 
 ## Current Gaps
 
-- runtime behavior still depends on the broader binding and action contracts, but storage-backend coverage now includes non-Postgres resources
+- no binding-resource storage gaps remain beyond the broader runtime and action contract surface

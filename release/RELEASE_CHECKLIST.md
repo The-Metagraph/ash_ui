@@ -39,6 +39,8 @@ Run:
 ./scripts/validate_release_readiness.sh
 ```
 
+The readiness script prepares dependencies and the test database before running the heavy validation path.
+
 For full release gating in CI, the release workflow runs the script with heavy checks enabled:
 
 - conformance

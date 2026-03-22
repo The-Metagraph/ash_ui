@@ -93,7 +93,7 @@ end
 
 ## Renderer Status
 
-Ash UI owns the compiler, runtime, and adapter boundary. External renderer packages such as `live_ui`, `web_ui`, and `desktop_ui` are optional at the moment. When they are not present, Ash UI uses fallback adapter behavior so compile, integration, and telemetry flows remain testable.
+Ash UI owns the compiler, runtime, and adapter boundary. The repo now vendors minimal `unified_iur`, `live_ui`, `web_ui`, and `desktop_ui` packages under `packages/`, wires them as optional path dependencies, and still keeps adapter fallbacks available for degraded environments.
 
 ## Documentation
 
@@ -111,7 +111,7 @@ Key starting points:
 
 ## Current Status
 
-Phase 8 governance work is complete, but the repo is still closing feature gaps in earlier phases. The current implementation is strongest in resource storage, compilation, runtime wiring, observability, and governance, while real Ash-backed binding execution and full external renderer integration remain open in reopened Phase 1, 3, 4, 5, and 7 workstreams.
+Phase 8 governance work is complete, and the runtime stack now includes real Ash-backed binding execution, authorization, LiveView reactivity, compile-time resource DSL helpers, and vendored renderer package integration.
 
 ## Development Notes
 

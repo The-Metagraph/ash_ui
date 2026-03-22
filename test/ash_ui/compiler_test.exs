@@ -177,16 +177,16 @@ defmodule AshUI.CompilerTest do
         metadata: %{}
       }
 
-      {:ok, screen} =
-        AshUI.Data.create(Screen,
-          attrs: %{
-            name: "invalid_dsl_screen",
-            unified_dsl: invalid_dsl,
-            layout: :row
-          }
-        )
+      assert {:error, error} =
+               AshUI.Data.create(Screen,
+                 attrs: %{
+                   name: "invalid_dsl_screen",
+                   unified_dsl: invalid_dsl,
+                   layout: :row
+                 }
+               )
 
-      assert {:error, {:invalid_dsl, _errors}} = Compiler.compile_from_unified_dsl(screen)
+      assert Exception.message(error) =~ "unsupported type"
     end
   end
 

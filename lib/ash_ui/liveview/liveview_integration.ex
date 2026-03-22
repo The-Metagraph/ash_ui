@@ -130,38 +130,53 @@ defmodule AshUI.LiveView.Integration do
     end
   end
 
-  defp load_screen(socket, screen_id, user, _params) do
+  defp load_screen(socket, screen_id, user, params) do
     ui_storage = current_ui_storage(socket)
 
-    case load_screen_by_identifier(screen_id, user, ui_storage) do
+    case load_screen_by_identifier(screen_id, user, params, ui_storage) do
       {:ok, screen} -> {:ok, screen}
       {:error, :invalid_primary_key} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp load_screen_by_identifier(screen_id, _user, ui_storage) when is_atom(screen_id) do
-    load_screen_by_name(Atom.to_string(screen_id), ui_storage)
+  defp load_screen_by_identifier(screen_id, user, params, ui_storage) when is_atom(screen_id) do
+    load_screen_by_name(Atom.to_string(screen_id), user, params, ui_storage)
   end
 
-  defp load_screen_by_identifier(screen_id, user, ui_storage) do
-    case load_screen_by_primary_key(screen_id, user, ui_storage) do
+  defp load_screen_by_identifier(screen_id, user, params, ui_storage) do
+    case load_screen_by_primary_key(screen_id, user, params, ui_storage) do
+      {:ok, nil} when is_binary(screen_id) ->
+        load_screen_by_name(screen_id, user, params, ui_storage)
+
+      {:ok, nil} ->
+        {:error, :not_found}
+
       {:ok, _screen} = result ->
         result
 
       {:error, _reason} when is_binary(screen_id) ->
-        load_screen_by_name(screen_id, ui_storage)
+        load_screen_by_name(screen_id, user, params, ui_storage)
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
-  defp load_screen_by_primary_key(screen_id, user, ui_storage) do
+  defp load_screen_by_primary_key(screen_id, user, params, ui_storage) do
     screen_resource = Config.screen_resource(ui_storage)
     domain = Config.ui_storage_domain(ui_storage)
 
-    case Ash.get(screen_resource, screen_id, action: :mount, actor: user, domain: domain, authorize?: true) do
+    query =
+      screen_resource
+      |> Ash.Query.new()
+      |> Ash.Query.filter(id == ^screen_id)
+      |> Ash.Query.for_read(:mount, %{
+        user_id: get_user_id(user),
+        params: params
+      })
+
+    case Ash.read_one(query, actor: user, domain: domain, authorize?: true) do
       {:ok, screen} -> {:ok, screen}
       {:error, reason} -> {:error, reason}
     end
@@ -170,16 +185,19 @@ defmodule AshUI.LiveView.Integration do
     Ash.Error.Invalid.NoSuchResource -> {:error, :not_found}
   end
 
-  defp load_screen_by_name(name, ui_storage) do
+  defp load_screen_by_name(name, user, params, ui_storage) do
     screen_resource = Config.screen_resource(ui_storage)
     domain = Config.ui_storage_domain(ui_storage)
-
     query =
       screen_resource
       |> Ash.Query.new()
       |> Ash.Query.filter(name == ^name)
+      |> Ash.Query.for_read(:mount, %{
+        user_id: get_user_id(user),
+        params: params
+      })
 
-    case Ash.read_one(query, domain: domain) do
+    case Ash.read_one(query, actor: user, domain: domain, authorize?: true) do
       {:ok, %{__struct__: _} = screen} -> {:ok, screen}
       {:ok, nil} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}

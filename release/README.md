@@ -11,6 +11,7 @@ This directory contains the operational files used for Phase 8 release readiness
 
 ## Validation Scripts
 
+- `./scripts/prepare_test_environment.sh`
 - `./scripts/validate_release_readiness.sh`
 - `./scripts/generate_changelog.sh`
 - `./scripts/test_rollback_procedure.sh`
@@ -18,7 +19,7 @@ This directory contains the operational files used for Phase 8 release readiness
 ## Typical Sequence
 
 1. update the version in `mix.exs`
-2. run `./scripts/validate_release_readiness.sh`
+2. run `./scripts/validate_release_readiness.sh` to prepare the test environment and validate release gates
 3. generate release notes with `./scripts/generate_changelog.sh vX.Y.Z`
 4. review `release/KNOWN_ISSUES.md`
 5. use `.github/workflows/release.yml` for dry run or release execution

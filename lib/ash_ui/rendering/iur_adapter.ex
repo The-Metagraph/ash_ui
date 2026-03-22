@@ -26,6 +26,7 @@ defmodule AshUI.Rendering.IURAdapter do
     with :ok <- IUR.validate(ash_iur) do
       try do
         canonical = convert_iur(ash_iur)
+        :ok = maybe_validate_with_unified_iur(canonical)
 
         if telemetry? do
           Telemetry.execute(
@@ -212,5 +213,13 @@ defmodule AshUI.Rendering.IURAdapter do
   # Generate unique ID
   defp generate_id do
     UUID.uuid4()
+  end
+
+  defp maybe_validate_with_unified_iur(canonical) do
+    if Code.ensure_loaded?(UnifiedIUR) and function_exported?(UnifiedIUR, :validate, 1) do
+      UnifiedIUR.validate(canonical)
+    else
+      :ok
+    end
   end
 end

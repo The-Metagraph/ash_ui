@@ -1,0 +1,126 @@
+defmodule AshUI.Resources.Validations.UnifiedDSL do
+  @moduledoc """
+  Validates persisted `unified_dsl` payloads before they are stored on screens.
+
+  Screen records in this repo are allowed to store either:
+  - a full builder-style DSL tree with `props`, `children`, `signals`, and `metadata`
+  - a minimal persisted shape that at least identifies the root `type`
+  """
+
+  use Ash.Resource.Validation
+
+  alias Ash.Error.Changes.InvalidAttribute
+  alias Ash.Subject
+  alias AshUI.DSL.Storage
+
+  @doc false
+  @impl true
+  def supports(_opts), do: [Ash.Changeset, Ash.ActionInput]
+
+  @doc false
+  @impl true
+  def validate(subject, _opts, _context) do
+    dsl = Subject.get_attribute(subject, :unified_dsl)
+
+    with :ok <- validate_map(dsl),
+         :ok <- validate_node(dsl, "root") do
+      :ok
+    end
+  end
+
+  defp validate_map(dsl) when is_map(dsl), do: :ok
+
+  defp validate_map(dsl) do
+    invalid_dsl(dsl, "must be a map")
+  end
+
+  defp validate_node(dsl, path) do
+    with :ok <- validate_type(dsl, path),
+         :ok <- validate_optional_map(dsl, path, "props"),
+         :ok <- validate_optional_map(dsl, path, "metadata"),
+         :ok <- validate_optional_list(dsl, path, "signals"),
+         :ok <- validate_children(dsl, path) do
+      :ok
+    end
+  end
+
+  defp validate_type(dsl, path) do
+    type =
+      case field(dsl, "type") do
+        atom when is_atom(atom) -> Atom.to_string(atom)
+        other -> other
+      end
+
+    cond do
+      is_binary(type) and type != "" and Storage.valid_widget_type?(type) ->
+        :ok
+
+      is_nil(type) ->
+        invalid_dsl(dsl, "#{path} must include a type")
+
+      true ->
+        invalid_dsl(dsl, "#{path} has unsupported type #{inspect(type)}")
+    end
+  end
+
+  defp validate_optional_map(dsl, path, key) do
+    if has_key?(dsl, key) do
+      case field(dsl, key) do
+        value when is_map(value) -> :ok
+        other -> invalid_dsl(dsl, "#{path}.#{key} must be a map, got #{inspect(other)}")
+      end
+    else
+      :ok
+    end
+  end
+
+  defp validate_optional_list(dsl, path, key) do
+    if has_key?(dsl, key) do
+      case field(dsl, key) do
+        value when is_list(value) -> :ok
+        other -> invalid_dsl(dsl, "#{path}.#{key} must be a list, got #{inspect(other)}")
+      end
+    else
+      :ok
+    end
+  end
+
+  defp validate_children(dsl, path) do
+    if has_key?(dsl, "children") do
+      case field(dsl, "children") do
+        children when is_list(children) ->
+          Enum.reduce_while(Enum.with_index(children), :ok, fn {child, index}, :ok ->
+            child_path = "#{path}.children[#{index}]"
+
+            case validate_map(child) do
+              :ok ->
+                case validate_node(child, child_path) do
+                  :ok -> {:cont, :ok}
+                  error -> {:halt, error}
+                end
+
+              error ->
+                {:halt, error}
+            end
+          end)
+
+        other ->
+          invalid_dsl(dsl, "#{path}.children must be a list, got #{inspect(other)}")
+      end
+    else
+      :ok
+    end
+  end
+
+  defp field(map, key) do
+    Map.get(map, key) || Map.get(map, String.to_atom(key))
+  end
+
+  defp has_key?(map, key) do
+    Map.has_key?(map, key) || Map.has_key?(map, String.to_atom(key))
+  end
+
+  defp invalid_dsl(value, message) do
+    {:error, InvalidAttribute.exception(field: :unified_dsl, value: value, message: message)}
+  end
+end

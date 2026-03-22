@@ -103,8 +103,26 @@ defmodule AshUI.DSL.Storage do
   """
   @spec valid_widget_type?(String.t()) :: boolean()
   def valid_widget_type?(type) when is_binary(type) do
-    valid_layouts = ["row", "column", "grid", "stack", "fragment", "container"]
-    valid_widgets = ["text", "button", "input", "checkbox", "select", "image", "spacer"]
+    valid_layouts = ["screen", "row", "column", "grid", "stack", "fragment", "container"]
+
+    valid_widgets = [
+      "text",
+      "button",
+      "input",
+      "textarea",
+      "checkbox",
+      "radio",
+      "switch",
+      "slider",
+      "select",
+      "card",
+      "list",
+      "table",
+      "image",
+      "icon",
+      "divider",
+      "spacer"
+    ]
 
     type in valid_layouts or type in valid_widgets or String.starts_with?(type, "custom:")
   end

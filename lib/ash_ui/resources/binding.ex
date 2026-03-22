@@ -5,14 +5,26 @@ defmodule AshUI.Resources.Binding do
   Bindings connect UI elements to Ash resource data.
   """
 
+  @resource_topic_prefix "ash_ui:resource:AshUI:Resources:Binding"
+
   use Ash.Resource,
     domain: AshUI.Domain,
     authorizers: [Ash.Policy.Authorizer],
+    notifiers: [Ash.Notifier.PubSub],
     data_layer: AshPostgres.DataLayer
 
   postgres do
     table "ui_bindings"
     repo AshUI.Repo
+  end
+
+  pub_sub do
+    module AshUI.Notifications
+    prefix @resource_topic_prefix
+
+    publish :create, "changes"
+    publish :update, "changes"
+    publish :destroy, "changes"
   end
 
   attributes do
@@ -40,6 +52,14 @@ defmodule AshUI.Resources.Binding do
     end
   end
 
+  validations do
+    validate {AshUI.Resources.Validations.BindingSource, []}, on: [:create]
+
+    validate {AshUI.Resources.Validations.BindingSource, []},
+      on: [:update],
+      where: [any([changing(:source), changing(:binding_type)])]
+  end
+
   actions do
     defaults [:read, :destroy]
 
@@ -50,6 +70,7 @@ defmodule AshUI.Resources.Binding do
 
     update :update do
       primary? true
+      require_atomic? false
       accept [:source, :target, :binding_type, :transform, :element_id, :screen_id, :metadata, :active]
       change increment(:version)
     end

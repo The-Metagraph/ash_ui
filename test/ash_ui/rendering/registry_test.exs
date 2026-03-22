@@ -57,6 +57,15 @@ defmodule AshUI.Rendering.RegistryTest do
       end
     end
 
+    test "vendored renderer packages are detected as external" do
+      for renderer_type <- [:liveview, :html, :desktop] do
+        assert {:ok, info} = Registry.renderer_info(renderer_type)
+        assert info.available
+        assert info.renderable
+        assert info.mode == :external
+      end
+    end
+
     test "get_renderer returns module for liveview" do
       assert {:ok, module} = Registry.get_renderer(:liveview)
       assert is_atom(module)

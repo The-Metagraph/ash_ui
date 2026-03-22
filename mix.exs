@@ -8,6 +8,7 @@ defmodule AshUI.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
+      test_coverage: [summary: [threshold: coverage_threshold()]],
       deps: deps(),
       aliases: aliases()
     ]
@@ -20,8 +21,8 @@ defmodule AshUI.MixProject do
     ]
   end
 
-  defp elixirc_paths(:dev), do: ["lib", "dev"]
-  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(:dev), do: ["lib", "dev", "examples/basic_dashboard/lib"]
+  defp elixirc_paths(:test), do: ["lib", "test/support", "examples/basic_dashboard/lib"]
   defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
@@ -35,9 +36,11 @@ defmodule AshUI.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:simple_sat, "~> 0.1"},
       {:telemetry, "~> 1.0"},
-      {:uuid, "~> 1.1"}
-      # Note: Renderer packages (unified_iur, live_ui, web_ui, desktop_ui) will be added
-      # when published. For now, adapters provide fallback implementations.
+      {:uuid, "~> 1.1"},
+      {:unified_iur, path: "packages/unified_iur", optional: true},
+      {:live_ui, path: "packages/live_ui", optional: true},
+      {:web_ui, path: "packages/web_ui", optional: true},
+      {:desktop_ui, path: "packages/desktop_ui", optional: true}
     ]
   end
 
@@ -45,5 +48,10 @@ defmodule AshUI.MixProject do
     [
       format: ["format"]
     ]
+  end
+
+  defp coverage_threshold do
+    System.get_env("MIX_TEST_COVERAGE_THRESHOLD", "90")
+    |> String.to_integer()
   end
 end

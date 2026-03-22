@@ -14,19 +14,26 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
   # Integration test helpers
   defp build_socket(assigns \\ %{}) do
     %Phoenix.LiveView.Socket{
-      assigns: Enum.into(assigns, %{__changed__: %{}, flash: %{}, ash_ui_domains: [RuntimeDomain]})
+      assigns:
+        Enum.into(assigns, %{__changed__: %{}, flash: %{}, ash_ui_domains: [RuntimeDomain]})
     }
   end
 
   defp build_user(id \\ "user-1"), do: %{id: id, name: "Test User"}
   defp build_screen(id \\ "screen-1"), do: %{id: id, name: "Test Screen"}
 
+  defp flush_mailbox do
+    receive do
+      _message -> flush_mailbox()
+    after
+      0 -> :ok
+    end
+  end
+
   describe "Section 4.6.1 - Mount lifecycle integration scenarios" do
     test "screen mounts with valid user" do
       socket =
-        build_socket(
-          current_user: build_user()
-        )
+        build_socket(current_user: build_user())
 
       # Mount should succeed with valid user
       # Note: In actual implementation, would need to mock Ash.get
@@ -37,9 +44,7 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
 
     test "screen redirects on unauthorized access" do
       socket =
-        build_socket(
-          current_user: build_user("unauthorized-user")
-        )
+        build_socket(current_user: build_user("unauthorized-user"))
 
       # Unauthorized access should result in error
       # Note: Would need to mock Ash.can? returning false
@@ -90,8 +95,8 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
               binding_type: :action,
               transform: %{
                 "params" => %{
-                  "name" => {"event", "name"},
-                  "email" => {"event", "email"}
+                  "name" => %{"from" => "event", "key" => "name"},
+                  "email" => %{"from" => "event", "key" => "email"}
                 }
               }
             }
@@ -99,7 +104,10 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
           ash_ui_user: fixtures.actor
         )
 
-      params = %{"action_id" => "action1", "data" => %{"name" => "Test", "email" => "test@example.com"}}
+      params = %{
+        "action_id" => "action1",
+        "data" => %{"name" => "Test", "email" => "test@example.com"}
+      }
 
       assert {:reply, reply, socket} = EventHandler.handle_action_event(params, socket)
       assert reply[:status] == :ok
@@ -158,6 +166,7 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
   describe "Section 4.6.3 - Reactivity integration scenarios" do
     test "UI updates when bound data changes" do
       fixtures = RuntimeFixtures.seed!()
+      flush_mailbox()
 
       socket =
         build_socket(
@@ -174,13 +183,12 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
           }
         )
 
-      {:ok, _updated_user} = Ash.update(fixtures.user, %{name: "Reactive Update"}, domain: RuntimeDomain)
+      assert {:ok, _subscription} = UpdateIntegration.subscribe(socket, User)
 
-      notification = %{
-        type: :updated,
-        resource: User,
-        timestamp: DateTime.utc_now()
-      }
+      {:ok, _updated_user} =
+        Ash.update(fixtures.user, %{name: "Reactive Update"}, domain: RuntimeDomain)
+
+      assert_receive %Ash.Notifier.Notification{} = notification
 
       assert {:noreply, socket} = UpdateIntegration.handle_resource_change(notification, socket)
       assert socket.assigns[:ash_ui_bindings][:binding1].value == "Reactive Update"
@@ -224,16 +232,26 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
     end
 
     test "subscriptions clean up on unmount" do
+      fixtures = RuntimeFixtures.seed!()
+      flush_mailbox()
+
       socket =
         build_socket()
         |> Lifecycle.init_session(:dashboard)
         |> elem(1)
 
       # Subscribe to some resources
-      {:ok, _sub} = UpdateIntegration.subscribe(socket, User.Profile)
+      {:ok, subscription} = UpdateIntegration.subscribe(socket, User)
 
       # Cleanup should remove subscriptions
       assert :ok = UpdateIntegration.cleanup_subscriptions(socket)
+
+      {:ok, _updated_user} =
+        Ash.update(fixtures.user, %{name: "After cleanup"}, domain: RuntimeDomain)
+
+      refute_receive %Ash.Notifier.Notification{resource: User}, 100
+
+      assert subscription.resource == User
     end
   end
 
@@ -286,6 +304,7 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
 
     test "event flow from UI to Ash and back" do
       fixtures = RuntimeFixtures.seed!()
+      flush_mailbox()
 
       socket =
         build_socket(
@@ -302,12 +321,17 @@ defmodule AshUI.LiveView.Phase4IntegrationTest do
           }
         )
 
-      {:noreply, socket} = EventHandler.handle_value_change(%{"target" => "input-1", "value" => "changed"}, socket)
+      assert {:ok, _subscription} = UpdateIntegration.subscribe(socket, User)
+
+      {:noreply, socket} =
+        EventHandler.handle_value_change(%{"target" => "input-1", "value" => "changed"}, socket)
+
       assert socket.assigns[:ash_ui_bindings][:binding1].value == "changed"
 
-      {:ok, _updated_user} = Ash.update(fixtures.user, %{name: "server change"}, domain: RuntimeDomain)
+      {:ok, _updated_user} =
+        Ash.update(fixtures.user, %{name: "server change"}, domain: RuntimeDomain)
 
-      notification = %{type: :updated, resource: User, timestamp: DateTime.utc_now()}
+      assert_receive %Ash.Notifier.Notification{} = notification
       {:noreply, socket} = UpdateIntegration.handle_resource_change(notification, socket)
 
       assert socket.assigns[:ash_ui_bindings][:binding1].value == "server change"

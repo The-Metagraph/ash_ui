@@ -160,19 +160,68 @@ defmodule AshUI.Runtime.ActionBinding do
     {:ok, merged_params}
   end
 
-  defp get_param_value({"event", key}, event_data, _context) do
-    Map.get(event_data, key)
-  end
+  defp get_param_value(%{"from" => "event", "key" => key}, event_data, _context),
+    do: lookup_mapping_value(event_data, key)
 
-  defp get_param_value({"context", key}, _event_data, context) do
-    Map.get(context, key)
-  end
+  defp get_param_value(%{"from" => "context", "key" => key}, _event_data, context),
+    do: lookup_mapping_value(context, key)
 
-  defp get_param_value({"static", value}, _event_data, _context) do
-    value
-  end
+  defp get_param_value(%{"from" => "static", "value" => value}, _event_data, _context),
+    do: value
+
+  defp get_param_value(%{"source" => "event", "key" => key}, event_data, _context),
+    do: lookup_mapping_value(event_data, key)
+
+  defp get_param_value(%{"source" => "context", "key" => key}, _event_data, context),
+    do: lookup_mapping_value(context, key)
+
+  defp get_param_value(%{"source" => "static", "value" => value}, _event_data, _context),
+    do: value
+
+  defp get_param_value(%{from: "event", key: key}, event_data, _context),
+    do: lookup_mapping_value(event_data, key)
+
+  defp get_param_value(%{from: "context", key: key}, _event_data, context),
+    do: lookup_mapping_value(context, key)
+
+  defp get_param_value(%{from: "static", value: value}, _event_data, _context),
+    do: value
+
+  defp get_param_value({"event", key}, event_data, _context),
+    do: lookup_mapping_value(event_data, key)
+
+  defp get_param_value({"context", key}, _event_data, context),
+    do: lookup_mapping_value(context, key)
+
+  defp get_param_value({"static", value}, _event_data, _context),
+    do: value
 
   defp get_param_value(_source, _event_data, _context), do: nil
+
+  defp lookup_mapping_value(data, key) when is_binary(key) do
+    case Map.fetch(data, key) do
+      {:ok, value} ->
+        value
+
+      :error ->
+        case safe_to_existing_atom(key) do
+          nil -> nil
+          atom_key -> Map.get(data, atom_key)
+        end
+    end
+  end
+
+  defp lookup_mapping_value(data, key), do: Map.get(data, key)
+
+  defp safe_to_existing_atom(value) when is_binary(value) do
+    try do
+      String.to_existing_atom(value)
+    rescue
+      ArgumentError -> nil
+    end
+  end
+
+  defp safe_to_existing_atom(_value), do: nil
 
   # Call Ash action
   defp call_ash_action(source, params, context, opts),
@@ -192,7 +241,10 @@ defmodule AshUI.Runtime.ActionBinding do
 
     # Store result in assigns
     updated_socket =
-      %{socket | assigns: Map.put(socket.assigns, :ash_ui, Map.put(ash_ui, :actions, updated_actions))}
+      %{
+        socket
+        | assigns: Map.put(socket.assigns, :ash_ui, Map.put(ash_ui, :actions, updated_actions))
+      }
 
     # Show success message if configured
     updated_socket =
@@ -215,7 +267,10 @@ defmodule AshUI.Runtime.ActionBinding do
 
     # Store error in assigns
     updated_socket =
-      %{socket | assigns: Map.put(socket.assigns, :ash_ui, Map.put(ash_ui, :actions, updated_actions))}
+      %{
+        socket
+        | assigns: Map.put(socket.assigns, :ash_ui, Map.put(ash_ui, :actions, updated_actions))
+      }
 
     # Show error message
     error_message = get_in(binding, [:metadata, "error_message"]) || "Action failed"

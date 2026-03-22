@@ -17,12 +17,12 @@ Back to index: [README](./README.md)
 - Ash actions provide CRUD operations on UI definitions
 - Ash policies authorize UI access and modification
 
-[ ] 1 Phase 1 - Core Ash Resource Integration
+[X] 1 Phase 1 - Core Ash Resource Integration
   Implement Ash Resources for storing unified-ui DSL definitions with Ash-backed storage, Ash actions, and policy-based authorization.
 
-  Status note: resource schemas, domain registration, migrations, CRUD coverage, and the configurable UI storage boundary now exist in the repo. This phase remains open because DSL extensions, screen lifecycle actions, and a few relationship/validation details are still unfinished.
+  Status note: resource schemas, domain registration, migrations, CRUD coverage, resource/domain authorization wiring, lifecycle actions, unified_dsl validation, compile-time DSL helpers, and the configurable UI storage boundary now ship in-repo.
 
-  [ ] 1.1 Section - UI Screen Resource
+  [X] 1.1 Section - UI Screen Resource
     Implement the UI.Screen Ash Resource for storing unified-ui screen definitions.
 
     [X] 1.1.1 Task - Define UI.Screen resource schema
@@ -34,30 +34,30 @@ Back to index: [README](./README.md)
       [X] 1.1.1.4 Subtask - Add `version` (integer) and timestamps
       [X] 1.1.1.5 Subtask - Configure the default Postgres-backed `ui_screens` storage
 
-    [ ] 1.1.2 Task - Define UI.Screen actions
+    [X] 1.1.2 Task - Define UI.Screen actions
       Implement standard Ash actions for screen CRUD operations.
 
       [X] 1.1.2.1 Subtask - Add default actions: `:read`, `:create`, `:update`, `:destroy`
-      [ ] 1.1.2.2 Subtask - Implement `:mount` action with `user_id` and `params` arguments
-      [ ] 1.1.2.3 Subtask - Implement `:unmount` action for cleanup
-      [ ] 1.1.2.4 Subtask - Add action return types and error handling
+      [X] 1.1.2.2 Subtask - Implement `:mount` action with `user_id` and `params` arguments
+      [X] 1.1.2.3 Subtask - Implement `:unmount` action for cleanup
+      [X] 1.1.2.4 Subtask - Add action return types and error handling
 
-    [ ] 1.1.3 Task - Define UI.Screen relationships
+    [X] 1.1.3 Task - Define UI.Screen relationships
       Establish relationships to elements and bindings.
 
       [X] 1.1.3.1 Subtask - Add `has_many :elements` relationship to `AshUI.Element`
       [X] 1.1.3.2 Subtask - Add `has_many :bindings` relationship to `AshUI.Binding`
-      [ ] 1.1.3.3 Subtask - Configure cascade delete for child elements and bindings
+      [X] 1.1.3.3 Subtask - Configure cascade delete for child elements and bindings
 
-    [ ] 1.1.4 Task - Add UI.Screen DSL extension
+    [X] 1.1.4 Task - Add UI.Screen DSL extension
       Create the `ui_screen` DSL block for screen-specific configuration.
 
-      [ ] 1.1.4.1 Subtask - Implement `AshUI.Resource.DSL.Screen` extension
-      [ ] 1.1.4.2 Subtask - Add `layout/1`, `route/1`, `metadata/1` DSL functions
-      [ ] 1.1.4.3 Subtask - Validate DSL options at compile time
-      [ ] 1.1.4.4 Subtask - Store DSL options in resource attributes
+      [X] 1.1.4.1 Subtask - Implement `AshUI.Resource.DSL.Screen` extension
+      [X] 1.1.4.2 Subtask - Add `layout/1`, `route/1`, `metadata/1` DSL functions
+      [X] 1.1.4.3 Subtask - Validate DSL options at compile time
+      [X] 1.1.4.4 Subtask - Store DSL options in resource attributes
 
-  [ ] 1.2 Section - UI Element Resource
+  [X] 1.2 Section - UI Element Resource
     Implement the UI.Element Ash Resource for storing unified-ui element definitions.
 
     [X] 1.2.1 Task - Define UI.Element resource schema
@@ -76,15 +76,15 @@ Back to index: [README](./README.md)
       [X] 1.2.2.2 Subtask - Add `has_many :bindings` relationship to `AshUI.Binding`
       [X] 1.2.2.3 Subtask - Add foreign key `screen_id` attribute
 
-    [ ] 1.2.3 Task - Add UI.Element DSL extension
+    [X] 1.2.3 Task - Add UI.Element DSL extension
       Create the `ui_element` DSL block for element-specific configuration.
 
-      [ ] 1.2.3.1 Subtask - Implement `AshUI.Resource.DSL.Element` extension
-      [ ] 1.2.3.2 Subtask - Add `type/1`, `props/1`, `variants/1` DSL functions
-      [ ] 1.2.3.3 Subtask - Validate `type` against known unified-ui widget types
-      [ ] 1.2.3.4 Subtask - Store element definition in resource attributes
+      [X] 1.2.3.1 Subtask - Implement `AshUI.Resource.DSL.Element` extension
+      [X] 1.2.3.2 Subtask - Add `type/1`, `props/1`, `variants/1` DSL functions
+      [X] 1.2.3.3 Subtask - Validate `type` against known unified-ui widget types
+      [X] 1.2.3.4 Subtask - Store element definition in resource attributes
 
-  [ ] 1.3 Section - UI Binding Resource
+  [X] 1.3 Section - UI Binding Resource
     Implement the UI.Binding Ash Resource for data binding definitions.
 
     [X] 1.3.1 Task - Define UI.Binding resource schema
@@ -103,31 +103,31 @@ Back to index: [README](./README.md)
       [X] 1.3.2.2 Subtask - Add `belongs_to :screen` relationship to `AshUI.Screen`
       [X] 1.3.2.3 Subtask - Add foreign keys `element_id` and `screen_id`
 
-    [ ] 1.3.3 Task - Add UI.Binding DSL extension
+    [X] 1.3.3 Task - Add UI.Binding DSL extension
       Create the `ui_binding` DSL block for binding configuration.
 
-      [ ] 1.3.3.1 Subtask - Implement `AshUI.Resource.DSL.Binding` extension
-      [ ] 1.3.3.2 Subtask - Add `source/1`, `target/1`, `binding_type/1` DSL functions
-      [ ] 1.3.3.3 Subtask - Add `transform/1` DSL function for transformations
-      [ ] 1.3.3.4 Subtask - Validate binding type is one of `:value`, `:list`, `:action`
+      [X] 1.3.3.1 Subtask - Implement `AshUI.Resource.DSL.Binding` extension
+      [X] 1.3.3.2 Subtask - Add `source/1`, `target/1`, `binding_type/1` DSL functions
+      [X] 1.3.3.3 Subtask - Add `transform/1` DSL function for transformations
+      [X] 1.3.3.4 Subtask - Validate binding type is one of `:value`, `:list`, `:action`
 
-  [ ] 1.4 Section - Ash Domain Configuration
+  [X] 1.4 Section - Ash Domain Configuration
     Implement the AshUI domain with all resources and authorization.
 
-    [ ] 1.4.1 Task - Create AshUI.Domain
+    [X] 1.4.1 Task - Create AshUI.Domain
       Define the domain containing all Ash UI resources.
 
       [X] 1.4.1.1 Subtask - Implement `AshUI.Domain` with `use Ash.Domain`
       [X] 1.4.1.2 Subtask - Register `AshUI.Screen`, `AshUI.Element`, `AshUI.Binding` resources
-      [ ] 1.4.1.3 Subtask - Configure domain-level authorization with `Ash.Policy.Authorizer`
+      [X] 1.4.1.3 Subtask - Configure domain-level authorization with `Ash.Policy.Authorizer`
 
-    [ ] 1.4.2 Task - Configure resource validations
+    [X] 1.4.2 Task - Configure resource validations
       Add validations for UI resource attributes.
 
-      [ ] 1.4.2.1 Subtask - Validate `unified_dsl` is a valid map structure
+      [X] 1.4.2.1 Subtask - Validate `unified_dsl` is a valid map structure
       [X] 1.4.2.2 Subtask - Validate `binding_type` is in allowed list
-      [ ] 1.4.2.3 Subtask - Validate `source` format matches structured binding source maps
-      [ ] 1.4.2.4 Subtask - Add custom validations with `validate/1`
+      [X] 1.4.2.3 Subtask - Validate `source` format matches structured binding source maps
+      [X] 1.4.2.4 Subtask - Add custom validations with `validate/1`
 
     [X] 1.4.3 Task - Make UI storage configurable
       Resolve screen, element, and binding storage through configuration instead of hardcoded Postgres-only aliases.
@@ -155,7 +155,7 @@ Back to index: [README](./README.md)
       [X] 1.5.2.2 Subtask - Add index on `ui_elements.screen_id`
       [X] 1.5.2.3 Subtask - Add composite index on `ui_bindings.element_id` and `screen_id`
 
-  [ ] 1.6 Section - Phase 1 Integration Tests
+  [X] 1.6 Section - Phase 1 Integration Tests
     Validate Ash Resource CRUD, relationships, and DSL behavior end-to-end.
 
     [X] 1.6.1 Task - Resource CRUD integration scenarios
@@ -164,15 +164,15 @@ Back to index: [README](./README.md)
       [X] 1.6.1.1 Subtask - Verify screen creation with unified_dsl storage
       [X] 1.6.1.2 Subtask - Verify element creation with screen association
       [X] 1.6.1.3 Subtask - Verify binding creation with element and screen associations
-      [ ] 1.6.1.4 Subtask - Verify cascade delete from screen to elements and bindings
+      [X] 1.6.1.4 Subtask - Verify cascade delete from screen to elements and bindings
 
-    [ ] 1.6.2 Task - DSL and validation integration scenarios
+    [X] 1.6.2 Task - DSL and validation integration scenarios
       Verify DSL extensions and validations work correctly.
 
-      [ ] 1.6.2.1 Subtask - Verify `ui_screen` DSL creates valid resource attributes
-      [ ] 1.6.2.2 Subtask - Verify `ui_element` DSL validates widget types
-      [ ] 1.6.2.3 Subtask - Verify `ui_binding` DSL validates binding types
-      [ ] 1.6.2.4 Subtask - Verify invalid DSL options produce validation errors
+      [X] 1.6.2.1 Subtask - Verify `ui_screen` DSL creates valid resource attributes
+      [X] 1.6.2.2 Subtask - Verify `ui_element` DSL validates widget types
+      [X] 1.6.2.3 Subtask - Verify `ui_binding` DSL validates binding types
+      [X] 1.6.2.4 Subtask - Verify invalid DSL options produce validation errors
 
     [X] 1.6.3 Task - Relationship and query integration scenarios
       Verify relationships and queries work correctly.

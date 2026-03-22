@@ -52,8 +52,7 @@ defmodule AshUI.Data do
   simple keyword filter before delegating to `Ash.read/2`.
   """
   def read(resource, opts \\ []) when is_atom(resource) and is_list(opts) do
-    {filter, opts} = Keyword.pop(opts, :filter)
-    query = apply_filter(resource, filter)
+    {query, opts} = build_read_query(resource, opts)
 
     Ash.read(query, put_default_domain(opts))
   end
@@ -62,8 +61,7 @@ defmodule AshUI.Data do
   Reads a collection of records and raises on failure.
   """
   def read!(resource, opts \\ []) when is_atom(resource) and is_list(opts) do
-    {filter, opts} = Keyword.pop(opts, :filter)
-    query = apply_filter(resource, filter)
+    {query, opts} = build_read_query(resource, opts)
 
     Ash.read!(query, put_default_domain(opts))
   end
@@ -72,8 +70,7 @@ defmodule AshUI.Data do
   Reads a single record from the given resource, optionally applying a filter.
   """
   def read_one(resource, opts \\ []) when is_atom(resource) and is_list(opts) do
-    {filter, opts} = Keyword.pop(opts, :filter)
-    query = apply_filter(resource, filter)
+    {query, opts} = build_read_query(resource, opts)
 
     Ash.read_one(query, put_default_domain(opts))
   end
@@ -82,10 +79,42 @@ defmodule AshUI.Data do
   Reads a single record and raises on failure.
   """
   def read_one!(resource, opts \\ []) when is_atom(resource) and is_list(opts) do
-    {filter, opts} = Keyword.pop(opts, :filter)
-    query = apply_filter(resource, filter)
+    {query, opts} = build_read_query(resource, opts)
 
     Ash.read_one!(query, put_default_domain(opts))
+  end
+
+  @doc """
+  Runs a generic action through `AshUI.Domain`.
+  """
+  def action(resource, action_name, args \\ %{}, opts \\ [])
+      when is_atom(resource) and is_atom(action_name) and is_map(args) and is_list(opts) do
+    resource
+    |> Ash.ActionInput.for_action(action_name, args, Keyword.put(opts, :domain, Domain))
+    |> Ash.run_action()
+  end
+
+  @doc """
+  Runs a generic action and raises on failure.
+  """
+  def action!(resource, action_name, args \\ %{}, opts \\ [])
+      when is_atom(resource) and is_atom(action_name) and is_map(args) and is_list(opts) do
+    resource
+    |> Ash.ActionInput.for_action(action_name, args, Keyword.put(opts, :domain, Domain))
+    |> Ash.run_action!()
+  end
+
+  defp build_read_query(resource, opts) do
+    {filter, opts} = Keyword.pop(opts, :filter)
+    {action, opts} = Keyword.pop(opts, :action, :read)
+    {args, opts} = Keyword.pop(opts, :args, %{})
+
+    query =
+      resource
+      |> apply_filter(filter)
+      |> Ash.Query.for_read(action, args)
+
+    {query, opts}
   end
 
   defp apply_filter(resource, nil), do: resource

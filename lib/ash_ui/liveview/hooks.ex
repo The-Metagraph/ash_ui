@@ -8,8 +8,10 @@ defmodule AshUI.LiveView.Hooks do
 
   require Logger
 
+  alias AshUI.Data
   alias AshUI.LiveView.Integration
   alias AshUI.LiveView.UpdateIntegration
+  alias AshUI.Resources.Screen
 
   @doc """
   on_mount hook for initializing Ash UI screens.
@@ -104,6 +106,8 @@ defmodule AshUI.LiveView.Hooks do
   def on_unmount(socket) do
     # Unsubscribe from all Ash resource notifications
     UpdateIntegration.cleanup_subscriptions(socket)
+
+    maybe_run_screen_unmount(socket)
 
     # Emit unmount telemetry
     screen_id = get_screen_id(socket)
@@ -204,6 +208,27 @@ defmodule AshUI.LiveView.Hooks do
     case socket.assigns[:ash_ui_screen] do
       %{id: id} -> id
       _ -> nil
+    end
+  end
+
+  defp maybe_run_screen_unmount(socket) do
+    with %{id: screen_id} <- socket.assigns[:ash_ui_screen],
+         %{id: user_id} <- socket.assigns[:ash_ui_user] do
+      params = Map.get(socket.assigns, :ash_ui_params, %{})
+
+      case Data.action(Screen, :unmount, %{
+             screen_id: screen_id,
+             user_id: to_string(user_id),
+             params: params
+           }) do
+        {:ok, _result} ->
+          :ok
+
+        {:error, reason} ->
+          Logger.warning("Screen unmount action failed: #{inspect(reason)}")
+      end
+    else
+      _ -> :ok
     end
   end
 

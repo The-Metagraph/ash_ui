@@ -1,16 +1,19 @@
 defmodule BasicDashboard do
   @moduledoc """
-  Minimal Ash UI example seed module.
+  Minimal Ash UI example seed module backed by ETS data.
   """
 
   alias AshUI.Config
   alias AshUI.DSL.Builder
   alias AshUI.Data, as: Domain
+  alias BasicDashboard.Data
 
   def seed! do
     screen_resource = Config.screen_resource()
     element_resource = Config.element_resource()
     binding_resource = Config.binding_resource()
+
+    cleanup_existing_screen!(screen_resource)
 
     {:ok, screen} =
       Domain.create(screen_resource,
@@ -23,7 +26,10 @@ defmodule BasicDashboard do
               spacing: 12,
               children: [
                 Builder.text("Basic Dashboard", size: 24, weight: :bold),
-                Builder.input("display_name", placeholder: "Enter your name", bind_to: "user-name"),
+                Builder.input("display_name",
+                  placeholder: "Enter your name",
+                  bind_to: "user-name"
+                ),
                 Builder.button("Save", on_click: "save-profile")
               ]
             )
@@ -60,7 +66,11 @@ defmodule BasicDashboard do
           element_id: input.id,
           binding_type: :value,
           target: "value",
-          source: %{"resource" => "User", "field" => "name", "id" => "current-user"}
+          source: %{
+            "resource" => "BasicDashboard.User",
+            "field" => "name",
+            "id" => Data.current_user_id()
+          }
         }
       )
 
@@ -71,7 +81,11 @@ defmodule BasicDashboard do
           element_id: button.id,
           binding_type: :action,
           target: "submit",
-          source: %{"resource" => "User", "action" => "save_profile"},
+          source: %{
+            "resource" => "BasicDashboard.User",
+            "action" => "save_profile",
+            "id" => Data.current_user_id()
+          },
           transform: %{
             "params" => %{
               "display_name" => %{"from" => "event", "key" => "display_name"},
@@ -82,5 +96,13 @@ defmodule BasicDashboard do
       )
 
     screen
+  end
+
+  defp cleanup_existing_screen!(screen_resource) do
+    screen_resource
+    |> Domain.read!(filter: [name: "basic_dashboard"], authorize?: false)
+    |> Enum.each(fn screen ->
+      :ok = Domain.destroy(screen, authorize?: false)
+    end)
   end
 end

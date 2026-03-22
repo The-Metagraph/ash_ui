@@ -21,6 +21,9 @@ Treat this directory as a reference implementation to copy into an app while wir
 The example data uses `Ash.DataLayer.Ets`, which is ideal for demos, tests, and lightweight prototypes.
 The visual treatment intentionally borrows the Ash site palette and glow accents while leaving out the checkerboard background.
 
+If you want a runnable host app instead of just the reference modules, use
+`examples/basic_dashboard_app`.
+
 ## Core Flow
 
 ```elixir

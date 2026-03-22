@@ -117,10 +117,14 @@ jobs:
           target_commitish: ${{ github.sha }}
 
       - name: Publish to Hex
-        if: ${{ secrets.HEX_API_KEY != '' }}
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         run: |
+          if [ -z "${HEX_API_KEY:-}" ]; then
+            echo "HEX_API_KEY is not configured; skipping Hex publish."
+            exit 0
+          fi
+
           mix hex.user auth --key "$HEX_API_KEY"
           mix hex.publish --yes
 

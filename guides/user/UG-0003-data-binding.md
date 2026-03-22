@@ -118,13 +118,21 @@ Use `:action` when the UI should trigger an Ash-side operation.
       source: %{"resource" => "Profile", "action" => "save"},
       transform: %{
         "params" => %{
-          "display_name" => {"event", "display_name"},
-          "actor_id" => {"context", "user_id"}
+          "display_name" => %{"from" => "event", "key" => "display_name"},
+          "actor_id" => %{"from" => "context", "key" => "user_id"}
         }
       }
     }
   )
 ```
+
+Persisted bindings should keep parameter mappings JSON-safe:
+
+- event values: `%{"from" => "event", "key" => "display_name"}`
+- context values: `%{"from" => "context", "key" => "user_id"}`
+- static values: `%{"from" => "static", "value" => "Created"}`
+
+Tuple mappings are still accepted for in-memory compatibility, but map-based mappings are the stable stored format.
 
 Execute an action binding:
 

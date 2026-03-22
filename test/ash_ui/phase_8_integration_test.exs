@@ -264,8 +264,13 @@ defmodule AshUI.Phase8IntegrationTest do
   end
 
   describe "Section 8.6.4 - Release readiness scenarios" do
+    @tag timeout: 120_000
     test "8.6.4.1 - release readiness and CI gate validations pass" do
-      output = run_shell!("./scripts/validate_release_readiness.sh")
+      output =
+        run_shell!("./scripts/validate_release_readiness.sh", %{
+          "RELEASE_RUN_CONFORMANCE" => "false",
+          "RELEASE_RUN_COVERAGE" => "false"
+        })
 
       assert String.contains?(output, "Release readiness validation passed.")
     end

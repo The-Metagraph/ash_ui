@@ -8,6 +8,10 @@ export MIX_ENV="${MIX_ENV:-test}"
 REPORT_DIR="${CONFORMANCE_REPORT_DIR:-reports/conformance}"
 mkdir -p "$REPORT_DIR"
 
+if [[ "${CONFORMANCE_PREPARE_ENV:-true}" == "true" ]]; then
+  ./scripts/prepare_test_environment.sh
+fi
+
 ./scripts/validate_specs_governance.sh
 ./scripts/validate_guides_governance.sh
 ./scripts/validate_rfc_governance.sh

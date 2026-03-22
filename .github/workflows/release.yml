@@ -36,6 +36,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     env:
+      MIX_ENV: test
       RELEASE_RUN_CONFORMANCE: "true"
       RELEASE_RUN_COVERAGE: "true"
       RELEASE_COVERAGE_THRESHOLD: "70"
@@ -60,13 +61,11 @@ jobs:
       - name: Compile with warnings as errors
         run: mix compile --warnings-as-errors
 
-      - name: Prepare test database
-        run: |
-          mix ecto.create
-          mix ecto.migrate
+      - name: Prepare test environment
+        run: PREPARE_RUN_DEPS=false ./scripts/prepare_test_environment.sh
 
       - name: Validate release readiness
-        run: ./scripts/validate_release_readiness.sh
+        run: RELEASE_PREPARE_ENV=false ./scripts/validate_release_readiness.sh
 
   release:
     name: Create Release

@@ -55,13 +55,11 @@ jobs:
       - name: Compile with warnings as errors
         run: mix compile --warnings-as-errors
 
-      - name: Prepare test database
-        run: |
-          mix ecto.create
-          mix ecto.migrate
+      - name: Prepare test environment
+        run: PREPARE_RUN_DEPS=false ./scripts/prepare_test_environment.sh
 
       - name: Run conformance harness
-        run: ./scripts/run_conformance.sh
+        run: CONFORMANCE_PREPARE_ENV=false ./scripts/run_conformance.sh
 
       - name: Upload conformance report
         if: always()

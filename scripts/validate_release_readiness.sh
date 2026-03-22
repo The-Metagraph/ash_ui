@@ -81,6 +81,12 @@ else
   done <<<"$critical_items"
 fi
 
+if [[ "${RELEASE_PREPARE_ENV:-true}" == "true" ]]; then
+  ./scripts/prepare_test_environment.sh || fail "test environment preparation failed"
+else
+  note "test environment preparation skipped"
+fi
+
 if [[ "${RELEASE_RUN_GOVERNANCE:-true}" == "true" ]]; then
   echo "Running governance validators..."
   if [[ "${RELEASE_RUN_SPECS_GOVERNANCE:-true}" == "true" ]]; then
@@ -110,7 +116,7 @@ fi
 
 if [[ "${RELEASE_RUN_CONFORMANCE:-false}" == "true" ]]; then
   echo "Running conformance harness..."
-  ./scripts/run_conformance.sh || fail "conformance run failed"
+  CONFORMANCE_PREPARE_ENV=false ./scripts/run_conformance.sh || fail "conformance run failed"
 else
   note "conformance run skipped (set RELEASE_RUN_CONFORMANCE=true to enforce)"
 fi

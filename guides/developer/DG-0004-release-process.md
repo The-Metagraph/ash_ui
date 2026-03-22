@@ -6,7 +6,7 @@ title: Release Process
 audience: Framework Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-03-20
+last_reviewed: 2026-03-21
 next_review: 2026-09-20
 related_reqs: [REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-012, REQ-OBS-001]
 related_scns: [SCN-041, SCN-061, SCN-081, SCN-101]
@@ -52,6 +52,8 @@ A release candidate is only meaningful when these are aligned:
 ./scripts/generate_changelog.sh vX.Y.Z
 ./scripts/test_rollback_procedure.sh
 ```
+
+The release-readiness script prepares dependencies and the test database before running governance, conformance, coverage, and rollback checks.
 
 If the full suite is noisy or temporarily blocked, record the exact focused suites that passed and the specific remaining gaps before cutting anything intended for external use.
 

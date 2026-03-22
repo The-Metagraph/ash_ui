@@ -130,33 +130,42 @@ defmodule AshUI.LiveView.Integration do
     end
   end
 
-  defp load_screen(screen_id, user, _params) do
-    case load_screen_by_identifier(screen_id, user) do
+  defp load_screen(screen_id, user, params) do
+    case load_screen_by_identifier(screen_id, user, params) do
       {:ok, screen} -> {:ok, screen}
       {:error, :invalid_primary_key} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp load_screen_by_identifier(screen_id, _user) when is_atom(screen_id) do
-    load_screen_by_name(Atom.to_string(screen_id))
+  defp load_screen_by_identifier(screen_id, user, params) when is_atom(screen_id) do
+    load_screen_by_name(Atom.to_string(screen_id), user, params)
   end
 
-  defp load_screen_by_identifier(screen_id, user) do
-    case load_screen_by_primary_key(screen_id, user) do
+  defp load_screen_by_identifier(screen_id, user, params) do
+    case load_screen_by_primary_key(screen_id, user, params) do
       {:ok, _screen} = result ->
         result
 
       {:error, _reason} when is_binary(screen_id) ->
-        load_screen_by_name(screen_id)
+        load_screen_by_name(screen_id, user, params)
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
-  defp load_screen_by_primary_key(screen_id, user) do
-    case Ash.get(Screen, screen_id, action: :mount, actor: user, domain: Domain, authorize?: true) do
+  defp load_screen_by_primary_key(screen_id, user, params) do
+    query =
+      Screen
+      |> Ash.Query.new()
+      |> Ash.Query.filter(id == ^screen_id)
+      |> Ash.Query.for_read(:mount, %{
+        user_id: get_user_id(user),
+        params: params
+      })
+
+    case Ash.read_one(query, actor: user, domain: Domain, authorize?: true) do
       {:ok, screen} -> {:ok, screen}
       {:error, reason} -> {:error, reason}
     end
@@ -165,13 +174,17 @@ defmodule AshUI.LiveView.Integration do
     Ash.Error.Invalid.NoSuchResource -> {:error, :not_found}
   end
 
-  defp load_screen_by_name(name) do
+  defp load_screen_by_name(name, user, params) do
     query =
       Screen
       |> Ash.Query.new()
       |> Ash.Query.filter(name == ^name)
+      |> Ash.Query.for_read(:mount, %{
+        user_id: get_user_id(user),
+        params: params
+      })
 
-    case Ash.read_one(query, domain: Domain) do
+    case Ash.read_one(query, actor: user, domain: Domain, authorize?: true) do
       {:ok, %Screen{} = screen} -> {:ok, screen}
       {:ok, nil} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}

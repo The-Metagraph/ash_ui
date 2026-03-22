@@ -140,7 +140,7 @@ Screens MUST emit lifecycle telemetry.
 
 ## Implementation Note
 
-The old `ui_screen` DSL direction has been superseded in this repository by persisted screen records plus `unified_dsl`. Lifecycle is currently implemented primarily through LiveView runtime helpers rather than screen resource actions.
+This repository persists screens as durable records with `unified_dsl`, while also providing compile-time `ui_screen` helper modules for resource-facing DSL composition. Screen lifecycle now runs through both LiveView helpers and explicit `:mount` / `:unmount` resource actions.
 
 ## Traceability
 

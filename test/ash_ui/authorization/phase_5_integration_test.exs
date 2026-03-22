@@ -14,17 +14,16 @@ defmodule AshUI.Authorization.Phase5IntegrationTest do
   defp build_admin(), do: %{id: "admin-1", role: :admin, active: true}
   defp build_user(id \\ "user-1"), do: %{id: id, role: :user, active: true}
   defp build_inactive(), do: %{id: "user-2", role: :user, active: false}
-  defp build_guest(), do: %{id: nil, role: :guest, active: true}
 
   # Mock socket
-  defp build_socket(assigns \\ %{}) do
+  defp build_socket(assigns) do
     %Phoenix.LiveView.Socket{
       assigns: Enum.into(assigns, %{__changed__: %{}})
     }
   end
 
   # Mock resources
-  defp build_screen(opts \\ []) do
+  defp build_screen(opts) do
     Enum.into(opts, %{
       id: "screen-1",
       name: "Test Screen",
@@ -154,8 +153,6 @@ defmodule AshUI.Authorization.Phase5IntegrationTest do
     end
 
     test "cross-resource authorization works" do
-      user = build_user()
-
       # Check cross-resource policy
       assert Policies.can_read_source(%{source: %{"resource" => "User"}}) == true
       assert Policies.can_write_source(%{source: %{"resource" => "User"}}) == true
@@ -250,7 +247,7 @@ defmodule AshUI.Authorization.Phase5IntegrationTest do
       assert {:error, :no_user} = Runtime.extract_user(socket)
 
       # Mount should fail
-      assert {:forbidden, reason} = Runtime.check_mount_authorization(nil, screen)
+      assert {:forbidden, _reason} = Runtime.check_mount_authorization(nil, screen)
 
       assert AuthorizationError.requires_login?(
                AuthorizationError.unauthenticated(AshUI.Screen, :mount)
@@ -307,7 +304,7 @@ defmodule AshUI.Authorization.Phase5IntegrationTest do
       error = AuthorizationError.forbidden(AshUI.Screen, :mount)
       page = AuthorizationError.custom_error_page(error, AshUI.Screen)
 
-      assert page.help_url != nil
+      assert is_binary(page.help_url)
       assert String.contains?(page.help_url, "/help/")
     end
   end

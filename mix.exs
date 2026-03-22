@@ -8,6 +8,7 @@ defmodule AshUI.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
+      test_coverage: [summary: [threshold: coverage_threshold()]],
       deps: deps(),
       aliases: aliases()
     ]
@@ -47,5 +48,10 @@ defmodule AshUI.MixProject do
     [
       format: ["format"]
     ]
+  end
+
+  defp coverage_threshold do
+    System.get_env("MIX_TEST_COVERAGE_THRESHOLD", "90")
+    |> String.to_integer()
   end
 end

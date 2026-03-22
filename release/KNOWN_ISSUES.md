@@ -6,8 +6,7 @@
 
 ## High
 
-- External renderer packages are still optional, so some environments rely on fallback adapter behavior.
-- Code-doc governance still reports missing docs on some existing modules and must be cleared before a real release cut.
+- None
 
 ## Watchlist
 

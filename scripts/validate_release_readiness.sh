@@ -119,8 +119,8 @@ if [[ "${RELEASE_RUN_COVERAGE:-false}" == "true" ]]; then
   threshold="${RELEASE_COVERAGE_THRESHOLD:-70}"
   echo "Running coverage check with threshold ${threshold}%..."
   set +e
-  mix test --cover --min-coverage "$threshold" 2>&1 | tee "$REPORT_DIR/coverage.txt"
-  coverage_status=${PIPESTATUS[0]}
+  MIX_TEST_COVERAGE_THRESHOLD="$threshold" mix test --cover 2>&1 | tee "$REPORT_DIR/coverage.txt"
+  coverage_status=$?
   set -e
 
   if [[ "$coverage_status" -ne 0 ]]; then

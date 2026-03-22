@@ -59,3 +59,22 @@ Then route a LiveView to the dashboard screen name:
 ```elixir
 live "/dashboard", BasicDashboardLive
 ```
+
+## Adapter Runner
+
+To inspect the example through a specific Ash UI adapter without starting a
+Phoenix server, use:
+
+```bash
+mix ash_ui.example.basic_dashboard --renderer liveview
+mix ash_ui.example.basic_dashboard --renderer html --output /tmp/basic_dashboard.html
+mix ash_ui.example.basic_dashboard --renderer desktop
+```
+
+Notes:
+
+- the task configures the example's ETS-backed UI storage automatically
+- `liveview` prints HEEx output
+- `html` prints or writes static HTML
+- `desktop` prints JSON instructions
+- add `--strict-external` if you want the task to fail instead of using adapter fallback

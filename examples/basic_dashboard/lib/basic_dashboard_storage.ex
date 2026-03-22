@@ -1,3 +1,22 @@
+defmodule BasicDashboard.Storage do
+  @moduledoc """
+  Configuration helpers for the example ETS-backed UI storage resources.
+  """
+
+  @spec config() :: keyword()
+  def config do
+    [
+      domain: BasicDashboard.Storage.Domain,
+      resources: [
+        screen: BasicDashboard.Storage.Screen,
+        element: BasicDashboard.Storage.Element,
+        binding: BasicDashboard.Storage.Binding
+      ],
+      repo: nil
+    ]
+  end
+end
+
 defmodule BasicDashboard.Storage.Domain do
   @moduledoc """
   Example ETS-backed UI storage domain for the basic dashboard reference app.

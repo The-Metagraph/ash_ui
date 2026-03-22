@@ -1,8 +1,11 @@
 defmodule AshUI.Examples.BasicDashboardTest do
   use AshUI.DataCase, async: false
 
+  import ExUnit.CaptureIO
+
   require Ash.Query
 
+  alias BasicDashboard.AdapterRunner
   alias BasicDashboard.Data
   alias BasicDashboardLive
   alias AshUI.Resources.Binding
@@ -102,5 +105,37 @@ defmodule AshUI.Examples.BasicDashboardTest do
     assert html =~ "ETS-backed dashboard data"
     assert html =~ "ash-demo-shell"
     assert html =~ "Pascal"
+  end
+
+  test "adapter runner renders HTML output for the dashboard example" do
+    assert {:ok, result} = AdapterRunner.render(:html)
+
+    assert result.renderer == :html
+    assert result.screen.name == "basic_dashboard"
+    assert is_binary(result.output)
+    assert result.output =~ "<!DOCTYPE html>"
+    assert result.output =~ "ash-screen-basic_dashboard"
+  end
+
+  test "adapter runner renders desktop instructions for the dashboard example" do
+    assert {:ok, result} = AdapterRunner.render(:desktop)
+
+    assert result.renderer == :desktop
+    assert is_map(result.output)
+    assert result.output["type"] == "desktop_screen"
+    assert result.output["name"] == "basic_dashboard"
+  end
+
+  test "mix task renders the dashboard example through a specific adapter" do
+    Mix.Task.reenable("ash_ui.example.basic_dashboard")
+
+    output =
+      capture_io(fn ->
+        Mix.Tasks.AshUi.Example.BasicDashboard.run(["--renderer", "html"])
+      end)
+
+    assert output =~ "Renderer: html"
+    assert output =~ "<!DOCTYPE html>"
+    assert output =~ "ash-screen-basic_dashboard"
   end
 end

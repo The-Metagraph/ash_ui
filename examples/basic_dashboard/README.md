@@ -7,12 +7,14 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 3. mount it through `AshUI.LiveView.Integration`
 4. delegate user events through `AshUI.LiveView.EventHandler`
 5. present the result with an Ash HQ-inspired dark theme, warm gradient accents, and live data cards
+6. optionally swap UI-definition storage to ETS-backed Ash resources
 
 ## Files
 
 - `lib/basic_dashboard.ex`: seed helpers that create the screen, elements, and bindings
 - `lib/basic_dashboard_data.ex`: example Ash domain and ETS-backed resources
 - `lib/basic_dashboard_live.ex`: a LiveView that mounts the screen and forwards events
+- `lib/basic_dashboard_storage.ex`: example ETS-backed `Screen`, `Element`, and `Binding` resources
 
 ## Suggested Use
 
@@ -26,6 +28,30 @@ The visual treatment intentionally borrows the Ash site palette and glow accents
 ```elixir
 BasicDashboard.Data.seed!()
 BasicDashboard.seed!()
+```
+
+`BasicDashboard.seed!/0` uses the configured Ash UI storage resources, so you can keep the same seed code while changing the backend.
+
+To use the included ETS-backed example storage instead of the built-in Postgres-backed resources:
+
+```elixir
+config :ash_ui,
+  ui_storage: [
+    domain: BasicDashboard.Storage.Domain,
+    resources: [
+      screen: BasicDashboard.Storage.Screen,
+      element: BasicDashboard.Storage.Element,
+      binding: BasicDashboard.Storage.Binding
+    ],
+    repo: nil
+  ]
+```
+
+Keep your runtime binding source domains separate:
+
+```elixir
+config :ash_ui,
+  ash_domains: [MyApp.Domain]
 ```
 
 Then route a LiveView to the dashboard screen name:

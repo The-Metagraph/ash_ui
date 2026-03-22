@@ -10,9 +10,9 @@ defmodule AshUI do
   """
 
   @doc """
-  Returns the Ash domain that owns the Ash UI resources.
+  Returns the configured UI storage domain.
   """
   def domain do
-    AshUI.Domain
+    AshUI.Config.ui_storage_domain()
   end
 end

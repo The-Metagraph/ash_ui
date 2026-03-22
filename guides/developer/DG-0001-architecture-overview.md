@@ -22,7 +22,7 @@ This guide explains the current Ash UI architecture as implemented in this repos
 
 Before reading this guide, you should:
 
-- Know Ash resources, domains, and AshPostgres basics
+- Know Ash resources, domains, and Ash data layer basics
 - Be comfortable reading Phoenix LiveView integration code
 - Have read [UG-0001: Getting Started](../user/UG-0001-getting-started.md)
 
@@ -33,10 +33,10 @@ Ash UI is organized around five control planes, but the codebase is intentionall
 ```mermaid
 flowchart LR
     subgraph Framework["Framework plane"]
-        Domain["AshUI.Domain"]
-        Screen["AshUI.Resources.Screen"]
-        Element["AshUI.Resources.Element"]
-        Binding["AshUI.Resources.Binding"]
+        Domain["Configured UI storage domain"]
+        Screen["Configured screen resource"]
+        Element["Configured element resource"]
+        Binding["Configured binding resource"]
         Builder["AshUI.DSL.Builder"]
     end
 
@@ -95,21 +95,25 @@ The earlier specs describe first-class `UI.Screen`, `UI.Element`, and `UI.Bindin
 
 That means contributors should treat `unified_dsl` plus compiler/runtime boundaries as the most important integration seam.
 
+The built-in modules remain `AshUI.Domain`, `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`, but framework code should treat those as defaults behind a UI storage configuration boundary rather than hard requirements.
+
 ## Framework Plane
 
 The framework plane owns durable UI definitions.
 
 Primary modules:
 
-- `AshUI.Domain`
-- `AshUI.Resources.Screen`
-- `AshUI.Resources.Element`
-- `AshUI.Resources.Binding`
+- configured UI storage domain
+- configured screen resource
+- configured element resource
+- configured binding resource
 - `AshUI.DSL.Builder`
 - `AshUI.DSL.Storage`
 
 Important details:
 
+- the default shipped storage backend is Postgres through `AshUI.Domain` and `AshUI.Repo`
+- the framework resolves storage modules through configuration
 - `Screen` stores `name`, `route`, `layout`, `unified_dsl`, and metadata.
 - `Element` and `Binding` provide relational structure for querying and runtime behavior.
 - updates increment `version`, which feeds cache and rollout safety checks.
@@ -161,6 +165,8 @@ The mount flow is:
 6. assign screen state onto the socket
 
 This flow is currently the best place to inspect end-to-end behavior when debugging regressions.
+
+One important boundary: `:ash_domains` is for binding source resolution, not UI storage. The UI storage domain/resources are a separate piece of framework configuration.
 
 ## Authorization Plane Responsibilities
 

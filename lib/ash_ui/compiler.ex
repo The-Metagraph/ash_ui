@@ -12,13 +12,12 @@ defmodule AshUI.Compiler do
   require Logger
 
   alias AshUI.Compilation.IUR
-  alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
-  alias AshUI.Resources.Binding
+  alias AshUI.Config
   alias AshUI.DSL.Storage
   alias AshUI.Telemetry
 
   @type compile_result :: {:ok, IUR.t()} | {:error, term()}
+  @type screen_record :: struct()
 
   @doc """
   Compiles a screen resource to an IUR structure.
@@ -30,7 +29,7 @@ defmodule AshUI.Compiler do
     * `:actor` - Actor for authorization
     * `:tenant` - Tenant for multi-tenancy
   """
-  @spec compile(Screen.t() | String.t() | integer(), keyword()) :: compile_result()
+  @spec compile(screen_record() | String.t() | integer(), keyword()) :: compile_result()
   def compile(screen, opts \\ [])
 
   def compile(screen_id, opts) when is_binary(screen_id) or is_integer(screen_id) do
@@ -43,14 +42,18 @@ defmodule AshUI.Compiler do
     emit_compile_telemetry(result, started_at, metadata)
   end
 
-  def compile(%Screen{} = screen, opts) do
-    started_at = System.monotonic_time()
-    metadata = compile_metadata(screen, opts)
-    Telemetry.emit(:compilation, :compile_start, %{count: 1}, metadata)
+  def compile(%_{} = screen, opts) do
+    if screen_resource?(screen, opts) do
+      started_at = System.monotonic_time()
+      metadata = compile_metadata(screen, opts)
+      Telemetry.emit(:compilation, :compile_start, %{count: 1}, metadata)
 
-    result = do_compile_screen(screen, opts)
+      result = do_compile_screen(screen, opts)
 
-    emit_compile_telemetry(result, started_at, metadata)
+      emit_compile_telemetry(result, started_at, metadata)
+    else
+      {:error, {:invalid_screen_resource, screen.__struct__}}
+    end
   end
 
   @doc """
@@ -60,14 +63,21 @@ defmodule AshUI.Compiler do
 
       {:ok, iur} = AshUI.Compiler.compile_from_unified_dsl(screen)
   """
-  @spec compile_from_unified_dsl(Screen.t(), keyword()) :: compile_result()
+  @spec compile_from_unified_dsl(screen_record(), keyword()) :: compile_result()
   def compile_from_unified_dsl(screen, opts \\ [])
 
-  def compile_from_unified_dsl(%Screen{unified_dsl: dsl} = screen, _opts) when is_map(dsl) do
-    with {:ok, validated_dsl} <- validate_dsl(dsl),
+  def compile_from_unified_dsl(screen, opts) when is_map(screen) do
+    dsl = Map.get(screen, :unified_dsl)
+
+    with true <- screen_resource?(screen, opts),
+         true <- is_map(dsl),
+         {:ok, validated_dsl} <- validate_dsl(dsl),
          {:ok, ash_iur} <- compile_to_ash_iur(screen, validated_dsl),
          :ok <- IUR.validate(ash_iur) do
       {:ok, ash_iur}
+    else
+      false -> {:error, :invalid_screen}
+      error -> error
     end
   end
 
@@ -186,7 +196,7 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp do_compile_screen(%Screen{} = screen, opts) do
+  defp do_compile_screen(screen, opts) when is_map(screen) do
     use_cache = Keyword.get(opts, :use_cache, true)
     load_elements? = Keyword.get(opts, :load_elements, true)
     load_bindings? = Keyword.get(opts, :load_bindings, true)
@@ -206,25 +216,28 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp compile_screen_uncached(%Screen{} = screen, load_elements?, load_bindings?, opts) do
+  defp compile_screen_uncached(screen, load_elements?, load_bindings?, opts) when is_map(screen) do
     if should_compile_from_unified_dsl?(screen) do
       compile_from_unified_dsl(screen, opts)
     else
-      compile_from_resources(screen, load_elements?, load_bindings?)
+      compile_from_resources(screen, load_elements?, load_bindings?, opts)
     end
   end
 
   defp load_screen(screen_id, opts) do
     actor = Keyword.get(opts, :actor)
     tenant = Keyword.get(opts, :tenant)
+    ui_storage = Keyword.get(opts, :ui_storage)
+    screen_resource = Config.screen_resource(ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
 
-    case Ash.get(Screen, screen_id, actor: actor, tenant: tenant) do
+    case Ash.get(screen_resource, screen_id, actor: actor, tenant: tenant, domain: domain) do
       {:ok, screen} -> {:ok, screen}
       {:error, reason} -> {:error, {:screen_not_found, reason}}
     end
   end
 
-  defp compile_from_resources(%Screen{} = screen, load_elements?, load_bindings?) do
+  defp compile_from_resources(screen, load_elements?, load_bindings?, opts) when is_map(screen) do
     # Build root IUR from screen
     root_iur =
       IUR.new(:screen,
@@ -242,7 +255,7 @@ defmodule AshUI.Compiler do
     # Load and compile children elements
     root_iur =
       if load_elements? do
-        case load_elements(screen) do
+        case load_elements(screen, opts) do
           {:ok, elements} -> compile_elements(root_iur, elements)
           {:error, _} -> root_iur
         end
@@ -253,7 +266,7 @@ defmodule AshUI.Compiler do
     # Load and compile bindings
     root_iur =
       if load_bindings? do
-        case load_bindings(screen) do
+        case load_bindings(screen, opts) do
           {:ok, bindings} -> compile_bindings(root_iur, bindings)
           {:error, _} -> root_iur
         end
@@ -268,7 +281,7 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp build_cache_key(%Screen{} = screen) do
+  defp build_cache_key(screen) when is_map(screen) do
     version = Map.get(screen, :version, 1)
     "screen:#{screen.id}:v#{version}"
   end
@@ -319,7 +332,7 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp compile_metadata(%Screen{} = screen, opts) do
+  defp compile_metadata(screen, opts) when is_map(screen) do
     %{
       resource_id: screen.id,
       resource_type: :screen,
@@ -387,7 +400,7 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp compile_to_ash_iur(%Screen{} = screen, dsl) do
+  defp compile_to_ash_iur(screen, dsl) when is_map(screen) do
     children = [compile_dsl_node(dsl, screen.id, [0])]
     bindings = compile_dsl_bindings(dsl, screen.id, [0])
 
@@ -410,13 +423,18 @@ defmodule AshUI.Compiler do
   end
 
   # Load elements associated with a screen
-  defp load_elements(%Screen{id: screen_id}) do
+  defp load_elements(screen, opts) when is_map(screen) do
+    screen_id = screen.id
+    ui_storage = Keyword.get(opts, :ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+    element_resource = Config.element_resource(ui_storage)
+
     elements =
-      Element
+      element_resource
       |> Ash.Query.new()
       |> Ash.Query.filter(screen_id == ^screen_id)
       |> Ash.Query.sort(position: :asc)
-      |> Ash.read!(domain: AshUI.Domain)
+      |> Ash.read!(domain: domain)
 
     {:ok, elements}
   rescue
@@ -424,12 +442,17 @@ defmodule AshUI.Compiler do
   end
 
   # Load bindings associated with a screen
-  defp load_bindings(%Screen{id: screen_id}) do
+  defp load_bindings(screen, opts) when is_map(screen) do
+    screen_id = screen.id
+    ui_storage = Keyword.get(opts, :ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+    binding_resource = Config.binding_resource(ui_storage)
+
     bindings =
-      Binding
+      binding_resource
       |> Ash.Query.new()
       |> Ash.Query.filter(screen_id == ^screen_id)
-      |> Ash.read!(domain: AshUI.Domain)
+      |> Ash.read!(domain: domain)
 
     {:ok, bindings}
   rescue
@@ -447,7 +470,7 @@ defmodule AshUI.Compiler do
   end
 
   # Compile a single element to IUR
-  defp compile_element(%Element{} = element) do
+  defp compile_element(element) when is_map(element) do
     IUR.new(element.type,
       id: element.id,
       name: element.props["name"] || "element_#{element.id}",
@@ -468,7 +491,7 @@ defmodule AshUI.Compiler do
   end
 
   # Compile a single binding to IUR format
-  defp compile_binding(%Binding{} = binding) do
+  defp compile_binding(binding) when is_map(binding) do
     %{
       "id" => binding.id,
       "source" => binding.source,
@@ -536,7 +559,7 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp should_compile_from_unified_dsl?(%Screen{unified_dsl: dsl}) when is_map(dsl) do
+  defp should_compile_from_unified_dsl?(%{unified_dsl: dsl}) when is_map(dsl) do
     dsl
     |> AshUI.DSL.Builder.from_store()
     |> Map.get(:type)
@@ -548,6 +571,12 @@ defmodule AshUI.Compiler do
   end
 
   defp should_compile_from_unified_dsl?(_screen), do: false
+
+  defp screen_resource?(%{__struct__: module}, opts) do
+    module == Config.screen_resource(Keyword.get(opts, :ui_storage))
+  end
+
+  defp screen_resource?(_screen, _opts), do: false
 
   defp compile_dsl_node(dsl, screen_id, path) do
     children =

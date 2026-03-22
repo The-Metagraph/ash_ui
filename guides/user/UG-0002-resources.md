@@ -16,7 +16,7 @@ diagram_required: false
 
 ## Overview
 
-This guide explains the three Ash UI resources you work with directly: screens, elements, and bindings. It focuses on the current data model implemented in `AshUI.Domain`.
+This guide explains the three Ash UI resources you work with directly: screens, elements, and bindings. It focuses on the Ash UI resource contract and the default shipped implementation in `AshUI.Domain`.
 
 ## Prerequisites
 
@@ -24,7 +24,7 @@ Before reading this guide, you should:
 
 - Know how to create and query Ash resources
 - Have read [UG-0001: Getting Started](./UG-0001-getting-started.md)
-- Be able to run migrations for your application database
+- Know which UI storage backend your application uses
 
 ## The Core Resources
 
@@ -35,6 +35,10 @@ Ash UI stores UI state as regular Ash records:
 - `AshUI.Resources.Binding`
 
 The shared domain is `AshUI.Domain`, so reads and writes typically go through that module.
+
+That is the default shipped setup. Ash UI can also be configured to use alternate `Screen`, `Element`, and `Binding` resources in a different domain, as long as they satisfy the same contract.
+
+`AshUI.Data` uses the configured UI storage domain, so application code can keep the same CRUD helpers even when the storage backend changes.
 
 ## Screen Records
 
@@ -172,6 +176,15 @@ This gives you two workable patterns:
 
 Many current flows use both.
 
+## UI Storage Versus Binding Source Domains
+
+Keep these two concepts separate:
+
+- `Screen`, `Element`, and `Binding` live in the configured UI storage domain.
+- Binding `source` maps point at application resources that may live in entirely different Ash domains.
+
+For example, you can keep UI definitions in ETS-backed resources while bindings read user data from a Postgres-backed application domain.
+
 ## Versioning and Updates
 
 All three resources increment `version` on update. That matters for:
@@ -206,6 +219,7 @@ active_bindings = Domain.read!(AshUI.Resources.Binding, filter: [screen_id: scre
 - Keep `props` renderer-neutral where possible.
 - Treat `metadata` as optional annotations, not core behavior.
 - Keep binding `source` maps explicit so authorization and runtime code can inspect them safely.
+- Treat `AshUI.Domain` and `AshUI.Resources.*` as defaults, not hard framework requirements.
 
 ## See Also
 

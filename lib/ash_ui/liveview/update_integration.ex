@@ -8,6 +8,7 @@ defmodule AshUI.LiveView.UpdateIntegration do
 
   require Logger
 
+  alias AshUI.Config
   alias AshUI.LiveView.Integration
   alias AshUI.Notifications
   alias AshUI.Runtime.BindingEvaluator
@@ -170,7 +171,7 @@ defmodule AshUI.LiveView.UpdateIntegration do
     params = socket.assigns[:ash_ui_params] || %{}
 
     cond do
-      not match?(%AshUI.Resources.Screen{}, screen) or is_nil(user) ->
+      not Config.screen_record?(screen, Map.get(socket.assigns, :ash_ui_storage)) or is_nil(user) ->
         {:noreply, socket}
 
       true ->
@@ -323,6 +324,8 @@ defmodule AshUI.LiveView.UpdateIntegration do
   end
 
   defp build_evaluation_context(socket) do
+    ui_storage = Map.get(socket.assigns, :ash_ui_storage)
+
     %{
       user_id: get_user_id(socket),
       user: socket.assigns[:ash_ui_user],
@@ -330,7 +333,8 @@ defmodule AshUI.LiveView.UpdateIntegration do
       params: socket.assigns[:ash_ui_params] || %{},
       assigns: socket.assigns,
       socket: socket,
-      ash_domains: Map.get(socket.assigns, :ash_ui_domains, Application.get_env(:ash_ui, :ash_domains, [AshUI.Domain]))
+      ui_storage: Config.ui_storage(ui_storage),
+      ash_domains: Map.get(socket.assigns, :ash_ui_domains, Config.runtime_domains(ui_storage))
     }
   end
 

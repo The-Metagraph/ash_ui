@@ -3,18 +3,20 @@ defmodule BasicDashboard do
   Minimal Ash UI example seed module backed by ETS data.
   """
 
+  alias AshUI.Config
   alias AshUI.DSL.Builder
   alias AshUI.Data, as: Domain
-  alias AshUI.Resources.Binding
-  alias AshUI.Resources.Element
-  alias AshUI.Resources.Screen
   alias BasicDashboard.Data
 
   def seed! do
-    cleanup_existing_screen!()
+    screen_resource = Config.screen_resource()
+    element_resource = Config.element_resource()
+    binding_resource = Config.binding_resource()
+
+    cleanup_existing_screen!(screen_resource)
 
     {:ok, screen} =
-      Domain.create(Screen,
+      Domain.create(screen_resource,
         attrs: %{
           name: "basic_dashboard",
           route: "/dashboard",
@@ -37,7 +39,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, input} =
-      Domain.create(Element,
+      Domain.create(element_resource,
         attrs: %{
           screen_id: screen.id,
           type: :textinput,
@@ -47,7 +49,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, button} =
-      Domain.create(Element,
+      Domain.create(element_resource,
         attrs: %{
           screen_id: screen.id,
           type: :button,
@@ -58,7 +60,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, _value_binding} =
-      Domain.create(Binding,
+      Domain.create(binding_resource,
         attrs: %{
           screen_id: screen.id,
           element_id: input.id,
@@ -73,7 +75,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, _action_binding} =
-      Domain.create(Binding,
+      Domain.create(binding_resource,
         attrs: %{
           screen_id: screen.id,
           element_id: button.id,
@@ -96,10 +98,9 @@ defmodule BasicDashboard do
     screen
   end
 
-  defp cleanup_existing_screen! do
-    Screen
-    |> Ash.read!(domain: AshUI.Domain, authorize?: false)
-    |> Enum.filter(&(&1.name == "basic_dashboard"))
+  defp cleanup_existing_screen!(screen_resource) do
+    screen_resource
+    |> Domain.read!(filter: [name: "basic_dashboard"], authorize?: false)
     |> Enum.each(fn screen ->
       :ok = Domain.destroy(screen, authorize?: false)
     end)

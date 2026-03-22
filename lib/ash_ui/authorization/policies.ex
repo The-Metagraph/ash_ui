@@ -7,6 +7,7 @@ defmodule AshUI.Authorization.Policies do
   """
 
   alias AshUI.Authorization.BindingPolicy
+  alias AshUI.Config
   alias AshUI.Authorization.ElementPolicy
   alias AshUI.Authorization.ScreenPolicy
   alias AshUI.Runtime.ResourceAccess
@@ -360,7 +361,7 @@ defmodule AshUI.Authorization.Policies do
   end
 
   defp configured_domains do
-    Application.get_env(:ash_ui, :ash_domains, [AshUI.Domain])
+    Config.runtime_domains()
   end
 
   defp resolve_action_name(resource, action) do

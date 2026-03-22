@@ -9,11 +9,8 @@ defmodule AshUI.Compiler.Incremental do
   require Ash.Query
   require Logger
 
+  alias AshUI.Config
   alias AshUI.Compiler
-  alias AshUI.Domain
-  alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
-  alias AshUI.Resources.Binding
 
   @type dependency_graph :: %{
           screen_to_elements: %{String.t() => [String.t()]},
@@ -29,8 +26,10 @@ defmodule AshUI.Compiler.Incremental do
 
       {:ok, graph} = AshUI.Compiler.Incremental.build_dependencies(screen)
   """
-  @spec build_dependencies(Screen.t()) :: {:ok, dependency_graph()} | {:error, term()}
-  def build_dependencies(%Screen{} = screen) do
+  @spec build_dependencies(struct(), keyword()) :: {:ok, dependency_graph()} | {:error, term()}
+  def build_dependencies(screen, opts \\ [])
+
+  def build_dependencies(%_{} = screen, opts) do
     graph = %{
       screen_to_elements: %{},
       element_to_screen: %{},
@@ -39,11 +38,14 @@ defmodule AshUI.Compiler.Incremental do
     }
 
     # Load elements and build relationships
-    with {:ok, elements} <- load_screen_elements(screen),
+    with true <- screen_resource?(screen, opts),
+         {:ok, elements} <- load_screen_elements(screen, opts),
          graph <- build_element_dependencies(graph, screen, elements),
-         graph <- build_binding_dependencies(graph, elements),
+         graph <- build_binding_dependencies(graph, elements, opts),
          :ok <- detect_circular_dependencies(graph) do
       {:ok, graph}
+    else
+      false -> {:error, :invalid_screen}
     end
   end
 
@@ -70,7 +72,7 @@ defmodule AshUI.Compiler.Incremental do
           {:ok, map()} | {:error, term()}
   def recompile_on_change(screen_id, changed_resource, changed_id, opts \\ []) do
     with {:ok, screen} <- load_screen(screen_id, opts),
-         {:ok, graph} <- build_dependencies(screen),
+         {:ok, graph} <- build_dependencies(screen, opts),
          true <- affects_screen?(graph, changed_resource, changed_id, screen_id) do
       # Invalidate cache for screen
       Compiler.invalidate_cache(screen_id)
@@ -202,21 +204,29 @@ defmodule AshUI.Compiler.Incremental do
   defp load_screen(screen_id, opts) do
     actor = Keyword.get(opts, :actor)
     tenant = Keyword.get(opts, :tenant)
+    ui_storage = Keyword.get(opts, :ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+    screen_resource = Config.screen_resource(ui_storage)
 
-    case Ash.get(Screen, screen_id, actor: actor, tenant: tenant, domain: Domain) do
+    case Ash.get(screen_resource, screen_id, actor: actor, tenant: tenant, domain: domain) do
       {:ok, screen} -> {:ok, screen}
       {:error, reason} -> {:error, {:screen_not_found, reason}}
     end
   end
 
-  defp load_screen_elements(%Screen{id: screen_id}) do
+  defp load_screen_elements(screen, opts) when is_map(screen) do
+    screen_id = screen.id
+    ui_storage = Keyword.get(opts, :ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+    element_resource = Config.element_resource(ui_storage)
+
     query =
-      Element
+      element_resource
       |> Ash.Query.new()
       |> Ash.Query.filter(screen_id == ^screen_id)
       |> Ash.Query.sort(position: :asc)
 
-    case Ash.read(query, domain: Domain) do
+    case Ash.read(query, domain: domain) do
       {:ok, elements} -> {:ok, elements}
       {:error, _} -> {:ok, []}
     end
@@ -234,10 +244,10 @@ defmodule AshUI.Compiler.Incremental do
     %{graph | element_to_screen: element_to_screen, screen_to_elements: screen_to_elements}
   end
 
-  defp build_binding_dependencies(graph, elements) do
+  defp build_binding_dependencies(graph, elements, opts) do
     {element_to_bindings, binding_to_element} =
       Enum.reduce(elements, {%{}, %{}}, fn element, {e_to_b, b_to_e} ->
-        bindings = get_element_bindings(element)
+        bindings = get_element_bindings(element, opts)
         binding_ids = Enum.map(bindings, fn x -> x.id end)
 
         updated_e_to_b =
@@ -258,17 +268,28 @@ defmodule AshUI.Compiler.Incremental do
     %{graph | element_to_bindings: element_to_bindings, binding_to_element: binding_to_element}
   end
 
-  defp get_element_bindings(%Element{id: element_id}) do
+  defp get_element_bindings(element, opts) when is_map(element) do
+    element_id = element.id
+    ui_storage = Keyword.get(opts, :ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+    binding_resource = Config.binding_resource(ui_storage)
+
     query =
-      Binding
+      binding_resource
       |> Ash.Query.new()
       |> Ash.Query.filter(element_id == ^element_id)
 
-    case Ash.read(query, domain: Domain) do
+    case Ash.read(query, domain: domain) do
       {:ok, bindings} -> bindings
       {:error, _} -> []
     end
   end
+
+  defp screen_resource?(%{__struct__: module}, opts) do
+    module == Config.screen_resource(Keyword.get(opts, :ui_storage))
+  end
+
+  defp screen_resource?(_screen, _opts), do: false
 
   defp find_cycles(graph) do
     # Use depth-first search to find cycles

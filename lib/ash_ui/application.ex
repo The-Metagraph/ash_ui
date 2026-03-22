@@ -18,12 +18,26 @@ defmodule AshUI.Application do
     children = [
       {Phoenix.PubSub, name: AshUI.PubSub},
       AshUI.Telemetry,
-      AshUI.Repo,
       AshUI.Rendering.Registry
     ]
+    children = maybe_add_storage_repo(children)
 
     opts = [strategy: :one_for_one, name: AshUI.Supervisor]
 
     Supervisor.start_link(children, opts)
+  end
+
+  defp maybe_add_storage_repo(children) do
+    case AshUI.Config.ui_storage_repo() do
+      nil ->
+        children
+
+      repo when is_atom(repo) ->
+        if Code.ensure_loaded?(repo) and function_exported?(repo, :start_link, 1) do
+          List.insert_at(children, 1, repo)
+        else
+          children
+        end
+    end
   end
 end

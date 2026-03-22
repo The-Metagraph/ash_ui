@@ -25,7 +25,7 @@ Before reading this guide, you should:
 - Be comfortable with Elixir and Mix
 - Have a Phoenix application with LiveView enabled
 - Understand basic Ash resource and domain concepts
-- Have read your app's database and repo setup docs
+- Have read your app's UI storage setup docs
 
 ## How Ash UI Flows
 
@@ -79,6 +79,8 @@ Ash UI ships the core resources for you:
 - `AshUI.Resources.Binding`
 
 For a simple screen, the lowest-friction path is to create a `Screen` record with a `unified_dsl` map built by `AshUI.DSL.Builder`.
+
+The default shipped setup uses `AshUI.Domain` with Postgres-backed resources, but the UI storage domain and resource modules are configurable if your app wants ETS-backed or other Ash-compatible storage.
 
 ```elixir
 alias AshUI.DSL.Builder
@@ -136,6 +138,30 @@ After mount, these assigns are available:
 - `:ash_ui_bindings`
 - `:ash_ui_user`
 - `:ash_ui_loaded_at`
+
+## Storage Configuration
+
+Ash UI distinguishes between:
+
+- **UI storage** for `Screen`, `Element`, and `Binding`
+- **runtime data domains** used by bindings to read and write application data
+
+The default UI storage configuration is built in, but apps may override it:
+
+```elixir
+config :ash_ui,
+  ui_storage: [
+    domain: AshUI.Domain,
+    resources: [
+      screen: AshUI.Resources.Screen,
+      element: AshUI.Resources.Element,
+      binding: AshUI.Resources.Binding
+    ],
+    repo: AshUI.Repo
+  ]
+```
+
+When bindings need to resolve application data resources, continue configuring `:ash_domains` separately.
 
 ## Inspect or Render the Result
 
@@ -208,7 +234,7 @@ end
 
 ### Screen fails to mount
 
-Confirm the socket includes `:current_user`, the user is active, and the screen exists under the requested name or ID.
+Confirm the socket includes `:current_user`, the user is active, the screen exists under the requested name or ID, and your app's UI storage configuration points at the expected screen resource.
 
 ### Bindings stay empty
 

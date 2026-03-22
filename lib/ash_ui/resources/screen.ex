@@ -5,6 +5,8 @@ defmodule AshUI.Resources.Screen do
 
   @resource_topic_prefix "ash_ui:resource:AshUI:Resources:Screen"
 
+  require Ash.Expr
+
   use Ash.Resource,
     domain: AshUI.Domain,
     authorizers: [Ash.Policy.Authorizer],
@@ -57,11 +59,30 @@ defmodule AshUI.Resources.Screen do
     end
   end
 
+  validations do
+    validate {AshUI.Resources.Validations.UnifiedDSL, []}, on: [:create]
+
+    validate {AshUI.Resources.Validations.UnifiedDSL, []},
+      on: [:update],
+      where: [changing(:unified_dsl)]
+  end
+
   actions do
     defaults [:read]
 
     read :mount do
       get? true
+
+      argument :user_id, :string do
+        allow_nil? false
+      end
+
+      argument :params, :map do
+        allow_nil? false
+        default %{}
+      end
+
+      prepare build(load: [:elements, :bindings, :screen_level_bindings])
     end
 
     create :create do
@@ -71,6 +92,7 @@ defmodule AshUI.Resources.Screen do
 
     update :update do
       primary? true
+      require_atomic? false
       accept [:name, :unified_dsl, :layout, :route, :metadata, :active]
       change increment(:version)
     end
@@ -79,6 +101,53 @@ defmodule AshUI.Resources.Screen do
       primary? true
       change cascade_destroy(:elements)
       change cascade_destroy(:screen_level_bindings)
+    end
+
+    action :unmount, :map do
+      argument :screen_id, :uuid do
+        allow_nil? false
+      end
+
+      argument :user_id, :string do
+        allow_nil? false
+      end
+
+      argument :reason, :string do
+        allow_nil? false
+        default "liveview_terminate"
+      end
+
+      argument :params, :map do
+        allow_nil? false
+        default %{}
+      end
+
+      run fn input, _context ->
+        screen_id = input.arguments.screen_id
+        user_id = input.arguments.user_id
+        reason = input.arguments.reason
+        params = input.arguments.params
+
+        with {:ok, screen} <-
+               Ash.get(__MODULE__, screen_id,
+                 action: :read,
+                 domain: AshUI.Domain,
+                 authorize?: false
+               ) do
+          {:ok,
+           %{
+             screen_id: screen.id,
+             screen_name: screen.name,
+             user_id: user_id,
+             reason: reason,
+             params: params,
+             cleaned_up: true,
+             unmounted_at: DateTime.utc_now()
+           }}
+        else
+          {:error, error} -> {:error, error}
+        end
+      end
     end
   end
 

@@ -16,11 +16,11 @@ Back to index: [README](./README.md)
 - Renderers produce platform-specific output
 
 ## Current Status Note
-- Ash UI now completes renderer selection, fallback handling, and integration coverage in-repo.
-- External packages (`live_ui`, `web_ui`, `desktop_ui`, `unified_iur`) are still optional and not yet wired as hard dependencies in `mix.exs`.
-- Until those upstream packages and APIs are stable, Ash UI relies on adapter fallback implementations for local rendering and test coverage.
+- Ash UI now vendors minimal `unified_iur`, `live_ui`, `web_ui`, and `desktop_ui` packages under `packages/`.
+- `mix.exs` wires those packages as optional path dependencies, and the renderer registry can detect and use them in external mode.
+- Adapter fallbacks still remain available for degraded environments, but Phase 7 package integration is now implemented in-repo.
 
-[ ] 7 Phase 7 - Renderer Package Integration
+[X] 7 Phase 7 - Renderer Package Integration
   Integrate with external unified renderer packages (live_ui, web_ui, desktop_ui) for final output generation.
 
   [X] 7.1 Section - Package Dependencies

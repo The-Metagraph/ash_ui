@@ -40,4 +40,4 @@ The plan aligns to:
 
 ## Status Note
 
-The phase files are historical planning documents, not a guarantee that every checked item is production-backed today. After the RFC-0002 re-baseline, the remaining open implementation gaps are concentrated in the legacy resource DSL work from Phase 1 and the optional external renderer packages tracked in Phase 7.
+The phase files are historical planning documents that track the implementation baseline captured in this repository. After the post-Phase-8 remediation work, the previously open Phase 1 DSL/lifecycle gap and Phase 7 renderer package gap are now closed in-repo.

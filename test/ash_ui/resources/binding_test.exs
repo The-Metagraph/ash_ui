@@ -97,6 +97,35 @@ defmodule AshUI.Resources.BindingTest do
 
       assert updated.transform == %{"function" => "uppercase"}
     end
+
+    test "create/1 rejects source maps without a resource", %{screen: screen, element: element} do
+      attrs = %{
+        source: %{"field" => "name"},
+        target: "value",
+        binding_type: :value,
+        element_id: element.id,
+        screen_id: screen.id
+      }
+
+      assert {:error, error} = AshUI.Data.create(Binding, attrs: attrs)
+      assert Exception.message(error) =~ "resource reference"
+    end
+
+    test "create/1 rejects action bindings without an action source", %{
+      screen: screen,
+      element: element
+    } do
+      attrs = %{
+        source: %{"resource" => "User"},
+        target: "onClick",
+        binding_type: :action,
+        element_id: element.id,
+        screen_id: screen.id
+      }
+
+      assert {:error, error} = AshUI.Data.create(Binding, attrs: attrs)
+      assert Exception.message(error) =~ "include an action"
+    end
   end
 
   describe "Binding relationships" do
@@ -104,7 +133,7 @@ defmodule AshUI.Resources.BindingTest do
       # Create bindings
       Enum.each(1..3, fn i ->
         attrs = %{
-          source: %{"field" => "field_#{i}"},
+          source: %{"resource" => "User", "field" => "field_#{i}"},
           target: "target_#{i}",
           binding_type: :value,
           element_id: element.id,
@@ -130,16 +159,23 @@ defmodule AshUI.Resources.BindingTest do
       screen: screen,
       element: element
     } do
-      # Create a binding
-      attrs = %{
-        source: %{"field" => "test"},
+      element_binding_attrs = %{
+        source: %{"resource" => "User", "field" => "test"},
         target: "test_target",
         binding_type: :value,
         element_id: element.id,
         screen_id: screen.id
       }
 
-      {:ok, binding} = AshUI.Data.create(Binding, attrs: attrs)
+      screen_binding_attrs = %{
+        source: %{"resource" => "User", "field" => "screen_only"},
+        target: "content",
+        binding_type: :value,
+        screen_id: screen.id
+      }
+
+      {:ok, binding} = AshUI.Data.create(Binding, attrs: element_binding_attrs)
+      {:ok, screen_binding} = AshUI.Data.create(Binding, attrs: screen_binding_attrs)
 
       # Delete screen
       :ok = AshUI.Data.destroy(screen)
@@ -149,6 +185,7 @@ defmodule AshUI.Resources.BindingTest do
 
       # Binding should be deleted
       assert [] = AshUI.Data.read!(Binding, filter: [id: binding.id])
+      assert [] = AshUI.Data.read!(Binding, filter: [id: screen_binding.id])
     end
   end
 end

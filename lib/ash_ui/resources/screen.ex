@@ -50,6 +50,11 @@ defmodule AshUI.Resources.Screen do
     has_many :bindings, AshUI.Resources.Binding do
       destination_attribute :screen_id
     end
+
+    has_many :screen_level_bindings, AshUI.Resources.Binding do
+      destination_attribute :screen_id
+      filter expr(is_nil(element_id))
+    end
   end
 
   actions do
@@ -73,6 +78,7 @@ defmodule AshUI.Resources.Screen do
     destroy :destroy do
       primary? true
       change cascade_destroy(:elements)
+      change cascade_destroy(:screen_level_bindings)
     end
   end
 

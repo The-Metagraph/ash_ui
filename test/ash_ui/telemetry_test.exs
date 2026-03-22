@@ -8,6 +8,7 @@ defmodule AshUI.TelemetryTest do
   alias AshUI.Telemetry
 
   @moduletag :conformance
+  @repo_root Path.expand("../..", __DIR__)
 
   setup do
     Telemetry.reset_metrics()
@@ -139,7 +140,7 @@ defmodule AshUI.TelemetryTest do
   end
 
   test "dashboard definitions are present and valid json" do
-    dashboard_dir = "/Users/Pascal/code/ash/ash_ui/priv/monitoring/dashboards"
+    dashboard_dir = Path.join(@repo_root, "priv/monitoring/dashboards")
 
     expected_files = [
       "screen_performance.json",

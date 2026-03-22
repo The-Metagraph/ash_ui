@@ -3,6 +3,7 @@ defmodule AshUI.Resources.ElementTest do
 
   alias AshUI.Resources.Screen
   alias AshUI.Resources.Element
+  alias AshUI.Resources.Binding
 
   @moduletag :conformance
 
@@ -61,6 +62,32 @@ defmodule AshUI.Resources.ElementTest do
       assert :ok = AshUI.Data.destroy(element)
 
       assert [] = AshUI.Data.read!(Element, filter: [id: element.id])
+    end
+
+    test "destroy/1 cascades to element bindings", %{screen: screen} do
+      {:ok, element} =
+        AshUI.Data.create(Element,
+          attrs: %{
+            type: :text,
+            props: %{},
+            screen_id: screen.id,
+            position: 1
+          }
+        )
+
+      {:ok, binding} =
+        AshUI.Data.create(Binding,
+          attrs: %{
+            source: %{"resource" => "User", "field" => "name"},
+            target: "content",
+            binding_type: :value,
+            element_id: element.id,
+            screen_id: screen.id
+          }
+        )
+
+      assert :ok = AshUI.Data.destroy(element)
+      assert [] = AshUI.Data.read!(Binding, filter: [id: binding.id])
     end
   end
 

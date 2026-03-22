@@ -4,7 +4,7 @@ defmodule AshUI.Domain do
 
   This domain defines the authorization and resource boundaries for the Ash UI system.
   """
-  use Ash.Domain
+  use Ash.Domain, authorizers: [Ash.Policy.Authorizer]
 
   resources do
     resource AshUI.Resources.Screen

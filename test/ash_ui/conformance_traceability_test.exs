@@ -3,9 +3,10 @@ defmodule AshUI.ConformanceTraceabilityTest do
 
   @moduletag :conformance
 
-  @catalog_path "/Users/Pascal/code/ash/ash_ui/specs/conformance/scenario_catalog.md"
-  @matrix_path "/Users/Pascal/code/ash/ash_ui/specs/conformance/spec_conformance_matrix.md"
-  @traceability_path "/Users/Pascal/code/ash/ash_ui/specs/conformance/scenario_test_matrix.md"
+  @repo_root Path.expand("../..", __DIR__)
+  @catalog_path Path.join(@repo_root, "specs/conformance/scenario_catalog.md")
+  @matrix_path Path.join(@repo_root, "specs/conformance/spec_conformance_matrix.md")
+  @traceability_path Path.join(@repo_root, "specs/conformance/scenario_test_matrix.md")
 
   test "every catalog scenario has explicit test traceability" do
     catalog_scenarios =
@@ -37,7 +38,7 @@ defmodule AshUI.ConformanceTraceabilityTest do
   test "every traced test file exists and is tagged for the conformance harness" do
     Enum.each(scenario_rows(), fn {_scenario, files} ->
       Enum.each(files, fn file ->
-        absolute = Path.expand(file, "/Users/Pascal/code/ash/ash_ui")
+        absolute = Path.expand(file, @repo_root)
 
         assert File.exists?(absolute)
         body = File.read!(absolute)

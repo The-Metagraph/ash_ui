@@ -19,7 +19,7 @@ Back to index: [README](./README.md)
 [ ] 1 Phase 1 - Core Ash Resource Integration
   Implement Ash Resources for storing unified-ui DSL definitions with database persistence, Ash actions, and policy-based authorization.
 
-  Status note: resource schemas, domain registration, migrations, and CRUD coverage exist in the repo today. This phase remains open because DSL extensions, screen lifecycle actions, direct resource-level authorizer wiring, and a few relationship/validation details are still unfinished.
+  Status note: resource schemas, domain registration, migrations, CRUD coverage, resource/domain authorization wiring, and structured binding validation exist in the repo today. This phase remains open because the legacy DSL extensions, mount/unmount lifecycle actions, and compile-time DSL validation work are still unfinished.
 
   [ ] 1.1 Section - UI Screen Resource
     Implement the UI.Screen Ash Resource for storing unified-ui screen definitions.
@@ -46,7 +46,7 @@ Back to index: [README](./README.md)
 
       [X] 1.1.3.1 Subtask - Add `has_many :elements` relationship to `AshUI.Element`
       [X] 1.1.3.2 Subtask - Add `has_many :bindings` relationship to `AshUI.Binding`
-      [ ] 1.1.3.3 Subtask - Configure cascade delete for child elements and bindings
+      [X] 1.1.3.3 Subtask - Configure cascade delete for child elements and bindings
 
     [ ] 1.1.4 Task - Add UI.Screen DSL extension
       Create the `ui_screen` DSL block for screen-specific configuration.
@@ -118,15 +118,15 @@ Back to index: [README](./README.md)
 
       [X] 1.4.1.1 Subtask - Implement `AshUI.Domain` with `use Ash.Domain`
       [X] 1.4.1.2 Subtask - Register `AshUI.Screen`, `AshUI.Element`, `AshUI.Binding` resources
-      [ ] 1.4.1.3 Subtask - Configure domain-level authorization with `Ash.Policy.Authorizer`
+      [X] 1.4.1.3 Subtask - Configure domain-level authorization with `Ash.Policy.Authorizer`
 
     [ ] 1.4.2 Task - Configure resource validations
       Add validations for UI resource attributes.
 
       [ ] 1.4.2.1 Subtask - Validate `unified_dsl` is a valid map structure
       [X] 1.4.2.2 Subtask - Validate `binding_type` is in allowed list
-      [ ] 1.4.2.3 Subtask - Validate `source` format matches structured binding source maps
-      [ ] 1.4.2.4 Subtask - Add custom validations with `validate/1`
+      [X] 1.4.2.3 Subtask - Validate `source` format matches structured binding source maps
+      [X] 1.4.2.4 Subtask - Add custom validations with `validate/1`
 
   [X] 1.5 Section - Database Migrations
     Create Ecto migrations for UI resource tables.
@@ -155,7 +155,7 @@ Back to index: [README](./README.md)
       [X] 1.6.1.1 Subtask - Verify screen creation with unified_dsl storage
       [X] 1.6.1.2 Subtask - Verify element creation with screen association
       [X] 1.6.1.3 Subtask - Verify binding creation with element and screen associations
-      [ ] 1.6.1.4 Subtask - Verify cascade delete from screen to elements and bindings
+      [X] 1.6.1.4 Subtask - Verify cascade delete from screen to elements and bindings
 
     [ ] 1.6.2 Task - DSL and validation integration scenarios
       Verify DSL extensions and validations work correctly.

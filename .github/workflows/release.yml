@@ -21,6 +21,20 @@ jobs:
   release_readiness:
     name: Release Readiness
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ash_ui_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ash_ui_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       RELEASE_RUN_CONFORMANCE: "true"
       RELEASE_RUN_COVERAGE: "true"
@@ -45,6 +59,11 @@ jobs:
 
       - name: Compile with warnings as errors
         run: mix compile --warnings-as-errors
+
+      - name: Prepare test database
+        run: |
+          mix ecto.create
+          mix ecto.migrate
 
       - name: Validate release readiness
         run: ./scripts/validate_release_readiness.sh
@@ -98,10 +117,14 @@ jobs:
           target_commitish: ${{ github.sha }}
 
       - name: Publish to Hex
-        if: ${{ secrets.HEX_API_KEY != '' }}
         env:
           HEX_API_KEY: ${{ secrets.HEX_API_KEY }}
         run: |
+          if [ -z "${HEX_API_KEY:-}" ]; then
+            echo "HEX_API_KEY is not configured; skipping Hex publish."
+            exit 0
+          fi
+
           mix hex.user auth --key "$HEX_API_KEY"
           mix hex.publish --yes
 

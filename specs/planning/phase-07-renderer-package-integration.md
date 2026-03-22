@@ -23,16 +23,16 @@ Back to index: [README](./README.md)
 [ ] 7 Phase 7 - Renderer Package Integration
   Integrate with external unified renderer packages (live_ui, web_ui, desktop_ui) for final output generation.
 
-  [X] 7.1 Section - Package Dependencies
+  [ ] 7.1 Section - Package Dependencies
     Add and configure unified renderer packages as dependencies.
 
     Add and configure unified renderer packages as dependencies - Add renderer packages to mix.exs
     Include renderer packages as optional dependencies.
 
-      [X] - Add `unified_iur` to deps
-      [X] - Add `live_ui` as optional dependency
-      [X] - Add `web_ui` as optional dependency
-      [X] - Add `desktop_ui` as optional dependency
+      [ ] - Add `unified_iur` to deps
+      [ ] - Add `live_ui` as optional dependency
+      [ ] - Add `web_ui` as optional dependency
+      [ ] - Add `desktop_ui` as optional dependency
 
     [X] - Create renderer configuration
     Configure which renderer package to use.

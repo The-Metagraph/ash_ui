@@ -41,7 +41,7 @@ Back to index: [README](./README.md)
       [ ] 1.1.2.3 Subtask - Implement `:unmount` action for cleanup
       [ ] 1.1.2.4 Subtask - Add action return types and error handling
 
-    [ ] 1.1.3 Task - Define UI.Screen relationships
+    [X] 1.1.3 Task - Define UI.Screen relationships
       Establish relationships to elements and bindings.
 
       [X] 1.1.3.1 Subtask - Add `has_many :elements` relationship to `AshUI.Element`
@@ -113,7 +113,7 @@ Back to index: [README](./README.md)
   [ ] 1.4 Section - Ash Domain Configuration
     Implement the AshUI domain with all resources and authorization.
 
-    [ ] 1.4.1 Task - Create AshUI.Domain
+    [X] 1.4.1 Task - Create AshUI.Domain
       Define the domain containing all Ash UI resources.
 
       [X] 1.4.1.1 Subtask - Implement `AshUI.Domain` with `use Ash.Domain`

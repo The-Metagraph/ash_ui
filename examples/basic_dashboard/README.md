@@ -6,6 +6,7 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 2. seed ETS-backed Ash resources for dashboard data
 3. mount it through `AshUI.LiveView.Integration`
 4. delegate user events through `AshUI.LiveView.EventHandler`
+5. present the result with an Ash HQ-inspired dark theme, warm gradient accents, and live data cards
 
 ## Files
 
@@ -18,6 +19,7 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 Treat this directory as a reference implementation to copy into an app while wiring your own repo, router, and user lookup.
 
 The example data uses `Ash.DataLayer.Ets`, which is ideal for demos, tests, and lightweight prototypes.
+The visual treatment intentionally borrows the Ash site palette and glow accents while leaving out the checkerboard background.
 
 ## Core Flow
 

@@ -89,4 +89,18 @@ defmodule AshUI.Examples.BasicDashboardTest do
     assert updated_socket.assigns.dashboard_data.user.last_actor_id == "current-user"
     assert Data.snapshot!().user.name == "Updated Pascal"
   end
+
+  test "basic dashboard renders the Ash-inspired themed shell" do
+    assert {:ok, socket} = BasicDashboardLive.mount(%{}, %{}, build_socket())
+
+    html =
+      socket.assigns
+      |> BasicDashboardLive.render()
+      |> Phoenix.LiveViewTest.rendered_to_string()
+
+    assert html =~ "Ash-inspired example"
+    assert html =~ "ETS-backed dashboard data"
+    assert html =~ "ash-demo-shell"
+    assert html =~ "Pascal"
+  end
 end

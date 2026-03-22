@@ -3,15 +3,17 @@ defmodule BasicDashboard do
   Minimal Ash UI example seed module.
   """
 
+  alias AshUI.Config
   alias AshUI.DSL.Builder
   alias AshUI.Data, as: Domain
-  alias AshUI.Resources.Binding
-  alias AshUI.Resources.Element
-  alias AshUI.Resources.Screen
 
   def seed! do
+    screen_resource = Config.screen_resource()
+    element_resource = Config.element_resource()
+    binding_resource = Config.binding_resource()
+
     {:ok, screen} =
-      Domain.create(Screen,
+      Domain.create(screen_resource,
         attrs: %{
           name: "basic_dashboard",
           route: "/dashboard",
@@ -31,7 +33,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, input} =
-      Domain.create(Element,
+      Domain.create(element_resource,
         attrs: %{
           screen_id: screen.id,
           type: :textinput,
@@ -41,7 +43,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, button} =
-      Domain.create(Element,
+      Domain.create(element_resource,
         attrs: %{
           screen_id: screen.id,
           type: :button,
@@ -52,7 +54,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, _value_binding} =
-      Domain.create(Binding,
+      Domain.create(binding_resource,
         attrs: %{
           screen_id: screen.id,
           element_id: input.id,
@@ -63,7 +65,7 @@ defmodule BasicDashboard do
       )
 
     {:ok, _action_binding} =
-      Domain.create(Binding,
+      Domain.create(binding_resource,
         attrs: %{
           screen_id: screen.id,
           element_id: button.id,
@@ -72,8 +74,8 @@ defmodule BasicDashboard do
           source: %{"resource" => "User", "action" => "save_profile"},
           transform: %{
             "params" => %{
-              "display_name" => {"event", "display_name"},
-              "actor_id" => {"context", "user_id"}
+              "display_name" => %{"from" => "event", "key" => "display_name"},
+              "actor_id" => %{"from" => "context", "key" => "user_id"}
             }
           }
         }

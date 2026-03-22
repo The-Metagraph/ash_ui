@@ -11,15 +11,16 @@ Back to index: [README](./README.md)
 - `Ash.Query`
 
 ## Relevant Assumptions / Defaults
-- UI definitions are stored as Ash Resources with PostgreSQL data layer
+- UI definitions are stored as Ash Resources backed by an Ash-compatible data layer
+- the default shipped storage backend is PostgreSQL through `AshUI.Domain` and `AshUI.Repo`
 - unified-ui DSL is stored as a map attribute on Ash Resources
 - Ash actions provide CRUD operations on UI definitions
 - Ash policies authorize UI access and modification
 
 [ ] 1 Phase 1 - Core Ash Resource Integration
-  Implement Ash Resources for storing unified-ui DSL definitions with database persistence, Ash actions, and policy-based authorization.
+  Implement Ash Resources for storing unified-ui DSL definitions with Ash-backed storage, Ash actions, and policy-based authorization.
 
-  Status note: resource schemas, domain registration, migrations, and CRUD coverage exist in the repo today. This phase remains open because DSL extensions, screen lifecycle actions, direct resource-level authorizer wiring, and a few relationship/validation details are still unfinished.
+  Status note: resource schemas, domain registration, migrations, CRUD coverage, and the configurable UI storage boundary now exist in the repo. This phase remains open because DSL extensions, screen lifecycle actions, and a few relationship/validation details are still unfinished.
 
   [ ] 1.1 Section - UI Screen Resource
     Implement the UI.Screen Ash Resource for storing unified-ui screen definitions.
@@ -31,7 +32,7 @@ Back to index: [README](./README.md)
       [X] 1.1.1.2 Subtask - Add `id` (UUID primary key), `name` (string), `unified_dsl` (map) attributes
       [X] 1.1.1.3 Subtask - Add `layout` (atom), `route` (string), `metadata` (map) attributes
       [X] 1.1.1.4 Subtask - Add `version` (integer) and timestamps
-      [X] 1.1.1.5 Subtask - Configure `AshPostgres.DataLayer` with `table: "ui_screens"`
+      [X] 1.1.1.5 Subtask - Configure the default Postgres-backed `ui_screens` storage
 
     [ ] 1.1.2 Task - Define UI.Screen actions
       Implement standard Ash actions for screen CRUD operations.
@@ -66,7 +67,7 @@ Back to index: [README](./README.md)
       [X] 1.2.1.2 Subtask - Add `id` (UUID), `type` (atom), `props` (map) attributes
       [X] 1.2.1.3 Subtask - Add `variants` (list of atoms), `position` (integer) attributes
       [X] 1.2.1.4 Subtask - Add `metadata` (map), `active`, `version`, and timestamps
-      [X] 1.2.1.5 Subtask - Configure `AshPostgres.DataLayer` with `table: "ui_elements"`
+      [X] 1.2.1.5 Subtask - Configure the default Postgres-backed `ui_elements` storage
 
     [X] 1.2.2 Task - Define UI.Element relationships
       Establish relationships to screen and bindings.
@@ -93,7 +94,7 @@ Back to index: [README](./README.md)
       [X] 1.3.1.2 Subtask - Add `id` (UUID), `source` (map), `target` (string) attributes
       [X] 1.3.1.3 Subtask - Add `binding_type` (atom), `transform` (map) attributes
       [X] 1.3.1.4 Subtask - Add `metadata` (map), `active`, `version`, and timestamps
-      [X] 1.3.1.5 Subtask - Configure `AshPostgres.DataLayer` with `table: "ui_bindings"`
+      [X] 1.3.1.5 Subtask - Configure the default Postgres-backed `ui_bindings` storage
 
     [X] 1.3.2 Task - Define UI.Binding relationships
       Establish relationships to element and screen.
@@ -128,8 +129,16 @@ Back to index: [README](./README.md)
       [ ] 1.4.2.3 Subtask - Validate `source` format matches structured binding source maps
       [ ] 1.4.2.4 Subtask - Add custom validations with `validate/1`
 
-  [X] 1.5 Section - Database Migrations
-    Create Ecto migrations for UI resource tables.
+    [X] 1.4.3 Task - Make UI storage configurable
+      Resolve screen, element, and binding storage through configuration instead of hardcoded Postgres-only aliases.
+
+      [X] 1.4.3.1 Subtask - Add a framework-level UI storage resolver for domain and resource modules
+      [X] 1.4.3.2 Subtask - Separate UI storage configuration from runtime `:ash_domains`
+      [X] 1.4.3.3 Subtask - Start a storage repo only when the configured backend requires one
+      [X] 1.4.3.4 Subtask - Cover an ETS-backed UI storage implementation in tests or examples
+
+  [X] 1.5 Section - Default Postgres Migrations
+    Create Ecto migrations for the default Postgres-backed UI resource tables.
 
     [X] 1.5.1 Task - Generate migration files
       Create Ecto migrations for all UI resource tables.
@@ -172,3 +181,9 @@ Back to index: [README](./README.md)
       [X] 1.6.3.2 Subtask - Verify loading element with preloaded bindings
       [X] 1.6.3.3 Subtask - Verify querying elements by screen association
       [X] 1.6.3.4 Subtask - Verify querying bindings by element or screen associations
+
+    [X] 1.6.4 Task - Alternate storage integration scenarios
+      Verify the resource contract works with non-Postgres Ash data layers.
+
+      [X] 1.6.4.1 Subtask - Verify UI storage reads and writes using `Ash.DataLayer.Ets`
+      [X] 1.6.4.2 Subtask - Verify compiler and LiveView integration work with configured alternate storage modules

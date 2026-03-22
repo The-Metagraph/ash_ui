@@ -4,7 +4,8 @@ Ash UI is a resource-backed UI framework for Elixir built on Ash. It stores scre
 
 ## What Works Today
 
-- persisted `Screen`, `Element`, and `Binding` resources in `AshUI.Domain`
+- default shipped `Screen`, `Element`, and `Binding` resources in `AshUI.Domain`
+- configurable UI storage domain/resource boundary with optional repo startup
 - `unified_dsl` storage and builder helpers through `AshUI.DSL.Builder`
 - compilation to `AshUI.Compilation.IUR` through `AshUI.Compiler`
 - canonical conversion through `AshUI.Rendering.IURAdapter`
@@ -72,6 +73,8 @@ alias AshUI.Resources.Screen
     }
   )
 ```
+
+The default shipped storage backend is Postgres through `AshUI.Domain` and `AshUI.Repo`, but the UI storage domain and resource modules are configurable so example apps and alternate deployments can use another Ash-compatible data layer.
 
 Mount it in LiveView:
 

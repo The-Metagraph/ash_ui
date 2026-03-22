@@ -10,11 +10,9 @@ defmodule AshUI.LiveView.Integration do
   require Ash.Query
 
   alias AshUI.Compiler
+  alias AshUI.Config
   alias AshUI.Authorization.BindingPolicy
-  alias AshUI.Domain
   alias AshUI.Authorization.Runtime
-  alias AshUI.Resources.Screen
-  alias AshUI.Resources.Binding
   alias AshUI.Runtime.BindingEvaluator
   alias AshUI.LiveView.UpdateIntegration
   alias AshUI.Rendering.IURAdapter
@@ -49,9 +47,9 @@ defmodule AshUI.LiveView.Integration do
           mount_result()
   def mount_ui_screen(socket, screen_id, params \\ %{}) do
     with {:ok, user} <- get_current_user(socket),
-         {:ok, screen} <- load_screen(screen_id, user, params),
+         {:ok, screen} <- load_screen(socket, screen_id, user, params),
          :ok <- authorize_screen(screen, user),
-         {:ok, iur} <- compile_screen(screen),
+         {:ok, iur} <- compile_screen(screen, ui_storage: current_ui_storage(socket)),
          {:ok, bindings} <- evaluate_bindings(screen, socket, user, params),
          socket <- assign_screen_state(socket, screen, iur, bindings, user, params),
          socket <- UpdateIntegration.sync_binding_subscriptions(socket) do
@@ -75,8 +73,8 @@ defmodule AshUI.LiveView.Integration do
     * `:ok` - Authorized
     * `{:error, :unauthorized}` - Not authorized
   """
-  @spec authorize_screen(Screen.t(), term()) :: :ok | {:error, :unauthorized}
-  def authorize_screen(%Screen{} = screen, user) do
+  @spec authorize_screen(map(), term()) :: :ok | {:error, :unauthorized}
+  def authorize_screen(screen, user) when is_map(screen) do
     case Runtime.check_mount_authorization(user, screen) do
       :authorized -> :ok
       _ -> {:error, :unauthorized}
@@ -90,12 +88,14 @@ defmodule AshUI.LiveView.Integration do
     * `{:ok, iur}` - Compiled IUR structure
     * `{:error, reason}` - Compilation failed
   """
-  @spec compile_screen(Screen.t()) :: {:ok, map()} | {:error, term()}
-  def compile_screen(%Screen{id: nil}), do: {:error, :invalid_screen}
-  def compile_screen(%Screen{name: nil}), do: {:error, :invalid_screen}
+  @spec compile_screen(map(), keyword()) :: {:ok, map()} | {:error, term()}
+  def compile_screen(screen, opts \\ [])
 
-  def compile_screen(%Screen{} = screen) do
-    with {:ok, iur} <- Compiler.compile(screen),
+  def compile_screen(%{id: nil}, _opts), do: {:error, :invalid_screen}
+  def compile_screen(%{name: nil}, _opts), do: {:error, :invalid_screen}
+
+  def compile_screen(screen, opts) when is_map(screen) do
+    with {:ok, iur} <- Compiler.compile(screen, opts),
          {:ok, canonical_iur} <- IURAdapter.to_canonical(iur) do
       {:ok, canonical_iur}
     end
@@ -111,13 +111,13 @@ defmodule AshUI.LiveView.Integration do
     * `{:ok, binding_values}` - Map of binding IDs to evaluated values
     * `{:error, reason}` - Evaluation failed
   """
-  @spec evaluate_bindings(Screen.t(), Phoenix.LiveView.Socket.t(), term(), map()) ::
+  @spec evaluate_bindings(map(), Phoenix.LiveView.Socket.t(), term(), map()) ::
           {:ok, map()} | {:error, term()}
-  def evaluate_bindings(%Screen{} = screen, socket, user, params) do
+  def evaluate_bindings(screen, socket, user, params) when is_map(screen) do
     context = build_evaluation_context(socket, user, params)
 
     screen
-    |> load_screen_bindings(user)
+    |> load_screen_bindings(user, socket)
     |> evaluate_batch_bindings(context)
   end
 
@@ -130,33 +130,38 @@ defmodule AshUI.LiveView.Integration do
     end
   end
 
-  defp load_screen(screen_id, user, _params) do
-    case load_screen_by_identifier(screen_id, user) do
+  defp load_screen(socket, screen_id, user, _params) do
+    ui_storage = current_ui_storage(socket)
+
+    case load_screen_by_identifier(screen_id, user, ui_storage) do
       {:ok, screen} -> {:ok, screen}
       {:error, :invalid_primary_key} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
     end
   end
 
-  defp load_screen_by_identifier(screen_id, _user) when is_atom(screen_id) do
-    load_screen_by_name(Atom.to_string(screen_id))
+  defp load_screen_by_identifier(screen_id, _user, ui_storage) when is_atom(screen_id) do
+    load_screen_by_name(Atom.to_string(screen_id), ui_storage)
   end
 
-  defp load_screen_by_identifier(screen_id, user) do
-    case load_screen_by_primary_key(screen_id, user) do
+  defp load_screen_by_identifier(screen_id, user, ui_storage) do
+    case load_screen_by_primary_key(screen_id, user, ui_storage) do
       {:ok, _screen} = result ->
         result
 
       {:error, _reason} when is_binary(screen_id) ->
-        load_screen_by_name(screen_id)
+        load_screen_by_name(screen_id, ui_storage)
 
       {:error, reason} ->
         {:error, reason}
     end
   end
 
-  defp load_screen_by_primary_key(screen_id, user) do
-    case Ash.get(Screen, screen_id, action: :mount, actor: user, domain: Domain, authorize?: true) do
+  defp load_screen_by_primary_key(screen_id, user, ui_storage) do
+    screen_resource = Config.screen_resource(ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+
+    case Ash.get(screen_resource, screen_id, action: :mount, actor: user, domain: domain, authorize?: true) do
       {:ok, screen} -> {:ok, screen}
       {:error, reason} -> {:error, reason}
     end
@@ -165,20 +170,25 @@ defmodule AshUI.LiveView.Integration do
     Ash.Error.Invalid.NoSuchResource -> {:error, :not_found}
   end
 
-  defp load_screen_by_name(name) do
+  defp load_screen_by_name(name, ui_storage) do
+    screen_resource = Config.screen_resource(ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+
     query =
-      Screen
+      screen_resource
       |> Ash.Query.new()
       |> Ash.Query.filter(name == ^name)
 
-    case Ash.read_one(query, domain: Domain) do
-      {:ok, %Screen{} = screen} -> {:ok, screen}
+    case Ash.read_one(query, domain: domain) do
+      {:ok, %{__struct__: _} = screen} -> {:ok, screen}
       {:ok, nil} -> {:error, :not_found}
       {:error, reason} -> {:error, reason}
     end
   end
 
   defp build_evaluation_context(socket, user, params) do
+    ui_storage = current_ui_storage(socket)
+
     %{
       user_id: get_user_id(user),
       user: user,
@@ -186,11 +196,12 @@ defmodule AshUI.LiveView.Integration do
       params: params,
       assigns: socket.assigns,
       socket: socket,
+      ui_storage: ui_storage,
       ash_domains:
         Map.get(
           socket.assigns,
           :ash_ui_domains,
-          Application.get_env(:ash_ui, :ash_domains, [Domain])
+          Config.runtime_domains(ui_storage)
         )
     }
   end
@@ -204,13 +215,17 @@ defmodule AshUI.LiveView.Integration do
     end
   end
 
-  defp load_screen_bindings(%Screen{} = screen, user) do
+  defp load_screen_bindings(screen, user, socket) when is_map(screen) do
+    ui_storage = current_ui_storage(socket)
+    binding_resource = Config.binding_resource(ui_storage)
+    domain = Config.ui_storage_domain(ui_storage)
+
     query =
-      Binding
+      binding_resource
       |> Ash.Query.new()
       |> Ash.Query.filter(screen_id == ^screen.id)
 
-    case Ash.read(query, actor: user, domain: Domain, authorize?: true) do
+    case Ash.read(query, actor: user, domain: domain, authorize?: true) do
       {:ok, bindings} ->
         bindings
         |> Enum.map(&Map.put(&1, :screen, screen))
@@ -240,14 +255,17 @@ defmodule AshUI.LiveView.Integration do
   end
 
   defp assign_screen_state(socket, screen, iur, bindings, user, params) do
+    ui_storage = current_ui_storage(socket)
+
     socket
     |> Phoenix.Component.assign(:ash_ui_screen, screen)
     |> Phoenix.Component.assign(:ash_ui_iur, iur)
     |> Phoenix.Component.assign(:ash_ui_bindings, bindings)
     |> Phoenix.Component.assign(:ash_ui_params, params)
+    |> Phoenix.Component.assign(:ash_ui_storage, ui_storage)
     |> Phoenix.Component.assign(
       :ash_ui_domains,
-      Application.get_env(:ash_ui, :ash_domains, [Domain])
+      Map.get(socket.assigns, :ash_ui_domains, Config.runtime_domains(ui_storage))
     )
     |> Phoenix.Component.assign(:ash_ui_user, user)
     |> Phoenix.Component.assign(:ash_ui_loaded_at, DateTime.utc_now())
@@ -332,5 +350,15 @@ defmodule AshUI.LiveView.Integration do
 
   defp binding_readable?(binding, user) do
     BindingPolicy.can_read?(user, binding)
+  end
+
+  defp current_ui_storage(socket) do
+    overrides =
+      case socket do
+        %Phoenix.LiveView.Socket{} = socket -> Map.get(socket.assigns, :ash_ui_storage)
+        _ -> nil
+      end
+
+    Config.ui_storage(overrides)
   end
 end

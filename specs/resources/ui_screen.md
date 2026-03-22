@@ -1,8 +1,10 @@
 # UI.Screen Component Spec
 
-## Module
+## Default Module
 
 `AshUI.Resources.Screen`
+
+Alternate implementations may replace this module when configured as the active UI storage screen resource.
 
 ## Purpose
 
@@ -40,7 +42,12 @@ Defines the persisted top-level screen record used by compilation, runtime mount
 - adapted by `AshUI.Rendering.IURAdapter`
 - authorized through runtime authorization helpers today
 
+## Storage Contract Notes
+
+- the framework resolves the active screen resource through UI storage configuration
+- alternate implementations must preserve the documented attributes, relationships, and actions
+- the built-in implementation is Postgres-backed, but ETS-backed or other Ash-compatible data layers are allowed
+
 ## Current Gaps
 
-- resource-level `Ash.Policy.Authorizer` wiring is still pending
-- lifecycle is runtime-managed rather than implemented as screen resource actions
+- lifecycle is partly runtime-managed rather than fully expressed as screen resource actions

@@ -1,8 +1,10 @@
 # UI.Binding Component Spec
 
-## Module
+## Default Module
 
 `AshUI.Resources.Binding`
+
+Alternate implementations may replace this module when configured as the active UI storage binding resource.
 
 ## Purpose
 
@@ -41,7 +43,12 @@ Defines persisted runtime bindings for value reads, list reads, and action execu
 - action-triggered through `AshUI.Runtime.ActionBinding`
 - list-oriented updates handled by `AshUI.Runtime.ListBinding`
 
+## Storage Contract Notes
+
+- the framework resolves the active binding resource through UI storage configuration
+- alternate implementations must preserve the documented attributes, relationships, and actions
+- structured `source` and `transform` maps remain the compatibility baseline across storage backends
+
 ## Current Gaps
 
-- several runtime paths still use placeholder data loaders or mock action/update results
-- structured source maps are the implemented baseline; older string path examples are obsolete
+- runtime behavior still depends on the broader binding and action contracts, but storage-backend coverage now includes non-Postgres resources

@@ -8,6 +8,7 @@ defmodule AshUI.Runtime.ResourceAccess do
 
   require Ash.Query
 
+  alias AshUI.Config
   alias AshUI.Authorization.Policies
 
   @type context :: map()
@@ -529,7 +530,7 @@ defmodule AshUI.Runtime.ResourceAccess do
 
   defp context_domains(context) do
     context
-    |> Map.get(:ash_domains, Application.get_env(:ash_ui, :ash_domains, [AshUI.Domain]))
+    |> Map.get(:ash_domains, Config.runtime_domains(Map.get(context, :ui_storage)))
     |> List.wrap()
     |> Enum.uniq()
   end

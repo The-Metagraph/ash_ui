@@ -13,19 +13,23 @@ Ash UI stores durable UI state as Ash resources. This contract covers the resour
 ## Dependencies
 
 - Ash Framework
-- AshPostgres
+- Ash-compatible data layer implementation
 - Phoenix LiveView
 
 ## Requirements
 
 ### REQ-RES-001: Resource Definition
 
-All core UI resources MUST be defined using `Ash.Resource`, registered in `AshUI.Domain`, and backed by a persistent data layer.
+All core UI resources MUST be defined using `Ash.Resource`, registered in a configured UI storage domain, and backed by an Ash-compatible data layer.
 
 **Acceptance Criteria**:
 - AC-001: Resources use `use Ash.Resource`
-- AC-002: Resources specify `domain: AshUI.Domain`
-- AC-003: Resources specify a persistent data layer
+- AC-002: The framework resolves a configured UI storage domain and resource set
+- AC-003: Resources specify a compatible Ash data layer
+- AC-004: The default shipped configuration remains `AshUI.Domain` plus `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`
+
+**Implementation Note**:
+The built-in resources in this repository use `AshPostgres`, but alternate implementations such as ETS-backed example storage are allowed if they satisfy the same contract.
 
 ### REQ-RES-002: Type Safety
 
@@ -98,6 +102,8 @@ Resources MAY expose extension points or companion helpers so the compiler and r
 
 ### UI.Element
 
+Default module: `AshUI.Resources.Element`
+
 Atomic renderer-facing component or layout node stored as a record.
 
 **Attributes**:
@@ -122,6 +128,8 @@ Atomic renderer-facing component or layout node stored as a record.
 
 ### UI.Screen
 
+Default module: `AshUI.Resources.Screen`
+
 Top-level screen record that stores the durable `unified_dsl` tree and screen metadata.
 
 **Attributes**:
@@ -145,6 +153,8 @@ Top-level screen record that stores the durable `unified_dsl` tree and screen me
 - `has_many :bindings`
 
 ### UI.Binding
+
+Default module: `AshUI.Resources.Binding`
 
 Binding record connecting runtime UI targets to Ash-side data or actions.
 
@@ -173,13 +183,13 @@ Binding record connecting runtime UI targets to Ash-side data or actions.
 
 | Requirement | ADR | Component Spec | Scenarios |
 |---|---|---|---|
-| REQ-RES-001 | ADR-0001 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-001, SCN-004, SCN-006 |
+| REQ-RES-001 | ADR-0001, ADR-0002 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-001, SCN-004, SCN-006 |
 | REQ-RES-002 | ADR-0001 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-002 |
 | REQ-RES-003 | ADR-0001 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-003, SCN-005 |
 | REQ-RES-004 | ADR-0001 | resources/ui_screen.md, resources/ui_binding.md | SCN-004, SCN-006 |
 | REQ-RES-005 | - | compilation/validator.md | SCN-007 |
 | REQ-RES-006 | ADR-0001 | authorization_contract.md | SCN-081, SCN-084 |
-| REQ-RES-007 | ADR-0001 | resources/ui_screen.md, resources/ui_element.md, resources/ui_binding.md | SCN-010 |
+| REQ-RES-007 | ADR-0001, ADR-0002 | resources/ui_screen.md, resources/ui_element.md, resources/ui_binding.md | SCN-010 |
 | REQ-RES-008 | - | - | - |
 
 ## Conformance

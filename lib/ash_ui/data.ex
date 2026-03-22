@@ -8,7 +8,7 @@ defmodule AshUI.Data do
 
   require Ash.Query
 
-  alias AshUI.Domain
+  alias AshUI.Config
 
   @doc """
   Creates a record through `AshUI.Domain`, accepting either standard Ash options
@@ -17,11 +17,11 @@ defmodule AshUI.Data do
   def create(resource, opts \\ []) when is_atom(resource) and is_list(opts) do
     case Keyword.fetch(opts, :attrs) do
       {:ok, attrs} ->
-        opts = opts |> Keyword.delete(:attrs) |> Keyword.put(:domain, Domain)
+        opts = opts |> Keyword.delete(:attrs) |> put_default_domain()
         Ash.create(resource, attrs, opts)
 
       :error ->
-        Ash.create(resource, Keyword.put(opts, :domain, Domain))
+        Ash.create(resource, put_default_domain(opts))
     end
   end
 
@@ -32,11 +32,11 @@ defmodule AshUI.Data do
   def update(record, opts \\ []) when is_list(opts) do
     case Keyword.fetch(opts, :attrs) do
       {:ok, attrs} ->
-        opts = opts |> Keyword.delete(:attrs) |> Keyword.put(:domain, Domain)
+        opts = opts |> Keyword.delete(:attrs) |> put_default_domain()
         Ash.update(record, attrs, opts)
 
       :error ->
-        Ash.update(record, Keyword.put(opts, :domain, Domain))
+        Ash.update(record, put_default_domain(opts))
     end
   end
 
@@ -44,7 +44,7 @@ defmodule AshUI.Data do
   Destroys a record through `AshUI.Domain`.
   """
   def destroy(record, opts \\ []) when is_list(opts) do
-    Ash.destroy(record, Keyword.put(opts, :domain, Domain))
+    Ash.destroy(record, put_default_domain(opts))
   end
 
   @doc """
@@ -55,7 +55,7 @@ defmodule AshUI.Data do
     {filter, opts} = Keyword.pop(opts, :filter)
     query = apply_filter(resource, filter)
 
-    Ash.read(query, Keyword.put(opts, :domain, Domain))
+    Ash.read(query, put_default_domain(opts))
   end
 
   @doc """
@@ -65,7 +65,7 @@ defmodule AshUI.Data do
     {filter, opts} = Keyword.pop(opts, :filter)
     query = apply_filter(resource, filter)
 
-    Ash.read!(query, Keyword.put(opts, :domain, Domain))
+    Ash.read!(query, put_default_domain(opts))
   end
 
   @doc """
@@ -75,7 +75,7 @@ defmodule AshUI.Data do
     {filter, opts} = Keyword.pop(opts, :filter)
     query = apply_filter(resource, filter)
 
-    Ash.read_one(query, Keyword.put(opts, :domain, Domain))
+    Ash.read_one(query, put_default_domain(opts))
   end
 
   @doc """
@@ -85,7 +85,7 @@ defmodule AshUI.Data do
     {filter, opts} = Keyword.pop(opts, :filter)
     query = apply_filter(resource, filter)
 
-    Ash.read_one!(query, Keyword.put(opts, :domain, Domain))
+    Ash.read_one!(query, put_default_domain(opts))
   end
 
   defp apply_filter(resource, nil), do: resource
@@ -94,5 +94,10 @@ defmodule AshUI.Data do
     resource
     |> Ash.Query.new()
     |> Ash.Query.filter(^filter)
+  end
+
+  defp put_default_domain(opts) do
+    {ui_storage, opts} = Keyword.pop(opts, :ui_storage)
+    Keyword.put_new(opts, :domain, Config.ui_storage_domain(ui_storage))
   end
 end

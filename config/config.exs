@@ -4,6 +4,15 @@ config :ash_ui,
   ecto_repos: [AshUI.Repo],
   ash_domains: [AshUI.Domain]
 
+config :ash_ui, :ui_storage,
+  domain: AshUI.Domain,
+  resources: [
+    screen: AshUI.Resources.Screen,
+    element: AshUI.Resources.Element,
+    binding: AshUI.Resources.Binding
+  ],
+  repo: AshUI.Repo
+
 # Configure AshUI Domain
 config :ash_ui, AshUI.Domain,
   resources: [

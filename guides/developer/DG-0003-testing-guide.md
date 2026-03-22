@@ -22,7 +22,7 @@ This guide explains how to validate Ash UI changes locally. It covers the curren
 
 Before reading this guide, you should:
 
-- Have a working local Postgres-backed test setup for Ash UI
+- Have a working local setup for the UI storage backend your test touches
 - Know which part of the system you are changing
 - Have read [DG-0001](./DG-0001-architecture-overview.md)
 
@@ -138,6 +138,10 @@ Some resource loading and action execution paths are currently stubbed or fallba
 ### Database-backed screen loading
 
 If an integration test mounts by name, create a real `Screen` record in setup instead of using only in-memory structs.
+
+### Storage-backend assumptions
+
+The built-in resource tests use the default Postgres-backed storage, but runtime resource-resolution tests already exercise ETS-backed Ash resources. When changing compiler or LiveView loading code, verify whether the behavior should depend on the configured UI storage backend or only on the resource contract.
 
 ## Release-Oriented Checks
 

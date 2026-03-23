@@ -6,8 +6,8 @@ title: Ash UI Architecture Overview
 audience: Framework Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-03-20
-next_review: 2026-09-20
+last_reviewed: 2026-03-23
+next_review: 2026-09-23
 related_reqs: [REQ-FRAMEWORK-001, REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-002, REQ-OBS-001]
 related_scns: [SCN-041, SCN-061, SCN-081, SCN-101]
 related_guides: [UG-0001, UG-0002, UG-0003, DG-0003]
@@ -55,7 +55,7 @@ flowchart LR
         Adapter["AshUI.Rendering.IURAdapter"]
         Registry["AshUI.Rendering.Registry"]
         LiveAdapter["AshUI.Rendering.LiveUIAdapter"]
-        WebAdapter["AshUI.Rendering.WebUIAdapter"]
+        WebAdapter["AshUI.Rendering.ElmUIAdapter"]
         DesktopAdapter["AshUI.Rendering.DesktopUIAdapter"]
     end
 
@@ -194,7 +194,7 @@ Primary modules:
 - `AshUI.Rendering.Registry`
 - `AshUI.Rendering.Selector`
 - `AshUI.Rendering.LiveUIAdapter`
-- `AshUI.Rendering.WebUIAdapter`
+- `AshUI.Rendering.ElmUIAdapter`
 - `AshUI.Rendering.DesktopUIAdapter`
 
 The adapters currently support two operating modes:

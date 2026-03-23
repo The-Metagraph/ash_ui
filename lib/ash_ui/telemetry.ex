@@ -335,7 +335,7 @@ defmodule AshUI.Telemetry do
   defp renderer_usage_snapshot(rows) do
     %{
       live_ui: counter(rows, {:renderer, :live_ui}),
-      web_ui: counter(rows, {:renderer, :web_ui}),
+      elm_ui: counter(rows, {:renderer, :elm_ui}),
       desktop_ui: counter(rows, {:renderer, :desktop_ui}),
       fallback: counter(rows, {:renderer, :fallback})
     }

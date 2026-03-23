@@ -11,7 +11,7 @@ defmodule AshUI.Phase8IntegrationTest do
   alias AshUI.LiveView.Integration
   alias AshUI.Rendering.DesktopUIAdapter
   alias AshUI.Rendering.LiveUIAdapter
-  alias AshUI.Rendering.WebUIAdapter
+  alias AshUI.Rendering.ElmUIAdapter
   alias AshUI.Resources.Screen
   alias AshUI.Telemetry
   alias AshUI.Test.RuntimeDomain
@@ -115,7 +115,7 @@ defmodule AshUI.Phase8IntegrationTest do
 
       assert {:ok, canonical_iur} = Integration.compile_screen(screen)
       assert {:ok, heex} = LiveUIAdapter.render(canonical_iur)
-      assert {:ok, html} = WebUIAdapter.render(canonical_iur)
+      assert {:ok, html} = ElmUIAdapter.render(canonical_iur)
       assert {:ok, desktop} = DesktopUIAdapter.render(canonical_iur)
 
       assert is_binary(heex)

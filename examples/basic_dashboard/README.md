@@ -30,6 +30,14 @@ BasicDashboard.Data.seed!()
 BasicDashboard.seed!()
 ```
 
+To render the example directly through a specific adapter from the repo root:
+
+```bash
+MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer liveview
+MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer elm
+MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer desktop
+```
+
 `BasicDashboard.seed!/0` uses the configured Ash UI storage resources, so you can keep the same seed code while changing the backend.
 
 To use the included ETS-backed example storage instead of the built-in Postgres-backed resources:

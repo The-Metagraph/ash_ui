@@ -113,6 +113,7 @@ When a phase section is actually complete:
 - are tests added or updated where behavior changed?
 - do docs describe current behavior honestly, including fallbacks?
 - are telemetry and authorization implications covered where relevant?
+- does a repo-wide search show no removed rename targets left in live code paths?
 
 ## See Also
 

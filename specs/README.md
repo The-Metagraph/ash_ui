@@ -22,7 +22,7 @@ specs/
 |---|---|---|
 | **Framework Control Plane** | Ash Framework integration, Resource definitions | UI.Element, UI.Screen, UI.Binding specs |
 | **Compilation Control Plane** | Resource → IUR compilation | Compiler, validation, normalization |
-| **Rendering Control Plane** | live_ui/web_ui output | Renderer adapters, presentation layer |
+| **Rendering Control Plane** | live_ui/elm_ui output | Renderer adapters, presentation layer |
 | **Runtime Control Plane** | Session management, lifecycle | LiveView mount/unmount, event handling |
 | **Extension Control Plane** | Custom widgets, plugins | Extension registry, admission |
 
@@ -34,7 +34,7 @@ specs/
 | `REQ-SCREEN-*` | UI.Screen lifecycle | `contracts/screen_contract.md` |
 | `REQ-BIND-*` | UI.Binding semantics | `contracts/binding_contract.md` |
 | `REQ-COMP-*` | Resource → IUR compilation | `contracts/compilation_contract.md` |
-| `REQ-RENDER-*` | live_ui/web_ui output | `contracts/rendering_contract.md` |
+| `REQ-RENDER-*` | live_ui/elm_ui output | `contracts/rendering_contract.md` |
 | `REQ-AUTH-*` | Ash Policy integration | `contracts/authorization_contract.md` |
 | `REQ-OBS-*` | Telemetry, events | `contracts/observability_contract.md` |
 | `REQ-EXT-*` | Extensions, plugins | `contracts/extension_contract.md` |
@@ -59,5 +59,5 @@ See [conformance/spec_conformance_matrix.md](conformance/spec_conformance_matrix
 - [ADRs](adr/) - Architecture decision records
 - [Resources](resources/) - UI.Element, UI.Screen, UI.Binding specifications
 - [Compilation](compilation/) - Resource → IUR compiler specifications
-- [Rendering](rendering/) - live_ui/web_ui renderer specifications
+- [Rendering](rendering/) - live_ui/elm_ui renderer specifications
 - [Conformance](conformance/) - Scenario catalog and conformance matrices

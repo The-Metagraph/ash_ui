@@ -39,7 +39,7 @@ defmodule AshUI.MixProject do
       {:uuid, "~> 1.1"},
       {:unified_iur, path: "packages/unified_iur", optional: true},
       {:live_ui, path: "packages/live_ui", optional: true},
-      {:web_ui, path: "packages/web_ui", optional: true},
+      {:elm_ui, path: "packages/elm_ui", optional: true},
       {:desktop_ui, path: "packages/desktop_ui", optional: true}
     ]
   end

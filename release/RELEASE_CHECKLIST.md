@@ -57,6 +57,8 @@ Run:
 
 Review the generated draft and merge the important items into `CHANGELOG.md`.
 
+Confirm any breaking API rename notes are present before tagging the release. For this rename, the release notes must call out `web_ui` -> `elm_ui`, `WebUI.Renderer` -> `ElmUI.Renderer`, `AshUI.Rendering.WebUIAdapter` -> `AshUI.Rendering.ElmUIAdapter`, and `:html` -> `:elm`.
+
 ### 4. Dry-run the release workflow
 
 Use `.github/workflows/release.yml` with:

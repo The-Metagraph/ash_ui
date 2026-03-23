@@ -4,20 +4,21 @@ This directory contains runnable and copyable Ash UI examples.
 
 ## Prerequisites
 
-From the repo root:
+From an example directory:
 
 ```bash
 mix deps.get
 ```
 
-Most example commands expect `MIX_ENV=dev` so the example modules are compiled.
+Standalone example apps can then be started directly from their own directory.
 
 ## Available Examples
 
 ### `basic_dashboard`
 
-`basic_dashboard` is the reference dashboard example. It seeds ETS-backed demo
-data and renders a stored `unified_dsl` screen through Ash UI adapters.
+`basic_dashboard` is the reference dashboard example. It now ships as a
+standalone Phoenix app, seeds ETS-backed demo data, and renders a stored
+`unified_dsl` screen through Ash UI adapters.
 
 Example files:
 
@@ -26,6 +27,11 @@ Example files:
 - `examples/basic_dashboard/lib/basic_dashboard_data.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_live.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_storage.ex`
+
+Run the standalone app:
+
+- `mix setup`: installs dependencies for the example app
+- `mix phx.server`: starts the dashboard at `http://localhost:4100`
 
 Adapter options:
 
@@ -36,12 +42,16 @@ Adapter options:
 Commands:
 
 ```bash
-MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer liveview
-MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer elm
-MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer elm --output /tmp/basic_dashboard.html
-MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer desktop
-MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer desktop --pretty
-MIX_ENV=dev mix ash_ui.example.basic_dashboard --renderer elm --strict-external
+cd examples/basic_dashboard
+mix setup
+mix phx.server
+
+mix ash_ui.example.basic_dashboard --renderer liveview
+mix ash_ui.example.basic_dashboard --renderer elm
+mix ash_ui.example.basic_dashboard --renderer elm --output /tmp/basic_dashboard.html
+mix ash_ui.example.basic_dashboard --renderer desktop
+mix ash_ui.example.basic_dashboard --renderer desktop --pretty
+mix ash_ui.example.basic_dashboard --renderer elm --strict-external
 ```
 
 Notes:

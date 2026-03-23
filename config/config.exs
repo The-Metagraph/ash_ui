@@ -31,7 +31,7 @@ config :ash, AshUI.Repo,
 
 # Configure AshUI Rendering
 config :ash_ui, :rendering,
-  # Default renderer: :liveview, :html, or :desktop
+  # Default renderer: :liveview, :elm, or :desktop
   default_renderer: :liveview,
   # Enable automatic renderer detection based on context
   auto_detect: true,
@@ -47,10 +47,10 @@ config :ash_ui, :rendering,
       # Default LiveView module for renders
       view_module: nil
     ],
-    html: [
+    elm: [
       # Enable SEO meta tags
       seo_enabled: true,
-      # WebUI always boots Elm; configure the module name here
+      # ElmUI always boots Elm; configure the module name here
       elm_module: "Main"
     ],
     desktop: [

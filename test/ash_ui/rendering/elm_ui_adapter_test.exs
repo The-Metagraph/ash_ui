@@ -1,10 +1,10 @@
-defmodule AshUI.Rendering.WebUIAdapterTest do
+defmodule AshUI.Rendering.ElmUIAdapterTest do
   use ExUnit.Case, async: true
 
-  alias AshUI.Rendering.WebUIAdapter
+  alias AshUI.Rendering.ElmUIAdapter
   alias AshUI.Compilation.IUR
 
-  describe "Section 7.3.1 - WebUI Renderer Adapter" do
+  describe "Section 7.3.1 - ElmUI Renderer Adapter" do
     test "render/2 returns HTML for screen IUR" do
       canonical_iur = %{
         "type" => "screen",
@@ -18,7 +18,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      assert {:ok, html} = WebUIAdapter.render(canonical_iur)
+      assert {:ok, html} = ElmUIAdapter.render(canonical_iur)
       assert is_binary(html)
       assert String.contains?(html, "<!DOCTYPE html>")
       assert String.contains?(html, "ash-screen")
@@ -36,13 +36,13 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      assert {:ok, html} = WebUIAdapter.render(canonical_iur, seo_enabled: false)
+      assert {:ok, html} = ElmUIAdapter.render(canonical_iur, seo_enabled: false)
       assert is_binary(html)
       assert String.contains?(html, "ash-screen")
     end
 
     test "available?/0 returns boolean" do
-      result = WebUIAdapter.available?()
+      result = ElmUIAdapter.available?()
       assert is_boolean(result)
     end
 
@@ -58,14 +58,14 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         version: 1
       )
 
-      assert {:ok, html} = WebUIAdapter.render_ash_iur(ash_iur)
+      assert {:ok, html} = ElmUIAdapter.render_ash_iur(ash_iur)
       assert is_binary(html)
       assert String.contains?(html, "<!DOCTYPE html>")
       assert String.contains?(html, "ash-screen")
     end
   end
 
-  describe "Section 7.3.2 - WebUI-specific Features" do
+  describe "Section 7.3.2 - ElmUI-specific Features" do
     setup do
       {:ok, canonical_iur: %{
         "type" => "screen",
@@ -96,7 +96,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_seo/2 generates SEO configuration", %{canonical_iur: iur} do
-      seo_config = WebUIAdapter.configure_seo(iur)
+      seo_config = ElmUIAdapter.configure_seo(iur)
 
       assert seo_config.enabled == true
       assert seo_config.title == "user_profile"
@@ -107,7 +107,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_seo/2 respects custom title and description", %{canonical_iur: iur} do
-      seo_config = WebUIAdapter.configure_seo(iur,
+      seo_config = ElmUIAdapter.configure_seo(iur,
         title: "Custom Title",
         description: "Custom description"
       )
@@ -117,13 +117,13 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_seo/2 can be disabled", %{canonical_iur: iur} do
-      seo_config = WebUIAdapter.configure_seo(iur, seo_enabled: false)
+      seo_config = ElmUIAdapter.configure_seo(iur, seo_enabled: false)
 
       assert seo_config.enabled == false
     end
 
     test "configure_seo/2 generates OG tags", %{canonical_iur: iur} do
-      seo_config = WebUIAdapter.configure_seo(iur)
+      seo_config = ElmUIAdapter.configure_seo(iur)
 
       assert is_map(seo_config.og_tags)
       title = Map.get(seo_config.og_tags, "title") || Map.get(seo_config.og_tags, :title)
@@ -133,7 +133,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_seo/2 generates Twitter tags", %{canonical_iur: iur} do
-      seo_config = WebUIAdapter.configure_seo(iur)
+      seo_config = ElmUIAdapter.configure_seo(iur)
 
       assert is_map(seo_config.twitter_tags)
       # Check if keys are strings or atoms
@@ -144,7 +144,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_elm_integration/2 generates Elm configuration", %{canonical_iur: iur} do
-      elm_config = WebUIAdapter.configure_elm_integration(iur, elm_module: "App")
+      elm_config = ElmUIAdapter.configure_elm_integration(iur, elm_module: "App")
 
       assert elm_config.enabled == true
       assert elm_config.module == "App"
@@ -153,14 +153,14 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_elm_integration/2 extracts ports from bindings", %{canonical_iur: iur} do
-      elm_config = WebUIAdapter.configure_elm_integration(iur)
+      elm_config = ElmUIAdapter.configure_elm_integration(iur)
 
       assert is_map(elm_config.ports)
       assert Map.has_key?(elm_config.ports, "username")
     end
 
     test "configure_elm_integration/2 always includes screen flags", %{canonical_iur: iur} do
-      elm_config = WebUIAdapter.configure_elm_integration(iur)
+      elm_config = ElmUIAdapter.configure_elm_integration(iur)
 
       assert elm_config.enabled == true
       assert elm_config.flags["screen"]["name"] == "user_profile"
@@ -169,7 +169,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_assets/2 generates asset configuration", %{canonical_iur: iur} do
-      asset_config = WebUIAdapter.configure_assets(iur)
+      asset_config = ElmUIAdapter.configure_assets(iur)
 
       assert asset_config.base_url == "/assets"
       assert is_list(asset_config.css_files)
@@ -178,13 +178,13 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_assets/2 respects custom assets_url", %{canonical_iur: iur} do
-      asset_config = WebUIAdapter.configure_assets(iur, assets_url: "/static")
+      asset_config = ElmUIAdapter.configure_assets(iur, assets_url: "/static")
 
       assert asset_config.base_url == "/static"
     end
 
     test "configure_assets/2 can disable CSS and JS", %{canonical_iur: iur} do
-      asset_config = WebUIAdapter.configure_assets(iur,
+      asset_config = ElmUIAdapter.configure_assets(iur,
         include_css: false,
         include_js: false)
 
@@ -193,7 +193,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_ssg/2 generates SSG configuration", %{canonical_iur: iur} do
-      ssg_config = WebUIAdapter.configure_ssg(iur)
+      ssg_config = ElmUIAdapter.configure_ssg(iur)
 
       assert ssg_config.output_path == "output"
       assert ssg_config.generate_index == true
@@ -202,7 +202,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_ssg/2 respects custom options", %{canonical_iur: iur} do
-      ssg_config = WebUIAdapter.configure_ssg(iur,
+      ssg_config = ElmUIAdapter.configure_ssg(iur,
         output_path: "dist",
         prerender: true,
         incremental_ssg: true)
@@ -225,7 +225,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur)
+      {:ok, html} = ElmUIAdapter.render(iur)
       assert String.contains?(html, "<!DOCTYPE html>")
       assert String.contains?(html, "<html")
       assert String.contains?(html, "<head>")
@@ -244,7 +244,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur, seo_enabled: true)
+      {:ok, html} = ElmUIAdapter.render(iur, seo_enabled: true)
       assert String.contains?(html, "<title>My Page</title>")
       assert String.contains?(html, "name=\"description\"")
     end
@@ -260,7 +260,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur, seo_enabled: false)
+      {:ok, html} = ElmUIAdapter.render(iur, seo_enabled: false)
       refute String.contains?(html, "<title>")
     end
 
@@ -275,7 +275,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur, elm_module: "Main")
+      {:ok, html} = ElmUIAdapter.render(iur, elm_module: "Main")
       assert String.contains?(html, "main.js")
       assert String.contains?(html, "elm-app")
       assert String.contains?(html, "Elm.Main.init")
@@ -301,7 +301,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur)
+      {:ok, html} = ElmUIAdapter.render(iur)
       assert String.contains?(html, "ash-ui-elm-flags")
       assert String.contains?(html, "\"ports\":{\"username\":\"Guest\"}")
     end
@@ -317,7 +317,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur, include_css: true, include_js: true)
+      {:ok, html} = ElmUIAdapter.render(iur, include_css: true, include_js: true)
       assert String.contains?(html, "app.css")
       assert String.contains?(html, "app.js")
     end
@@ -333,7 +333,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur, assets_url: "/static")
+      {:ok, html} = ElmUIAdapter.render(iur, assets_url: "/static")
       assert String.contains?(html, "/static/app.css")
     end
 
@@ -346,7 +346,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur)
+      {:ok, html} = ElmUIAdapter.render(iur)
       assert String.contains?(html, "ash-widget")
       assert String.contains?(html, "data-widget-id=\"widget-1\"")
     end
@@ -364,7 +364,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{"keywords" => ["shop", "ecommerce"]}
       }
 
-      seo_config = WebUIAdapter.configure_seo(iur)
+      seo_config = ElmUIAdapter.configure_seo(iur)
       assert "shop" in seo_config.keywords
       assert "ecommerce" in seo_config.keywords
     end
@@ -380,7 +380,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      seo_config = WebUIAdapter.configure_seo(iur)
+      seo_config = ElmUIAdapter.configure_seo(iur)
       assert "User" in seo_config.keywords
       assert "Dashboard" in seo_config.keywords
     end

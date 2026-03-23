@@ -16,3 +16,4 @@ The format is based on Keep a Changelog and the project uses semantic versioning
 - expanded conformance coverage
 - added telemetry and dashboards for major runtime operations
 - completed user and developer documentation for current architecture
+- renamed the Elm-backed web renderer from `web_ui` / `WebUI.Renderer` / `AshUI.Rendering.WebUIAdapter` / `:html` to `elm_ui` / `ElmUI.Renderer` / `AshUI.Rendering.ElmUIAdapter` / `:elm`

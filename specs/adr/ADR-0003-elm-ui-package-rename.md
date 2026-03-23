@@ -6,43 +6,44 @@
 
 ## Context
 
-The unified-ui ecosystem has renamed its Elm-backed web renderer package from `web_ui` to `elm_ui` to make the package purpose explicit. That rename matches the direction already taken in this repository:
+The unified-ui ecosystem renamed its Elm-backed web renderer package from `web_ui` to `elm_ui` to make the package purpose explicit. Ash UI had already converged on the same functional meaning, but it still exposed a mixed naming model:
 
-1. The renderer is no longer documented as a generic static HTML renderer.
-2. The `web_ui` integration path is explicitly Elm-backed.
-3. The name `web_ui` creates ambiguity with broader web-rendering concerns that are not specific to Elm.
+1. The external package and renderer module were still named `web_ui` and `WebUI.Renderer` in parts of the codebase.
+2. The Ash UI bridge module was still named `AshUI.Rendering.WebUIAdapter`.
+3. The public renderer type was still `:html` even though the renderer is Elm-specific.
 
-Ash UI's current specifications and guides still describe the external renderer package as `web_ui`, and some implementation details in this repository still use historical names such as `AshUI.Rendering.WebUIAdapter` and `packages/web_ui`.
-
-We need a clear architectural decision for how Ash UI should name this boundary in specs and documentation while the implementation catches up.
+We need a single naming model across package dependencies, bridge modules, public renderer selection, docs, and tests.
 
 ## Decision
 
 ### 1. Adopt `elm_ui` As The Canonical External Package Name
 
-Ash UI specifications, ADRs, topology documents, and user-facing documentation will refer to the upstream Elm-backed renderer package as `elm_ui`.
-
-When describing the external unified-ui boundary, Ash UI will use:
+Ash UI uses the upstream Elm-backed renderer names directly:
 
 - package name: `elm_ui`
 - renderer module: `ElmUI.Renderer`
-- behavior description: Elm-backed web rendering
+- bridge module: `AshUI.Rendering.ElmUIAdapter`
+- vendored package path: `packages/elm_ui`
 
-### 2. Treat `web_ui` As A Transitional Internal Name
+### 2. Rename The Public Renderer Type To `:elm`
 
-Historical names that still exist inside this repository remain implementation details until a follow-up code refactor lands.
+Ash UI exposes the Elm-backed web renderer as `:elm`.
 
-That includes:
+This replaces the old `:html` renderer type. No compatibility alias is kept for `:html` or `:web`.
 
+### 3. Treat Old Names As Removed
+
+The following names are removed rather than aliased:
+
+- `web_ui`
+- `WebUI.Renderer`
 - `AshUI.Rendering.WebUIAdapter`
-- vendored paths such as `packages/web_ui`
-- any compatibility configuration that still uses the old name in code
+- renderer type `:html`
+- request header value `html`
 
-Developer-facing documentation may mention these historical names only when needed to explain the current implementation state.
+### 4. Keep Renderer Semantics Stable
 
-### 3. Keep Renderer Semantics Stable
-
-This ADR is a naming decision, not a rendering-behavior change.
+This is a naming and API-alignment change, not a renderer-behavior change.
 
 The Elm-backed web renderer still:
 
@@ -50,28 +51,23 @@ The Elm-backed web renderer still:
 - produces an HTML shell that boots Elm
 - remains separate from `live_ui` and `desktop_ui`
 
-### 4. Defer Public Renderer-Type Renames
-
-This ADR does not rename Ash UI's public renderer selection atoms or local module names. Any future rename of public API labels such as `:html` is a separate compatibility decision and requires its own change review.
-
 ## Consequences
 
 ### Positive
 
 - Ash UI now matches the upstream unified-ui package name.
-- Specifications describe the renderer according to its actual Elm-focused role.
-- Future contributors have a clearer path for the eventual implementation rename.
+- The public renderer API now reflects that the web renderer is Elm-specific.
+- Contributors no longer need to translate between package, module, and renderer-type names.
 
 ### Negative
 
-- Documentation must carry a short transition note while internal code still uses `web_ui`.
-- Specs and implementation names temporarily diverge at the package-boundary label.
+- The change is a hard break for callers still using the old names.
+- Release notes and examples must be updated in lockstep to avoid confusion.
 
 ### Mitigations
 
-- Keep the transition note explicit in architecture and getting-started docs.
-- Treat `elm_ui` as the architectural name and `web_ui` as a temporary implementation alias.
-- Follow up with a focused code/module rename PR when compatibility impact is understood.
+- Update contracts, guides, tests, examples, and release notes in the same change.
+- Add grep-based review checks to ensure no live implementation references to removed names remain.
 
 ## Related
 

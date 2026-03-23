@@ -17,8 +17,7 @@ Back to index: [README](./README.md)
 
 ## Current Status Note
 - Ash UI's architectural renderer boundary is now `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui`.
-- The current repository still carries transitional in-repo names like `AshUI.Rendering.WebUIAdapter` and `packages/web_ui` until the implementation rename lands.
-- `mix.exs` still wires the transitional in-repo package names as optional path dependencies, and the renderer registry can detect and use them in external mode.
+- `mix.exs` wires those packages as optional path dependencies, and the renderer registry can detect and use them in external mode.
 - Adapter fallbacks still remain available for degraded environments, but Phase 7 package integration is now implemented in-repo.
 
 [X] 7 Phase 7 - Renderer Package Integration
@@ -39,7 +38,7 @@ Back to index: [README](./README.md)
     Configure which renderer package to use.
 
       [X] - Add `:renderer` config to application config
-      [X] - Support `:liveview`, `:html`, `:desktop` options
+      [X] - Support `:liveview`, `:elm`, `:desktop` options
       [X] - Validate selected renderer is available
       [X] - Provide default renderer selection
 
@@ -76,7 +75,7 @@ Back to index: [README](./README.md)
     [X] - Implement ElmUI renderer adapter
     Create adapter for calling the Elm-backed web renderer.
 
-      [X] - Implement `AshUI.Rendering.WebUIAdapter` (transitional local module name)
+      [X] - Implement `AshUI.Rendering.ElmUIAdapter`
       [X] - Accept canonical IUR and options
       [X] - Call `ElmUI.Renderer.render/2`
       [X] - Return Elm-backed web shell HTML

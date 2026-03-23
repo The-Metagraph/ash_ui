@@ -48,11 +48,11 @@ defmodule AshUI.Rendering.SelectorTest do
       assert module == info.module
     end
 
-    test "select_for_request selects html renderer for HTTP request" do
+    test "select_for_request selects elm renderer for HTTP request" do
       request = %{headers: %{"accept" => "text/html"}}
 
-      assert {:ok, :html, module} = Selector.select_for_request(request)
-      assert {:ok, info} = Registry.renderer_info(:html)
+      assert {:ok, :elm, module} = Selector.select_for_request(request)
+      assert {:ok, info} = Registry.renderer_info(:elm)
       assert module == info.module
     end
 
@@ -92,21 +92,26 @@ defmodule AshUI.Rendering.SelectorTest do
       assert {:ok, :liveview, _module} = Selector.select_for_request(request)
     end
 
-    test "select_for_request selects html renderer from html header value" do
+    test "select_for_request selects elm renderer from elm header value" do
+      request = %{headers: %{"x-renderer" => "elm"}}
+      assert {:ok, :elm, _module} = Selector.select_for_request(request)
+    end
+
+    test "select_for_request rejects removed html renderer header value" do
       request = %{headers: %{"x-renderer" => "html"}}
-      assert {:ok, :html, _module} = Selector.select_for_request(request)
+      assert {:error, {:unknown_renderer, "html"}} = Selector.select_for_request(request)
     end
 
     test "select_for_request ignores header when ignore_headers option is true" do
       request = %{headers: %{"x-renderer" => "liveview", "accept" => "text/html"}}
-      assert {:ok, :html, _module} = Selector.select_for_request(request, ignore_headers: true)
+      assert {:ok, :elm, _module} = Selector.select_for_request(request, ignore_headers: true)
     end
 
     test "select_with_fallback reports adapter fallback usage" do
       request = %{headers: %{"accept" => "text/html"}}
-      assert {:ok, info} = Registry.renderer_info(:html)
+      assert {:ok, info} = Registry.renderer_info(:elm)
 
-      assert {:ok, :html, module, fallback_used} = Selector.select_with_fallback(request)
+      assert {:ok, :elm, module, fallback_used} = Selector.select_with_fallback(request)
       assert module == info.module
       assert fallback_used == (info.mode == :adapter_fallback)
     end
@@ -118,7 +123,7 @@ defmodule AshUI.Rendering.SelectorTest do
         Selector.select_with_fallback(
           request,
           allow_adapter_fallback: false,
-          fallback_renderer: :html,
+          fallback_renderer: :elm,
           fallback_allow_adapter_fallback: true
         )
 
@@ -128,18 +133,18 @@ defmodule AshUI.Rendering.SelectorTest do
         assert {:ok, :desktop, module, false} = result
         assert module == desktop_info.module
       else
-        assert {:ok, :html, module, true} = result
-        assert {:ok, html_info} = Registry.renderer_info(:html)
-        assert module == html_info.module
+        assert {:ok, :elm, module, true} = result
+        assert {:ok, elm_info} = Registry.renderer_info(:elm)
+        assert module == elm_info.module
       end
     end
 
     test "select_with_fallback falls back from unknown renderer header" do
       request = %{headers: %{"x-renderer" => "printer", "accept" => "text/html"}}
 
-      assert {:ok, :html, module, true} = Selector.select_with_fallback(request)
-      assert {:ok, html_info} = Registry.renderer_info(:html)
-      assert module == html_info.module
+      assert {:ok, :elm, module, true} = Selector.select_with_fallback(request)
+      assert {:ok, elm_info} = Registry.renderer_info(:elm)
+      assert module == elm_info.module
     end
 
     test "select_with_fallback records fallback telemetry" do
@@ -150,7 +155,7 @@ defmodule AshUI.Rendering.SelectorTest do
       snapshot = Telemetry.snapshot()
       assert snapshot.dashboards.renderer_usage.fallback >= 0
 
-      assert {:ok, info} = Registry.renderer_info(:html)
+      assert {:ok, info} = Registry.renderer_info(:elm)
 
       expected_fallback_count =
         if info.mode == :adapter_fallback do
@@ -170,13 +175,13 @@ defmodule AshUI.Rendering.SelectorTest do
     test "get_fallback_renderer honors explicit fallback policy" do
       result =
         Selector.get_fallback_renderer(
-          fallback_renderer: :html,
+          fallback_renderer: :elm,
           allow_adapter_fallback: false,
           fallback_allow_adapter_fallback: true
         )
 
-      assert {:ok, :html, module} = result
-      assert {:ok, info} = Registry.renderer_info(:html)
+      assert {:ok, :elm, module} = result
+      assert {:ok, info} = Registry.renderer_info(:elm)
       assert module == info.module
     end
 

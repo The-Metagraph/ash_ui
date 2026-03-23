@@ -48,7 +48,7 @@ end
 # Application selects renderer
 case renderer_type do
   :liveview -> LiveUI.Renderer.render(canonical_iur, opts)
-  :html -> ElmUI.Renderer.render(canonical_iur, opts)
+  :elm -> ElmUI.Renderer.render(canonical_iur, opts)
   :desktop -> DesktopUI.Renderer.render(canonical_iur, opts)
 end
 ```
@@ -363,7 +363,7 @@ classDiagram
     class ElmUIRenderer {
         <<External Package>>
         +render(canonical_iur, opts) HTML
-        +format() :html
+        +format() :elm
     }
 
     class DesktopUIRenderer {

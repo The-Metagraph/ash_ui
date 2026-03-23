@@ -15,7 +15,7 @@ The plan aligns to:
 4. [Phase 4 - Runtime and LiveView Integration](./phase-04-runtime-and-liveview-integration.md): implement LiveView mount/unmount and screen lifecycle.
 5. [Phase 5 - Authorization and Policy Enforcement](./phase-05-authorization-and-policy-enforcement.md): implement Ash policy integration for UI access control.
 6. [Phase 6 - Compiler and DSL Integration](./phase-06-compiler-and-dsl-integration.md): integrate unified-ui compiler with Ash Resource loading.
-7. [Phase 7 - Renderer Package Integration](./phase-07-renderer-package-integration.md): implement live_ui/web_ui/desktop_ui package integration.
+7. [Phase 7 - Renderer Package Integration](./phase-07-renderer-package-integration.md): implement live_ui/elm_ui/desktop_ui package integration.
 8. [Phase 8 - Governance Gates and Release Readiness](./phase-08-governance-gates-and-release-readiness.md): finalize CI gates, conformance tests, and rollout readiness.
 
 ## Shared Conventions

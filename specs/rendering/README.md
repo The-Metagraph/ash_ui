@@ -140,8 +140,6 @@ canonical_iur = AshUI.Rendering.IURAdapter.to_canonical(iur)
 LiveUI.Renderer.render(canonical_iur, [])
 ```
 
-Current repository note: the in-repo bridge code still uses historical names such as `AshUI.Rendering.WebUIAdapter` and `packages/web_ui` until the implementation rename lands.
-
 ## Related Specifications
 
 ### Ash UI Specifications

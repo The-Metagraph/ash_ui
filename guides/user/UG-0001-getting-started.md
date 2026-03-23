@@ -248,8 +248,6 @@ Check that:
 
 That is expected if external renderer packages are not installed. Ash UI currently falls back to adapter-provided output until `live_ui`, `elm_ui`, or `desktop_ui` are available.
 
-One transition note: the current codebase still uses historical bridge names such as `AshUI.Rendering.WebUIAdapter` internally even though the external Elm-backed renderer package is now documented as `elm_ui`.
-
 ## See Also
 
 - [UG-0002: Working with Resources](./UG-0002-resources.md)

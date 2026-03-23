@@ -12,7 +12,7 @@ defmodule AshUI.Rendering.Selector do
   alias AshUI.Rendering.Registry
   alias AshUI.Telemetry
 
-  @renderer_types [:liveview, :html, :desktop]
+  @renderer_types [:liveview, :elm, :desktop]
 
   @doc """
   Selects an appropriate renderer based on request context.
@@ -177,7 +177,7 @@ defmodule AshUI.Rendering.Selector do
         {:ok, :liveview}
 
       http_request?(conn_or_map) ->
-        {:ok, :html}
+        {:ok, :elm}
 
       true ->
         configured = Application.get_env(:ash_ui, :rendering, [])
@@ -230,8 +230,7 @@ defmodule AshUI.Rendering.Selector do
       nil -> {:error, :no_header}
       "liveview" -> {:ok, :liveview}
       "live" -> {:ok, :liveview}
-      "html" -> {:ok, :html}
-      "web" -> {:ok, :html}
+      "elm" -> {:ok, :elm}
       "desktop" -> {:ok, :desktop}
       "native" -> {:ok, :desktop}
       unknown -> {:error, {:unknown_renderer, unknown}}

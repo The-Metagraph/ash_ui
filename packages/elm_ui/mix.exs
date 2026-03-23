@@ -1,9 +1,9 @@
-defmodule WebUI.MixProject do
+defmodule ElmUI.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :web_ui,
+      app: :elm_ui,
       version: "0.1.0",
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,

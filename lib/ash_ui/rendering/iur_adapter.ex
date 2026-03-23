@@ -56,7 +56,7 @@ defmodule AshUI.Rendering.IURAdapter do
   """
   @spec compatible?(IUR.t(), atom()) :: boolean()
   def compatible?(%IUR{type: :screen}, :live_ui), do: true
-  def compatible?(%IUR{type: :screen}, :web_ui), do: true
+  def compatible?(%IUR{type: :screen}, :elm), do: true
   def compatible?(%IUR{type: :screen}, :desktop_ui), do: true
   def compatible?(%IUR{}, _renderer), do: false
 

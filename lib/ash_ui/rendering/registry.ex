@@ -9,7 +9,7 @@ defmodule AshUI.Rendering.Registry do
 
   use GenServer
 
-  @renderer_types [:liveview, :html, :desktop]
+  @renderer_types [:liveview, :elm, :desktop]
 
   @doc """
   Starts the renderer registry.
@@ -201,11 +201,11 @@ defmodule AshUI.Rendering.Registry do
           AshUI.Rendering.LiveUIAdapter,
           "Phoenix LiveView renderer (live_ui)"
         ),
-      html:
+      elm:
         detect_renderer(
-          WebUI.Renderer,
-          AshUI.Rendering.WebUIAdapter,
-          "Elm-backed web renderer (web_ui)"
+          ElmUI.Renderer,
+          AshUI.Rendering.ElmUIAdapter,
+          "Elm-backed web renderer (elm_ui)"
         ),
       desktop:
         detect_renderer(

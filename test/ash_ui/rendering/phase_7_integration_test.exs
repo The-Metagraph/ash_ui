@@ -7,7 +7,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
     LiveUIAdapter,
     Registry,
     Selector,
-    WebUIAdapter
+    ElmUIAdapter
   }
 
   alias AshUI.Compilation.IUR
@@ -136,7 +136,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
     end
   end
 
-  describe "Section 7.6.2 - WebUI integration scenarios" do
+  describe "Section 7.6.2 - ElmUI integration scenarios" do
     test "7.6.2.1 - Verify canonical IUR renders to valid HTML" do
       canonical_iur = %{
         "type" => "screen",
@@ -148,7 +148,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
         "metadata" => %{}
       }
 
-      assert {:ok, html} = WebUIAdapter.render(canonical_iur)
+      assert {:ok, html} = ElmUIAdapter.render(canonical_iur)
       assert is_binary(html)
       assert String.contains?(html, "<!DOCTYPE html>")
       assert String.contains?(html, "<html")
@@ -175,7 +175,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
         "metadata" => %{}
       }
 
-      assert {:ok, html} = WebUIAdapter.render(canonical_iur, elm_module: "App")
+      assert {:ok, html} = ElmUIAdapter.render(canonical_iur, elm_module: "App")
 
       assert String.contains?(html, "elm-app")
       assert String.contains?(html, "Elm")
@@ -192,7 +192,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
         "metadata" => %{}
       }
 
-      assert {:ok, html} = WebUIAdapter.render(canonical_iur, include_css: true, include_js: true)
+      assert {:ok, html} = ElmUIAdapter.render(canonical_iur, include_css: true, include_js: true)
       assert String.contains?(html, "/assets/")
       assert String.contains?(html, ".css")
       assert String.contains?(html, ".js")
@@ -209,7 +209,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
         "metadata" => %{"keywords" => ["test", "page"]}
       }
 
-      assert {:ok, html} = WebUIAdapter.render(canonical_iur, seo_enabled: true)
+      assert {:ok, html} = ElmUIAdapter.render(canonical_iur, seo_enabled: true)
       assert String.contains?(html, "<title>My Page</title>")
       assert String.contains?(html, "name=\"description\"")
       assert String.contains?(html, "name=\"keywords\"")
@@ -225,11 +225,11 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
       assert module == info.module
     end
 
-    test "7.6.3.2 - Verify HTTP request uses web_ui" do
+    test "7.6.3.2 - Verify HTTP request uses elm_ui" do
       request = %{headers: %{"accept" => "text/html"}}
 
-      assert {:ok, :html, module} = Selector.select_for_request(request)
-      assert {:ok, info} = Registry.renderer_info(:html)
+      assert {:ok, :elm, module} = Selector.select_for_request(request)
+      assert {:ok, info} = Registry.renderer_info(:elm)
       assert module == info.module
     end
 
@@ -280,7 +280,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
     test "7.6.4.1 - Verify same IUR renders on all renderers", %{sample_iur: iur} do
       # All renderers should successfully render the same IUR
       assert {:ok, _liveui_output} = LiveUIAdapter.render(iur)
-      assert {:ok, _webui_output} = WebUIAdapter.render(iur)
+      assert {:ok, _elm_ui_output} = ElmUIAdapter.render(iur)
       assert {:ok, _desktop_output} = DesktopUIAdapter.render(iur)
     end
 
@@ -290,9 +290,9 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
       assert String.contains?(liveui_output, "phx-")
       assert String.contains?(liveui_output, "ash-screen")
 
-      # WebUI should produce HTML with DOCTYPE
-      assert {:ok, webui_output} = WebUIAdapter.render(iur)
-      assert String.contains?(webui_output, "<!DOCTYPE html>")
+      # ElmUI should produce HTML with DOCTYPE
+      assert {:ok, elm_ui_output} = ElmUIAdapter.render(iur)
+      assert String.contains?(elm_ui_output, "<!DOCTYPE html>")
 
       # DesktopUI should produce instruction map
       assert {:ok, desktop_output} = DesktopUIAdapter.render(iur)
@@ -302,9 +302,9 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
 
     test "7.6.4.3 - Verify fallback behavior works" do
       request = %{headers: %{"accept" => "text/html"}}
-      assert {:ok, info} = Registry.renderer_info(:html)
+      assert {:ok, info} = Registry.renderer_info(:elm)
 
-      assert {:ok, :html, module, fallback_used} = Selector.select_with_fallback(request)
+      assert {:ok, :elm, module, fallback_used} = Selector.select_with_fallback(request)
       assert module == info.module
       assert fallback_used == (info.mode == :adapter_fallback)
     end
@@ -312,7 +312,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
     test "7.6.4.4 - Verify renderer switching works" do
       request = %{headers: %{"accept" => "text/html"}}
 
-      assert {:ok, :html, _} = Selector.select_for_request(request)
+      assert {:ok, :elm, _} = Selector.select_for_request(request)
       assert {:ok, :liveview, _} = Selector.select_for_request(request, renderer: :liveview)
       assert {:ok, :desktop, _} = Selector.select_for_request(request, renderer: :desktop)
     end
@@ -339,7 +339,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
       assert String.contains?(heex, "ash-screen")
     end
 
-    test "Ash IUR converts to canonical and renders through WebUI" do
+    test "Ash IUR converts to canonical and renders through ElmUI" do
       ash_iur =
         struct(IUR,
           id: "test-id",
@@ -353,7 +353,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
         )
 
       assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
-      assert {:ok, html} = WebUIAdapter.render(canonical)
+      assert {:ok, html} = ElmUIAdapter.render(canonical)
       assert String.contains?(html, "<!DOCTYPE html>")
     end
 
@@ -390,7 +390,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
         )
 
       assert {:ok, _heex} = LiveUIAdapter.render_ash_iur(ash_iur)
-      assert {:ok, _html} = WebUIAdapter.render_ash_iur(ash_iur)
+      assert {:ok, _html} = ElmUIAdapter.render_ash_iur(ash_iur)
       assert {:ok, _instructions} = DesktopUIAdapter.render_ash_iur(ash_iur)
     end
   end
@@ -400,25 +400,25 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
       renderers = AshUI.Rendering.Registry.list_renderers()
 
       assert Enum.any?(renderers, fn r ->
-               r.type == :liveview or r.type == :html or r.type == :desktop
+               r.type == :liveview or r.type == :elm or r.type == :desktop
              end)
     end
 
     test "Each renderer can be retrieved individually" do
       assert {:ok, _module} = AshUI.Rendering.Registry.get_renderer(:liveview)
-      assert {:ok, _module} = AshUI.Rendering.Registry.get_renderer(:html)
+      assert {:ok, _module} = AshUI.Rendering.Registry.get_renderer(:elm)
       assert {:ok, _module} = AshUI.Rendering.Registry.get_renderer(:desktop)
     end
 
     test "Renderer availability can be checked" do
       assert is_boolean(AshUI.Rendering.Registry.renderer_available?(:liveview))
-      assert is_boolean(AshUI.Rendering.Registry.renderer_available?(:html))
+      assert is_boolean(AshUI.Rendering.Registry.renderer_available?(:elm))
       assert is_boolean(AshUI.Rendering.Registry.renderer_available?(:desktop))
     end
 
     test "Renderer renderability can be checked independently of external packages" do
       assert AshUI.Rendering.Registry.renderer_renderable?(:liveview)
-      assert AshUI.Rendering.Registry.renderer_renderable?(:html)
+      assert AshUI.Rendering.Registry.renderer_renderable?(:elm)
       assert AshUI.Rendering.Registry.renderer_renderable?(:desktop)
     end
 

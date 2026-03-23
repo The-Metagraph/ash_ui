@@ -1,4 +1,4 @@
-defmodule WebUI.Renderer do
+defmodule ElmUI.Renderer do
   @moduledoc """
   Minimal Elm-backed web renderer package used by Ash UI in external renderer
   mode.

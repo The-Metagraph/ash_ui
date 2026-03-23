@@ -27,12 +27,12 @@ defmodule AshUI.Rendering.RegistryTest do
       assert liveview_renderer.type == :liveview
     end
 
-    test "list_renderers includes html renderer" do
+    test "list_renderers includes elm renderer" do
       renderers = Registry.list_renderers()
 
-      html_renderer = Enum.find(renderers, fn r -> r.type == :html end)
-      assert html_renderer != nil
-      assert html_renderer.type == :html
+      elm_renderer = Enum.find(renderers, fn r -> r.type == :elm end)
+      assert elm_renderer != nil
+      assert elm_renderer.type == :elm
     end
 
     test "list_renderers includes desktop renderer" do
@@ -58,7 +58,7 @@ defmodule AshUI.Rendering.RegistryTest do
     end
 
     test "vendored renderer packages are detected as external" do
-      for renderer_type <- [:liveview, :html, :desktop] do
+      for renderer_type <- [:liveview, :elm, :desktop] do
         assert {:ok, info} = Registry.renderer_info(renderer_type)
         assert info.available
         assert info.renderable
@@ -71,8 +71,8 @@ defmodule AshUI.Rendering.RegistryTest do
       assert is_atom(module)
     end
 
-    test "get_renderer returns module for html" do
-      assert {:ok, module} = Registry.get_renderer(:html)
+    test "get_renderer returns module for elm" do
+      assert {:ok, module} = Registry.get_renderer(:elm)
       assert is_atom(module)
     end
 
@@ -107,7 +107,7 @@ defmodule AshUI.Rendering.RegistryTest do
 
     test "renderer_renderable? checks current fallback policy" do
       assert Registry.renderer_renderable?(:liveview)
-      assert Registry.renderer_renderable?(:html)
+      assert Registry.renderer_renderable?(:elm)
       assert Registry.renderer_renderable?(:desktop)
     end
 
@@ -125,7 +125,7 @@ defmodule AshUI.Rendering.RegistryTest do
 
     test "default_renderer returns configured renderer or fallback" do
       assert {:ok, type, module} = Registry.default_renderer()
-      assert type in [:liveview, :html, :desktop]
+      assert type in [:liveview, :elm, :desktop]
       assert is_atom(module)
     end
   end
@@ -135,7 +135,7 @@ defmodule AshUI.Rendering.RegistryTest do
       configured = Application.get_env(:ash_ui, :rendering, [])
       default = Keyword.get(configured, :default_renderer, :liveview)
 
-      assert default in [:liveview, :html, :desktop]
+      assert default in [:liveview, :elm, :desktop]
     end
 
     test "reads auto_detect setting from config" do
@@ -156,7 +156,7 @@ defmodule AshUI.Rendering.RegistryTest do
       configured = Application.get_env(:ash_ui, :rendering, [])
       fallback = Keyword.get(configured, :fallback_renderer)
 
-      assert fallback == nil or fallback in [:liveview, :html, :desktop]
+      assert fallback == nil or fallback in [:liveview, :elm, :desktop]
     end
   end
 end

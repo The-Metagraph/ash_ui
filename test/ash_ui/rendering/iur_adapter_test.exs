@@ -89,7 +89,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
       screen_iur = IUR.new(:screen)
 
       assert IURAdapter.compatible?(screen_iur, :live_ui)
-      assert IURAdapter.compatible?(screen_iur, :web_ui)
+      assert IURAdapter.compatible?(screen_iur, :elm)
       assert IURAdapter.compatible?(screen_iur, :desktop_ui)
     end
 

@@ -1,12 +1,12 @@
-defmodule AshUI.Rendering.WebUIAdapter do
+defmodule AshUI.Rendering.ElmUIAdapter do
   @moduledoc """
-  Adapter for WebUI renderer package.
+  Adapter for the ElmUI renderer package.
 
-  This module provides integration with the web_ui package for rendering
-  to an Elm-backed web document. When the web_ui package is
+  This module provides integration with the elm_ui package for rendering
+  to an Elm-backed web document. When the elm_ui package is
   not available, this module provides stub implementations.
 
-  ## WebUI-Specific Features
+  ## ElmUI-Specific Features
 
   This adapter supports:
   - SEO meta tags generation
@@ -14,7 +14,7 @@ defmodule AshUI.Rendering.WebUIAdapter do
   - Static asset references
   - Static site generation
 
-  If WebUI.Renderer is available, delegates to it. Otherwise, provides
+  If ElmUI.Renderer is available, delegates to it. Otherwise, provides
   fallback implementation using the IURAdapter.
   """
 
@@ -43,12 +43,12 @@ defmodule AshUI.Rendering.WebUIAdapter do
   @spec render(map(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def render(canonical_iur, opts \\ []) when is_map(canonical_iur) do
     started_at = System.monotonic_time()
-    metadata = render_metadata(canonical_iur, :web_ui)
+    metadata = render_metadata(canonical_iur, :elm_ui)
     Telemetry.emit(:render, :start, %{count: 1}, metadata)
 
     result =
-      if Code.ensure_loaded?(WebUI.Renderer) do
-        call_web_ui_renderer(canonical_iur, opts)
+      if Code.ensure_loaded?(ElmUI.Renderer) do
+        call_elm_ui_renderer(canonical_iur, opts)
       else
         render_fallback(canonical_iur, opts)
       end
@@ -57,19 +57,19 @@ defmodule AshUI.Rendering.WebUIAdapter do
   end
 
   @doc """
-  Checks if WebUI renderer is available.
+  Checks if the ElmUI renderer is available.
 
   ## Returns
-    * `true` - WebUI.Renderer is available
-    * `false` - WebUI.Renderer is not available
+    * `true` - ElmUI.Renderer is available
+    * `false` - ElmUI.Renderer is not available
   """
   @spec available?() :: boolean()
   def available? do
-    Code.ensure_loaded?(web_ui_renderer_module())
+    Code.ensure_loaded?(elm_ui_renderer_module())
   end
 
   @doc """
-  Converts an Ash IUR to WebUI-compatible format and renders.
+  Converts an Ash IUR to ElmUI-compatible format and renders.
 
   ## Parameters
     * `ash_iur` - Ash IUR structure
@@ -196,26 +196,26 @@ defmodule AshUI.Rendering.WebUIAdapter do
 
   # Private Functions
 
-  defp web_ui_renderer_module do
-    Module.concat(WebUI, Renderer)
+  defp elm_ui_renderer_module do
+    Module.concat(ElmUI, Renderer)
   end
 
-  # Call actual WebUI.Renderer if available
-  defp call_web_ui_renderer(canonical_iur, opts) do
-    renderer_module = web_ui_renderer_module()
+  # Call actual ElmUI.Renderer if available
+  defp call_elm_ui_renderer(canonical_iur, opts) do
+    renderer_module = elm_ui_renderer_module()
 
     try do
       case apply(renderer_module, :render, [canonical_iur, opts]) do
         {:ok, html} -> {:ok, html}
-        {:error, reason} -> {:error, {:web_ui_error, reason}}
+        {:error, reason} -> {:error, {:elm_ui_error, reason}}
         other -> {:error, {:unexpected_response, other}}
       end
     rescue
-      error -> {:error, {:web_ui_exception, error}}
+      error -> {:error, {:elm_ui_exception, error}}
     end
   end
 
-  # Fallback renderer when WebUI is not available
+  # Fallback renderer when ElmUI is not available
   defp render_fallback(canonical_iur, opts) do
     html = generate_html(canonical_iur, opts)
     {:ok, html}

@@ -55,7 +55,7 @@ flowchart LR
         Adapter["AshUI.Rendering.IURAdapter"]
         Registry["AshUI.Rendering.Registry"]
         LiveAdapter["AshUI.Rendering.LiveUIAdapter"]
-        WebAdapter["AshUI.Rendering.WebUIAdapter<br/>(elm_ui bridge)"]
+        WebAdapter["AshUI.Rendering.ElmUIAdapter"]
         DesktopAdapter["AshUI.Rendering.DesktopUIAdapter"]
     end
 
@@ -194,7 +194,7 @@ Primary modules:
 - `AshUI.Rendering.Registry`
 - `AshUI.Rendering.Selector`
 - `AshUI.Rendering.LiveUIAdapter`
-- `AshUI.Rendering.WebUIAdapter` (current local bridge name for the upstream `elm_ui` package)
+- `AshUI.Rendering.ElmUIAdapter`
 - `AshUI.Rendering.DesktopUIAdapter`
 
 The adapters currently support two operating modes:
@@ -203,11 +203,6 @@ The adapters currently support two operating modes:
 - fall back to local adapter output when those packages are absent
 
 That fallback behavior is intentional and is part of current release-readiness work.
-
-Architectural naming note:
-
-- the external Elm-backed renderer package is now `elm_ui`
-- the current Ash UI implementation still uses `AshUI.Rendering.WebUIAdapter` as the local adapter module name until a follow-up rename lands
 
 ## Observability
 

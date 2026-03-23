@@ -16,7 +16,7 @@ flowchart LR
     Canonical["Canonical IUR<br/>(unified_iur)"]
 
     Live["live_ui"]
-    Web["web_ui"]
+    Elm["elm_ui"]
     Desktop["desktop_ui"]
 
     Ash --> IUR
@@ -24,7 +24,7 @@ flowchart LR
     Adapter --> Canonical
 
     Canonical --> Live
-    Canonical --> Web
+    Canonical --> Elm
     Canonical --> Desktop
 ```
 
@@ -41,12 +41,12 @@ Renders canonical IUR to Phoenix LiveView HEEx templates.
 - Event handling via unified signal transport
 - Optimized patches for updates
 
-### web_ui
+### elm_ui
 
 Renders canonical IUR to an HTML document that boots the Elm client runtime.
 
-**Package**: https://github.com/your-org/unified/tree/main/packages/web_ui
-**Spec**: https://github.com/your-org/unified/blob/main/.spec/specs/web_ui/iur_renderer.spec.md
+**Package**: https://github.com/your-org/unified/tree/main/packages/elm_ui
+**Spec**: https://github.com/your-org/unified/blob/main/.spec/specs/elm_ui/iur_renderer.spec.md
 **Features**:
 - Complete HTML5 document shell
 - Elm runtime bootstrap
@@ -100,7 +100,7 @@ flowchart LR
 
     subgraph Renderers["Renderer Packages"]
         Live["LiveUI.Renderer"]
-        Web["WebUI.Renderer"]
+        Web["ElmUI.Renderer"]
         Desktop["DesktopUI.Renderer"]
     end
 
@@ -128,7 +128,7 @@ def deps do
     {:unified_iur, "~> 0.1"},
     {:live_ui, "~> 0.1"}     # for LiveView rendering
     # or
-    {:web_ui, "~> 0.1"}      # for Elm-backed web rendering
+    {:elm_ui, "~> 0.1"}      # for Elm-backed web rendering
     # or
     {:desktop_ui, "~> 0.1"}  # for desktop rendering
   ]
@@ -140,6 +140,8 @@ canonical_iur = AshUI.Rendering.IURAdapter.to_canonical(iur)
 LiveUI.Renderer.render(canonical_iur, [])
 ```
 
+Current repository note: the in-repo bridge code still uses historical names such as `AshUI.Rendering.WebUIAdapter` and `packages/web_ui` until the implementation rename lands.
+
 ## Related Specifications
 
 ### Ash UI Specifications
@@ -149,7 +151,7 @@ LiveUI.Renderer.render(canonical_iur, [])
 ### Unified Ecosystem Specifications
 - [unified_iur](https://github.com/your-org/unified/tree/main/packages/unified_iur)
 - [live_ui](https://github.com/your-org/unified/tree/main/packages/live_ui)
-- [web_ui](https://github.com/your-org/unified/tree/main/packages/web_ui)
+- [elm_ui](https://github.com/your-org/unified/tree/main/packages/elm_ui)
 - [desktop_ui](https://github.com/your-org/unified/tree/main/packages/desktop_ui)
 - [Ecosystem Architecture](https://github.com/your-org/unified/blob/main/.spec/specs/architecture.spec.md)
 - [Platform Runtimes](https://github.com/your-org/unified/blob/main/.spec/specs/platform_runtimes.spec.md)

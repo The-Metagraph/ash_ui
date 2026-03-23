@@ -39,14 +39,14 @@ This document defines the ownership boundaries and authority delegation across a
 | Component | Module | Owner | Dependencies |
 |---|---|---|---|
 | IUR Adapter | `AshUI.Rendering.IURAdapter` | Rendering | unified_iur |
-| Renderer Registry | `AshUI.Rendering.Registry` | Rendering | live_ui, web_ui, desktop_ui |
+| Renderer Registry | `AshUI.Rendering.Registry` | Rendering | live_ui, elm_ui, desktop_ui |
 
 **External Renderer Packages** (consumed as dependencies):
 
 | Package | Module | Owner | Dependencies |
 |---|---|---|---|
 | live_ui | `LiveUI.Renderer` | External | Phoenix.LiveView, unified_iur |
-| web_ui | `WebUI.Renderer` | External | Phoenix, Elm, unified_iur |
+| elm_ui | `ElmUI.Renderer` | External | Phoenix, Elm, unified_iur |
 | desktop_ui | `DesktopUI.Renderer` | External | SDL2, unified_iur |
 
 ### Runtime Control Plane
@@ -101,7 +101,7 @@ The Compilation Control Plane has exclusive authority over:
 The Rendering Control Plane delegates actual rendering to external unified renderer packages:
 
 - **IUR Production**: Compiles Ash Resources to canonical `unified_iur` format
-- **Renderer Selection**: Application selects target renderer package (live_ui, web_ui, desktop_ui)
+- **Renderer Selection**: Application selects target renderer package (live_ui, elm_ui, desktop_ui)
 - **Adapter Contract**: Defines interface for IUR conversion and renderer invocation
 - **Package Integration**: Manages dependencies on external renderer packages
 
@@ -109,7 +109,7 @@ The Rendering Control Plane delegates actual rendering to external unified rende
 
 **REQ-RENDER-002**: External renderer packages must accept canonical IUR without Ash-specific dependencies.
 
-**Note**: LiveView, Elm-backed web, and Desktop renderers are owned by the unified ecosystem packages, not Ash UI. Ash UI consumes these packages as dependencies.
+**Note**: LiveView, Elm-backed web, and Desktop renderers are owned by the unified ecosystem packages, not Ash UI. Ash UI consumes these packages as dependencies. The current in-repo bridge module for `elm_ui` is still named `AshUI.Rendering.WebUIAdapter`.
 
 ### Runtime Authority (EXCLUSIVE)
 

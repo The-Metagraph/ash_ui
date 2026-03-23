@@ -43,14 +43,14 @@ Renders canonical IUR to Phoenix LiveView HEEx templates.
 
 ### web_ui
 
-Renders canonical IUR to static HTML with optional Elm client.
+Renders canonical IUR to an HTML document that boots the Elm client runtime.
 
 **Package**: https://github.com/your-org/unified/tree/main/packages/web_ui
 **Spec**: https://github.com/your-org/unified/blob/main/.spec/specs/web_ui/iur_renderer.spec.md
 **Features**:
-- Complete HTML5 document structure
-- Phoenix server-side rendering
-- Elm client-side runtime
+- Complete HTML5 document shell
+- Elm runtime bootstrap
+- Elm widget rendering
 - SEO-friendly markup
 
 ### desktop_ui
@@ -128,7 +128,7 @@ def deps do
     {:unified_iur, "~> 0.1"},
     {:live_ui, "~> 0.1"}     # for LiveView rendering
     # or
-    {:web_ui, "~> 0.1"}      # for static HTML rendering
+    {:web_ui, "~> 0.1"}      # for Elm-backed web rendering
     # or
     {:desktop_ui, "~> 0.1"}  # for desktop rendering
   ]

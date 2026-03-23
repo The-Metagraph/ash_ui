@@ -175,8 +175,7 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
         "metadata" => %{}
       }
 
-      assert {:ok, html} =
-               WebUIAdapter.render(canonical_iur, elm_enabled: true, elm_module: "App")
+      assert {:ok, html} = WebUIAdapter.render(canonical_iur, elm_module: "App")
 
       assert String.contains?(html, "elm-app")
       assert String.contains?(html, "Elm")

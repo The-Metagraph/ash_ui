@@ -14,7 +14,7 @@ Defines the requirements for compiling Ash UI resources to canonical `unified_iu
 
 - **unified_iur**: Canonical intermediate representation format (https://github.com/your-org/unified/tree/main/packages/unified_iur)
 - **live_ui**: LiveView renderer package (https://github.com/your-org/unified/tree/main/packages/live_ui)
-- **web_ui**: Static HTML renderer package (https://github.com/your-org/unified/tree/main/packages/web_ui)
+- **web_ui**: Elm-backed web renderer package (https://github.com/your-org/unified/tree/main/packages/web_ui)
 - **desktop_ui**: Desktop renderer package (https://github.com/your-org/unified/tree/main/packages/desktop_ui)
 
 ## Internal Dependencies
@@ -78,22 +78,22 @@ LiveView rendering is provided by the external `live_ui` package.
 
 **Note**: See [live_ui IUR Renderer spec](https://github.com/your-org/unified/blob/main/.spec/specs/live_ui/iur_renderer.spec.md) for canonical IUR requirements.
 
-### REQ-RENDER-003: Static HTML Rendering (via web_ui)
+### REQ-RENDER-003: Elm-Backed Web Rendering (via web_ui)
 
-Static HTML rendering is provided by the external `web_ui` package.
+Elm-backed web rendering is provided by the external `web_ui` package.
 
 **Package**: `web_ui` (https://github.com/your-org/unified/tree/main/packages/web_ui)
 
 **Requirements**:
 - Ash UI produces canonical IUR compatible with web_ui
 - web_ui accepts canonical IUR via `WebUI.Renderer.render/2`
-- Output format is static HTML5 with optional Elm client
+- Output format is an HTML document that boots the Elm runtime
 
 **Acceptance Criteria**:
 - AC-001: Ash UI IUR maps to valid canonical IUR for web_ui
-- AC-002: web_ui produces valid HTML5 output
-- AC-003: Document structure follows web_ui conventions
-- AC-004: Assets are properly referenced
+- AC-002: web_ui produces a valid HTML5 shell for the Elm app
+- AC-003: Elm runtime assets are referenced automatically
+- AC-004: Renderer output includes Elm bootstrap data for widget rendering
 
 **Note**: See [web_ui IUR Renderer spec](https://github.com/your-org/unified/blob/main/.spec/specs/web_ui/iur_renderer.spec.md) for canonical IUR requirements.
 
@@ -303,7 +303,7 @@ flowchart LR
 
     subgraph Output["Platform Output"]
         LV["LiveView HEEx"]
-        HTML["Static HTML + Elm"]
+        HTML["Elm-Backed Web Output"]
         Native["Desktop UI"]
     end
 

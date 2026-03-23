@@ -14,7 +14,7 @@ flowchart TB
 
     subgraph Endpoint["Phoenix Endpoint"]
         LiveView["Phoenix LiveView"]
-        StaticController["Static HTML Controller"]
+        StaticController["Web Controller"]
     end
 
     subgraph Runtime["Runtime Control Plane"]
@@ -44,7 +44,7 @@ flowchart TB
 
     subgraph Rendering["Rendering Control Plane"]
         LiveRenderer["live_ui Package<br/>(LiveView Renderer)"]
-        WebRenderer["web_ui Package<br/>(Static HTML Renderer)"]
+        WebRenderer["web_ui Package<br/>(Elm-Backed Web Renderer)"]
         DesktopRenderer["desktop_ui Package<br/>(Desktop Renderer)"]
         ExternalRegistry["External Renderer Registry"]
     end
@@ -202,7 +202,7 @@ flowchart TB
 
 **Components**:
 - **live_ui** - External package providing LiveView-compatible rendering via `LiveUI.Renderer.render/2`
-- **web_ui** - External package providing static HTML rendering via `WebUI.Renderer.render/2`
+- **web_ui** - External package providing Elm-backed web rendering via `WebUI.Renderer.render/2`
 - **desktop_ui** - External package providing desktop rendering via `DesktopUI.Renderer.render/2`
 - **Renderer Registry** - Manages renderer package selection and adapter registration
 
@@ -304,7 +304,7 @@ sequenceDiagram
     RC->>IUR: Generate Ash IUR
     IUR->>UI: Convert to Canonical IUR
     UI->>WR: WebUI.Renderer.render(iur)
-    WR->>SC: Static HTML
+    WR->>SC: Elm-backed web document
     SC->>C: HTML Response
 ```
 
@@ -348,7 +348,7 @@ AshUI                               # Application root
 ### Rendering Dependencies
 - `unified_iur` - Canonical intermediate representation
 - `live_ui` - LiveView rendering (optional, application-provided)
-- `web_ui` - Static HTML rendering (optional, application-provided)
+- `web_ui` - Elm-backed web rendering (optional, application-provided)
 - `desktop_ui` - Desktop rendering (optional, application-provided)
 
 ### Runtime Dependencies

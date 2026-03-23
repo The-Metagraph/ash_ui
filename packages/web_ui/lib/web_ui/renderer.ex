@@ -1,6 +1,7 @@
 defmodule WebUI.Renderer do
   @moduledoc """
-  Minimal HTML renderer package used by Ash UI in external renderer mode.
+  Minimal Elm-backed web renderer package used by Ash UI in external renderer
+  mode.
   """
 
   @spec render(map(), keyword()) :: {:ok, String.t()}
@@ -10,7 +11,6 @@ defmodule WebUI.Renderer do
 
   defp generate_html(%{"type" => "screen"} = iur, opts) do
     seo_enabled = Keyword.get(opts, :seo_enabled, true)
-    elm_enabled = Keyword.get(opts, :elm_enabled, false)
     elm_module = Keyword.get(opts, :elm_module, "Main")
     assets_url = Keyword.get(opts, :assets_url, "/assets")
     include_css = Keyword.get(opts, :include_css, true)
@@ -25,6 +25,8 @@ defmodule WebUI.Renderer do
       |> Map.get("keywords", [])
       |> Enum.join(", ")
 
+    flags_json = encode_flags_json(iur)
+
     """
     <!DOCTYPE html>
     <html lang="en">
@@ -35,11 +37,12 @@ defmodule WebUI.Renderer do
       #{if seo_enabled and keywords != "", do: "<meta name=\"keywords\" content=\"#{keywords}\">", else: ""}
       #{if include_css, do: asset_tag(:css, assets_url, "app.css", fingerprinted), else: ""}
       #{if include_js, do: asset_tag(:js, assets_url, "app.js", fingerprinted), else: ""}
-      #{if elm_enabled, do: "<script src=\"#{assets_url}/#{String.downcase(elm_module)}.js\"></script>", else: ""}
+      <script src="#{assets_url}/#{String.downcase(elm_module)}.js"></script>
     </head>
     <body class="ash-screen ash-screen-#{iur["name"]}" data-screen-id="#{iur["id"]}">
-      #{generate_children(iur["children"])}
-      #{if elm_enabled, do: generate_elm_mount(elm_module, extract_elm_ports(iur)), else: ""}
+      <div id="elm-app" data-screen-id="#{iur["id"]}"></div>
+      <script type="application/json" id="ash-ui-elm-flags">#{flags_json}</script>
+      #{generate_elm_mount(elm_module)}
     </body>
     </html>
     """
@@ -57,18 +60,11 @@ defmodule WebUI.Renderer do
   defp generate_children([]), do: ""
   defp generate_children(children), do: Enum.map_join(children, &generate_html(&1, []))
 
-  defp generate_elm_mount(elm_module, ports) do
-    flags =
-      if map_size(ports) > 0 do
-        ",\n    flags: #{encode_ports_json(ports)}"
-      else
-        ""
-      end
-
+  defp generate_elm_mount(elm_module) do
     """
-    <div id="elm-app"></div>
     <script>
-      Elm.#{elm_module}.init({ node: document.getElementById("elm-app")#{flags} });
+      const ashUiElmFlags = JSON.parse(document.getElementById("ash-ui-elm-flags").textContent);
+      Elm.#{elm_module}.init({ node: document.getElementById("elm-app"), flags: ashUiElmFlags });
     </script>
     """
   end
@@ -85,19 +81,12 @@ defmodule WebUI.Renderer do
     |> Map.new()
   end
 
-  defp encode_ports_json(ports) do
-    entries =
-      Enum.map_join(ports, ", ", fn {key, value} ->
-        "\"#{key}\": #{encode_json_value(value)}"
-      end)
-
-    "{#{entries}}"
+  defp encode_flags_json(iur) do
+    Jason.encode!(%{
+      "screen" => iur,
+      "ports" => extract_elm_ports(iur)
+    })
   end
-
-  defp encode_json_value(value) when is_binary(value), do: "\"#{value}\""
-  defp encode_json_value(value) when is_boolean(value) or is_number(value), do: to_string(value)
-  defp encode_json_value(nil), do: "null"
-  defp encode_json_value(value), do: "\"#{inspect(value)}\""
 
   defp asset_tag(kind, assets_url, file, fingerprinted) do
     fingerprint = if fingerprinted, do: "?v=#{:erlang.phash2(file)}", else: ""

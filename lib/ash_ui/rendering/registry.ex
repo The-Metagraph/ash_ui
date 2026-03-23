@@ -205,7 +205,7 @@ defmodule AshUI.Rendering.Registry do
         detect_renderer(
           WebUI.Renderer,
           AshUI.Rendering.WebUIAdapter,
-          "Static HTML renderer (web_ui)"
+          "Elm-backed web renderer (web_ui)"
         ),
       desktop:
         detect_renderer(

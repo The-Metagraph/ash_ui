@@ -144,9 +144,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_elm_integration/2 generates Elm configuration", %{canonical_iur: iur} do
-      elm_config = WebUIAdapter.configure_elm_integration(iur,
-        elm_enabled: true,
-        elm_module: "App")
+      elm_config = WebUIAdapter.configure_elm_integration(iur, elm_module: "App")
 
       assert elm_config.enabled == true
       assert elm_config.module == "App"
@@ -155,16 +153,19 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
     end
 
     test "configure_elm_integration/2 extracts ports from bindings", %{canonical_iur: iur} do
-      elm_config = WebUIAdapter.configure_elm_integration(iur, elm_enabled: true)
+      elm_config = WebUIAdapter.configure_elm_integration(iur)
 
       assert is_map(elm_config.ports)
       assert Map.has_key?(elm_config.ports, "username")
     end
 
-    test "configure_elm_integration/2 respects elm_enabled option", %{canonical_iur: iur} do
-      elm_config = WebUIAdapter.configure_elm_integration(iur, elm_enabled: false)
+    test "configure_elm_integration/2 always includes screen flags", %{canonical_iur: iur} do
+      elm_config = WebUIAdapter.configure_elm_integration(iur)
 
-      assert elm_config.enabled == false
+      assert elm_config.enabled == true
+      assert elm_config.flags["screen"]["name"] == "user_profile"
+      assert elm_config.flags["ports"]["username"] == "Guest"
+      assert is_binary(elm_config.flags_json)
     end
 
     test "configure_assets/2 generates asset configuration", %{canonical_iur: iur} do
@@ -263,7 +264,7 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
       refute String.contains?(html, "<title>")
     end
 
-    test "includes Elm script when enabled" do
+    test "includes Elm script by default" do
       iur = %{
         "type" => "screen",
         "id" => "screen-1",
@@ -274,13 +275,13 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur, elm_enabled: true, elm_module: "Main")
+      {:ok, html} = WebUIAdapter.render(iur, elm_module: "Main")
       assert String.contains?(html, "main.js")
       assert String.contains?(html, "elm-app")
       assert String.contains?(html, "Elm.Main.init")
     end
 
-    test "includes Elm ports when bindings present" do
+    test "includes Elm flags when bindings present" do
       iur = %{
         "type" => "screen",
         "id" => "screen-1",
@@ -300,8 +301,9 @@ defmodule AshUI.Rendering.WebUIAdapterTest do
         "metadata" => %{}
       }
 
-      {:ok, html} = WebUIAdapter.render(iur, elm_enabled: true)
-      assert String.contains?(html, "flags:")
+      {:ok, html} = WebUIAdapter.render(iur)
+      assert String.contains?(html, "ash-ui-elm-flags")
+      assert String.contains?(html, "\"ports\":{\"username\":\"Guest\"}")
     end
 
     test "includes asset tags when enabled" do

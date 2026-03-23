@@ -82,7 +82,7 @@ The matrix provides complete traceability from:
 |---|---|---|---|
 | REQ-RENDER-001 | Renderer Contract | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-068 |
 | REQ-RENDER-002 | LiveView Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-061 |
-| REQ-RENDER-003 | Static HTML Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-062 |
+| REQ-RENDER-003 | Elm-Backed Web Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-062 |
 | REQ-RENDER-003B | Desktop Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-067 |
 | REQ-RENDER-004 | Component Rendering | rendering/README.md | SCN-063 |
 | REQ-RENDER-005 | Data Binding Rendering | rendering/README.md | SCN-064 |

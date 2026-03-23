@@ -3,14 +3,14 @@ defmodule AshUI.Rendering.WebUIAdapter do
   Adapter for WebUI renderer package.
 
   This module provides integration with the web_ui package for rendering
-  to static HTML with Elm client integration. When the web_ui package is
+  to an Elm-backed web document. When the web_ui package is
   not available, this module provides stub implementations.
 
   ## WebUI-Specific Features
 
   This adapter supports:
   - SEO meta tags generation
-  - Elm client integration
+  - Elm runtime bootstrapping
   - Static asset references
   - Static site generation
 
@@ -23,7 +23,7 @@ defmodule AshUI.Rendering.WebUIAdapter do
   alias AshUI.Telemetry
 
   @doc """
-  Renders a canonical IUR to static HTML string.
+  Renders a canonical IUR to an Elm-backed web document.
 
   ## Parameters
     * `canonical_iur` - Canonical IUR map from IURAdapter
@@ -31,14 +31,13 @@ defmodule AshUI.Rendering.WebUIAdapter do
 
   ## Options
     * `:seo_enabled` - Include SEO meta tags (default: true)
-    * `:elm_enabled` - Enable Elm client integration (default: false)
     * `:elm_module` - Elm module name (default: "Main")
     * `:assets_url` - Base URL for static assets (default: "/assets")
     * `:title` - Page title (default: extracted from IUR)
     * `:description` - Page description (default: from IUR or generic)
 
   ## Returns
-    * `{:ok, html_string}` - Static HTML string
+    * `{:ok, html_string}` - HTML document that boots Elm
     * `{:error, reason}` - Rendering failed
   """
   @spec render(map(), keyword()) :: {:ok, String.t()} | {:error, term()}
@@ -77,7 +76,7 @@ defmodule AshUI.Rendering.WebUIAdapter do
     * `opts` - Rendering options
 
   ## Returns
-    * `{:ok, html_string}` - Static HTML string
+    * `{:ok, html_string}` - HTML document that boots Elm
     * `{:error, reason}` - Rendering failed
   """
   @spec render_ash_iur(IUR.t(), keyword()) :: {:ok, String.t()} | {:error, term()}
@@ -117,32 +116,36 @@ defmodule AshUI.Rendering.WebUIAdapter do
   end
 
   @doc """
-  Configures Elm client integration.
+  Configures the required Elm runtime integration.
 
   ## Parameters
     * `canonical_iur` - Canonical IUR map
     * `opts` - Options
 
   ## Returns
-    * Elm integration configuration
+    * Elm runtime configuration
   """
   @spec configure_elm_integration(map(), keyword()) :: map()
   def configure_elm_integration(%{"type" => "screen"} = iur, opts \\ []) do
-    elm_enabled = Keyword.get(opts, :elm_enabled, false)
     elm_module = Keyword.get(opts, :elm_module, "Main")
     assets_url = Keyword.get(opts, :assets_url, "/assets")
 
-    # Extract ports from bindings
     ports = extract_elm_ports(iur)
+    flags = %{
+      "screen" => iur,
+      "ports" => ports
+    }
 
     %{
-      enabled: elm_enabled,
+      enabled: true,
       module: elm_module,
       js_file: "#{String.downcase(elm_module)}.js",
       minified_js_file: "#{String.downcase(elm_module)}.min.js",
       assets_url: assets_url,
       mount_node: "elm-app",
-      ports: ports
+      ports: ports,
+      flags: flags,
+      flags_json: Jason.encode!(flags)
     }
   end
 
@@ -218,7 +221,7 @@ defmodule AshUI.Rendering.WebUIAdapter do
     {:ok, html}
   end
 
-  # Generate static HTML from canonical IUR
+  # Generate an Elm-backed web shell from canonical IUR
   defp generate_html(%{"type" => "screen"} = iur, opts) do
     seo_config = configure_seo(iur, opts)
     elm_config = configure_elm_integration(iur, opts)
@@ -231,12 +234,13 @@ defmodule AshUI.Rendering.WebUIAdapter do
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1">
       #{if seo_config.enabled, do: generate_seo_tags(seo_config), else: ""}
-      #{if elm_config.enabled, do: generate_elm_script(elm_config), else: ""}
       #{generate_asset_tags(asset_config)}
+      #{generate_elm_script(elm_config)}
     </head>
     <body class="ash-screen ash-screen-#{iur["name"]}" data-screen-id="#{iur["id"]}">
-      #{generate_children(iur["children"])}
-      #{if elm_config.enabled, do: generate_elm_mount(elm_config), else: ""}
+      <div id="#{elm_config.mount_node}" data-screen-id="#{iur["id"]}"></div>
+      <script type="application/json" id="ash-ui-elm-flags">#{elm_config.flags_json}</script>
+      #{generate_elm_mount(elm_config)}
     </body>
     </html>
     """
@@ -280,11 +284,11 @@ defmodule AshUI.Rendering.WebUIAdapter do
 
   defp generate_elm_mount(elm_config) do
     """
-    <div id="#{elm_config.mount_node}\"></div>
     <script>
+      const ashUiElmFlags = JSON.parse(document.getElementById("ash-ui-elm-flags").textContent);
       Elm.#{elm_config.module}.init({
-        node: document.getElementById("#{elm_config.mount_node}")
-        #{if map_size(elm_config.ports) > 0, do: ",\n        flags: " <> encode_ports_json(elm_config.ports), else: ""}
+        node: document.getElementById("#{elm_config.mount_node}"),
+        flags: ashUiElmFlags
       });
     </script>
     """
@@ -377,17 +381,6 @@ defmodule AshUI.Rendering.WebUIAdapter do
 
   defp extract_port_value(_), do: nil
 
-  defp encode_ports_json(ports) do
-    # Simple JSON encoding for ports flags
-    # In production, use Jason or similar
-    ports
-    |> Enum.map_join(", ", fn {key, value} ->
-      encoded_value = if is_binary(value), do: "\"#{value}\",", else: inspect(value)
-      "\"#{key}\": #{encoded_value}"
-    end)
-    |> wrap_in_object()
-  end
-
   defp emit_render_telemetry(result, started_at, metadata) do
     duration = System.monotonic_time() - started_at
 
@@ -417,6 +410,4 @@ defmodule AshUI.Rendering.WebUIAdapter do
       screen_id: Map.get(canonical_iur, "id")
     }
   end
-
-  defp wrap_in_object(str), do: "{#{str}}"
 end

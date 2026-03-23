@@ -506,7 +506,7 @@ Each scenario includes:
 - Events are bound
 - HTML is properly escaped
 
-#### SCN-062: Static HTML Rendering
+#### SCN-062: Elm-Backed Web Rendering
 
 **Requirements**: REQ-RENDER-003
 
@@ -973,7 +973,7 @@ Each scenario includes:
 | SCN-048 | Compilation Error Reporting | REQ-COMP-008 | Compiler |
 | SCN-049 | Incremental Compilation | REQ-COMP-009 | Incremental Compiler |
 | SCN-061 | LiveView Rendering | REQ-RENDER-002 | LiveView Renderer |
-| SCN-062 | Static HTML Rendering | REQ-RENDER-003 | Static Renderer |
+| SCN-062 | Elm-Backed Web Rendering | REQ-RENDER-003 | Web Renderer |
 | SCN-063 | Component Rendering | REQ-RENDER-004 | Renderer |
 | SCN-064 | Binding Rendering | REQ-RENDER-005 | Renderer |
 | SCN-065 | Layout Rendering | REQ-RENDER-007 | Renderer |

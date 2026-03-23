@@ -50,8 +50,7 @@ config :ash_ui, :rendering,
     html: [
       # Enable SEO meta tags
       seo_enabled: true,
-      # Elm client integration
-      elm_enabled: false,
+      # WebUI always boots Elm; configure the module name here
       elm_module: "Main"
     ],
     desktop: [

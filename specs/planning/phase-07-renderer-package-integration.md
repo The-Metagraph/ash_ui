@@ -70,7 +70,7 @@ Back to index: [README](./README.md)
       [X] - Support LiveView patch optimizations
 
   [X] 7.3 Section - WebUI Integration
-    Integrate with web_ui renderer for static HTML output.
+    Integrate with web_ui renderer for Elm-backed web output.
 
     [X] - Implement WebUI renderer adapter
     Create adapter for calling WebUI renderer.
@@ -78,7 +78,7 @@ Back to index: [README](./README.md)
       [X] - Implement `AshUI.Rendering.WebUIAdapter`
       [X] - Accept canonical IUR and options
       [X] - Call `WebUI.Renderer.render/2`
-      [X] - Return static HTML string
+      [X] - Return Elm-backed web shell HTML
 
     [X] - Handle WebUI-specific features
     Support WebUI-specific rendering features.

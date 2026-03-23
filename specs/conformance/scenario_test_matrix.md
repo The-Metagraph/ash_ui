@@ -34,7 +34,7 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-048 | Compilation Error Reporting | test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-049 | Incremental Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-061 | LiveView Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
-| SCN-062 | Static HTML Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
+| SCN-062 | Elm-Backed Web Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-063 | Component Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-064 | Binding Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-065 | Layout Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |

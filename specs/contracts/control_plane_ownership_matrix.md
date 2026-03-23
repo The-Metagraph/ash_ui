@@ -109,7 +109,7 @@ The Rendering Control Plane delegates actual rendering to external unified rende
 
 **REQ-RENDER-002**: External renderer packages must accept canonical IUR without Ash-specific dependencies.
 
-**Note**: LiveView, Elm-backed web, and Desktop renderers are owned by the unified ecosystem packages, not Ash UI. Ash UI consumes these packages as dependencies.
+**Note**: LiveView, Elm-backed web, and Desktop renderers are owned by the unified ecosystem packages, not Ash UI. Ash UI consumes these packages as dependencies. The current in-repo bridge module for `elm_ui` is still named `AshUI.Rendering.WebUIAdapter`.
 
 ### Runtime Authority (EXCLUSIVE)
 

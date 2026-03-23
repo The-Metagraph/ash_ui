@@ -204,6 +204,11 @@ The adapters currently support two operating modes:
 
 That fallback behavior is intentional and is part of current release-readiness work.
 
+Architectural naming note:
+
+- the external Elm-backed renderer package is now `elm_ui`
+- the current Ash UI implementation still uses `AshUI.Rendering.WebUIAdapter` as the local adapter module name until a follow-up rename lands
+
 ## Observability
 
 `AshUI.Telemetry` is the canonical telemetry catalog and default metrics aggregator.

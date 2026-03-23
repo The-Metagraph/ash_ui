@@ -6,8 +6,8 @@ title: Getting Started with Ash UI
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-03-20
-next_review: 2026-09-20
+last_reviewed: 2026-03-23
+next_review: 2026-09-23
 related_reqs: [REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001, REQ-RENDER-001]
 related_scns: [SCN-004, SCN-021, SCN-041, SCN-061]
 related_guides: [UG-0002, UG-0003, UG-0004, DG-0001]
@@ -246,7 +246,9 @@ Check that:
 
 ### Rendering looks incomplete
 
-That is expected if external renderer packages are not installed. Ash UI currently falls back to adapter-provided output until `live_ui`, `web_ui`, or `desktop_ui` are available.
+That is expected if external renderer packages are not installed. Ash UI currently falls back to adapter-provided output until `live_ui`, `elm_ui`, or `desktop_ui` are available.
+
+One transition note: the current codebase still uses historical bridge names such as `AshUI.Rendering.WebUIAdapter` internally even though the external Elm-backed renderer package is now documented as `elm_ui`.
 
 ## See Also
 

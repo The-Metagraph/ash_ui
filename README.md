@@ -93,7 +93,13 @@ end
 
 ## Renderer Status
 
-Ash UI owns the compiler, runtime, and adapter boundary. The repo now vendors minimal `unified_iur`, `live_ui`, `web_ui`, and `desktop_ui` packages under `packages/`, wires them as optional path dependencies, and still keeps adapter fallbacks available for degraded environments.
+Ash UI owns the compiler, runtime, and adapter boundary. Architecturally, the unified ecosystem renderer set is now `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui`.
+
+This repository is still in a short naming transition:
+
+- specs and guides now treat the Elm-backed web renderer as `elm_ui`
+- some in-repo implementation names still use the historical `web_ui` label, such as `AshUI.Rendering.WebUIAdapter` and `packages/web_ui`
+- adapter fallbacks remain available for degraded environments
 
 ## Documentation
 

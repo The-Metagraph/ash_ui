@@ -4,7 +4,7 @@ This contract defines the normative requirements for IUR → unified_iur → Out
 
 ## Purpose
 
-Defines the requirements for compiling Ash UI resources to canonical `unified_iur` format and delegating rendering to external unified renderer packages (live_ui, web_ui, desktop_ui).
+Defines the requirements for compiling Ash UI resources to canonical `unified_iur` format and delegating rendering to external unified renderer packages (live_ui, elm_ui, desktop_ui).
 
 ## Control Plane
 
@@ -14,7 +14,7 @@ Defines the requirements for compiling Ash UI resources to canonical `unified_iu
 
 - **unified_iur**: Canonical intermediate representation format (https://github.com/your-org/unified/tree/main/packages/unified_iur)
 - **live_ui**: LiveView renderer package (https://github.com/your-org/unified/tree/main/packages/live_ui)
-- **web_ui**: Elm-backed web renderer package (https://github.com/your-org/unified/tree/main/packages/web_ui)
+- **elm_ui**: Elm-backed web renderer package (https://github.com/your-org/unified/tree/main/packages/elm_ui)
 - **desktop_ui**: Desktop renderer package (https://github.com/your-org/unified/tree/main/packages/desktop_ui)
 
 ## Internal Dependencies
@@ -48,7 +48,7 @@ end
 # Application selects renderer
 case renderer_type do
   :liveview -> LiveUI.Renderer.render(canonical_iur, opts)
-  :html -> WebUI.Renderer.render(canonical_iur, opts)
+  :html -> ElmUI.Renderer.render(canonical_iur, opts)
   :desktop -> DesktopUI.Renderer.render(canonical_iur, opts)
 end
 ```
@@ -78,24 +78,24 @@ LiveView rendering is provided by the external `live_ui` package.
 
 **Note**: See [live_ui IUR Renderer spec](https://github.com/your-org/unified/blob/main/.spec/specs/live_ui/iur_renderer.spec.md) for canonical IUR requirements.
 
-### REQ-RENDER-003: Elm-Backed Web Rendering (via web_ui)
+### REQ-RENDER-003: Elm-Backed Web Rendering (via elm_ui)
 
-Elm-backed web rendering is provided by the external `web_ui` package.
+Elm-backed web rendering is provided by the external `elm_ui` package.
 
-**Package**: `web_ui` (https://github.com/your-org/unified/tree/main/packages/web_ui)
+**Package**: `elm_ui` (https://github.com/your-org/unified/tree/main/packages/elm_ui)
 
 **Requirements**:
-- Ash UI produces canonical IUR compatible with web_ui
-- web_ui accepts canonical IUR via `WebUI.Renderer.render/2`
+- Ash UI produces canonical IUR compatible with elm_ui
+- elm_ui accepts canonical IUR via `ElmUI.Renderer.render/2`
 - Output format is an HTML document that boots the Elm runtime
 
 **Acceptance Criteria**:
-- AC-001: Ash UI IUR maps to valid canonical IUR for web_ui
-- AC-002: web_ui produces a valid HTML5 shell for the Elm app
+- AC-001: Ash UI IUR maps to valid canonical IUR for elm_ui
+- AC-002: elm_ui produces a valid HTML5 shell for the Elm app
 - AC-003: Elm runtime assets are referenced automatically
 - AC-004: Renderer output includes Elm bootstrap data for widget rendering
 
-**Note**: See [web_ui IUR Renderer spec](https://github.com/your-org/unified/blob/main/.spec/specs/web_ui/iur_renderer.spec.md) for canonical IUR requirements.
+**Note**: See [elm_ui IUR Renderer spec](https://github.com/your-org/unified/blob/main/.spec/specs/elm_ui/iur_renderer.spec.md) for canonical IUR requirements.
 
 ### REQ-RENDER-003B: Desktop Rendering (via desktop_ui)
 
@@ -206,7 +206,7 @@ External renderer packages MUST produce accessible markup per platform conventio
 
 **Accessibility Features**:
 - ARIA attributes
-- Semantic HTML elements (web_ui, live_ui)
+- Semantic HTML elements (elm_ui, live_ui)
 - Keyboard navigation
 - Screen reader support
 
@@ -297,7 +297,7 @@ flowchart LR
 
     subgraph Renderers["External Renderer Packages"]
         Live["LiveUI.Renderer"]
-        Web["WebUI.Renderer"]
+        Web["ElmUI.Renderer"]
         Desktop["DesktopUI.Renderer"]
     end
 
@@ -360,7 +360,7 @@ classDiagram
         +format() :liveview
     }
 
-    class WebUIRenderer {
+    class ElmUIRenderer {
         <<External Package>>
         +render(canonical_iur, opts) HTML
         +format() :html
@@ -375,7 +375,7 @@ classDiagram
     AshUIRegistry --> IURAdapter : uses
     IURAdapter --> UnifiedIUR : produces
     LiveUIRenderer --> UnifiedIUR : consumes
-    WebUIRenderer --> UnifiedIUR : consumes
+    ElmUIRenderer --> UnifiedIUR : consumes
     DesktopUIRenderer --> UnifiedIUR : consumes
 ```
 
@@ -385,7 +385,7 @@ classDiagram
 |---|---|---|---|---|
 | REQ-RENDER-001 | ADR-0011 | rendering/iur_adapter.md | unified_iur package spec | SCN-401, SCN-402 |
 | REQ-RENDER-002 | ADR-0012 | - | live_ui/iur_renderer.spec.md | SCN-403, SCN-404 |
-| REQ-RENDER-003 | ADR-0013 | - | web_ui/iur_renderer.spec.md | SCN-405, SCN-406 |
+| REQ-RENDER-003 | ADR-0003 | - | elm_ui/iur_renderer.spec.md | SCN-405, SCN-406 |
 | REQ-RENDER-003B | ADR-0013B | - | desktop_ui/iur_renderer.spec.md | SCN-405B, SCN-406B |
 | REQ-RENDER-004 | - | - | unified_iur/component spec | SCN-407 |
 | REQ-RENDER-005 | - | binding_contract.md | signal_transport.spec.md | SCN-408, SCN-409 |
@@ -411,7 +411,7 @@ See [conformance/spec_conformance_matrix.md](../conformance/spec_conformance_mat
 ### Unified Ecosystem Specifications
 - [unified_iur package](https://github.com/your-org/unified/tree/main/packages/unified_iur)
 - [live_ui IUR Renderer](https://github.com/your-org/unified/blob/main/.spec/specs/live_ui/iur_renderer.spec.md)
-- [web_ui IUR Renderer](https://github.com/your-org/unified/blob/main/.spec/specs/web_ui/iur_renderer.spec.md)
+- [elm_ui IUR Renderer](https://github.com/your-org/unified/blob/main/.spec/specs/elm_ui/iur_renderer.spec.md)
 - [desktop_ui IUR Renderer](https://github.com/your-org/unified/blob/main/.spec/specs/desktop_ui/iur_renderer.spec.md)
 - [Signal Transport](https://github.com/your-org/unified/blob/main/.spec/specs/signal_transport.spec.md)
 - [Platform Runtimes](https://github.com/your-org/unified/blob/main/.spec/specs/platform_runtimes.spec.md)

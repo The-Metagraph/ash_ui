@@ -53,5 +53,9 @@ mix ash_ui.example.basic_dashboard --renderer elm
 mix ash_ui.example.basic_dashboard --renderer desktop
 ```
 
+Adapter parity coverage currently exercises `liveview` and `elm` for the full
+dashboard screen. `desktop` is still considered work in progress, and
+`terminal_ui` is not yet present in this repo.
+
 `BasicDashboard.seed!/0` uses the configured Ash UI storage resources, so you
 can keep the same seed code while changing the backend.

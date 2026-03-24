@@ -28,6 +28,15 @@ defmodule AshUI.LiveView.ScreenHost do
           | {:ok, Phoenix.LiveView.Socket.t()}
           | {:error, term()}
 
+  @callback ash_ui_screen_id(map(), map(), Phoenix.LiveView.Socket.t()) ::
+              Integration.screen_identifier()
+  @callback ash_ui_prepare(map(), map(), Phoenix.LiveView.Socket.t()) :: prepare_result()
+  @callback ash_ui_current_user(map(), map(), Phoenix.LiveView.Socket.t()) :: term()
+  @callback ash_ui_storage(map(), map(), Phoenix.LiveView.Socket.t()) :: keyword() | nil
+  @callback ash_ui_domains(map(), map(), Phoenix.LiveView.Socket.t()) :: [module()]
+  @callback ash_ui_mount_params(map(), map(), Phoenix.LiveView.Socket.t()) :: map()
+  @callback ash_ui_render_options() :: keyword()
+
   @doc """
   Injects a generic Ash UI LiveView host into the caller.
 
@@ -47,6 +56,7 @@ defmodule AshUI.LiveView.ScreenHost do
 
     quote bind_quoted: [screen: screen] do
       use Phoenix.LiveView
+      @behaviour AshUI.LiveView.ScreenHost
 
       @ash_ui_screen screen
 

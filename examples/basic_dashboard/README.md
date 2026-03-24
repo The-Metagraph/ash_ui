@@ -15,7 +15,7 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 - [x] Phase 2 - Add the stats strip plus semantic list/table widgets to the stored screen
 - [ ] Phase 3 - Adopt the generic Ash UI LiveView host end to end
 - [x] 3.1 Section - Add a reusable `AshUI.LiveView.ScreenHost` for stored screens
-- [ ] 3.2 Section - Switch `BasicDashboardLive` to the generic screen host
+- [x] 3.2 Section - Switch `BasicDashboardLive` to the generic screen host
 - [ ] 3.3 Section - Refresh example docs/tests around the generic host flow
 
 ## Files

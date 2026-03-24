@@ -327,6 +327,52 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "list"} = iur, opts) do
+    props = iur["props"] || %{}
+    ordered? = Map.get(props, "ordered", false)
+    tag = if ordered?, do: "ol", else: "ul"
+
+    items_html =
+      cond do
+        iur["children"] not in [nil, []] ->
+          Enum.map_join(iur["children"], fn child ->
+            "<li class=\"ash-list-item\">#{generate_heex(child, opts)}</li>"
+          end)
+
+        Map.get(props, "items", []) != [] ->
+          Enum.map_join(Map.get(props, "items", []), fn item ->
+            "<li class=\"ash-list-item\">#{render_list_item(item)}</li>"
+          end)
+
+        Map.get(props, "empty_text") ->
+          "<li class=\"ash-list-item ash-list-empty\">#{Map.get(props, "empty_text")}</li>"
+
+        true ->
+          ""
+      end
+
+    """
+    <#{tag} class="#{css_classes(["ash-list", prop_class(iur)])}"#{style_attr(default_list_style(prop_style(iur)))}>
+      #{items_html}
+    </#{tag}>
+    """
+  end
+
+  defp generate_heex(%{"type" => "table"} = iur, opts) do
+    props = iur["props"] || %{}
+    caption_html = render_table_caption(Map.get(props, "caption"))
+    header_html = render_table_header(Map.get(props, "columns", []))
+    body_html = render_table_body(iur, opts)
+
+    """
+    <table class="#{css_classes(["ash-table", prop_class(iur)])}"#{style_attr(default_table_style(prop_style(iur)))}>
+      #{caption_html}
+      #{header_html}
+      #{body_html}
+    </table>
+    """
+  end
+
   defp generate_heex(%{"type" => "text"} = iur, _opts) do
     content = Map.get(iur["props"] || %{}, "content", "")
     size = Map.get(iur["props"] || %{}, "size", 14)
@@ -445,6 +491,85 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp generate_children(children, opts) when is_list(children) do
     Enum.map_join(children, &generate_heex(&1, opts))
   end
+
+  defp render_list_item(%{"title" => title, "body" => body}) do
+    """
+    <div class="ash-list-item-body">
+      <strong>#{title}</strong>
+      <span>#{body}</span>
+    </div>
+    """
+  end
+
+  defp render_list_item(item), do: html_escape(item)
+
+  defp render_table_caption(nil), do: ""
+  defp render_table_caption(""), do: ""
+  defp render_table_caption(caption), do: "<caption>#{caption}</caption>"
+
+  defp render_table_header([]), do: ""
+
+  defp render_table_header(columns) do
+    headings =
+      Enum.map_join(columns, fn column ->
+        "<th>#{render_table_cell_value(column)}</th>"
+      end)
+
+    "<thead><tr>#{headings}</tr></thead>"
+  end
+
+  defp render_table_body(%{"children" => children}, opts) when children not in [nil, []] do
+    rows =
+      Enum.map_join(children, fn child ->
+        render_table_row(child, opts)
+      end)
+
+    "<tbody>#{rows}</tbody>"
+  end
+
+  defp render_table_body(%{"props" => props}, _opts) do
+    rows = Map.get(props || %{}, "rows", [])
+
+    body =
+      cond do
+        rows != [] ->
+          Enum.map_join(rows, fn row ->
+            values =
+              row
+              |> List.wrap()
+              |> Enum.map_join(fn value -> "<td>#{render_table_cell_value(value)}</td>" end)
+
+            "<tr>#{values}</tr>"
+          end)
+
+        Map.get(props || %{}, "empty_text") ->
+          "<tr><td colspan=\"100%\">#{Map.get(props || %{}, "empty_text")}</td></tr>"
+
+        true ->
+          ""
+      end
+
+    "<tbody>#{body}</tbody>"
+  end
+
+  defp render_table_row(%{"children" => cells} = row, opts) do
+    style = style_attr(prop_style(row))
+
+    contents =
+      Enum.map_join(cells || [], fn cell ->
+        "<td>#{generate_heex(cell, opts)}</td>"
+      end)
+
+    "<tr#{style}>#{contents}</tr>"
+  end
+
+  defp render_table_row(row, _opts) do
+    "<tr><td>#{render_table_cell_value(row)}</td></tr>"
+  end
+
+  defp render_table_cell_value(%{"label" => label, "value" => value}), do: "#{label}: #{value}"
+  defp render_table_cell_value({label, value}), do: "#{label}: #{value}"
+  defp render_table_cell_value(value), do: html_escape(value)
 
   # Extract event bindings from IUR
   defp extract_event_bindings(iur, event_prefix) do
@@ -616,6 +741,40 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     |> Enum.reject(&is_nil_or_empty?/1)
     |> Kernel.++(if is_nil_or_empty?(extra), do: [], else: [extra])
     |> Enum.join("; ")
+  end
+
+  defp default_list_style(extra) do
+    merge_style(
+      [
+        "display: flex",
+        "flex-direction: column",
+        "gap: 14px",
+        "list-style: none",
+        "margin: 0",
+        "padding: 0"
+      ],
+      extra
+    )
+  end
+
+  defp default_table_style(extra) do
+    merge_style(
+      [
+        "width: 100%",
+        "border-collapse: collapse",
+        "border-spacing: 0"
+      ],
+      extra
+    )
+  end
+
+  defp html_escape(value) do
+    value
+    |> to_string()
+    |> String.replace("&", "&amp;")
+    |> String.replace("<", "&lt;")
+    |> String.replace(">", "&gt;")
+    |> String.replace("\"", "&quot;")
   end
 
   defp event_name(prefix, :action), do: "#{prefix}_action"

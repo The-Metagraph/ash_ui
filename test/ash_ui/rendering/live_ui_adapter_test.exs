@@ -250,6 +250,69 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert String.contains?(heex, "Mexico")
     end
 
+    test "generates semantic list widgets" do
+      iur = %{
+        "type" => "list",
+        "id" => "list-1",
+        "props" => %{},
+        "children" => [
+          %{
+            "type" => "text",
+            "id" => "text-1",
+            "props" => %{"content" => "First item"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<ul")
+      assert String.contains?(heex, "ash-list-item")
+      assert String.contains?(heex, "First item")
+    end
+
+    test "generates semantic table widgets" do
+      iur = %{
+        "type" => "table",
+        "id" => "table-1",
+        "props" => %{"caption" => "Snapshot"},
+        "children" => [
+          %{
+            "type" => "row",
+            "id" => "row-1",
+            "props" => %{},
+            "children" => [
+              %{
+                "type" => "text",
+                "id" => "label-1",
+                "props" => %{"content" => "Display name"},
+                "children" => [],
+                "metadata" => %{}
+              },
+              %{
+                "type" => "text",
+                "id" => "value-1",
+                "props" => %{"content" => "Pascal"},
+                "children" => [],
+                "metadata" => %{}
+              }
+            ],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<table")
+      assert String.contains?(heex, "<caption>Snapshot</caption>")
+      assert String.contains?(heex, "<tbody>")
+      assert String.contains?(heex, "Display name")
+      assert String.contains?(heex, "Pascal")
+    end
+
     test "generates row with gap style" do
       iur = %{
         "type" => "row",

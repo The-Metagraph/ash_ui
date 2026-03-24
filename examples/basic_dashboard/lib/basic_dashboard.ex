@@ -43,6 +43,7 @@ defmodule BasicDashboard do
       children: [
         top_bar(),
         hero_card(),
+        stats_strip(),
         Builder.grid(
           columns: 2,
           spacing: 20,
@@ -148,6 +149,36 @@ defmodule BasicDashboard do
     )
   end
 
+  defp stats_strip do
+    Builder.grid(
+      columns: 4,
+      spacing: 16,
+      style: "align-items: stretch;",
+      children: [
+        stat_card(
+          "User",
+          value_text(user_field_source("name")),
+          static_value("Bidirectional binding")
+        ),
+        stat_card(
+          "Status",
+          value_text(user_field_source("status")),
+          static_value("Actor-scoped updates enabled")
+        ),
+        stat_card(
+          "Team",
+          value_text(user_relationship_source("profile.team")),
+          value_text(user_relationship_source("profile.name"))
+        ),
+        stat_card(
+          "Renderer path",
+          static_value("Ash UI -> LiveView"),
+          static_value("Compiled screen + runtime bindings")
+        )
+      ]
+    )
+  end
+
   defp editor_card do
     Builder.card(
       style: surface_style("padding: 24px; border-radius: 24px;"),
@@ -206,11 +237,17 @@ defmodule BasicDashboard do
           children: [
             Builder.text("Snapshot", style: overline_style()),
             Builder.text("Current dashboard state", style: title_style(22)),
-            keyline("Display name", value_text(user_field_source("name"))),
-            keyline("Email", value_text(user_field_source("email"))),
-            keyline("Status", value_text(user_field_source("status"))),
-            keyline("Team", value_text(user_relationship_source("profile.team"))),
-            keyline("Profile name", value_text(user_relationship_source("profile.name")))
+            Builder.table(
+              caption: "Current dashboard state",
+              style: table_style(),
+              children: [
+                snapshot_row("Display name", value_text(user_field_source("name"))),
+                snapshot_row("Email", value_text(user_field_source("email"))),
+                snapshot_row("Status", value_text(user_field_source("status"))),
+                snapshot_row("Team", value_text(user_relationship_source("profile.team"))),
+                snapshot_row("Profile name", value_text(user_relationship_source("profile.name")))
+              ]
+            )
           ]
         )
       ]
@@ -226,17 +263,22 @@ defmodule BasicDashboard do
           children: [
             Builder.text("What this demo is showing", style: overline_style()),
             Builder.text("Persisted layout + runtime bindings", style: title_style(22)),
-            explainer_item(
-              "Real Ash resources",
-              "BasicDashboard.User and BasicDashboard.Profile live in an ETS data layer domain."
-            ),
-            explainer_item(
-              "Runtime reactivity",
-              "PubSub notifications refresh the rendered IUR whenever the bound resources change."
-            ),
-            explainer_item(
-              "Stored UI contract",
-              "The top bar, hero, cards, labels, and editor are all stored in unified_dsl and rendered from IUR widgets."
+            Builder.list(
+              style: list_style(),
+              children: [
+                explainer_item(
+                  "Real Ash resources",
+                  "BasicDashboard.User and BasicDashboard.Profile live in an ETS data layer domain."
+                ),
+                explainer_item(
+                  "Runtime reactivity",
+                  "PubSub notifications refresh the rendered IUR whenever the bound resources change."
+                ),
+                explainer_item(
+                  "Stored UI contract",
+                  "The top bar, hero, stats, cards, labels, and editor are all stored in unified_dsl and rendered from IUR widgets."
+                )
+              ]
             )
           ]
         )
@@ -268,15 +310,37 @@ defmodule BasicDashboard do
   end
 
   defp explainer_item(title, body) do
-    Builder.card(
+    Builder.column(
       style:
         "border: 1px solid rgba(71, 85, 105, 0.55); background: rgba(15, 23, 42, 0.66); border-radius: 18px; padding: 16px;",
+      spacing: 6,
+      children: [
+        Builder.text(title, style: title_style(16)),
+        Builder.text(body, style: copy_style())
+      ]
+    )
+  end
+
+  defp snapshot_row(label, value_widget) do
+    Builder.row(
+      style: "border-bottom: 1px solid rgba(71, 85, 105, 0.32);",
+      children: [
+        Builder.text(label, style: label_style()),
+        value_widget
+      ]
+    )
+  end
+
+  defp stat_card(label, value_widget, detail_widget) do
+    Builder.card(
+      style: surface_style("padding: 20px; border-radius: 22px;"),
       children: [
         Builder.column(
-          spacing: 6,
+          spacing: 10,
           children: [
-            Builder.text(title, style: title_style(16)),
-            Builder.text(body, style: copy_style())
+            Builder.text(label, style: overline_style()),
+            value_widget,
+            detail_widget
           ]
         )
       ]
@@ -392,6 +456,25 @@ defmodule BasicDashboard do
 
   defp value_style do
     "color: #f8fafc; font-size: 16px; font-weight: 600; text-align: right;"
+  end
+
+  defp table_style do
+    [
+      "width: 100%",
+      "border-collapse: collapse",
+      "border-spacing: 0",
+      "color: #f8fafc"
+    ]
+    |> Enum.join("; ")
+  end
+
+  defp list_style do
+    [
+      "list-style: none",
+      "margin: 0",
+      "padding: 0"
+    ]
+    |> Enum.join("; ")
   end
 
   defp input_style do

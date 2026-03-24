@@ -95,7 +95,7 @@ end
 
 Ash UI owns the compiler, runtime, and adapter boundary. Architecturally, the unified ecosystem renderer set is now `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui`.
 
-The repository vendors minimal `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui` packages under `packages/`, wires them as optional path dependencies, and still keeps adapter fallbacks available for degraded environments.
+The repository vendors minimal `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui` packages under `packages/`. `unified_iur` is a required dependency because it defines the canonical schema boundary Ash UI produces and validates. The renderer packages remain optional path dependencies, and adapter fallbacks still exist for degraded environments.
 
 ## Documentation
 

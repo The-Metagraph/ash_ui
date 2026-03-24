@@ -30,6 +30,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert canonical["layout"] == "row"
       assert is_list(canonical["children"])
       assert length(canonical["children"]) == 1
+      assert :ok = UnifiedIUR.validate(canonical)
     end
 
     test "converts element to canonical widget type" do

@@ -37,7 +37,7 @@ defmodule AshUI.MixProject do
       {:simple_sat, "~> 0.1"},
       {:telemetry, "~> 1.0"},
       {:uuid, "~> 1.1"},
-      {:unified_iur, path: "packages/unified_iur", optional: true},
+      {:unified_iur, path: "packages/unified_iur"},
       {:live_ui, path: "packages/live_ui", optional: true},
       {:elm_ui, path: "packages/elm_ui", optional: true},
       {:desktop_ui, path: "packages/desktop_ui", optional: true}

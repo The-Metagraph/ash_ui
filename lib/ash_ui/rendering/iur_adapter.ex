@@ -216,10 +216,6 @@ defmodule AshUI.Rendering.IURAdapter do
   end
 
   defp maybe_validate_with_unified_iur(canonical) do
-    if Code.ensure_loaded?(UnifiedIUR) and function_exported?(UnifiedIUR, :validate, 1) do
-      UnifiedIUR.validate(canonical)
-    else
-      :ok
-    end
+    UnifiedIUR.validate(canonical)
   end
 end

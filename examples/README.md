@@ -18,7 +18,8 @@ Standalone example apps can then be started directly from their own directory.
 
 `basic_dashboard` is the reference dashboard example. It now ships as a
 standalone Phoenix app, seeds ETS-backed demo data, and renders a stored
-`unified_dsl` screen through Ash UI adapters.
+`unified_dsl` screen through Ash UI adapters and the generic
+`AshUI.LiveView.ScreenHost`.
 
 Example files:
 

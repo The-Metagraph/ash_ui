@@ -17,7 +17,7 @@ Back to index: [README](./README.md)
 
 ## Current Status Note
 - Ash UI's architectural renderer boundary is now `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui`.
-- `mix.exs` wires those packages as optional path dependencies, and the renderer registry can detect and use them in external mode.
+- `mix.exs` wires `unified_iur` as a required dependency because it defines the canonical IUR schema boundary. The renderer packages remain optional path dependencies, and the renderer registry can detect and use them in external mode.
 - Adapter fallbacks still remain available for degraded environments, but Phase 7 package integration is now implemented in-repo.
 
 [X] 7 Phase 7 - Renderer Package Integration
@@ -27,7 +27,7 @@ Back to index: [README](./README.md)
     Add and configure unified renderer packages as dependencies.
 
     Add and configure unified renderer packages as dependencies - Add renderer packages to mix.exs
-    Include renderer packages as optional dependencies.
+    Include the canonical IUR package as a required dependency and renderer packages as optional dependencies.
 
       [X] - Add `unified_iur` to deps
       [X] - Add `live_ui` as optional dependency

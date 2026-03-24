@@ -39,6 +39,12 @@ Adapter options:
 - `elm`: prints or writes the Elm-backed web shell
 - `desktop`: prints desktop instruction JSON
 
+Current parity coverage:
+
+- `liveview` and `elm` are covered for the full dashboard screen
+- `desktop` remains a work in progress
+- `terminal_ui` is not yet implemented in this repo
+
 Commands:
 
 ```bash

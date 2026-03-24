@@ -100,7 +100,12 @@ defmodule AshUI.Examples.BasicDashboardTest do
       |> Phoenix.LiveViewTest.rendered_to_string()
 
     assert html =~ "Model your dashboard. Let the runtime do the wiring."
+    assert html =~ "Renderer path"
+    assert html =~ "Actor-scoped updates enabled"
     assert html =~ "Interactive profile editor"
+    assert html =~ "Current dashboard state"
+    assert html =~ "ash-table"
+    assert html =~ "ash-list"
     assert html =~ "phx-change=\"ash_ui_change\""
     assert html =~ "phx-click=\"ash_ui_action\""
     refute html =~ "ash-demo-shell"

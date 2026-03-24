@@ -6,12 +6,12 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 2. seed ETS-backed Ash resources for dashboard data
 3. mount it through `AshUI.LiveView.Integration`
 4. delegate user events through `AshUI.LiveView.EventHandler`
-5. present the result with an Ash HQ-inspired dark theme, warm gradient accents, and live data cards
+5. present the result with an Ash HQ-inspired dark theme, warm gradient accents, stats cards, a semantic snapshot table, and a semantic explainer list
 6. optionally swap UI-definition storage to ETS-backed Ash resources
 
 ## Files
 
-- `lib/basic_dashboard.ex`: seed helpers that create the screen, elements, and bindings
+- `lib/basic_dashboard.ex`: seed helpers that create the full stored dashboard layout as `unified_dsl`
 - `lib/basic_dashboard_data.ex`: example Ash domain and ETS-backed resources
 - `lib/basic_dashboard_live.ex`: a LiveView that mounts the screen and forwards events
 - `lib/basic_dashboard_storage.ex`: example ETS-backed `Screen`, `Element`, and `Binding` resources
@@ -29,6 +29,10 @@ Then open [http://localhost:4100](http://localhost:4100).
 
 The app runs entirely on ETS-backed Ash resources for both dashboard data and
 UI-definition storage, so it does not require Postgres.
+
+The full page layout now lives in the stored screen definition: top bar, hero,
+stats strip, live preview, editor, snapshot table, and explainer list are all
+rendered from IUR widgets rather than a handwritten LiveView shell.
 
 ## Suggested Use
 

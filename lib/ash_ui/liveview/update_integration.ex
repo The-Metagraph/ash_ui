@@ -74,7 +74,11 @@ defmodule AshUI.LiveView.UpdateIntegration do
     if created == [] do
       Phoenix.Component.assign(socket, :ash_ui_subscriptions, existing_subscriptions)
     else
-      Phoenix.Component.assign(socket, :ash_ui_subscriptions, merge_unique_subscriptions(all_subscriptions))
+      Phoenix.Component.assign(
+        socket,
+        :ash_ui_subscriptions,
+        merge_unique_subscriptions(all_subscriptions)
+      )
     end
   end
 
@@ -145,15 +149,24 @@ defmodule AshUI.LiveView.UpdateIntegration do
   end
 
   def handle_notification({:created, resource}, socket) do
-    handle_resource_change(%{type: :created, resource: resource, timestamp: DateTime.utc_now()}, socket)
+    handle_resource_change(
+      %{type: :created, resource: resource, timestamp: DateTime.utc_now()},
+      socket
+    )
   end
 
   def handle_notification({:updated, resource}, socket) do
-    handle_resource_change(%{type: :updated, resource: resource, timestamp: DateTime.utc_now()}, socket)
+    handle_resource_change(
+      %{type: :updated, resource: resource, timestamp: DateTime.utc_now()},
+      socket
+    )
   end
 
   def handle_notification({:destroyed, resource}, socket) do
-    handle_resource_change(%{type: :destroyed, resource: resource, timestamp: DateTime.utc_now()}, socket)
+    handle_resource_change(
+      %{type: :destroyed, resource: resource, timestamp: DateTime.utc_now()},
+      socket
+    )
   end
 
   def handle_notification(unknown, socket) do
@@ -169,18 +182,21 @@ defmodule AshUI.LiveView.UpdateIntegration do
     screen = socket.assigns[:ash_ui_screen]
     user = socket.assigns[:ash_ui_user]
     params = socket.assigns[:ash_ui_params] || %{}
+    compiled_iur = socket.assigns[:ash_ui_base_iur] || socket.assigns[:ash_ui_iur]
 
     cond do
       not Config.screen_record?(screen, Map.get(socket.assigns, :ash_ui_storage)) or is_nil(user) ->
         {:noreply, socket}
 
       true ->
-        {:ok, bindings} = Integration.evaluate_bindings(screen, socket, user, params)
+        {:ok, bindings} =
+          Integration.evaluate_bindings(screen, socket, user, params, compiled_iur)
 
         socket =
           socket
           |> Phoenix.Component.assign(:ash_ui_bindings, bindings)
           |> sync_runtime_binding_assigns(bindings)
+          |> sync_hydrated_iur()
           |> sync_binding_subscriptions()
 
         {:noreply, socket}
@@ -313,10 +329,17 @@ defmodule AshUI.LiveView.UpdateIntegration do
             Map.put(acc, storage_key(binding), updated_binding_state(binding, value, nil))
 
           {:error, reason} ->
-            Logger.warning("Binding #{inspect(binding_id(binding))} re-evaluation failed: #{inspect(reason)}")
+            Logger.warning(
+              "Binding #{inspect(binding_id(binding))} re-evaluation failed: #{inspect(reason)}"
+            )
 
             current_value = Map.get(binding, :value) || Map.get(binding, "value")
-            Map.put(acc, storage_key(binding), updated_binding_state(binding, current_value, reason))
+
+            Map.put(
+              acc,
+              storage_key(binding),
+              updated_binding_state(binding, current_value, reason)
+            )
         end
       end)
 
@@ -353,7 +376,8 @@ defmodule AshUI.LiveView.UpdateIntegration do
     |> Map.put(:updated_at, System.system_time(:millisecond))
   end
 
-  defp update_socket_assigns(socket, updated_values) when map_size(updated_values) == 0, do: socket
+  defp update_socket_assigns(socket, updated_values) when map_size(updated_values) == 0,
+    do: socket
 
   defp update_socket_assigns(socket, updated_values) do
     current_bindings = socket.assigns[:ash_ui_bindings] || %{}
@@ -362,6 +386,7 @@ defmodule AshUI.LiveView.UpdateIntegration do
     socket
     |> Phoenix.Component.assign(:ash_ui_bindings, updated_bindings)
     |> sync_runtime_binding_assigns(updated_values)
+    |> sync_hydrated_iur()
   end
 
   defp sync_runtime_binding_assigns(socket, bindings) do
@@ -383,7 +408,11 @@ defmodule AshUI.LiveView.UpdateIntegration do
         end
       end)
 
-    Phoenix.Component.assign(socket, :ash_ui, Map.put(ash_ui, :bindings, updated_runtime_bindings))
+    Phoenix.Component.assign(
+      socket,
+      :ash_ui,
+      Map.put(ash_ui, :bindings, updated_runtime_bindings)
+    )
   end
 
   defp maybe_trigger_render(socket) do
@@ -394,8 +423,23 @@ defmodule AshUI.LiveView.UpdateIntegration do
     end
   end
 
+  defp sync_hydrated_iur(socket) do
+    base_iur = socket.assigns[:ash_ui_base_iur] || socket.assigns[:ash_ui_iur]
+    bindings = socket.assigns[:ash_ui_bindings] || %{}
+
+    case base_iur do
+      %{} = iur ->
+        Phoenix.Component.assign(socket, :ash_ui_iur, Integration.hydrate_iur(iur, bindings))
+
+      _ ->
+        socket
+    end
+  end
+
   defp session_scope(socket) do
-    {self(), Map.get(socket.assigns, :ash_ui_session_id) || Map.get(socket.assigns, :ash_ui_session_key) || :default}
+    {self(),
+     Map.get(socket.assigns, :ash_ui_session_id) || Map.get(socket.assigns, :ash_ui_session_key) ||
+       :default}
   end
 
   defp store_subscription(socket, subscription) do

@@ -163,6 +163,9 @@ defmodule AshUI.Runtime.ActionBinding do
   defp get_param_value(%{"from" => "event", "key" => key}, event_data, _context),
     do: lookup_mapping_value(event_data, key)
 
+  defp get_param_value(%{"from" => "binding", "key" => key}, _event_data, context),
+    do: lookup_binding_value(context, key)
+
   defp get_param_value(%{"from" => "context", "key" => key}, _event_data, context),
     do: lookup_mapping_value(context, key)
 
@@ -171,6 +174,9 @@ defmodule AshUI.Runtime.ActionBinding do
 
   defp get_param_value(%{"source" => "event", "key" => key}, event_data, _context),
     do: lookup_mapping_value(event_data, key)
+
+  defp get_param_value(%{"source" => "binding", "key" => key}, _event_data, context),
+    do: lookup_binding_value(context, key)
 
   defp get_param_value(%{"source" => "context", "key" => key}, _event_data, context),
     do: lookup_mapping_value(context, key)
@@ -181,6 +187,9 @@ defmodule AshUI.Runtime.ActionBinding do
   defp get_param_value(%{from: "event", key: key}, event_data, _context),
     do: lookup_mapping_value(event_data, key)
 
+  defp get_param_value(%{from: "binding", key: key}, _event_data, context),
+    do: lookup_binding_value(context, key)
+
   defp get_param_value(%{from: "context", key: key}, _event_data, context),
     do: lookup_mapping_value(context, key)
 
@@ -189,6 +198,9 @@ defmodule AshUI.Runtime.ActionBinding do
 
   defp get_param_value({"event", key}, event_data, _context),
     do: lookup_mapping_value(event_data, key)
+
+  defp get_param_value({"binding", key}, _event_data, context),
+    do: lookup_binding_value(context, key)
 
   defp get_param_value({"context", key}, _event_data, context),
     do: lookup_mapping_value(context, key)
@@ -212,6 +224,12 @@ defmodule AshUI.Runtime.ActionBinding do
   end
 
   defp lookup_mapping_value(data, key), do: Map.get(data, key)
+
+  defp lookup_binding_value(context, key) do
+    context
+    |> Map.get(:binding_values, %{})
+    |> lookup_mapping_value(key)
+  end
 
   defp safe_to_existing_atom(value) when is_binary(value) do
     try do

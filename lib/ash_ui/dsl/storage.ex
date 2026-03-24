@@ -259,12 +259,12 @@ defmodule AshUI.DSL.Storage do
   end
 
   defp validate_no_circular_refs(errors, dsl, path) do
-    current_type = dsl_type(dsl)
+    current_node = node_fingerprint(dsl)
 
-    if current_type in path do
-      ["Circular reference detected: #{Enum.join(path ++ [current_type], " -> ")}" | errors]
+    if current_node in path do
+      ["Circular reference detected in unified_dsl tree" | errors]
     else
-      new_path = path ++ [current_type]
+      new_path = [current_node | path]
 
       Enum.reduce(dsl_children(dsl), errors, fn child, acc ->
         validate_no_circular_refs(acc, child, new_path)
@@ -285,6 +285,7 @@ defmodule AshUI.DSL.Storage do
   defp dsl_type(dsl), do: Map.get(dsl, :type) || Map.get(dsl, "type")
   defp dsl_children(dsl), do: Map.get(dsl, :children) || Map.get(dsl, "children") || []
   defp dsl_signals(dsl), do: Map.get(dsl, :signals) || Map.get(dsl, "signals") || []
+  defp node_fingerprint(dsl), do: :erlang.phash2(dsl)
 
   defp normalize_metadata_keys(metadata) when is_map(metadata) do
     Enum.reduce(metadata, metadata, fn

@@ -172,7 +172,7 @@ defmodule AshUI.DSL.Builder do
   """
   @spec button(String.t(), keyword()) :: dsl_map()
   def button(label, opts \\ []) when is_list(opts) do
-    signals =
+    default_signals =
       case Keyword.get(opts, :on_click) do
         nil -> []
         action -> [%{type: :event, target: "button", action: action}]
@@ -187,7 +187,9 @@ defmodule AshUI.DSL.Builder do
         disabled: false,
         on_click: Keyword.get(opts, :on_click)
       },
-      Keyword.put(opts, :signals, signals)
+      opts,
+      [:on_click],
+      default_signals
     )
   end
 

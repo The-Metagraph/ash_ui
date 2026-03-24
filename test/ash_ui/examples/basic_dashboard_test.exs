@@ -1,13 +1,14 @@
 defmodule AshUI.Examples.BasicDashboardTest do
   use AshUI.DataCase, async: false
 
-  require Ash.Query
-
+  alias AshUI.Compiler
+  alias AshUI.Rendering.IURAdapter
   alias BasicDashboard.Data
+  alias BasicDashboard.Storage
   alias BasicDashboardLive
-  alias AshUI.Resources.Binding
 
   @moduletag :conformance
+
   defp build_socket(assigns \\ %{}) do
     %Phoenix.LiveView.Socket{
       assigns:
@@ -16,46 +17,46 @@ defmodule AshUI.Examples.BasicDashboardTest do
     }
   end
 
-  test "basic dashboard seed persists JSON-safe action parameter mappings" do
+  test "basic dashboard seed compiles a full dashboard screen with action and value bindings" do
     Data.seed!()
     screen = BasicDashboard.seed!()
 
-    bindings =
-      Binding
-      |> Ash.Query.filter(screen_id == ^screen.id)
-      |> Ash.read!(domain: AshUI.Domain)
-
     assert screen.name == "basic_dashboard"
-    assert Code.ensure_loaded?(BasicDashboardLive)
-    assert function_exported?(BasicDashboardLive, :mount, 3)
+    assert screen.__struct__ == BasicDashboard.Storage.Screen
 
-    assert Enum.any?(bindings, fn binding ->
-             binding.binding_type == :action and
-               binding.source == %{
+    assert {:ok, iur} = Compiler.compile(screen, ui_storage: Storage.config())
+    assert {:ok, canonical_iur} = IURAdapter.to_canonical(iur)
+
+    assert canonical_iur["type"] == "screen"
+    assert length(canonical_iur["children"]) == 1
+    assert length(canonical_iur["bindings"]) >= 6
+
+    assert Enum.any?(canonical_iur["bindings"], fn binding ->
+             binding["type"] == "event" and
+               binding["source"] == %{
                  "resource" => "BasicDashboard.User",
                  "action" => "save_profile",
                  "id" => "current-user"
                } and
-               binding.transform == %{
+               binding["transform"] == %{
                  "params" => %{
-                   "display_name" => %{"from" => "event", "key" => "display_name"},
+                   "display_name" => %{"from" => "binding", "key" => "display_name"},
                    "actor_id" => %{"from" => "context", "key" => "user_id"}
                  }
                }
            end)
   end
 
-  test "basic dashboard mounts with ETS-backed data and updates the current user" do
+  test "basic dashboard mounts from ETS ui storage and updates the current user" do
     assert {:ok, socket} = BasicDashboardLive.mount(%{}, %{}, build_socket())
 
-    assert socket.assigns.dashboard_data.user.name == "Pascal"
-    assert socket.assigns.dashboard_data.user.email == "pascal@example.com"
-    assert socket.assigns.dashboard_data.profile.team == "Platform"
+    assert socket.assigns.ash_ui_screen.__struct__ == BasicDashboard.Storage.Screen
+    assert socket.assigns.ash_ui_storage[:domain] == BasicDashboard.Storage.Domain
 
     value_binding =
       socket.assigns.ash_ui_bindings
       |> Map.values()
-      |> Enum.find(&(&1.binding_type == :value))
+      |> Enum.find(&(&1.binding_type == :value and &1.target == "display_name"))
 
     action_binding =
       socket.assigns.ash_ui_bindings
@@ -63,34 +64,34 @@ defmodule AshUI.Examples.BasicDashboardTest do
       |> Enum.find(&(&1.binding_type == :action))
 
     assert value_binding.value == "Pascal"
-    assert value_binding.source["resource"] == "BasicDashboard.User"
+    assert action_binding.source["action"] == "save_profile"
 
     assert {:noreply, changed_socket} =
              BasicDashboardLive.handle_event(
                "ash_ui_change",
-               %{"target" => "value", "value" => "Typed Pascal"},
+               %{
+                 "binding_id" => value_binding.id,
+                 "target" => value_binding.target,
+                 "_target" => ["display_name"],
+                 "display_name" => "Typed Pascal"
+               },
                socket
              )
 
-    assert changed_socket.assigns.dashboard_data.user.name == "Typed Pascal"
     assert Data.snapshot!().user.name == "Typed Pascal"
+    assert changed_socket.assigns.ash_ui_iur["children"] != []
 
-    assert {:reply, %{status: :ok}, updated_socket} =
+    assert {:reply, %{status: :ok}, _updated_socket} =
              BasicDashboardLive.handle_event(
                "ash_ui_action",
-               %{
-                 "action_id" => action_binding.id,
-                 "data" => %{"display_name" => "Updated Pascal"}
-               },
+               %{"action_id" => action_binding.id},
                changed_socket
              )
 
-    assert updated_socket.assigns.dashboard_data.user.name == "Updated Pascal"
-    assert updated_socket.assigns.dashboard_data.user.last_actor_id == "current-user"
-    assert Data.snapshot!().user.name == "Updated Pascal"
+    assert Data.snapshot!().user.last_actor_id == "current-user"
   end
 
-  test "basic dashboard renders the Ash-inspired themed shell" do
+  test "basic dashboard renders the stored IUR tree instead of a handwritten shell" do
     assert {:ok, socket} = BasicDashboardLive.mount(%{}, %{}, build_socket())
 
     html =
@@ -98,9 +99,10 @@ defmodule AshUI.Examples.BasicDashboardTest do
       |> BasicDashboardLive.render()
       |> Phoenix.LiveViewTest.rendered_to_string()
 
-    assert html =~ "Ash-inspired example"
-    assert html =~ "ETS-backed dashboard data"
-    assert html =~ "ash-demo-shell"
-    assert html =~ "Pascal"
+    assert html =~ "Model your dashboard. Let the runtime do the wiring."
+    assert html =~ "Interactive profile editor"
+    assert html =~ "phx-change=\"ash_ui_change\""
+    assert html =~ "phx-click=\"ash_ui_action\""
+    refute html =~ "ash-demo-shell"
   end
 end

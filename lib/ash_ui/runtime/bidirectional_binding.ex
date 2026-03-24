@@ -8,6 +8,7 @@ defmodule AshUI.Runtime.BidirectionalBinding do
 
   alias AshUI.Runtime.BindingEvaluator
   alias AshUI.Runtime.ResourceAccess
+  alias AshUI.LiveView.IURHydration
   alias AshUI.Resources.Binding
   alias AshUI.Telemetry
 
@@ -104,7 +105,10 @@ defmodule AshUI.Runtime.BidirectionalBinding do
         subscribed_at: System.system_time(:millisecond)
       })
 
-    updated_socket = %{socket | assigns: put_in(socket.assigns, [:ash_ui, :subscriptions], updated_subscriptions)}
+    updated_socket = %{
+      socket
+      | assigns: put_in(socket.assigns, [:ash_ui, :subscriptions], updated_subscriptions)
+    }
 
     {:ok, updated_socket}
   end
@@ -264,6 +268,7 @@ defmodule AshUI.Runtime.BidirectionalBinding do
     ash_ui = Map.get(socket.assigns, :ash_ui, %{})
     bindings = Map.get(ash_ui, :bindings, %{})
     binding_state = Map.get(bindings, target, %{})
+
     updated_bindings =
       Map.put(
         bindings,
@@ -309,9 +314,31 @@ defmodule AshUI.Runtime.BidirectionalBinding do
         |> Map.put(binding_id, updated_binding)
         |> maybe_put(atom_binding_id, updated_binding)
 
-      %{socket | assigns: Map.put(socket.assigns, :ash_ui_bindings, updated_bindings)}
+      %{
+        socket
+        | assigns:
+            socket.assigns
+            |> Map.put(:ash_ui_bindings, updated_bindings)
+      }
+      |> sync_hydrated_iur()
     else
       socket
+    end
+  end
+
+  defp sync_hydrated_iur(socket) do
+    base_iur = Map.get(socket.assigns, :ash_ui_base_iur)
+    bindings = Map.get(socket.assigns, :ash_ui_bindings, %{})
+
+    case base_iur do
+      %{} = iur ->
+        %{
+          socket
+          | assigns: Map.put(socket.assigns, :ash_ui_iur, IURHydration.hydrate(iur, bindings))
+        }
+
+      _ ->
+        socket
     end
   end
 

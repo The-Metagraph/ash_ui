@@ -216,7 +216,8 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp compile_screen_uncached(screen, load_elements?, load_bindings?, opts) when is_map(screen) do
+  defp compile_screen_uncached(screen, load_elements?, load_bindings?, opts)
+       when is_map(screen) do
     if should_compile_from_unified_dsl?(screen) do
       compile_from_unified_dsl(screen, opts)
     else
@@ -647,9 +648,9 @@ defmodule AshUI.Compiler do
   defp signal_source(%{action: action}) when is_binary(action), do: %{"action" => action}
   defp signal_source(_signal), do: %{}
 
-  defp signal_type_to_binding_type(:event), do: :event
-  defp signal_type_to_binding_type(:bidirectional), do: :bidirectional
-  defp signal_type_to_binding_type(:collection), do: :collection
+  defp signal_type_to_binding_type(:event), do: :action
+  defp signal_type_to_binding_type(:bidirectional), do: :value
+  defp signal_type_to_binding_type(:collection), do: :list
   defp signal_type_to_binding_type(type), do: type || :value
 
   defp dsl_node_id(screen_id, path) do
@@ -657,6 +658,7 @@ defmodule AshUI.Compiler do
     "#{screen_id}:dsl:#{path_suffix}"
   end
 
+  defp widget_type_to_iur_type("screen"), do: :screen
   defp widget_type_to_iur_type("row"), do: :row
   defp widget_type_to_iur_type("column"), do: :column
   defp widget_type_to_iur_type("grid"), do: :grid
@@ -666,9 +668,18 @@ defmodule AshUI.Compiler do
   defp widget_type_to_iur_type("text"), do: :text
   defp widget_type_to_iur_type("button"), do: :button
   defp widget_type_to_iur_type("input"), do: :textinput
+  defp widget_type_to_iur_type("textarea"), do: :textarea
   defp widget_type_to_iur_type("checkbox"), do: :checkbox
+  defp widget_type_to_iur_type("radio"), do: :radio
+  defp widget_type_to_iur_type("switch"), do: :switch
+  defp widget_type_to_iur_type("slider"), do: :slider
   defp widget_type_to_iur_type("select"), do: :select
+  defp widget_type_to_iur_type("card"), do: :card
+  defp widget_type_to_iur_type("list"), do: :list
+  defp widget_type_to_iur_type("table"), do: :table
   defp widget_type_to_iur_type("image"), do: :image
+  defp widget_type_to_iur_type("icon"), do: :icon
+  defp widget_type_to_iur_type("divider"), do: :divider
   defp widget_type_to_iur_type("spacer"), do: :spacer
 
   defp widget_type_to_iur_type(type) when is_binary(type) do

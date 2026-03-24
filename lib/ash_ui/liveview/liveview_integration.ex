@@ -14,6 +14,7 @@ defmodule AshUI.LiveView.Integration do
   alias AshUI.Authorization.BindingPolicy
   alias AshUI.Authorization.Runtime
   alias AshUI.Runtime.BindingEvaluator
+  alias AshUI.LiveView.IURHydration
   alias AshUI.LiveView.UpdateIntegration
   alias AshUI.Rendering.IURAdapter
   alias AshUI.Telemetry
@@ -50,7 +51,7 @@ defmodule AshUI.LiveView.Integration do
          {:ok, screen} <- load_screen(socket, screen_id, user, params),
          :ok <- authorize_screen(screen, user),
          {:ok, iur} <- compile_screen(screen, ui_storage: current_ui_storage(socket)),
-         {:ok, bindings} <- evaluate_bindings(screen, socket, user, params),
+         {:ok, bindings} <- evaluate_bindings(screen, socket, user, params, iur),
          socket <- assign_screen_state(socket, screen, iur, bindings, user, params),
          socket <- UpdateIntegration.sync_binding_subscriptions(socket) do
       {:ok, socket}
@@ -111,14 +112,22 @@ defmodule AshUI.LiveView.Integration do
     * `{:ok, binding_values}` - Map of binding IDs to evaluated values
     * `{:error, reason}` - Evaluation failed
   """
-  @spec evaluate_bindings(map(), Phoenix.LiveView.Socket.t(), term(), map()) ::
+  @spec evaluate_bindings(map(), Phoenix.LiveView.Socket.t(), term(), map(), map() | nil) ::
           {:ok, map()} | {:error, term()}
-  def evaluate_bindings(screen, socket, user, params) when is_map(screen) do
+  def evaluate_bindings(screen, socket, user, params, compiled_iur \\ nil) when is_map(screen) do
     context = build_evaluation_context(socket, user, params)
 
     screen
-    |> load_screen_bindings(user, socket)
+    |> load_screen_bindings(user, socket, compiled_iur)
     |> evaluate_batch_bindings(context)
+  end
+
+  @doc """
+  Applies the current binding state back onto the canonical IUR tree.
+  """
+  @spec hydrate_iur(map(), map()) :: map()
+  def hydrate_iur(iur, bindings) when is_map(iur) and is_map(bindings) do
+    IURHydration.hydrate(iur, bindings)
   end
 
   # Private functions
@@ -188,6 +197,7 @@ defmodule AshUI.LiveView.Integration do
   defp load_screen_by_name(name, user, params, ui_storage) do
     screen_resource = Config.screen_resource(ui_storage)
     domain = Config.ui_storage_domain(ui_storage)
+
     query =
       screen_resource
       |> Ash.Query.new()
@@ -233,7 +243,17 @@ defmodule AshUI.LiveView.Integration do
     end
   end
 
-  defp load_screen_bindings(screen, user, socket) when is_map(screen) do
+  defp load_screen_bindings(screen, user, socket, compiled_iur) when is_map(screen) do
+    compiled_bindings = Map.get(compiled_iur || %{}, "bindings", [])
+
+    if compiled_bindings != [] do
+      Enum.map(compiled_bindings, &normalize_compiled_binding(&1, screen.id))
+    else
+      load_persisted_screen_bindings(screen, user, socket)
+    end
+  end
+
+  defp load_persisted_screen_bindings(screen, user, socket) when is_map(screen) do
     ui_storage = current_ui_storage(socket)
     binding_resource = Config.binding_resource(ui_storage)
     domain = Config.ui_storage_domain(ui_storage)
@@ -261,11 +281,22 @@ defmodule AshUI.LiveView.Integration do
       Enum.reduce(bindings, %{}, fn binding, acc ->
         case BindingEvaluator.evaluate(binding, context) do
           {:ok, value} ->
-            Map.put(acc, binding.id, build_binding_state(binding, value: value, error: nil))
+            Map.put(
+              acc,
+              binding_identifier(binding),
+              build_binding_state(binding, value: value, error: nil)
+            )
 
           {:error, reason} ->
-            Logger.warning("Binding #{binding.id} evaluation failed: #{inspect(reason)}")
-            Map.put(acc, binding.id, build_binding_state(binding, value: nil, error: reason))
+            Logger.warning(
+              "Binding #{binding_identifier(binding)} evaluation failed: #{inspect(reason)}"
+            )
+
+            Map.put(
+              acc,
+              binding_identifier(binding),
+              build_binding_state(binding, value: nil, error: reason)
+            )
         end
       end)
 
@@ -274,10 +305,12 @@ defmodule AshUI.LiveView.Integration do
 
   defp assign_screen_state(socket, screen, iur, bindings, user, params) do
     ui_storage = current_ui_storage(socket)
+    hydrated_iur = hydrate_iur(iur, bindings)
 
     socket
     |> Phoenix.Component.assign(:ash_ui_screen, screen)
-    |> Phoenix.Component.assign(:ash_ui_iur, iur)
+    |> Phoenix.Component.assign(:ash_ui_base_iur, iur)
+    |> Phoenix.Component.assign(:ash_ui_iur, hydrated_iur)
     |> Phoenix.Component.assign(:ash_ui_bindings, bindings)
     |> Phoenix.Component.assign(:ash_ui_params, params)
     |> Phoenix.Component.assign(:ash_ui_storage, ui_storage)
@@ -326,14 +359,14 @@ defmodule AshUI.LiveView.Integration do
 
   defp build_binding_state(binding, attrs) do
     %{
-      id: binding.id,
-      source: binding.source || %{},
-      target: binding.target,
-      binding_type: binding.binding_type,
-      transform: binding.transform || %{},
-      metadata: binding.metadata || %{},
-      screen_id: binding.screen_id,
-      element_id: binding.element_id,
+      id: binding_identifier(binding),
+      source: Map.get(binding, :source) || Map.get(binding, "source") || %{},
+      target: Map.get(binding, :target) || Map.get(binding, "target"),
+      binding_type: normalized_binding_type(binding),
+      transform: Map.get(binding, :transform) || Map.get(binding, "transform") || %{},
+      metadata: Map.get(binding, :metadata) || Map.get(binding, "metadata") || %{},
+      screen_id: Map.get(binding, :screen_id) || Map.get(binding, "screen_id"),
+      element_id: Map.get(binding, :element_id) || Map.get(binding, "element_id"),
       value: Keyword.get(attrs, :value),
       error: Keyword.get(attrs, :error),
       updated_at: System.system_time(:millisecond)
@@ -378,5 +411,38 @@ defmodule AshUI.LiveView.Integration do
       end
 
     Config.ui_storage(overrides)
+  end
+
+  defp normalize_compiled_binding(binding, screen_id) do
+    binding
+    |> Map.put_new("screen_id", screen_id)
+    |> Map.put_new(
+      "binding_type",
+      case Map.get(binding, "type") do
+        "event" -> :action
+        "collection" -> :list
+        _ -> :value
+      end
+    )
+  end
+
+  defp binding_identifier(binding) do
+    Map.get(binding, :id) || Map.get(binding, "id")
+  end
+
+  defp normalized_binding_type(binding) do
+    case Map.get(binding, :binding_type) || Map.get(binding, "binding_type") ||
+           Map.get(binding, "type") do
+      :value -> :value
+      "value" -> :value
+      :action -> :action
+      "action" -> :action
+      "event" -> :action
+      :list -> :list
+      "list" -> :list
+      "collection" -> :list
+      other when is_atom(other) -> other
+      _ -> :value
+    end
   end
 end

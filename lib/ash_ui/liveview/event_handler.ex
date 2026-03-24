@@ -12,7 +12,8 @@ defmodule AshUI.LiveView.EventHandler do
   alias AshUI.Runtime.ActionBinding
   alias AshUI.Runtime.BidirectionalBinding
 
-  @type event_result :: {:noreply, Phoenix.LiveView.Socket.t()} | {:reply, map(), Phoenix.LiveView.Socket.t()}
+  @type event_result ::
+          {:noreply, Phoenix.LiveView.Socket.t()} | {:reply, map(), Phoenix.LiveView.Socket.t()}
 
   @doc """
   Handles UI events and routes them to appropriate handlers.
@@ -66,10 +67,11 @@ defmodule AshUI.LiveView.EventHandler do
   """
   @spec handle_value_change(map(), Phoenix.LiveView.Socket.t()) :: event_result()
   def handle_value_change(event_params, socket) do
+    binding_id = Map.get(event_params, "binding_id")
     target = Map.get(event_params, "target")
-    value = Map.get(event_params, "value")
+    value = extract_value(event_params)
 
-    with {:ok, binding} <- find_binding_by_target(target, socket),
+    with {:ok, binding} <- find_value_binding(binding_id, target, socket),
          context <- build_event_context(socket),
          {:ok, socket} <- write_value(binding, value, socket, context) do
       {:noreply, socket}
@@ -100,7 +102,7 @@ defmodule AshUI.LiveView.EventHandler do
   @spec handle_action_event(map(), Phoenix.LiveView.Socket.t()) :: event_result()
   def handle_action_event(event_params, socket) do
     action_id = Map.get(event_params, "action_id")
-    event_data = Map.get(event_params, "data", %{})
+    event_data = extract_action_event_data(event_params)
 
     with {:ok, binding} <- find_action_binding(action_id, socket),
          context <- build_event_context(socket),
@@ -156,21 +158,25 @@ defmodule AshUI.LiveView.EventHandler do
     * `:click` - Button click, routes to `handle_action_event/2`
     * `:submit` - Form submit, routes to `handle_action_event/2`
   """
-  @spec route_event(map(), Phoenix.LiveView.Socket.t()) :: {:ok, Phoenix.LiveView.Socket.t()} | {:error, term()}
+  @spec route_event(map(), Phoenix.LiveView.Socket.t()) ::
+          {:ok, Phoenix.LiveView.Socket.t()} | {:error, term()}
   def route_event(%{type: :change} = event, socket) do
     params = Map.merge(event.data, %{"target" => event.target})
+
     handle_value_change(params, socket)
     |> wrap_route_result()
   end
 
   def route_event(%{type: :click} = event, socket) do
     params = Map.merge(event.data, %{"action_id" => event.target})
+
     handle_action_event(params, socket)
     |> wrap_route_result()
   end
 
   def route_event(%{type: :submit} = event, socket) do
     params = Map.merge(event.data, %{"action_id" => event.target})
+
     handle_action_event(params, socket)
     |> wrap_route_result()
   end
@@ -224,6 +230,7 @@ defmodule AshUI.LiveView.EventHandler do
 
   # Private functions
 
+  defp extract_event_type("ash_ui_action"), do: {:ok, :submit}
   defp extract_event_type("ash_ui_change"), do: {:ok, :change}
   defp extract_event_type("ash_ui_click"), do: {:ok, :click}
   defp extract_event_type("ash_ui_submit"), do: {:ok, :submit}
@@ -233,12 +240,20 @@ defmodule AshUI.LiveView.EventHandler do
   defp wrap_route_result({:reply, _data, socket}), do: {:ok, socket}
   defp wrap_route_result({:error, reason}), do: {:error, reason}
 
+  defp find_value_binding(binding_id, _target, socket) when is_binary(binding_id) do
+    find_action_binding(binding_id, socket)
+  end
+
+  defp find_value_binding(_binding_id, target, socket) do
+    find_binding_by_target(target, socket)
+  end
+
   defp find_binding_by_target(target, socket) do
     bindings = socket.assigns[:ash_ui_bindings] || %{}
 
     case Enum.find(bindings, fn {_id, binding} ->
-      Map.get(binding, :target) == target or Map.get(binding, "target") == target
-    end) do
+           Map.get(binding, :target) == target or Map.get(binding, "target") == target
+         end) do
       {id, binding} ->
         binding =
           binding
@@ -247,7 +262,8 @@ defmodule AshUI.LiveView.EventHandler do
 
         {:ok, binding}
 
-      nil -> {:error, :binding_not_found}
+      nil ->
+        {:error, :binding_not_found}
     end
   end
 
@@ -276,6 +292,7 @@ defmodule AshUI.LiveView.EventHandler do
       authorize?: true,
       params: socket.assigns[:ash_ui_params] || %{},
       assigns: socket.assigns,
+      binding_values: extract_binding_values(socket),
       socket: socket,
       ui_storage: Config.ui_storage(ui_storage),
       ash_domains: Map.get(socket.assigns, :ash_ui_domains, Config.runtime_domains(ui_storage))
@@ -347,6 +364,45 @@ defmodule AshUI.LiveView.EventHandler do
   end
 
   defp safe_to_existing_atom(_value), do: nil
+
+  defp extract_value(%{"value" => value}), do: value
+
+  defp extract_value(params) when is_map(params) do
+    target_path = Map.get(params, "_target", [])
+
+    case List.wrap(target_path) do
+      [field_name | _rest] ->
+        Map.get(params, field_name)
+
+      _ ->
+        field_name = Map.get(params, "name")
+        if is_binary(field_name), do: Map.get(params, field_name), else: nil
+    end
+  end
+
+  defp extract_action_event_data(%{"data" => data}) when is_map(data), do: data
+
+  defp extract_action_event_data(params) when is_map(params) do
+    params
+    |> Map.drop(["action_id", "binding_id", "target", "value", "_target"])
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+  end
+
+  defp extract_binding_values(socket) do
+    socket.assigns
+    |> Map.get(:ash_ui_bindings, %{})
+    |> Enum.reduce(%{}, fn {_binding_id, binding}, acc ->
+      target = Map.get(binding, :target) || Map.get(binding, "target")
+      value = Map.get(binding, :value) || Map.get(binding, "value")
+
+      if is_nil(target) do
+        acc
+      else
+        Map.put(acc, target, value)
+      end
+    end)
+  end
 
   @doc """
   Wires all event handlers for a screen's bindings.

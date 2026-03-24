@@ -2,6 +2,7 @@ defmodule AshUI.DSL.BuilderTest do
   use ExUnit.Case, async: true
 
   alias AshUI.DSL.Builder
+  alias AshUI.DSL.Storage
 
   describe "root/2" do
     test "creates a root DSL element" do
@@ -31,6 +32,23 @@ defmodule AshUI.DSL.BuilderTest do
       dsl = Builder.root("row", signals: [signal])
 
       assert dsl.signals == [signal]
+    end
+
+    test "accepts metadata" do
+      dsl = Builder.root("screen", metadata: %{title: "Dashboard"})
+
+      assert dsl.metadata == %{title: "Dashboard"}
+    end
+  end
+
+  describe "screen/1" do
+    test "creates a screen layout" do
+      child = Builder.text("Hello")
+      dsl = Builder.screen(children: [child], layout: :stack)
+
+      assert dsl.type == "screen"
+      assert dsl.props.layout == :stack
+      assert dsl.children == [child]
     end
   end
 
@@ -76,6 +94,34 @@ defmodule AshUI.DSL.BuilderTest do
       dsl = Builder.column(spacing: 24)
 
       assert dsl.props.spacing == 24
+    end
+  end
+
+  describe "grid/1" do
+    test "creates a grid layout" do
+      dsl = Builder.grid()
+
+      assert dsl.type == "grid"
+      assert dsl.props.columns == 12
+      assert dsl.props.spacing == 8
+      assert dsl.props.align == :stretch
+    end
+
+    test "accepts custom columns" do
+      dsl = Builder.grid(columns: 3)
+
+      assert dsl.props.columns == 3
+    end
+  end
+
+  describe "stack/1" do
+    test "creates a stack layout" do
+      dsl = Builder.stack()
+
+      assert dsl.type == "stack"
+      assert dsl.props.spacing == 0
+      assert dsl.props.align == :stretch
+      assert dsl.props.justify == :start
     end
   end
 
@@ -156,6 +202,122 @@ defmodule AshUI.DSL.BuilderTest do
     end
   end
 
+  describe "input-like helpers" do
+    test "textarea/2 creates a textarea widget" do
+      dsl = Builder.textarea("bio", bind_to: "User.bio")
+
+      assert dsl.type == "textarea"
+      assert dsl.props.name == "bio"
+      assert dsl.props.rows == 4
+      assert hd(dsl.signals).source == "User.bio"
+    end
+
+    test "checkbox/2 creates a checkbox widget" do
+      dsl = Builder.checkbox("terms", checked: true)
+
+      assert dsl.type == "checkbox"
+      assert dsl.props.name == "terms"
+      assert dsl.props.checked == true
+    end
+
+    test "radio/2 creates a radio widget" do
+      dsl = Builder.radio("plan", value: "pro", label: "Pro")
+
+      assert dsl.type == "radio"
+      assert dsl.props.name == "plan"
+      assert dsl.props.value == "pro"
+      assert dsl.props.label == "Pro"
+    end
+
+    test "switch/2 creates a switch widget" do
+      dsl = Builder.switch("dark_mode", checked: true)
+
+      assert dsl.type == "switch"
+      assert dsl.props.name == "dark_mode"
+      assert dsl.props.checked == true
+    end
+
+    test "slider/2 creates a slider widget" do
+      dsl = Builder.slider("volume", min: 0, max: 10, step: 2, value: 6)
+
+      assert dsl.type == "slider"
+      assert dsl.props.name == "volume"
+      assert dsl.props.min == 0
+      assert dsl.props.max == 10
+      assert dsl.props.step == 2
+      assert dsl.props.value == 6
+    end
+
+    test "select/2 creates a select widget" do
+      dsl = Builder.select("team", options: [{"Core", "core"}], bind_to: "User.team")
+
+      assert dsl.type == "select"
+      assert dsl.props.name == "team"
+      assert dsl.props.options == [{"Core", "core"}]
+      assert hd(dsl.signals).source == "User.team"
+    end
+  end
+
+  describe "content helpers" do
+    test "card/1 creates a card widget" do
+      child = Builder.text("Summary")
+      dsl = Builder.card(title: "Overview", children: [child])
+
+      assert dsl.type == "card"
+      assert dsl.props.title == "Overview"
+      assert dsl.children == [child]
+    end
+
+    test "list/1 creates a list widget" do
+      dsl = Builder.list(items: ["One", "Two"], ordered: true)
+
+      assert dsl.type == "list"
+      assert dsl.props.items == ["One", "Two"]
+      assert dsl.props.ordered == true
+    end
+
+    test "table/1 creates a table widget" do
+      dsl = Builder.table(columns: ["Name"], rows: [%{"Name" => "Ada"}])
+
+      assert dsl.type == "table"
+      assert dsl.props.columns == ["Name"]
+      assert dsl.props.rows == [%{"Name" => "Ada"}]
+    end
+
+    test "image/2 creates an image widget" do
+      dsl = Builder.image("/logo.png", alt: "Logo", width: 128)
+
+      assert dsl.type == "image"
+      assert dsl.props.src == "/logo.png"
+      assert dsl.props.alt == "Logo"
+      assert dsl.props.width == 128
+    end
+
+    test "icon/2 creates an icon widget" do
+      dsl = Builder.icon("sparkles", size: 24)
+
+      assert dsl.type == "icon"
+      assert dsl.props.name == "sparkles"
+      assert dsl.props.size == 24
+    end
+
+    test "divider/1 creates a divider widget" do
+      dsl = Builder.divider(orientation: :vertical, thickness: 2)
+
+      assert dsl.type == "divider"
+      assert dsl.props.orientation == :vertical
+      assert dsl.props.thickness == 2
+    end
+
+    test "spacer/1 creates a spacer widget" do
+      dsl = Builder.spacer(size: 24, axis: :horizontal)
+
+      assert dsl.type == "spacer"
+      assert dsl.props.size == 24
+      assert dsl.props.axis == :horizontal
+    end
+  end
+
   describe "container/2" do
     test "creates a custom container" do
       dsl = Builder.container("div", padding: 16, background: "white")
@@ -170,6 +332,15 @@ defmodule AshUI.DSL.BuilderTest do
       dsl = Builder.container("div", children: [child])
 
       assert dsl.children == [child]
+    end
+
+    test "does not leak reserved options into props" do
+      child = Builder.text("Hello")
+      dsl = Builder.container("div", children: [child], metadata: %{section: "hero"})
+
+      refute Map.has_key?(dsl.props, :children)
+      refute Map.has_key?(dsl.props, :metadata)
+      assert dsl.metadata == %{section: "hero"}
     end
   end
 
@@ -217,6 +388,40 @@ defmodule AshUI.DSL.BuilderTest do
 
       assert {:error, errors} = Builder.validate(invalid)
       assert "Children must be a list" in errors
+    end
+
+    test "all widget helpers produce storage-valid DSL nodes" do
+      helpers = [
+        Builder.screen(children: [Builder.text("Screen")]),
+        Builder.row(),
+        Builder.column(),
+        Builder.grid(),
+        Builder.stack(),
+        Builder.text("Text"),
+        Builder.button("Save"),
+        Builder.input("name"),
+        Builder.textarea("bio"),
+        Builder.checkbox("terms"),
+        Builder.radio("plan"),
+        Builder.switch("enabled"),
+        Builder.slider("volume"),
+        Builder.select("team"),
+        Builder.card(),
+        Builder.list(),
+        Builder.table(),
+        Builder.image("/logo.png"),
+        Builder.icon("sparkles"),
+        Builder.divider(),
+        Builder.spacer(),
+        Builder.container("custom:hero"),
+        Builder.merge([Builder.text("Fragment")])
+      ]
+
+      Enum.each(helpers, fn dsl ->
+        assert :ok = Builder.validate(dsl)
+        assert :ok = Storage.validate_write(dsl)
+        assert Storage.valid_widget_type?(dsl.type)
+      end)
     end
   end
 end

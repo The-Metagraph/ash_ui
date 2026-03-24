@@ -7,11 +7,14 @@ defmodule AshUI.DSL.Builder do
   """
 
   @type dsl_map :: %{
-          type: String.t(),
-          props: map(),
-          children: [dsl_map()],
-          signals: [map()]
+          required(:type) => String.t(),
+          required(:props) => map(),
+          required(:children) => [dsl_map()],
+          required(:signals) => [map()],
+          optional(:metadata) => map()
         }
+
+  @reserved_option_keys [:children, :signals, :props, :metadata]
 
   @doc """
   Creates a root DSL element.
@@ -23,6 +26,7 @@ defmodule AshUI.DSL.Builder do
     * `:props` - Map of widget properties
     * `:children` - List of child DSL elements
     * `:signals` - List of signal definitions
+    * `:metadata` - Optional metadata map
 
   ## Examples
 
@@ -32,12 +36,27 @@ defmodule AshUI.DSL.Builder do
   """
   @spec root(String.t(), keyword()) :: dsl_map()
   def root(type, opts \\ []) do
-    %{
+    dsl = %{
       type: type,
       props: Keyword.get(opts, :props, %{}),
       children: Keyword.get(opts, :children, []),
       signals: Keyword.get(opts, :signals, [])
     }
+
+    case Keyword.get(opts, :metadata) do
+      metadata when is_map(metadata) -> Map.put(dsl, :metadata, metadata)
+      _ -> dsl
+    end
+  end
+
+  @doc """
+  Creates a screen layout element.
+
+  Screens are the top-level IUR container.
+  """
+  @spec screen(keyword()) :: dsl_map()
+  def screen(opts \\ []) when is_list(opts) do
+    build_widget("screen", %{}, opts)
   end
 
   @doc """
@@ -54,13 +73,15 @@ defmodule AshUI.DSL.Builder do
   """
   @spec row(keyword()) :: dsl_map()
   def row(opts \\ []) when is_list(opts) do
-    props = %{
-      spacing: Keyword.get(opts, :spacing, 8),
-      align: Keyword.get(opts, :align, :start),
-      justify: Keyword.get(opts, :justify, :start)
-    }
-
-    root("row", Keyword.put(opts, :props, Map.merge(props, Keyword.get(opts, :props, %{}))))
+    build_widget(
+      "row",
+      %{
+        spacing: 8,
+        align: :start,
+        justify: :start
+      },
+      opts
+    )
   end
 
   @doc """
@@ -77,13 +98,47 @@ defmodule AshUI.DSL.Builder do
   """
   @spec column(keyword()) :: dsl_map()
   def column(opts \\ []) when is_list(opts) do
-    props = %{
-      spacing: Keyword.get(opts, :spacing, 8),
-      align: Keyword.get(opts, :align, :start),
-      justify: Keyword.get(opts, :justify, :start)
-    }
+    build_widget(
+      "column",
+      %{
+        spacing: 8,
+        align: :start,
+        justify: :start
+      },
+      opts
+    )
+  end
 
-    root("column", Keyword.put(opts, :props, Map.merge(props, Keyword.get(opts, :props, %{}))))
+  @doc """
+  Creates a grid layout element.
+  """
+  @spec grid(keyword()) :: dsl_map()
+  def grid(opts \\ []) when is_list(opts) do
+    build_widget(
+      "grid",
+      %{
+        columns: 12,
+        spacing: 8,
+        align: :stretch
+      },
+      opts
+    )
+  end
+
+  @doc """
+  Creates a stack layout element.
+  """
+  @spec stack(keyword()) :: dsl_map()
+  def stack(opts \\ []) when is_list(opts) do
+    build_widget(
+      "stack",
+      %{
+        spacing: 0,
+        align: :stretch,
+        justify: :start
+      },
+      opts
+    )
   end
 
   @doc """
@@ -95,15 +150,17 @@ defmodule AshUI.DSL.Builder do
   """
   @spec text(String.t(), keyword()) :: dsl_map()
   def text(content, opts \\ []) when is_list(opts) do
-    props = %{
-      content: content,
-      size: Keyword.get(opts, :size, 14),
-      color: Keyword.get(opts, :color, "inherit"),
-      weight: Keyword.get(opts, :weight, :normal),
-      align: Keyword.get(opts, :align, :left)
-    }
-
-    root("text", props: props)
+    build_widget(
+      "text",
+      %{
+        content: content,
+        size: 14,
+        color: "inherit",
+        weight: :normal,
+        align: :left
+      },
+      opts
+    )
   end
 
   @doc """
@@ -115,21 +172,23 @@ defmodule AshUI.DSL.Builder do
   """
   @spec button(String.t(), keyword()) :: dsl_map()
   def button(label, opts \\ []) when is_list(opts) do
-    props = %{
-      label: label,
-      variant: Keyword.get(opts, :variant, :primary),
-      size: Keyword.get(opts, :size, :medium),
-      disabled: Keyword.get(opts, :disabled, false),
-      on_click: Keyword.get(opts, :on_click)
-    }
-
     signals =
       case Keyword.get(opts, :on_click) do
         nil -> []
         action -> [%{type: :event, target: "button", action: action}]
       end
 
-    root("button", props: props, signals: signals)
+    build_widget(
+      "button",
+      %{
+        label: label,
+        variant: :primary,
+        size: :medium,
+        disabled: false,
+        on_click: Keyword.get(opts, :on_click)
+      },
+      Keyword.put(opts, :signals, signals)
+    )
   end
 
   @doc """
@@ -141,22 +200,298 @@ defmodule AshUI.DSL.Builder do
   """
   @spec input(String.t(), keyword()) :: dsl_map()
   def input(name, opts \\ []) when is_list(opts) do
-    props = %{
-      name: name,
-      type: Keyword.get(opts, :type, :text),
-      placeholder: Keyword.get(opts, :placeholder, ""),
-      value: Keyword.get(opts, :value, ""),
-      disabled: Keyword.get(opts, :disabled, false),
-      required: Keyword.get(opts, :required, false)
-    }
-
     signals =
       case Keyword.get(opts, :bind_to) do
         nil -> []
         binding -> [%{type: :bidirectional, target: name, source: binding}]
       end
 
-    root("input", props: props, signals: signals)
+    build_widget(
+      "input",
+      %{
+        name: name,
+        type: :text,
+        placeholder: "",
+        value: "",
+        disabled: false,
+        required: false
+      },
+      opts,
+      [:bind_to],
+      signals
+    )
+  end
+
+  @doc """
+  Creates a textarea widget element.
+  """
+  @spec textarea(String.t(), keyword()) :: dsl_map()
+  def textarea(name, opts \\ []) when is_list(opts) do
+    signals =
+      case Keyword.get(opts, :bind_to) do
+        nil -> []
+        binding -> [%{type: :bidirectional, target: name, source: binding}]
+      end
+
+    build_widget(
+      "textarea",
+      %{
+        name: name,
+        placeholder: "",
+        value: "",
+        rows: 4,
+        disabled: false,
+        required: false
+      },
+      opts,
+      [:bind_to],
+      signals
+    )
+  end
+
+  @doc """
+  Creates a checkbox widget element.
+  """
+  @spec checkbox(String.t(), keyword()) :: dsl_map()
+  def checkbox(name, opts \\ []) when is_list(opts) do
+    signals =
+      case Keyword.get(opts, :bind_to) do
+        nil -> []
+        binding -> [%{type: :bidirectional, target: name, source: binding}]
+      end
+
+    build_widget(
+      "checkbox",
+      %{
+        name: name,
+        label: name,
+        checked: false,
+        disabled: false
+      },
+      opts,
+      [:bind_to],
+      signals
+    )
+  end
+
+  @doc """
+  Creates a radio widget element.
+  """
+  @spec radio(String.t(), keyword()) :: dsl_map()
+  def radio(name, opts \\ []) when is_list(opts) do
+    signals =
+      case Keyword.get(opts, :bind_to) do
+        nil -> []
+        binding -> [%{type: :bidirectional, target: name, source: binding}]
+      end
+
+    build_widget(
+      "radio",
+      %{
+        name: name,
+        value: name,
+        label: name,
+        checked: false,
+        disabled: false
+      },
+      opts,
+      [:bind_to],
+      signals
+    )
+  end
+
+  @doc """
+  Creates a switch widget element.
+  """
+  @spec switch(String.t(), keyword()) :: dsl_map()
+  def switch(name, opts \\ []) when is_list(opts) do
+    signals =
+      case Keyword.get(opts, :bind_to) do
+        nil -> []
+        binding -> [%{type: :bidirectional, target: name, source: binding}]
+      end
+
+    build_widget(
+      "switch",
+      %{
+        name: name,
+        label: name,
+        checked: false,
+        disabled: false
+      },
+      opts,
+      [:bind_to],
+      signals
+    )
+  end
+
+  @doc """
+  Creates a slider widget element.
+  """
+  @spec slider(String.t(), keyword()) :: dsl_map()
+  def slider(name, opts \\ []) when is_list(opts) do
+    signals =
+      case Keyword.get(opts, :bind_to) do
+        nil -> []
+        binding -> [%{type: :bidirectional, target: name, source: binding}]
+      end
+
+    build_widget(
+      "slider",
+      %{
+        name: name,
+        min: 0,
+        max: 100,
+        step: 1,
+        value: 0,
+        disabled: false
+      },
+      opts,
+      [:bind_to],
+      signals
+    )
+  end
+
+  @doc """
+  Creates a select widget element.
+  """
+  @spec select(String.t(), keyword()) :: dsl_map()
+  def select(name, opts \\ []) when is_list(opts) do
+    signals =
+      case Keyword.get(opts, :bind_to) do
+        nil -> []
+        binding -> [%{type: :bidirectional, target: name, source: binding}]
+      end
+
+    build_widget(
+      "select",
+      %{
+        name: name,
+        options: [],
+        value: nil,
+        prompt: nil,
+        multiple: false,
+        disabled: false
+      },
+      opts,
+      [:bind_to],
+      signals
+    )
+  end
+
+  @doc """
+  Creates a card widget element.
+  """
+  @spec card(keyword()) :: dsl_map()
+  def card(opts \\ []) when is_list(opts) do
+    build_widget(
+      "card",
+      %{
+        title: nil,
+        subtitle: nil,
+        variant: :default,
+        padding: 16
+      },
+      opts
+    )
+  end
+
+  @doc """
+  Creates a list widget element.
+  """
+  @spec list(keyword()) :: dsl_map()
+  def list(opts \\ []) when is_list(opts) do
+    build_widget(
+      "list",
+      %{
+        items: [],
+        ordered: false,
+        empty_text: nil
+      },
+      opts
+    )
+  end
+
+  @doc """
+  Creates a table widget element.
+  """
+  @spec table(keyword()) :: dsl_map()
+  def table(opts \\ []) when is_list(opts) do
+    build_widget(
+      "table",
+      %{
+        columns: [],
+        rows: [],
+        caption: nil,
+        empty_text: nil
+      },
+      opts
+    )
+  end
+
+  @doc """
+  Creates an image widget element.
+  """
+  @spec image(String.t(), keyword()) :: dsl_map()
+  def image(src, opts \\ []) when is_list(opts) do
+    build_widget(
+      "image",
+      %{
+        src: src,
+        alt: "",
+        width: nil,
+        height: nil,
+        loading: :lazy
+      },
+      opts
+    )
+  end
+
+  @doc """
+  Creates an icon widget element.
+  """
+  @spec icon(String.t(), keyword()) :: dsl_map()
+  def icon(name, opts \\ []) when is_list(opts) do
+    build_widget(
+      "icon",
+      %{
+        name: name,
+        size: 16,
+        color: "currentColor"
+      },
+      opts
+    )
+  end
+
+  @doc """
+  Creates a divider widget element.
+  """
+  @spec divider(keyword()) :: dsl_map()
+  def divider(opts \\ []) when is_list(opts) do
+    build_widget(
+      "divider",
+      %{
+        orientation: :horizontal,
+        color: "currentColor",
+        thickness: 1
+      },
+      opts
+    )
+  end
+
+  @doc """
+  Creates a spacer widget element.
+  """
+  @spec spacer(keyword()) :: dsl_map()
+  def spacer(opts \\ []) when is_list(opts) do
+    build_widget(
+      "spacer",
+      %{
+        size: 8,
+        axis: :vertical
+      },
+      opts
+    )
   end
 
   @doc """
@@ -168,8 +503,7 @@ defmodule AshUI.DSL.Builder do
   """
   @spec container(String.t(), keyword()) :: dsl_map()
   def container(type, opts \\ []) when is_list(opts) do
-    props = Enum.into(opts, %{})
-    root(type, props: props, children: Keyword.get(opts, :children, []))
+    build_widget(type, %{}, opts)
   end
 
   @doc """
@@ -299,6 +633,28 @@ defmodule AshUI.DSL.Builder do
   defp normalize_signal_key("transform"), do: :transform
   defp normalize_signal_key("action"), do: :action
   defp normalize_signal_key(key), do: key
+
+  defp build_widget(type, default_props, opts, extra_reserved_keys \\ [], default_signals \\ nil) do
+    reserved_keys = @reserved_option_keys ++ extra_reserved_keys
+
+    props =
+      default_props
+      |> Map.merge(extract_prop_options(opts, reserved_keys))
+      |> Map.merge(Keyword.get(opts, :props, %{}))
+
+    root(type,
+      props: props,
+      children: Keyword.get(opts, :children, []),
+      signals: Keyword.get(opts, :signals, default_signals || []),
+      metadata: Keyword.get(opts, :metadata)
+    )
+  end
+
+  defp extract_prop_options(opts, reserved_keys) do
+    opts
+    |> Keyword.drop(reserved_keys)
+    |> Enum.into(%{})
+  end
 
   # Private validation functions
 

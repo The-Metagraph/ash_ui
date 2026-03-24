@@ -91,6 +91,17 @@ defmodule AshUI.Examples.BasicDashboardTest do
     assert Data.snapshot!().user.last_actor_id == "current-user"
   end
 
+  test "basic dashboard liveview exposes the generic screen host configuration" do
+    socket = build_socket()
+
+    assert BasicDashboardLive.ash_ui_screen_id(%{}, %{}, socket) == :basic_dashboard
+
+    assert BasicDashboardLive.ash_ui_storage(%{}, %{}, socket)[:domain] ==
+             BasicDashboard.Storage.Domain
+
+    assert BasicDashboardLive.ash_ui_domains(%{}, %{}, socket) == [BasicDashboard.Domain]
+  end
+
   test "basic dashboard renders the stored IUR tree instead of a handwritten shell" do
     assert {:ok, socket} = BasicDashboardLive.mount(%{}, %{}, build_socket())
 

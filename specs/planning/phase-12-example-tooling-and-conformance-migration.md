@@ -14,7 +14,7 @@ Back to index: [README](./README.md)
 - renderer parity remains important for `liveview` and `elm`
 - `desktop` and `terminal_ui` status remain independently tracked
 
-[ ] 12 Phase 12 - Example, Tooling, and Conformance Migration
+[x] 12 Phase 12 - Example, Tooling, and Conformance Migration
   Move the public examples, tooling, docs, and governance checks to the upstream `unified_ui` authoring model and close the DSL authority gap.
 
   [x] 12.1 Section - Example Conversion
@@ -66,13 +66,13 @@ Back to index: [README](./README.md)
       [x] 12.3.2.3 Subtask - Update the conformance matrix and scenario traceability docs
       [x] 12.3.2.4 Subtask - Re-baseline release-readiness gates around the new architecture
 
-  [ ] 12.4 Section - Phase 12 Integration Tests
+  [x] 12.4 Section - Phase 12 Integration Tests
     Validate that public examples and repo governance now reflect the intended architecture.
 
-    [ ] 12.4.1 Task - Example and governance scenarios
+    [x] 12.4.1 Task - Example and governance scenarios
     Verify the repo demonstrates and enforces the upstream DSL model.
 
-      [ ] 12.4.1.1 Subtask - Verify the standalone example app runs with upstream-authored screens
-      [ ] 12.4.1.2 Subtask - Verify adapter tooling works against upstream-authored screens
-      [ ] 12.4.1.3 Subtask - Verify governance checks reject builder-first public examples
-      [ ] 12.4.1.4 Subtask - Verify conformance coverage documents the new architecture accurately
+      [x] 12.4.1.1 Subtask - Verify the standalone example app runs with upstream-authored screens
+      [x] 12.4.1.2 Subtask - Verify adapter tooling works against upstream-authored screens
+      [x] 12.4.1.3 Subtask - Verify governance checks reject builder-first public examples
+      [x] 12.4.1.4 Subtask - Verify conformance coverage documents the new architecture accurately

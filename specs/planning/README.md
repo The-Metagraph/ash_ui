@@ -62,6 +62,7 @@ upstream `UnifiedUi.Compiler`, preserves stable runtime hydration and cache
 behavior, and keeps canonical renderer output stable across cached and uncached
 compilation paths.
 
-The remaining remediation work now lives in Phase 12:
-
-- move public examples, tooling, and conformance fully off the builder-first path
+Phase 12 is now complete: the shipped examples, public guides, governance
+checks, release gates, and conformance traceability now all reflect the
+upstream `UnifiedUi.Dsl` authority model rather than the older builder-first
+path.

@@ -82,6 +82,28 @@ defmodule AshUI.Compiler.IncrementalTest do
 
       assert Incremental.detect_circular_dependencies(graph) == :ok
     end
+
+    test "derives authored element and binding dependencies from persisted documents" do
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs(
+              unique_name("authored_dependency_screen"),
+              binding_metadata: %{
+                "display_name_input" => %{
+                  "source" => %{"resource" => "User", "field" => "name", "id" => "user-1"},
+                  "binding_type" => :value,
+                  "element_id" => "display_name_input"
+                }
+              }
+            )
+        )
+
+      assert {:ok, graph} = Incremental.build_dependencies(screen)
+      assert screen.id in Map.keys(graph.screen_to_elements)
+      assert "display_name_input" in graph.screen_to_elements[screen.id]
+      assert graph.binding_to_element["display_name_input"] == "display_name_input"
+    end
   end
 
   describe "affects_screen?/4" do

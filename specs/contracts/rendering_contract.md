@@ -58,6 +58,7 @@ end
 - AC-002: External renderer packages consume IUR without Ash dependencies
 - AC-003: IUR adapter validates compatibility before rendering
 - AC-004: Renderer packages are selected by application, not Ash UI
+- AC-005: Renderers ignore namespaced Ash UI runtime metadata such as `metadata.ash_ui` and depend only on canonical widget, prop, and binding contracts
 
 ### REQ-RENDER-002: LiveView Rendering (via live_ui)
 

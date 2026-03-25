@@ -224,6 +224,8 @@ defmodule UnifiedIUR.Normalize do
   defp normalize_generic_value(map) when is_map(map), do: normalize_generic_map(map)
   defp normalize_generic_value(value), do: value
 
+  defp normalize_generic_list([]), do: []
+
   defp normalize_generic_list(list) do
     if Keyword.keyword?(list) do
       list

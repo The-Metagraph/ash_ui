@@ -191,6 +191,43 @@ defmodule AshUI.Authoring.Document do
 
   def compiler_dsl(_other), do: :error
 
+  @doc """
+  Resolves the upstream `UnifiedUi` source module carried by a persisted
+  authoring document.
+  """
+  @spec source_module(term()) :: {:ok, module()} | {:error, term()}
+  def source_module(document) when is_map(document) do
+    with true <-
+           authoring_document?(document) or
+             {:error, {:invalid_authoring_document, :phase_10_current_format_required}},
+         {:ok, module_name} <- source_module_name(document),
+         module <- decode_module(module_name),
+         true <- Code.ensure_loaded?(module) or {:error, {:unknown_source_module, module_name}} do
+      {:ok, module}
+    else
+      {:error, _reason} = error -> error
+      false -> {:error, {:invalid_authoring_document, :phase_10_current_format_required}}
+      other -> {:error, {:invalid_authoring_document, other}}
+    end
+  end
+
+  def source_module(_other),
+    do: {:error, {:invalid_authoring_document, :phase_10_current_format_required}}
+
+  @doc """
+  Returns the Ash UI-owned binding metadata layered around the upstream
+  `UnifiedUi` document.
+  """
+  @spec binding_metadata(term()) :: map()
+  def binding_metadata(document) when is_map(document) do
+    case get_in(document, ["ash_ui", "binding_metadata"]) do
+      metadata when is_map(metadata) -> metadata
+      _other -> %{}
+    end
+  end
+
+  def binding_metadata(_other), do: %{}
+
   defp validate_module(module) do
     if Code.ensure_loaded?(module) do
       _ = UnifiedUi.Info.module_summary(module)
@@ -371,6 +408,28 @@ defmodule AshUI.Authoring.Document do
     module
     |> Atom.to_string()
     |> String.trim_leading("Elixir.")
+  end
+
+  defp source_module_name(document) do
+    case get_in(document, ["authoring", "source", "kind"]) do
+      "unified_ui_module" ->
+        case get_in(document, ["authoring", "source", "module"]) do
+          module_name when is_binary(module_name) and module_name != "" ->
+            {:ok, module_name}
+
+          _other ->
+            {:error, {:invalid_authoring_document, :missing_source_module}}
+        end
+
+      _other ->
+        {:error, {:unsupported_authoring_document, :phase_11_upstream_modules_only}}
+    end
+  end
+
+  defp decode_module(module_name) when is_binary(module_name) do
+    module_name
+    |> String.split(".")
+    |> Module.concat()
   end
 
   defp encode_value(value) when is_map(value) do

@@ -91,6 +91,7 @@ The Intermediate UI Representation MUST have a defined schema compatible with ca
 - AC-002: IUR is serializable (to JSON/binary)
 - AC-003: IUR contains all required information for canonical conversion
 - AC-004: IUR is derived from upstream `unified_ui` compilation output rather than an Ash UI-owned authoring grammar
+- AC-005: Any Ash UI-owned runtime annotations remain namespaced under root metadata (for example `metadata.ash_ui`) instead of altering canonical widget contracts
 
 ### REQ-COMP-004: Resource Resolution
 

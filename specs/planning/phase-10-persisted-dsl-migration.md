@@ -14,7 +14,7 @@ Back to index: [README](./README.md)
 - existing screens and examples still contain builder-shaped documents today
 - migration safety matters more than preserving the builder as a public API
 
-[ ] 10 Phase 10 - Persisted DSL Migration
+[x] 10 Phase 10 - Persisted DSL Migration
   Migrate stored screen definitions from Ash UI-owned builder maps to serialized upstream `unified_ui` documents while keeping persisted screens readable and upgradable.
 
   [x] 10.1 Section - Stored Format Contract
@@ -66,13 +66,13 @@ Back to index: [README](./README.md)
       [x] 10.3.1.3 Subtask - Block legacy-format writes now that the Phase 10 contract exists
       [x] 10.3.1.4 Subtask - Remove spec and contract language that implies a compatibility window
 
-  [ ] 10.4 Section - Phase 10 Integration Tests
+  [x] 10.4 Section - Phase 10 Integration Tests
     Validate that persisted screens survive migration safely under the hard-cutover contract.
 
-    [ ] 10.4.1 Task - Stored document migration scenarios
+    [x] 10.4.1 Task - Stored document migration scenarios
     Verify new and migrated documents behave correctly while legacy raw payloads fail clearly.
 
-      [ ] 10.4.1.1 Subtask - Verify a new upstream-authored screen persists successfully
-      [ ] 10.4.1.2 Subtask - Verify a legacy builder-authored screen can be migrated before persistence
-      [ ] 10.4.1.3 Subtask - Verify unsupported legacy shapes are reported clearly without runtime fallback
-      [ ] 10.4.1.4 Subtask - Verify migrated screens retain metadata, bindings, and versions
+      [x] 10.4.1.1 Subtask - Verify a new upstream-authored screen persists successfully
+      [x] 10.4.1.2 Subtask - Verify a legacy builder-authored screen can be migrated before persistence
+      [x] 10.4.1.3 Subtask - Verify unsupported legacy shapes are reported clearly without runtime fallback
+      [x] 10.4.1.4 Subtask - Verify migrated screens retain metadata, bindings, and versions

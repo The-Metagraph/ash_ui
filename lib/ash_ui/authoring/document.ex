@@ -4,7 +4,7 @@ defmodule AshUI.Authoring.Document do
 
   Phase 10 defines the durable `Screen.unified_dsl` contract as an Ash UI
   wrapper around an upstream-authored `unified_ui` document plus Ash UI-owned
-  screen metadata, binding annotations, and compatibility metadata.
+  screen metadata, binding annotations, and migration/runtime metadata.
   """
 
   alias AshUI.Authoring
@@ -179,7 +179,7 @@ defmodule AshUI.Authoring.Document do
   def validate_read(_other), do: {:error, "must be a map"}
 
   @doc """
-  Extracts the temporary compiler lowering carried by a Phase 10 document.
+  Extracts the compiler lowering carried by a Phase 10 migration document.
   """
   @spec compiler_dsl(term()) :: {:ok, map()} | :error
   def compiler_dsl(document) when is_map(document) do

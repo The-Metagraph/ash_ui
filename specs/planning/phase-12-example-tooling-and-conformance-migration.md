@@ -56,7 +56,7 @@ Back to index: [README](./README.md)
       [ ] 12.3.1.1 Subtask - Add grep-style review or CI checks for builder-first usage in public examples and docs
       [ ] 12.3.1.2 Subtask - Update governance scripts to allow historical mentions only in ADRs, changelog, and migration notes
       [ ] 12.3.1.3 Subtask - Add review checklist guidance for upstream DSL authority
-      [ ] 12.3.1.4 Subtask - Document exceptions for compatibility code during the migration window
+      [ ] 12.3.1.4 Subtask - Document the remaining migration-only exceptions allowed in historical code paths
 
     [ ] 12.3.2 Task - Refresh conformance coverage
     Make scenario coverage prove the upstream authoring path actually works.

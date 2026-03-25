@@ -221,13 +221,12 @@ New writes MUST use the Phase 10 persisted document contract:
     "screen" => %{"name" => "...", "layout" => "...", "route" => "..."},
     "metadata" => %{...},
     "binding_metadata" => %{...},
-    "runtime_annotations" => %{...},
-    "compatibility" => %{"legacy_read_cutoff" => "..."}
+    "runtime_annotations" => %{...}
   }
 }
 ```
 
-Legacy builder-shaped documents remain a migration-read concern during the temporary compatibility window, but they are not the durable contract going forward.
+Legacy builder-shaped documents are supported only as explicit migration inputs. They are not a readable or writable runtime contract.
 
 ## Related Specifications
 

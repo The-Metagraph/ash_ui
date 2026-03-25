@@ -108,6 +108,8 @@ defmodule AshUI.Authoring do
 
   @doc """
   Builds a Phase 10 persisted document from a legacy builder DSL payload.
+
+  This is an explicit migration helper, not a runtime compatibility path.
   """
   @spec migrate_legacy_dsl(map(), keyword()) :: {:ok, map()} | {:error, term()}
   def migrate_legacy_dsl(dsl, opts \\ []) when is_map(dsl) and is_list(opts) do
@@ -116,6 +118,8 @@ defmodule AshUI.Authoring do
 
   @doc """
   Builds `Screen` attributes from a legacy builder DSL payload.
+
+  This is an explicit migration helper, not a runtime compatibility path.
   """
   @spec migrate_legacy_screen_attrs(map(), keyword()) :: {:ok, map()} | {:error, term()}
   def migrate_legacy_screen_attrs(dsl, opts \\ []) when is_map(dsl) and is_list(opts) do

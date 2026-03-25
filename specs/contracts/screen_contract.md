@@ -148,7 +148,7 @@ Screens MUST emit lifecycle telemetry.
 
 ## Implementation Note
 
-Phase 10 introduces the durable write contract for persisted authoring documents. Legacy builder-shaped screen payloads remain readable during the temporary migration window, but they are no longer the normative stored shape.
+Phase 10 introduces the durable persisted authoring contract for screens. Legacy builder-shaped payloads must be rewritten through explicit migration helpers before they can be stored or compiled.
 
 ## Traceability
 

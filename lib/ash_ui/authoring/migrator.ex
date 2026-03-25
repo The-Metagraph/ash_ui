@@ -4,7 +4,7 @@ defmodule AshUI.Authoring.Migrator do
 
   Phase 10 uses this module to rewrite repo-owned screens and example seeds from
   raw builder maps into the persisted authoring document contract while carrying
-  a temporary legacy compiler snapshot in the compatibility payload.
+  the compiler lowering needed before Phase 11 compiler delegation is complete.
   """
 
   alias AshUI.Authoring.Document

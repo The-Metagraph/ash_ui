@@ -96,6 +96,17 @@ explicitly before persistence:
 Use `AshUI.Authoring.migrate_legacy_dsl/2` when you want the persisted upstream
 document without writing the `Screen` record yet.
 
+## Remaining Migration-Only Exceptions
+
+These legacy-oriented helpers still exist for one-time migration work:
+
+- `AshUI.Authoring.migrate_legacy_dsl/2`
+- `AshUI.Authoring.migrate_legacy_screen_attrs/2`
+- the telemetry emitted for legacy authoring migration activity
+
+Do not build new screens with those helpers. Convert the old payload once, then
+keep the result in the normal upstream-authored `UnifiedUi.Dsl` flow.
+
 ## Step 2: Normalize Binding Sources
 
 Replace older source strings like `"User.name"` or `"MyApp.User.create"` with explicit source maps.

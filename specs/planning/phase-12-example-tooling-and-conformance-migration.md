@@ -47,24 +47,24 @@ Back to index: [README](./README.md)
       [x] 12.2.1.3 Subtask - Update API docs and module docs to mark `AshUI.DSL.Builder` as legacy
       [x] 12.2.1.4 Subtask - Add migration notes for applications using the old builder path
 
-  [ ] 12.3 Section - Governance And Conformance Closeout
+  [x] 12.3 Section - Governance And Conformance Closeout
     Make the specs, tests, and review gates assert the new architecture directly.
 
-    [ ] 12.3.1 Task - Add governance checks for the old names and APIs
+    [x] 12.3.1 Task - Add governance checks for the old names and APIs
     Prevent the repo from silently drifting back to the builder-first model.
 
-      [ ] 12.3.1.1 Subtask - Add grep-style review or CI checks for builder-first usage in public examples and docs
-      [ ] 12.3.1.2 Subtask - Update governance scripts to allow historical mentions only in ADRs, changelog, and migration notes
-      [ ] 12.3.1.3 Subtask - Add review checklist guidance for upstream DSL authority
-      [ ] 12.3.1.4 Subtask - Document the remaining migration-only exceptions allowed in historical code paths
+      [x] 12.3.1.1 Subtask - Add grep-style review or CI checks for builder-first usage in public examples and docs
+      [x] 12.3.1.2 Subtask - Update governance scripts to allow historical mentions only in ADRs, changelog, and migration notes
+      [x] 12.3.1.3 Subtask - Add review checklist guidance for upstream DSL authority
+      [x] 12.3.1.4 Subtask - Document the remaining migration-only exceptions allowed in historical code paths
 
-    [ ] 12.3.2 Task - Refresh conformance coverage
+    [x] 12.3.2 Task - Refresh conformance coverage
     Make scenario coverage prove the upstream authoring path actually works.
 
-      [ ] 12.3.2.1 Subtask - Add conformance scenarios for persisted upstream DSL screens
-      [ ] 12.3.2.2 Subtask - Add scenarios for upstream compiler delegation and renderer parity
-      [ ] 12.3.2.3 Subtask - Update the conformance matrix and scenario traceability docs
-      [ ] 12.3.2.4 Subtask - Re-baseline release-readiness gates around the new architecture
+      [x] 12.3.2.1 Subtask - Add conformance scenarios for persisted upstream DSL screens
+      [x] 12.3.2.2 Subtask - Add scenarios for upstream compiler delegation and renderer parity
+      [x] 12.3.2.3 Subtask - Update the conformance matrix and scenario traceability docs
+      [x] 12.3.2.4 Subtask - Re-baseline release-readiness gates around the new architecture
 
   [ ] 12.4 Section - Phase 12 Integration Tests
     Validate that public examples and repo governance now reflect the intended architecture.

@@ -6,6 +6,8 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
   alias AshUI.Rendering.LiveUIAdapter
   alias BasicDashboard.AdapterRunner
 
+  @moduletag :conformance
+
   defp widget_types(%{"type" => type} = node) do
     child_types =
       node

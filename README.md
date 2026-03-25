@@ -94,11 +94,10 @@ end
   )
 ```
 
-Legacy builder-shaped `unified_dsl` payloads are no longer accepted at runtime.
-If you are migrating older data, convert it once through
-`AshUI.Authoring.migrate_legacy_dsl/2` or
-`AshUI.Authoring.migrate_legacy_screen_attrs/2`, then persist the upstream
-document.
+Older pre-v1 payloads are no longer accepted at runtime. If you are migrating
+existing data, use the one-time migration flow documented in
+[UG-0005](./guides/user/UG-0005-migration-v0-to-v1.md) before persisting the
+upstream document.
 
 The default shipped storage backend is Postgres through `AshUI.Domain` and `AshUI.Repo`, but the UI storage domain and resource modules are configurable so example apps and alternate deployments can use another Ash-compatible data layer.
 

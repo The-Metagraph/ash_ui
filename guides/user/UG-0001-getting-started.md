@@ -122,10 +122,10 @@ end
 `AshUI.Authoring.Screen.screen_attrs/2` is useful when you want to inspect the
 stored document before persisting it or merge in app-specific attributes.
 
-Ash UI no longer accepts legacy builder-shaped `unified_dsl` payloads at load
-or compile time. If you are migrating older screens, use the explicit
-one-time helpers in [UG-0005](./UG-0005-migration-v0-to-v1.md) before
-persisting them.
+Ash UI no longer accepts older pre-v1 `unified_dsl` payloads at load or compile
+time. If you are migrating existing screens, follow the explicit one-time
+migration flow in [UG-0005](./UG-0005-migration-v0-to-v1.md) before persisting
+them.
 
 ## Mount the Screen in LiveView
 

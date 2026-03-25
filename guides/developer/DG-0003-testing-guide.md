@@ -144,12 +144,12 @@ If an integration test mounts by name, create a real `Screen` record in setup in
 
 The built-in resource tests use the default Postgres-backed storage, but runtime resource-resolution tests already exercise ETS-backed Ash resources. When changing compiler or LiveView loading code, verify whether the behavior should depend on the configured UI storage backend or only on the resource contract.
 
-### Legacy builder references
+### Legacy authoring references
 
-`AshUI.DSL.Builder` is migration-only. Public examples, guides, and release
-paths should not depend on it anymore. If a docs or example change introduces a
-builder-authored screen, treat that as a regression and run the governance
-checks before opening a PR.
+Legacy authoring helpers are migration-only. Public examples, guides, and
+release paths should not depend on them anymore. If a docs or example change
+reintroduces that path, treat it as a regression and run the governance checks
+before opening a PR.
 
 ## Release-Oriented Checks
 

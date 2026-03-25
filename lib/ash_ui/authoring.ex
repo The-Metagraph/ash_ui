@@ -9,6 +9,8 @@ defmodule AshUI.Authoring do
   renderer integration layered around those authored definitions.
   """
 
+  alias AshUI.Authoring.{Document, Extensions, Screen}
+
   @type module_area ::
           :dsl
           | :compiler
@@ -53,7 +55,7 @@ defmodule AshUI.Authoring do
   """
   @spec extension_points() :: %{atom() => [atom()]}
   def extension_points do
-    UnifiedUi.Reference.extension_points()
+    Extensions.extension_points()
   end
 
   @doc """
@@ -61,7 +63,47 @@ defmodule AshUI.Authoring do
   """
   @spec construct_families() :: %{atom() => [atom()]}
   def construct_families do
-    UnifiedUi.Reference.construct_families()
+    Extensions.construct_families()
+  end
+
+  @doc """
+  Returns the upstream authoring registration mode Ash UI expects callers to use.
+  """
+  @spec registration_mode() :: :upstream_compile_time
+  def registration_mode do
+    Extensions.registration_mode()
+  end
+
+  @doc """
+  Returns guidance for extending widgets and layouts through upstream `UnifiedUi`.
+  """
+  @spec registration_guidance() :: [String.t()]
+  def registration_guidance do
+    Extensions.registration_guidance()
+  end
+
+  @doc """
+  Builds a JSON-safe persisted authoring document from a `UnifiedUi.Dsl` module.
+  """
+  @spec document(module(), keyword()) :: {:ok, map()} | {:error, term()}
+  def document(module, opts \\ []) do
+    Document.new(module, opts)
+  end
+
+  @doc """
+  Builds `Screen` attributes from a `UnifiedUi.Dsl` module.
+  """
+  @spec screen_attrs(module(), keyword()) :: {:ok, map()} | {:error, term()}
+  def screen_attrs(module, opts \\ []) do
+    Screen.screen_attrs(module, opts)
+  end
+
+  @doc """
+  Persists a `Screen` record from a `UnifiedUi.Dsl` module.
+  """
+  @spec create_screen(module(), keyword()) :: {:ok, struct()} | {:error, term()}
+  def create_screen(module, opts \\ []) do
+    Screen.create(module, opts)
   end
 
   @doc """

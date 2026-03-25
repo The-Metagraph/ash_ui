@@ -1,9 +1,11 @@
 defmodule AshUI.Compiler.Extensions do
   @moduledoc """
-  Custom widget and layout registration for unified-ui compiler.
+  Legacy runtime registry for builder-era custom widgets and layouts.
 
-  Allows registration of custom unified-ui widgets and layouts
-  that extend the built-in catalog.
+  Public authored extensions now belong upstream in `UnifiedUi.Dsl` through
+  compile-time Spark extensions. This module remains as a compatibility layer
+  for older builder-driven compiler scenarios until the builder path is fully
+  retired.
   """
 
   @type widget_def :: %{
@@ -23,7 +25,39 @@ defmodule AshUI.Compiler.Extensions do
         }
 
   @doc """
-  Registers a custom widget type.
+  Returns the public authoring registration mode.
+  """
+  @spec registration_mode() :: :upstream_compile_time
+  def registration_mode do
+    AshUI.Authoring.registration_mode()
+  end
+
+  @doc """
+  Returns the upstream authored DSL extension points.
+  """
+  @spec authoring_extension_points() :: %{atom() => [atom()]}
+  def authoring_extension_points do
+    AshUI.Authoring.extension_points()
+  end
+
+  @doc """
+  Returns the upstream authored construct family catalog.
+  """
+  @spec construct_families() :: %{atom() => [atom()]}
+  def construct_families do
+    AshUI.Authoring.construct_families()
+  end
+
+  @doc """
+  Returns developer guidance for extending widgets and layouts upstream.
+  """
+  @spec registration_guidance() :: [String.t()]
+  def registration_guidance do
+    AshUI.Authoring.registration_guidance()
+  end
+
+  @doc """
+  Registers a custom widget type in the legacy runtime registry.
 
   ## Parameters
     * `type` - Widget type identifier (e.g., "custom:calendar")
@@ -56,7 +90,7 @@ defmodule AshUI.Compiler.Extensions do
   end
 
   @doc """
-  Registers a custom layout type.
+  Registers a custom layout type in the legacy runtime registry.
 
   ## Parameters
     * `type` - Layout type identifier (e.g., "custom:grid")
@@ -286,7 +320,9 @@ defmodule AshUI.Compiler.Extensions do
     if has_required do
       :ok
     else
-      {:error, {:invalid_definition, "Missing required keys: #{inspect(required_keys -- Map.keys(definition))}"}}
+      {:error,
+       {:invalid_definition,
+        "Missing required keys: #{inspect(required_keys -- Map.keys(definition))}"}}
     end
   end
 
@@ -297,7 +333,9 @@ defmodule AshUI.Compiler.Extensions do
     if has_required do
       :ok
     else
-      {:error, {:invalid_definition, "Missing required keys: #{inspect(required_keys -- Map.keys(definition))}"}}
+      {:error,
+       {:invalid_definition,
+        "Missing required keys: #{inspect(required_keys -- Map.keys(definition))}"}}
     end
   end
 
@@ -332,7 +370,7 @@ defmodule AshUI.Compiler.Extensions do
   end
 
   @doc """
-  Gets available widget types (built-in and custom).
+  Gets available widget types in the legacy builder/runtime registry.
 
   ## Examples
 
@@ -347,7 +385,7 @@ defmodule AshUI.Compiler.Extensions do
   end
 
   @doc """
-  Gets available layout types (built-in and custom).
+  Gets available layout types in the legacy builder/runtime registry.
 
   ## Examples
 

@@ -39,21 +39,21 @@ Back to index: [README](./README.md)
   [ ] 9.2 Section - Authoring Surface Integration
     Introduce the upstream DSL as the supported way to define screens for persistence.
 
-    [ ] 9.2.1 Task - Add a persisted-screen authoring bridge
+    [X] 9.2.1 Task - Add a persisted-screen authoring bridge
     Provide the Ash UI boundary that accepts upstream DSL definitions and prepares them for storage.
 
-      [ ] 9.2.1.1 Subtask - Define the module or API boundary for accepting `unified_ui` screen definitions
-      [ ] 9.2.1.2 Subtask - Support screen metadata, route metadata, and Ash-specific binding metadata alongside upstream DSL
-      [ ] 9.2.1.3 Subtask - Define how authoring-time semantic widgets flow through the persistence boundary
-      [ ] 9.2.1.4 Subtask - Document the persistence authoring workflow for application developers
+      [X] 9.2.1.1 Subtask - Define the module or API boundary for accepting `unified_ui` screen definitions
+      [X] 9.2.1.2 Subtask - Support screen metadata, route metadata, and Ash-specific binding metadata alongside upstream DSL
+      [X] 9.2.1.3 Subtask - Define how authoring-time semantic widgets flow through the persistence boundary
+      [X] 9.2.1.4 Subtask - Document the persistence authoring workflow for application developers
 
-    [ ] 9.2.2 Task - Route widget and layout extension registration upstream
+    [X] 9.2.2 Task - Route widget and layout extension registration upstream
     Prevent Ash UI from becoming the long-term owner of widget semantics.
 
-      [ ] 9.2.2.1 Subtask - Audit current widget/layout registration APIs in `AshUI.Compiler.Extensions`
-      [ ] 9.2.2.2 Subtask - Redirect public extension registration toward upstream `unified_ui`
-      [ ] 9.2.2.3 Subtask - Define the Ash UI compatibility layer for Ash-specific metadata only
-      [ ] 9.2.2.4 Subtask - Add tests showing custom widgets flow through the upstream authoring pipeline
+      [X] 9.2.2.1 Subtask - Audit current widget/layout registration APIs in `AshUI.Compiler.Extensions`
+      [X] 9.2.2.2 Subtask - Redirect public extension registration toward upstream `unified_ui`
+      [X] 9.2.2.3 Subtask - Define the Ash UI compatibility layer for Ash-specific metadata only
+      [X] 9.2.2.4 Subtask - Add tests showing custom widgets flow through the upstream authoring pipeline
 
   [ ] 9.3 Section - Legacy Builder Containment
     Freeze the in-repo builder as migration-only instead of continuing to grow it as a public DSL.

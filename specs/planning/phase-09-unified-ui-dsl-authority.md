@@ -17,24 +17,24 @@ Back to index: [README](./README.md)
 [ ] 9 Phase 9 - Unified UI DSL Authority
   Make upstream `unified_ui` the authoritative authoring surface for persisted screen definitions and stop treating the in-repo builder as the public DSL.
 
-  [ ] 9.1 Section - Dependency And Boundary Alignment
+  [X] 9.1 Section - Dependency And Boundary Alignment
     Establish the upstream package as the normative authoring dependency and define the Ash UI boundary around it.
 
-    [ ] 9.1.1 Task - Require `unified_ui` for authoring
+    [X] 9.1.1 Task - Require `unified_ui` for authoring
     Make the upstream authoring package part of the supported Ash UI surface.
 
-      [ ] 9.1.1.1 Subtask - Add and require the upstream `unified_ui` dependency where Ash UI authoring occurs
-      [ ] 9.1.1.2 Subtask - Verify dependency/version compatibility with `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui`
-      [ ] 9.1.1.3 Subtask - Document the dependency as part of the Ash UI authoring contract
-      [ ] 9.1.1.4 Subtask - Update release/readiness docs to treat missing `unified_ui` as a configuration error
+      [X] 9.1.1.1 Subtask - Add and require the upstream `unified_ui` dependency where Ash UI authoring occurs
+      [X] 9.1.1.2 Subtask - Verify dependency/version compatibility with `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui`
+      [X] 9.1.1.3 Subtask - Document the dependency as part of the Ash UI authoring contract
+      [X] 9.1.1.4 Subtask - Update release/readiness docs to treat missing `unified_ui` as a configuration error
 
-    [ ] 9.1.2 Task - Define authoring ownership boundaries
+    [X] 9.1.2 Task - Define authoring ownership boundaries
     Clarify what Ash UI owns and what upstream `unified_ui` owns.
 
-      [ ] 9.1.2.1 Subtask - Document that widgets, layouts, and authoring grammar are owned by `unified_ui`
-      [ ] 9.1.2.2 Subtask - Document that Ash UI owns persistence, bindings, runtime state, and renderer orchestration
-      [ ] 9.1.2.3 Subtask - Remove spec language that implies Ash UI owns a parallel DSL
-      [ ] 9.1.2.4 Subtask - Align public guides and examples with the new ownership model
+      [X] 9.1.2.1 Subtask - Document that widgets, layouts, and authoring grammar are owned by `unified_ui`
+      [X] 9.1.2.2 Subtask - Document that Ash UI owns persistence, bindings, runtime state, and renderer orchestration
+      [X] 9.1.2.3 Subtask - Remove spec language that implies Ash UI owns a parallel DSL
+      [X] 9.1.2.4 Subtask - Align public guides and examples with the new ownership model
 
   [ ] 9.2 Section - Authoring Surface Integration
     Introduce the upstream DSL as the supported way to define screens for persistence.

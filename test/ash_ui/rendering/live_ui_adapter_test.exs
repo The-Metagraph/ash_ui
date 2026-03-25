@@ -327,4 +327,140 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       end
     end
   end
+
+  describe "Phase 11 semantic widget rendering" do
+    test "renders authored semantic widget props into visible HEEx" do
+      {:ok, heex} = LiveUIAdapter.render(semantic_screen_iur())
+
+      assert heex =~ "ash-hero"
+      assert heex =~ "Authored through UnifiedUi"
+      assert heex =~ "Persisted through AshUI.Authoring.Screen."
+      assert heex =~ "ash-badge-pill"
+      assert heex =~ "Ready"
+      assert heex =~ "ash-stat"
+      assert heex =~ "Persistent screen bridge"
+      assert heex =~ "ash-key-value"
+      assert heex =~ "Persisted route metadata"
+      assert heex =~ "ash-info-list"
+      assert heex =~ "semantic_widgets"
+      assert heex =~ "ash-form-field"
+      assert heex =~ "Display name"
+      assert heex =~ "Used to verify form_field survives the persistence bridge"
+      assert heex =~ "phx-change=\"ash_ui_change\""
+    end
+  end
+
+  defp semantic_screen_iur do
+    %{
+      "type" => "screen",
+      "id" => "semantic-screen",
+      "name" => "semantic_screen",
+      "layout" => "column",
+      "children" => [
+        %{
+          "type" => "hero",
+          "id" => "hero-panel",
+          "props" => %{
+            "eyebrow" => "Authoring",
+            "title" => "Authored through UnifiedUi",
+            "message" => "Persisted through AshUI.Authoring.Screen."
+          },
+          "children" => [
+            %{
+              "type" => "badge",
+              "id" => "status-badge",
+              "props" => %{"presentation" => "pill", "text" => "Ready"},
+              "children" => [],
+              "metadata" => %{}
+            }
+          ],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "stat",
+          "id" => "runtime-stat",
+          "props" => %{
+            "title" => "Runtime",
+            "value" => "Ash UI",
+            "message" => "Persistent screen bridge"
+          },
+          "children" => [],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "key_value",
+          "id" => "route-meta",
+          "props" => %{
+            "label" => "Route",
+            "value" => "/authored",
+            "description" => "Persisted route metadata"
+          },
+          "children" => [],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "info_list",
+          "id" => "highlights",
+          "props" => %{
+            "items" => [
+              %{"id" => "upstream_dsl", "value" => "upstream_dsl"},
+              %{"id" => "semantic_widgets", "value" => "semantic_widgets"}
+            ]
+          },
+          "children" => [],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "form_builder",
+          "id" => "profile-form",
+          "props" => %{},
+          "children" => [
+            %{
+              "type" => "form_field",
+              "id" => "display-name-field",
+              "props" => %{"name" => "display_name"},
+              "children" => [
+                %{
+                  "type" => "label",
+                  "id" => "display-name-label",
+                  "props" => %{"for" => "display-name-input", "text" => "Display name"},
+                  "children" => [],
+                  "metadata" => %{}
+                },
+                %{
+                  "type" => "input",
+                  "id" => "display-name-input",
+                  "props" => %{"name" => "display_name", "placeholder" => "Enter your name"},
+                  "children" => [],
+                  "metadata" => %{}
+                },
+                %{
+                  "type" => "text",
+                  "id" => "display-name-help",
+                  "props" => %{
+                    "content" => "Used to verify form_field survives the persistence bridge"
+                  },
+                  "children" => [],
+                  "metadata" => %{}
+                }
+              ],
+              "metadata" => %{}
+            }
+          ],
+          "metadata" => %{}
+        }
+      ],
+      "bindings" => [
+        %{
+          "id" => "binding-1",
+          "type" => "bidirectional",
+          "target" => "display_name",
+          "source" => %{"resource" => "User", "field" => "name"},
+          "element_id" => "display-name-input",
+          "metadata" => %{}
+        }
+      ],
+      "metadata" => %{}
+    }
+  end
 end

@@ -55,16 +55,16 @@ Back to index: [README](./README.md)
       [X] 11.2.2.3 Subtask - Verify cache invalidation still tracks screen/resource changes correctly
       [X] 11.2.2.4 Subtask - Measure cache hit/miss behavior for the delegated compiler path
 
-  [ ] 11.3 Section - Canonical Conversion And Renderer Stability
+  [X] 11.3 Section - Canonical Conversion And Renderer Stability
     Keep renderer contracts stable while the compiler boundary changes.
 
-    [ ] 11.3.1 Task - Preserve canonical `unified_iur` output contracts
+    [X] 11.3.1 Task - Preserve canonical `unified_iur` output contracts
     Ensure renderer packages continue to receive the same canonical boundary.
 
-      [ ] 11.3.1.1 Subtask - Verify upstream compiler output remains convertible to canonical `unified_iur`
-      [ ] 11.3.1.2 Subtask - Verify renderer adapters do not need Ash UI-specific authoring assumptions
-      [ ] 11.3.1.3 Subtask - Verify semantic widgets survive compile and render paths intact
-      [ ] 11.3.1.4 Subtask - Document any remaining Ash UI runtime annotations on canonical output
+      [X] 11.3.1.1 Subtask - Verify upstream compiler output remains convertible to canonical `unified_iur`
+      [X] 11.3.1.2 Subtask - Verify renderer adapters do not need Ash UI-specific authoring assumptions
+      [X] 11.3.1.3 Subtask - Verify semantic widgets survive compile and render paths intact
+      [X] 11.3.1.4 Subtask - Document any remaining Ash UI runtime annotations on canonical output
 
   [ ] 11.4 Section - Phase 11 Integration Tests
     Validate delegated compilation end to end.

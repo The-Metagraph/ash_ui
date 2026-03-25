@@ -12,7 +12,13 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
         "name" => "test_screen",
         "layout" => "column",
         "children" => [
-          %{"type" => "text", "id" => "text-1", "props" => %{"content" => "Hello"}, "children" => [], "metadata" => %{}}
+          %{
+            "type" => "text",
+            "id" => "text-1",
+            "props" => %{"content" => "Hello"},
+            "children" => [],
+            "metadata" => %{}
+          }
         ],
         "bindings" => [],
         "metadata" => %{}
@@ -47,16 +53,17 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
     end
 
     test "render_ash_iur/2 converts and renders Ash IUR" do
-      ash_iur = struct(IUR,
-        id: "test-id",
-        type: :screen,
-        name: "test_screen",
-        attributes: %{"layout" => :row},
-        children: [],
-        bindings: [],
-        metadata: %{},
-        version: 1
-      )
+      ash_iur =
+        struct(IUR,
+          id: "test-id",
+          type: :screen,
+          name: "test_screen",
+          attributes: %{"layout" => :row},
+          children: [],
+          bindings: [],
+          metadata: %{},
+          version: 1
+        )
 
       assert {:ok, html} = ElmUIAdapter.render_ash_iur(ash_iur)
       assert is_binary(html)
@@ -67,32 +74,33 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
 
   describe "Section 7.3.2 - ElmUI-specific Features" do
     setup do
-      {:ok, canonical_iur: %{
-        "type" => "screen",
-        "id" => "screen-1",
-        "name" => "user_profile",
-        "layout" => "column",
-        "children" => [
-          %{
-            "type" => "text",
-            "id" => "text-1",
-            "props" => %{"content" => "Welcome", "size" => 24},
-            "children" => [],
-            "metadata" => %{}
-          }
-        ],
-        "bindings" => [
-          %{
-            "id" => "binding-1",
-            "type" => "bidirectional",
-            "target" => "username",
-            "source" => %{"resource" => "User", "field" => "name", "default" => "Guest"},
-            "element_id" => "input-1",
-            "metadata" => %{}
-          }
-        ],
-        "metadata" => %{"keywords" => ["profile", "user"]}
-      }}
+      {:ok,
+       canonical_iur: %{
+         "type" => "screen",
+         "id" => "screen-1",
+         "name" => "user_profile",
+         "layout" => "column",
+         "children" => [
+           %{
+             "type" => "text",
+             "id" => "text-1",
+             "props" => %{"content" => "Welcome", "size" => 24},
+             "children" => [],
+             "metadata" => %{}
+           }
+         ],
+         "bindings" => [
+           %{
+             "id" => "binding-1",
+             "type" => "bidirectional",
+             "target" => "username",
+             "source" => %{"resource" => "User", "field" => "name", "default" => "Guest"},
+             "element_id" => "input-1",
+             "metadata" => %{}
+           }
+         ],
+         "metadata" => %{"keywords" => ["profile", "user"]}
+       }}
     end
 
     test "configure_seo/2 generates SEO configuration", %{canonical_iur: iur} do
@@ -107,10 +115,11 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
     end
 
     test "configure_seo/2 respects custom title and description", %{canonical_iur: iur} do
-      seo_config = ElmUIAdapter.configure_seo(iur,
-        title: "Custom Title",
-        description: "Custom description"
-      )
+      seo_config =
+        ElmUIAdapter.configure_seo(iur,
+          title: "Custom Title",
+          description: "Custom description"
+        )
 
       assert seo_config.title == "Custom Title"
       assert seo_config.description == "Custom description"
@@ -137,8 +146,12 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
 
       assert is_map(seo_config.twitter_tags)
       # Check if keys are strings or atoms
-      card_value = Map.get(seo_config.twitter_tags, "card") || Map.get(seo_config.twitter_tags, :card)
-      title_value = Map.get(seo_config.twitter_tags, "title") || Map.get(seo_config.twitter_tags, :title)
+      card_value =
+        Map.get(seo_config.twitter_tags, "card") || Map.get(seo_config.twitter_tags, :card)
+
+      title_value =
+        Map.get(seo_config.twitter_tags, "title") || Map.get(seo_config.twitter_tags, :title)
+
       assert card_value == "summary"
       assert title_value == "user_profile"
     end
@@ -184,9 +197,11 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
     end
 
     test "configure_assets/2 can disable CSS and JS", %{canonical_iur: iur} do
-      asset_config = ElmUIAdapter.configure_assets(iur,
-        include_css: false,
-        include_js: false)
+      asset_config =
+        ElmUIAdapter.configure_assets(iur,
+          include_css: false,
+          include_js: false
+        )
 
       assert asset_config.css_files == []
       assert asset_config.js_files == []
@@ -202,10 +217,12 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
     end
 
     test "configure_ssg/2 respects custom options", %{canonical_iur: iur} do
-      ssg_config = ElmUIAdapter.configure_ssg(iur,
-        output_path: "dist",
-        prerender: true,
-        incremental_ssg: true)
+      ssg_config =
+        ElmUIAdapter.configure_ssg(iur,
+          output_path: "dist",
+          prerender: true,
+          incremental_ssg: true
+        )
 
       assert ssg_config.output_path == "dist"
       assert ssg_config.prerender == true
@@ -385,4 +402,126 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
       assert "Dashboard" in seo_config.keywords
     end
   end
+
+  describe "Phase 11 semantic widget flag preservation" do
+    test "keeps semantic widget types intact in Elm flags" do
+      elm_config = ElmUIAdapter.configure_elm_integration(semantic_screen_iur())
+
+      assert elm_config.flags["screen"]["type"] == "screen"
+
+      types = collect_types(elm_config.flags["screen"])
+
+      assert "hero" in types
+      assert "badge" in types
+      assert "stat" in types
+      assert "key_value" in types
+      assert "info_list" in types
+      assert "form_builder" in types
+      assert "form_field" in types
+      assert "label" in types
+      assert "input" in types
+    end
+  end
+
+  defp semantic_screen_iur do
+    %{
+      "type" => "screen",
+      "id" => "semantic-screen",
+      "name" => "semantic_screen",
+      "layout" => "column",
+      "children" => [
+        %{
+          "type" => "hero",
+          "id" => "hero-panel",
+          "props" => %{
+            "eyebrow" => "Authoring",
+            "title" => "Authored through UnifiedUi",
+            "message" => "Persisted through AshUI.Authoring.Screen."
+          },
+          "children" => [
+            %{
+              "type" => "badge",
+              "id" => "status-badge",
+              "props" => %{"presentation" => "pill", "text" => "Ready"},
+              "children" => [],
+              "metadata" => %{}
+            }
+          ],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "stat",
+          "id" => "runtime-stat",
+          "props" => %{
+            "title" => "Runtime",
+            "value" => "Ash UI",
+            "message" => "Persistent screen bridge"
+          },
+          "children" => [],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "key_value",
+          "id" => "route-meta",
+          "props" => %{
+            "label" => "Route",
+            "value" => "/authored",
+            "description" => "Persisted route metadata"
+          },
+          "children" => [],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "info_list",
+          "id" => "highlights",
+          "props" => %{
+            "items" => [
+              %{"id" => "upstream_dsl", "value" => "upstream_dsl"},
+              %{"id" => "semantic_widgets", "value" => "semantic_widgets"}
+            ]
+          },
+          "children" => [],
+          "metadata" => %{}
+        },
+        %{
+          "type" => "form_builder",
+          "id" => "profile-form",
+          "props" => %{},
+          "children" => [
+            %{
+              "type" => "form_field",
+              "id" => "display-name-field",
+              "props" => %{"name" => "display_name"},
+              "children" => [
+                %{
+                  "type" => "label",
+                  "id" => "display-name-label",
+                  "props" => %{"for" => "display-name-input", "text" => "Display name"},
+                  "children" => [],
+                  "metadata" => %{}
+                },
+                %{
+                  "type" => "input",
+                  "id" => "display-name-input",
+                  "props" => %{"name" => "display_name", "placeholder" => "Enter your name"},
+                  "children" => [],
+                  "metadata" => %{}
+                }
+              ],
+              "metadata" => %{}
+            }
+          ],
+          "metadata" => %{}
+        }
+      ],
+      "bindings" => [],
+      "metadata" => %{}
+    }
+  end
+
+  defp collect_types(%{"type" => type, "children" => children}) do
+    [type | Enum.flat_map(children || [], &collect_types/1)]
+  end
+
+  defp collect_types(_other), do: []
 end

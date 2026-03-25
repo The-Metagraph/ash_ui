@@ -4,6 +4,7 @@ defmodule AshUI.LiveView.IntegrationTest do
   alias AshUI.LiveView.Integration
   alias AshUI.Resources.Binding
   alias AshUI.Resources.Screen
+  alias AshUI.Test.ScreenDocumentFixtures
   alias AshUI.Test.RuntimeFixtures
 
   # Mock socket for testing
@@ -35,19 +36,15 @@ defmodule AshUI.LiveView.IntegrationTest do
   setup do
     {:ok, _screen} =
       AshUI.Data.create(Screen,
-        attrs: %{
-          name: "test_screen",
-          unified_dsl: %{"type" => "screen"}
-        }
+        attrs: ScreenDocumentFixtures.resource_screen_attrs("test_screen")
       )
 
     {:ok, _restricted_screen} =
       AshUI.Data.create(Screen,
-        attrs: %{
-          name: "restricted_screen",
-          unified_dsl: %{"type" => "screen"},
-          metadata: %{"owner_id" => "admin-1", "public" => false}
-        }
+        attrs:
+          ScreenDocumentFixtures.resource_screen_attrs("restricted_screen",
+            metadata: %{"owner_id" => "admin-1", "public" => false}
+          )
       )
 
     :ok
@@ -139,11 +136,12 @@ defmodule AshUI.LiveView.IntegrationTest do
       {:ok, screen} =
         Ash.create(
           Screen,
-          %{
-            name: "bindings_screen_#{System.unique_integer([:positive])}",
-            unified_dsl: %{"type" => "screen"},
+          ScreenDocumentFixtures.resource_screen_attrs(
+            "bindings_screen_#{System.unique_integer([:positive])}",
             metadata: %{"public" => true}
-          }, domain: AshUI.Domain)
+          ),
+          domain: AshUI.Domain
+        )
 
       {:ok, public_binding} =
         Ash.create(

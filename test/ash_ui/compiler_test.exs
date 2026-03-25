@@ -6,6 +6,7 @@ defmodule AshUI.CompilerTest do
   alias AshUI.Resources.Screen
   alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
 
@@ -13,12 +14,11 @@ defmodule AshUI.CompilerTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "compiler_test_screen",
-            unified_dsl: %{"type" => "screen"},
-            layout: :row,
-            route: "/compiler-test"
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs("compiler_test_screen",
+              layout: :row,
+              route: "/compiler-test"
+            )
         )
 
       # Create test elements
@@ -104,11 +104,9 @@ defmodule AshUI.CompilerTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "options_test_screen",
-            unified_dsl: %{"type" => "screen"},
+          attrs: ScreenDocumentFixtures.resource_screen_attrs("options_test_screen",
             layout: :column
-          }
+          )
         )
 
       %{screen: screen}
@@ -153,11 +151,9 @@ defmodule AshUI.CompilerTest do
 
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "dsl_test_screen",
-            unified_dsl: dsl,
+          attrs: ScreenDocumentFixtures.migrated_screen_attrs("dsl_test_screen", dsl,
             layout: :row
-          }
+          )
         )
 
       %{screen: screen, dsl: dsl}
@@ -170,11 +166,42 @@ defmodule AshUI.CompilerTest do
 
     test "validates dsl before compilation" do
       invalid_dsl = %{
-        type: "invalid_widget_type",
-        props: %{},
-        children: [],
-        signals: [],
-        metadata: %{}
+        "format" => "ash_ui/unified_ui_document",
+        "version" => 2,
+        "authoring" => %{
+          "source" => %{
+            "kind" => "legacy_builder_migration",
+            "migration" => %{
+              "from_format" => "ash_ui.dsl.builder",
+              "from_version" => 1,
+              "mode" => "deterministic"
+            }
+          },
+          "package" => %{},
+          "document" => %{
+            "identity" => %{"id" => "invalid_dsl_screen"},
+            "composition" => %{
+              "mode" => "screen",
+              "root" => %{"id" => "invalid", "kind" => "invalid_widget_type", "family" => "unknown"}
+            }
+          }
+        },
+        "ash_ui" => %{
+          "screen" => %{"name" => "invalid_dsl_screen", "layout" => "row", "route" => nil},
+          "metadata" => %{},
+          "binding_metadata" => %{},
+          "runtime_annotations" => %{
+            "extension_points" => %{},
+            "construct_families" => %{},
+            "compiler_dsl" => %{
+              "type" => "invalid_widget_type",
+              "props" => %{},
+              "children" => [],
+              "signals" => [],
+              "metadata" => %{}
+            }
+          }
+        }
       }
 
       assert {:error, error} =
@@ -186,7 +213,8 @@ defmodule AshUI.CompilerTest do
                  }
                )
 
-      assert Exception.message(error) =~ "unsupported type"
+      assert Exception.message(error) =~ "compiler_dsl is invalid"
+      assert Exception.message(error) =~ "invalid_widget_type"
     end
   end
 
@@ -207,11 +235,9 @@ defmodule AshUI.CompilerTest do
 
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "cache_test_screen",
-            unified_dsl: dsl,
+          attrs: ScreenDocumentFixtures.migrated_screen_attrs("cache_test_screen", dsl,
             layout: :row
-          }
+          )
         )
 
       assert {:ok, iur1} = Compiler.compile(screen, use_cache: true)
@@ -234,11 +260,9 @@ defmodule AshUI.CompilerTest do
 
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "no_cache_screen",
-            unified_dsl: dsl,
+          attrs: ScreenDocumentFixtures.migrated_screen_attrs("no_cache_screen", dsl,
             layout: :row
-          }
+          )
         )
 
       Compiler.clear_cache()
@@ -259,11 +283,9 @@ defmodule AshUI.CompilerTest do
 
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "invalidate_screen",
-            unified_dsl: dsl,
+          attrs: ScreenDocumentFixtures.migrated_screen_attrs("invalidate_screen", dsl,
             layout: :row
-          }
+          )
         )
 
       Compiler.clear_cache()
@@ -302,12 +324,16 @@ defmodule AshUI.CompilerTest do
 
       {:ok, screen1} =
         AshUI.Data.create(Screen,
-          attrs: %{name: "batch_screen_1", unified_dsl: dsl1, layout: :row}
+          attrs: ScreenDocumentFixtures.migrated_screen_attrs("batch_screen_1", dsl1,
+            layout: :row
+          )
         )
 
       {:ok, screen2} =
         AshUI.Data.create(Screen,
-          attrs: %{name: "batch_screen_2", unified_dsl: dsl2, layout: :row}
+          attrs: ScreenDocumentFixtures.migrated_screen_attrs("batch_screen_2", dsl2,
+            layout: :row
+          )
         )
 
       assert {:ok, results} = Compiler.compile_batch([screen1.id, screen2.id])

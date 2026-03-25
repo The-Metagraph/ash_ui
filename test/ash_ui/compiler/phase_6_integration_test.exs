@@ -1,6 +1,7 @@
 defmodule AshUI.Compiler.Phase6IntegrationTest do
   use AshUI.DataCase, async: false
 
+  alias AshUI.Authoring.Migrator
   alias AshUI.Compiler
   alias AshUI.Compiler.Incremental
   alias AshUI.Compiler.Extensions
@@ -55,11 +56,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
 
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "simple_screen",
-            unified_dsl: Builder.to_store(dsl),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("simple_screen", dsl)
         )
 
       assert {:ok, _iur} = Compiler.compile(screen)
@@ -81,11 +78,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
 
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "complex_screen",
-            unified_dsl: Builder.to_store(dsl),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("complex_screen", dsl)
         )
 
       assert {:ok, _iur} = Compiler.compile(screen)
@@ -109,7 +102,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
                  }
                )
 
-      assert Exception.message(error) =~ "unsupported type"
+      assert Exception.message(error) =~ "Phase 10 ash_ui unified_ui document format"
     end
 
     test "cache hit returns cached IUR" do
@@ -117,11 +110,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
 
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "cached_screen",
-            unified_dsl: Builder.to_store(dsl),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("cached_screen", dsl)
         )
 
       # First compilation
@@ -139,11 +128,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
     test "element change triggers screen recompile" do
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "incremental_screen",
-            unified_dsl: Builder.to_store(default_dsl()),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("incremental_screen", default_dsl())
         )
 
       {:ok, element} =
@@ -168,11 +153,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
 
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "cache_test_screen",
-            unified_dsl: Builder.to_store(default_dsl()),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("cache_test_screen", default_dsl())
         )
 
       # First compile
@@ -188,11 +169,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
     test "dependency tracking works" do
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "dependency_screen",
-            unified_dsl: Builder.to_store(default_dsl()),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("dependency_screen", default_dsl())
         )
 
       {:ok, element} =
@@ -332,11 +309,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
       # Store in database
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "full_pipeline_screen",
-            unified_dsl: Builder.to_store(dsl),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("full_pipeline_screen", dsl)
         )
 
       # Compile to IUR
@@ -366,7 +339,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
                  }
                )
 
-      assert Exception.message(error) =~ "unsupported type"
+      assert Exception.message(error) =~ "Phase 10 ash_ui unified_ui document format"
     end
   end
 
@@ -378,11 +351,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
 
       {:ok, screen} =
         AshUI.Data.create(AshUI.Resources.Screen,
-          attrs: %{
-            name: "perf_screen",
-            unified_dsl: Builder.to_store(dsl),
-            layout: :row
-          }
+          attrs: migrated_screen_attrs("perf_screen", dsl)
         )
 
       # Compile multiple times
@@ -394,5 +363,16 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
       # Most should hit cache
       assert stats.hits > 5
     end
+  end
+
+  defp migrated_screen_attrs(name, dsl, opts \\ []) do
+    layout = Keyword.get(opts, :layout, :row)
+    metadata = Keyword.get(opts, :metadata, %{})
+
+    Migrator.screen_attrs!(Builder.to_store(dsl),
+      name: name,
+      layout: layout,
+      metadata: metadata
+    )
   end
 end

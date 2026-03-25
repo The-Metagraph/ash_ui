@@ -56,8 +56,9 @@ defmodule AshUI.Authoring.ScreenTest do
       assert screen.metadata["seeded_by"] == "screen_test"
       assert Document.authoring_document?(screen.unified_dsl)
 
-      assert get_in(screen.unified_dsl, ["ash_ui", "compatibility", "legacy_read_cutoff"]) ==
-               Document.legacy_read_cutoff()
+      assert is_map(
+               get_in(screen.unified_dsl, ["ash_ui", "runtime_annotations", "extension_points"])
+             )
 
       assert {:ok, fetched} =
                Data.read_one(AshUI.Test.UIStorageScreen,

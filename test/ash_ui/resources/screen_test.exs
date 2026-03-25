@@ -4,22 +4,24 @@ defmodule AshUI.Resources.ScreenTest do
   require Ash.Query
 
   alias AshUI.Resources.Screen
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
 
   describe "Screen CRUD operations" do
     test "create/1 creates a screen with unified_dsl storage" do
       attrs = %{
-        name: "test_screen",
-        unified_dsl: %{
-          "type" => "screen",
-          "root" => %{"type" => "row"}
-        },
-        layout: :row,
-        route: "/test"
+        name: "test_screen"
       }
 
-      assert {:ok, screen} = AshUI.Data.create(Screen, attrs: attrs)
+      assert {:ok, screen} =
+               AshUI.Data.create(Screen,
+                 attrs:
+                   ScreenDocumentFixtures.resource_screen_attrs(attrs.name,
+                     layout: :row,
+                     route: "/test"
+                   )
+               )
       assert screen.name == "test_screen"
       assert screen.layout == :row
       assert screen.route == "/test"
@@ -31,11 +33,7 @@ defmodule AshUI.Resources.ScreenTest do
     test "read/2 lists all screens" do
       # Create test screens
       Enum.each(["screen_a", "screen_b"], fn name ->
-        attrs = %{
-          name: name,
-          unified_dsl: %{"type" => "screen"},
-          layout: :row
-        }
+        attrs = ScreenDocumentFixtures.resource_screen_attrs(name, layout: :row)
 
         AshUI.Data.create(Screen, attrs: attrs)
       end)
@@ -46,12 +44,13 @@ defmodule AshUI.Resources.ScreenTest do
 
     test "update/2 updates screen attributes" do
       attrs = %{
-        name: "update_test",
-        unified_dsl: %{"type" => "screen"},
-        layout: :column
+        name: "update_test"
       }
 
-      {:ok, screen} = AshUI.Data.create(Screen, attrs: attrs)
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :column)
+        )
       {:ok, updated} = AshUI.Data.update(screen, attrs: %{layout: :grid})
 
       assert updated.layout == :grid
@@ -60,12 +59,13 @@ defmodule AshUI.Resources.ScreenTest do
 
     test "destroy/1 deletes a screen" do
       attrs = %{
-        name: "destroy_test",
-        unified_dsl: %{"type" => "screen"},
-        layout: :row
+        name: "destroy_test"
       }
 
-      {:ok, screen} = AshUI.Data.create(Screen, attrs: attrs)
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :row)
+        )
       assert :ok = AshUI.Data.destroy(screen)
 
       assert [] = AshUI.Data.read!(Screen, filter: [name: "destroy_test"])
@@ -75,14 +75,18 @@ defmodule AshUI.Resources.ScreenTest do
   describe "Screen name uniqueness" do
     test "prevents duplicate screen names" do
       attrs = %{
-        name: "unique_test",
-        unified_dsl: %{"type" => "screen"},
-        layout: :row
+        name: "unique_test"
       }
 
-      {:ok, _screen} = AshUI.Data.create(Screen, attrs: attrs)
+      {:ok, _screen} =
+        AshUI.Data.create(Screen,
+          attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :row)
+        )
 
-      assert {:error, error} = AshUI.Data.create(Screen, attrs: attrs)
+      assert {:error, error} =
+               AshUI.Data.create(Screen,
+                 attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :row)
+               )
       assert Exception.message(error) =~ "constraint error"
     end
   end
@@ -121,7 +125,7 @@ defmodule AshUI.Resources.ScreenTest do
       assert Exception.message(error) =~ "invalid"
     end
 
-    test "rejects unsupported unified_dsl root types" do
+    test "rejects legacy builder-shaped unified_dsl writes" do
       assert {:error, error} =
                AshUI.Data.create(Screen,
                  attrs: %{
@@ -131,7 +135,7 @@ defmodule AshUI.Resources.ScreenTest do
                  }
                )
 
-      assert Exception.message(error) =~ "unsupported type"
+      assert Exception.message(error) =~ "Phase 10"
     end
   end
 
@@ -139,11 +143,7 @@ defmodule AshUI.Resources.ScreenTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "lifecycle_screen",
-            unified_dsl: %{"type" => "screen", "children" => []},
-            layout: :row
-          }
+          attrs: ScreenDocumentFixtures.resource_screen_attrs("lifecycle_screen", layout: :row)
         )
 
       %{screen: screen}

@@ -5,16 +5,16 @@ defmodule AshUI.Compiler.IncrementalTest do
   alias AshUI.Resources.Screen
   alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Test.ScreenDocumentFixtures
 
   describe "build_dependencies/1" do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: unique_name("incremental_test_screen"),
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs(unique_name("incremental_test_screen"),
+              layout: :row
+            )
         )
 
       # Create elements
@@ -88,11 +88,10 @@ defmodule AshUI.Compiler.IncrementalTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: unique_name("affects_test_screen"),
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs(unique_name("affects_test_screen"),
+              layout: :row
+            )
         )
 
       {:ok, element} =
@@ -127,11 +126,10 @@ defmodule AshUI.Compiler.IncrementalTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: unique_name("dependents_test_screen"),
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs(unique_name("dependents_test_screen"),
+              layout: :row
+            )
         )
 
       {:ok, element} =
@@ -198,11 +196,10 @@ defmodule AshUI.Compiler.IncrementalTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: unique_name("recompile_test_screen"),
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs(unique_name("recompile_test_screen"),
+              layout: :row
+            )
         )
 
       %{screen: screen}

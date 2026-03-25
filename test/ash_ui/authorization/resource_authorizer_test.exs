@@ -6,6 +6,7 @@ defmodule AshUI.Authorization.ResourceAuthorizerTest do
   alias AshUI.Resources.Binding
   alias AshUI.Resources.Element
   alias AshUI.Resources.Screen
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
 
@@ -20,11 +21,10 @@ defmodule AshUI.Authorization.ResourceAuthorizerTest do
     {:ok, screen} =
       Ash.create(
         Screen,
-        %{
-          name: "screen-#{System.unique_integer([:positive])}",
-          unified_dsl: %{"type" => "screen"},
+        ScreenDocumentFixtures.resource_screen_attrs(
+          "screen-#{System.unique_integer([:positive])}",
           metadata: %{"owner_id" => "owner-1", "public" => false}
-        },
+        ),
         domain: Domain
       )
 

@@ -36,24 +36,24 @@ Back to index: [README](./README.md)
       [x] 10.1.2.3 Subtask - Translate upstream validation failures into Ash-friendly resource errors
       [x] 10.1.2.4 Subtask - Add coverage for invalid persisted document writes
 
-  [ ] 10.2 Section - Legacy Screen Migration
-    Provide a safe path for existing screens to move to the new storage contract.
+  [x] 10.2 Section - Legacy Screen Migration
+    Provide a deterministic rewrite path for existing screens to move into the new storage contract without keeping the legacy storage shape alive at runtime.
 
-    [ ] 10.2.1 Task - Build the migration transformer
+    [x] 10.2.1 Task - Build the migration transformer
     Convert existing builder-shaped documents into serialized upstream documents.
 
-      [ ] 10.2.1.1 Subtask - Audit the current builder storage shape used in persisted screens
-      [ ] 10.2.1.2 Subtask - Implement a deterministic builder-map to `unified_ui` document transformer
-      [ ] 10.2.1.3 Subtask - Preserve binding, metadata, and version information during transformation
-      [ ] 10.2.1.4 Subtask - Add dry-run reporting for screens that cannot be migrated automatically
+      [x] 10.2.1.1 Subtask - Audit the current builder storage shape used in persisted screens
+      [x] 10.2.1.2 Subtask - Implement a deterministic builder-map to `unified_ui` document transformer
+      [x] 10.2.1.3 Subtask - Preserve binding, metadata, and version information during transformation
+      [x] 10.2.1.4 Subtask - Add dry-run reporting for screens that cannot be migrated automatically
 
-    [ ] 10.2.2 Task - Roll the migration through examples and shipped seeds
-    Ensure the repo no longer demonstrates the legacy authoring model.
+    [x] 10.2.2 Task - Roll the migration through examples and shipped seeds
+    Ensure the repo no longer ships or persists builder-shaped screen documents.
 
-      [ ] 10.2.2.1 Subtask - Migrate example screen seeds to the serialized upstream format
-      [ ] 10.2.2.2 Subtask - Migrate test fixtures and seeded screens used in integration coverage
-      [ ] 10.2.2.3 Subtask - Update example storage docs to describe the new persisted format
-      [ ] 10.2.2.4 Subtask - Verify no new builder-shaped documents are introduced in repo-owned seeds
+      [x] 10.2.2.1 Subtask - Migrate example screen seeds to the serialized upstream format
+      [x] 10.2.2.2 Subtask - Migrate test fixtures and seeded screens used in integration coverage
+      [x] 10.2.2.3 Subtask - Update example storage docs to describe the new persisted format
+      [x] 10.2.2.4 Subtask - Verify no new builder-shaped documents are introduced in repo-owned seeds
 
   [ ] 10.3 Section - Read/Write Compatibility Window
     Keep the system operable during migration without leaving the old format as a permanent API.

@@ -12,6 +12,7 @@ defmodule AshUI.Compiler do
   require Logger
 
   alias AshUI.Compilation.IUR
+  alias AshUI.Authoring.Document
   alias AshUI.Config
   alias AshUI.DSL.Storage
   alias AshUI.Telemetry
@@ -393,13 +394,28 @@ defmodule AshUI.Compiler do
   end
 
   defp validate_dsl(dsl) do
-    normalized_dsl = AshUI.DSL.Builder.from_store(dsl)
+    with {:ok, compiler_dsl} <- compiler_dsl(dsl) do
+      normalized_dsl = AshUI.DSL.Builder.from_store(compiler_dsl)
 
-    case Storage.validate_write(normalized_dsl) do
-      :ok -> {:ok, normalized_dsl}
-      {:error, errors} -> {:error, {:invalid_dsl, errors}}
+      case Storage.validate_write(normalized_dsl) do
+        :ok -> {:ok, normalized_dsl}
+        {:error, errors} -> {:error, {:invalid_dsl, errors}}
+      end
     end
   end
+
+  defp compiler_dsl(dsl) when is_map(dsl) do
+    if Document.authoring_document?(dsl) do
+      case Document.compiler_dsl(dsl) do
+        {:ok, compiler_dsl} -> {:ok, compiler_dsl}
+        :error -> {:error, {:unsupported_authoring_document, :phase_11_compiler_delegation}}
+      end
+    else
+      {:error, {:invalid_authoring_document, :phase_10_current_format_required}}
+    end
+  end
+
+  defp compiler_dsl(_other), do: {:error, :invalid_dsl}
 
   defp compile_to_ash_iur(screen, dsl) when is_map(screen) do
     children = [compile_dsl_node(dsl, screen.id, [0])]
@@ -561,13 +577,23 @@ defmodule AshUI.Compiler do
   end
 
   defp should_compile_from_unified_dsl?(%{unified_dsl: dsl}) when is_map(dsl) do
-    dsl
-    |> AshUI.DSL.Builder.from_store()
-    |> Map.get(:type)
-    |> case do
-      nil -> false
-      "screen" -> false
-      _ -> true
+    if Document.authoring_document?(dsl) do
+      case Document.compiler_dsl(dsl) do
+        {:ok, compiler_dsl} ->
+          compiler_dsl
+          |> AshUI.DSL.Builder.from_store()
+          |> Map.get(:type)
+          |> case do
+            nil -> false
+            "screen" -> false
+            _ -> true
+          end
+
+        :error ->
+          false
+      end
+    else
+      false
     end
   end
 

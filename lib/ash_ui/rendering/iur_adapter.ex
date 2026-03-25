@@ -129,12 +129,22 @@ defmodule AshUI.Rendering.IURAdapter do
 
   # Convert props with name transformations
   defp convert_props(props, _element_type) when is_map(props) do
-    Enum.into(props, %{}, fn {key, value} ->
-      {convert_prop_name(key), convert_prop_value(value)}
+    Enum.reduce(props, %{}, fn {key, value}, acc ->
+      merge_converted_prop(acc, convert_prop_name(key), value)
     end)
   end
 
   defp convert_props(_, _), do: %{}
+
+  defp merge_converted_prop(acc, "style", value) when is_binary(value) and value != "" do
+    acc
+    |> Map.put("style", %{"extra" => %{"css" => value}})
+    |> Map.put("inline_style", value)
+  end
+
+  defp merge_converted_prop(acc, key, value) do
+    Map.put(acc, key, convert_prop_value(value))
+  end
 
   # Convert prop names from camelCase to snake_case
   defp convert_prop_name(key) when is_atom(key) do

@@ -6,6 +6,7 @@ defmodule AshUI.PluggableUIStorageTest do
   alias AshUI.Data
   alias AshUI.LiveView.Integration
   alias AshUI.Test.RuntimeDomain
+  alias AshUI.Test.ScreenDocumentFixtures
   alias AshUI.Test.UIStorageFixtures
   alias AshUI.Test.UIStorageScreen
 
@@ -33,7 +34,8 @@ defmodule AshUI.PluggableUIStorageTest do
       Data.create(UIStorageScreen,
         attrs: %{
           name: "configured_storage_#{suffix}",
-          unified_dsl: %{},
+          unified_dsl:
+            ScreenDocumentFixtures.resource_screen_document("configured_storage_#{suffix}"),
           metadata: %{"title" => "Configured storage"}
         }
       )

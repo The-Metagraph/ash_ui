@@ -6,6 +6,8 @@ This contract defines the normative requirements for screen records and screen r
 
 Screens are the top-level durable UI records in Ash UI. They store `unified_dsl`, compose child elements and bindings, and act as the boundary mounted into LiveView sessions.
 
+Normatively, `unified_dsl` is the persisted serialized `unified_ui` screen definition owned by the upstream DSL package.
+
 ## Control Plane
 
 **Owner**: `AshUI.Runtime`
@@ -39,6 +41,7 @@ end
 - AC-001: Screens use `Ash.Resource`
 - AC-002: Screens persist `name` and `unified_dsl`
 - AC-003: Screens expose layout and route metadata
+- AC-004: `unified_dsl` stores serialized upstream `unified_ui` screen definitions
 
 ### REQ-SCREEN-002: Lifecycle Management
 
@@ -66,7 +69,7 @@ Screens MUST support both persisted child elements and nested structure in `unif
 - AC-001: Screens expose `has_many :elements`
 - AC-002: Elements preserve ordering metadata
 - AC-003: Screens expose `has_many :bindings`
-- AC-004: `unified_dsl` remains the canonical nested screen tree
+- AC-004: `unified_dsl` remains the canonical persisted screen definition for nested structure
 
 ### REQ-SCREEN-004: Data Binding Context
 
@@ -140,7 +143,7 @@ Screens MUST emit lifecycle telemetry.
 
 ## Implementation Note
 
-This repository persists screens as durable records with `unified_dsl`, while also providing compile-time `ui_screen` helper modules for resource-facing DSL composition. Screen lifecycle now runs through both LiveView helpers and explicit `:mount` / `:unmount` resource actions.
+This repository currently persists screens as durable records with `unified_dsl`, but the current implementation still writes an Ash UI-owned builder map instead of serialized upstream `unified_ui` DSL. Screen lifecycle still runs through LiveView helpers and explicit `:mount` / `:unmount` resource actions while that authoring-layer refactor is pending.
 
 ## Traceability
 
@@ -167,3 +170,4 @@ See [spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md) for 
 - [binding_contract.md](binding_contract.md)
 - [../resources/ui_screen.md](../resources/ui_screen.md)
 - [../planning/phase-04-runtime-and-liveview-integration.md](../planning/phase-04-runtime-and-liveview-integration.md)
+- [../adr/ADR-0004-unified-ui-dsl-authority.md](../adr/ADR-0004-unified-ui-dsl-authority.md)

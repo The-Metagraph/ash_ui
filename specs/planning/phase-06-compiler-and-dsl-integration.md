@@ -14,6 +14,17 @@ Back to index: [README](./README.md)
 - Compiler loads DSL from database and compiles to IUR
 - Compilation is cached for performance
 
+## Status Correction
+
+Phase 6 was historically marked complete based on the in-repo `AshUI.DSL.Builder` storage format and direct `AshUI.Compiler` pipeline. That work delivered a usable stored DSL and compiler path, but it did not complete the intended upstream `unified_ui` DSL/compiler delegation model.
+
+The remaining architectural gap is now reopened and tracked explicitly in:
+
+- [Phase 9 - Unified UI DSL Authority](./phase-09-unified-ui-dsl-authority.md)
+- [Phase 10 - Persisted DSL Migration](./phase-10-persisted-dsl-migration.md)
+- [Phase 11 - Upstream Compiler Delegation](./phase-11-upstream-compiler-delegation.md)
+- [Phase 12 - Example, Tooling, and Conformance Migration](./phase-12-example-tooling-and-conformance-migration.md)
+
 [X] 6 Phase 6 - Compiler and DSL Integration
   Integrate the unified-ui compiler with Ash Resource loading to enable database-driven UI definitions.
 

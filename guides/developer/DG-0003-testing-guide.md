@@ -45,7 +45,7 @@ Run the smallest useful slice first.
 Compiler work:
 
 ```bash
-mix test test/ash_ui/compiler_test.exs test/ash_ui/dsl/builder_test.exs
+mix test test/ash_ui/compiler_test.exs test/ash_ui/authoring/screen_test.exs test/ash_ui/phase_11_integration_test.exs
 ```
 
 LiveView work:
@@ -63,7 +63,7 @@ mix test test/ash_ui/authorization/runtime_test.exs test/ash_ui/authorization/re
 Rendering work:
 
 ```bash
-mix test test/ash_ui/rendering/iur_adapter_test.exs test/ash_ui/rendering/live_ui_adapter_test.exs
+mix test test/ash_ui/rendering/iur_adapter_test.exs test/ash_ui/rendering/live_ui_adapter_test.exs test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs
 ```
 
 Telemetry work:
@@ -102,6 +102,7 @@ Verify:
 - compile failure shape
 - cache behavior
 - canonical conversion compatibility
+- upstream `UnifiedUi.Dsl` modules persist and compile without builder migration helpers
 
 ### LiveView and runtime changes
 
@@ -142,6 +143,13 @@ If an integration test mounts by name, create a real `Screen` record in setup in
 ### Storage-backend assumptions
 
 The built-in resource tests use the default Postgres-backed storage, but runtime resource-resolution tests already exercise ETS-backed Ash resources. When changing compiler or LiveView loading code, verify whether the behavior should depend on the configured UI storage backend or only on the resource contract.
+
+### Legacy builder references
+
+`AshUI.DSL.Builder` is migration-only. Public examples, guides, and release
+paths should not depend on it anymore. If a docs or example change introduces a
+builder-authored screen, treat that as a regression and run the governance
+checks before opening a PR.
 
 ## Release-Oriented Checks
 

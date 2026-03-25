@@ -36,16 +36,16 @@ Back to index: [README](./README.md)
       [x] 12.1.2.3 Subtask - Update examples/README command docs
       [x] 12.1.2.4 Subtask - Add regression tests covering example CLI flows
 
-  [ ] 12.2 Section - Guide And API Migration
+  [x] 12.2 Section - Guide And API Migration
     Remove public guidance that points users toward the legacy builder path.
 
-    [ ] 12.2.1 Task - Rewrite user and developer guidance
+    [x] 12.2.1 Task - Rewrite user and developer guidance
     Make the documented path match the new architecture.
 
-      [ ] 12.2.1.1 Subtask - Update README examples to use upstream `unified_ui`
-      [ ] 12.2.1.2 Subtask - Update user guides and developer guides to remove builder-first instructions
-      [ ] 12.2.1.3 Subtask - Update API docs and module docs to mark `AshUI.DSL.Builder` as legacy
-      [ ] 12.2.1.4 Subtask - Add migration notes for applications using the old builder path
+      [x] 12.2.1.1 Subtask - Update README examples to use upstream `unified_ui`
+      [x] 12.2.1.2 Subtask - Update user guides and developer guides to remove builder-first instructions
+      [x] 12.2.1.3 Subtask - Update API docs and module docs to mark `AshUI.DSL.Builder` as legacy
+      [x] 12.2.1.4 Subtask - Add migration notes for applications using the old builder path
 
   [ ] 12.3 Section - Governance And Conformance Closeout
     Make the specs, tests, and review gates assert the new architecture directly.

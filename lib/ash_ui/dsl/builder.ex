@@ -2,10 +2,14 @@ defmodule AshUI.DSL.Builder do
   @moduledoc """
   Legacy builder functions for migration-era `unified_dsl` maps.
 
-  This module remains available so existing stored screens and older examples
-  can be migrated forward, but it is no longer the preferred public authoring
-  API. New authoring should happen in upstream `UnifiedUi.Dsl` modules and be
-  persisted through `AshUI.Authoring.Screen`.
+  This module is not part of the supported public authoring path anymore.
+  Application code should author screens through upstream `UnifiedUi.Dsl`
+  modules and persist them through `AshUI.Authoring.Screen`.
+
+  Use this module only indirectly through
+  `AshUI.Authoring.migrate_legacy_dsl/2` or
+  `AshUI.Authoring.migrate_legacy_screen_attrs/2` when converting older stored
+  payloads.
 
   Builder-first authoring is scheduled for removal once:
 

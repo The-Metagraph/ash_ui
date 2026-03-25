@@ -17,24 +17,24 @@ Back to index: [README](./README.md)
 [ ] 11 Phase 11 - Upstream Compiler Delegation
   Delegate DSL parsing and compilation to upstream `unified_ui` while preserving Ash UI bindings, runtime hydration, and canonical conversion.
 
-  [ ] 11.1 Section - Compiler Handoff
+  [X] 11.1 Section - Compiler Handoff
     Replace the Ash UI-owned authoring compilation path with upstream compiler delegation.
 
-    [ ] 11.1.1 Task - Load and hand off persisted DSL to upstream compiler
+    [X] 11.1.1 Task - Load and hand off persisted DSL to upstream compiler
     Make upstream compilation the primary path in `AshUI.Compiler`.
 
-      [ ] 11.1.1.1 Subtask - Load serialized upstream documents from `Screen.unified_dsl`
-      [ ] 11.1.1.2 Subtask - Call upstream `UnifiedUI.Compiler` from `AshUI.Compiler`
-      [ ] 11.1.1.3 Subtask - Normalize and surface upstream compile errors through Ash UI
-      [ ] 11.1.1.4 Subtask - Remove builder-first compilation as the default code path
+      [X] 11.1.1.1 Subtask - Load serialized upstream documents from `Screen.unified_dsl`
+      [X] 11.1.1.2 Subtask - Call upstream `UnifiedUI.Compiler` from `AshUI.Compiler`
+      [X] 11.1.1.3 Subtask - Normalize and surface upstream compile errors through Ash UI
+      [X] 11.1.1.4 Subtask - Remove builder-first compilation as the default code path
 
-    [ ] 11.1.2 Task - Define the Ash UI runtime compilation boundary
+    [X] 11.1.2 Task - Define the Ash UI runtime compilation boundary
     Clarify what Ash UI adds after upstream compilation returns.
 
-      [ ] 11.1.2.1 Subtask - Define the shape Ash UI expects from upstream compiler output
-      [ ] 11.1.2.2 Subtask - Attach Ash binding metadata without mutating upstream widget semantics
-      [ ] 11.1.2.3 Subtask - Preserve screen metadata and runtime context required by LiveView
-      [ ] 11.1.2.4 Subtask - Document the post-compile augmentation boundary
+      [X] 11.1.2.1 Subtask - Define the shape Ash UI expects from upstream compiler output
+      [X] 11.1.2.2 Subtask - Attach Ash binding metadata without mutating upstream widget semantics
+      [X] 11.1.2.3 Subtask - Preserve screen metadata and runtime context required by LiveView
+      [X] 11.1.2.4 Subtask - Document the post-compile augmentation boundary
 
   [ ] 11.2 Section - Runtime Hydration Alignment
     Keep LiveView and action/value/list binding behavior working against upstream-compiled trees.

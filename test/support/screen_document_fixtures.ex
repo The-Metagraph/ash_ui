@@ -1,21 +1,24 @@
 defmodule AshUI.Test.ScreenDocumentFixtures do
   @moduledoc false
 
-  alias AshUI.Authoring.Migrator
+  alias AshUI.Authoring.{Migrator, Screen}
   alias AshUI.DSL.Builder
+  alias AshUI.Test.AuthoredSupportScreen
 
   def resource_screen_attrs(name, opts \\ []) do
     layout = Keyword.get(opts, :layout, :row)
     route = Keyword.get(opts, :route)
     metadata = Keyword.get(opts, :metadata, %{})
 
-    Migrator.screen_attrs!(
-      Builder.screen() |> Builder.to_store(),
-      name: name,
-      layout: layout,
-      route: route,
-      metadata: metadata
-    )
+    {:ok, attrs} =
+      Screen.screen_attrs(AuthoredSupportScreen,
+        name: name,
+        layout: layout,
+        route: route,
+        metadata: metadata
+      )
+
+    attrs
   end
 
   def migrated_screen_attrs(name, dsl, opts \\ []) do

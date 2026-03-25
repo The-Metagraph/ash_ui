@@ -146,6 +146,31 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert child["props"]["label"] == "Submit"
       assert child["props"]["disabled"] == false
     end
+
+    test "preserves empty binding paths on authored form widgets" do
+      ash_iur =
+        IUR.new(:screen,
+          children: [
+            IUR.new(:form_field,
+              props: %{
+                "bindings" => [
+                  %{
+                    "name" => :display_name,
+                    "path" => [],
+                    "scope" => [],
+                    "depends_on" => [],
+                    "metadata" => [],
+                    "derived" => []
+                  }
+                ]
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      assert :ok = UnifiedIUR.validate(canonical)
+    end
   end
 
   describe "error handling" do

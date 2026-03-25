@@ -14,7 +14,7 @@ Back to index: [README](./README.md)
 - Ash UI remains responsible for bindings, runtime orchestration, and canonical `unified_iur` conversion
 - `AshUI.DSL.Builder` is a migration concern, not the target authoring API
 
-[ ] 9 Phase 9 - Unified UI DSL Authority
+[X] 9 Phase 9 - Unified UI DSL Authority
   Make upstream `unified_ui` the authoritative authoring surface for persisted screen definitions and stop treating the in-repo builder as the public DSL.
 
   [X] 9.1 Section - Dependency And Boundary Alignment
@@ -66,13 +66,13 @@ Back to index: [README](./README.md)
       [X] 9.3.1.3 Subtask - Add warnings or telemetry when legacy builder auth flows are exercised
       [X] 9.3.1.4 Subtask - Define the eventual removal criteria for builder-first authoring
 
-  [ ] 9.4 Section - Phase 9 Integration Tests
+  [X] 9.4 Section - Phase 9 Integration Tests
     Validate that upstream authoring is the primary supported path.
 
-    [ ] 9.4.1 Task - Authoring boundary scenarios
+    [X] 9.4.1 Task - Authoring boundary scenarios
     Verify Ash UI accepts upstream DSL definitions for persistence.
 
-      [ ] 9.4.1.1 Subtask - Verify a screen defined through upstream `unified_ui` can be persisted
-      [ ] 9.4.1.2 Subtask - Verify invalid upstream DSL errors surface clearly through Ash UI
-      [ ] 9.4.1.3 Subtask - Verify semantic widgets pass through the persisted-screen authoring path
-      [ ] 9.4.1.4 Subtask - Verify builder-first authoring is documented or signaled as legacy
+      [X] 9.4.1.1 Subtask - Verify a screen defined through upstream `unified_ui` can be persisted
+      [X] 9.4.1.2 Subtask - Verify invalid upstream DSL errors surface clearly through Ash UI
+      [X] 9.4.1.3 Subtask - Verify semantic widgets pass through the persisted-screen authoring path
+      [X] 9.4.1.4 Subtask - Verify builder-first authoring is documented or signaled as legacy

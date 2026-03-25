@@ -47,4 +47,13 @@ The plan aligns to:
 
 The phase files are historical planning documents that track the implementation baseline captured in this repository. After the post-Phase-8 remediation work, the previously open Phase 1 DSL/lifecycle gap and Phase 7 renderer package gap were closed in-repo.
 
-A major architecture gap remains open, however: the current implementation still uses `AshUI.DSL.Builder` as the effective authoring DSL instead of the upstream `unified_ui` extension and compiler. The new Phase 9-12 remediation track exists to close that gap and realign the implementation with the normative architecture.
+Phase 9 is now complete: Ash UI treats upstream `unified_ui` as the
+authoritative authoring boundary, persists authored modules through
+`AshUI.Authoring`, and explicitly reclassifies `AshUI.DSL.Builder` as a legacy
+migration path.
+
+The remaining remediation work now lives in Phases 10-12:
+
+- migrate persisted builder-shaped documents to upstream authoring documents
+- delegate compilation to upstream `UnifiedUi.Compiler`
+- move public examples, tooling, and conformance fully off the builder-first path

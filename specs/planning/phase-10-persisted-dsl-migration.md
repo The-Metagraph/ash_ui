@@ -17,24 +17,24 @@ Back to index: [README](./README.md)
 [ ] 10 Phase 10 - Persisted DSL Migration
   Migrate stored screen definitions from Ash UI-owned builder maps to serialized upstream `unified_ui` documents while keeping persisted screens readable and upgradable.
 
-  [ ] 10.1 Section - Stored Format Contract
+  [x] 10.1 Section - Stored Format Contract
     Define the durable serialized format that `Screen.unified_dsl` is allowed to hold.
 
-    [ ] 10.1.1 Task - Specify the persisted document boundary
+    [x] 10.1.1 Task - Specify the persisted document boundary
     Make the storage contract explicit before implementation work lands.
 
-      [ ] 10.1.1.1 Subtask - Define the serialized `unified_ui` document shape accepted by Ash UI
-      [ ] 10.1.1.2 Subtask - Define document versioning and compatibility metadata
-      [ ] 10.1.1.3 Subtask - Define where Ash-specific binding and runtime annotations are stored
-      [ ] 10.1.1.4 Subtask - Document the persisted contract in resource and screen specs
+      [x] 10.1.1.1 Subtask - Define the serialized `unified_ui` document shape accepted by Ash UI
+      [x] 10.1.1.2 Subtask - Define document versioning and compatibility metadata
+      [x] 10.1.1.3 Subtask - Define where Ash-specific binding and runtime annotations are stored
+      [x] 10.1.1.4 Subtask - Document the persisted contract in resource and screen specs
 
-    [ ] 10.1.2 Task - Align resource validations to the new contract
+    [x] 10.1.2 Task - Align resource validations to the new contract
     Make write-time validation match the upstream authoring model.
 
-      [ ] 10.1.2.1 Subtask - Replace builder-specific write validation with upstream document validation
-      [ ] 10.1.2.2 Subtask - Reject new writes that use unsupported builder-only structures
-      [ ] 10.1.2.3 Subtask - Translate upstream validation failures into Ash-friendly resource errors
-      [ ] 10.1.2.4 Subtask - Add coverage for invalid persisted document writes
+      [x] 10.1.2.1 Subtask - Replace builder-specific write validation with upstream document validation
+      [x] 10.1.2.2 Subtask - Reject new writes that use unsupported builder-only structures
+      [x] 10.1.2.3 Subtask - Translate upstream validation failures into Ash-friendly resource errors
+      [x] 10.1.2.4 Subtask - Add coverage for invalid persisted document writes
 
   [ ] 10.2 Section - Legacy Screen Migration
     Provide a safe path for existing screens to move to the new storage contract.

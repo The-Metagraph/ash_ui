@@ -2,18 +2,39 @@ defmodule AshUI.Authoring.Document do
   @moduledoc """
   Persisted-screen authoring bridge for upstream `UnifiedUi.Dsl` modules.
 
-  Phase 9 stores authored `UnifiedUi` modules as JSON-safe documents in
-  `Screen.unified_dsl`. This keeps `UnifiedUi` authoritative for widgets,
-  layouts, themes, and signals while allowing Ash UI to add route metadata,
-  screen metadata, and Ash-specific binding metadata around the authored module.
+  Phase 10 defines the durable `Screen.unified_dsl` contract as an Ash UI
+  wrapper around an upstream-authored `unified_ui` document plus Ash UI-owned
+  screen metadata, binding annotations, and compatibility metadata.
   """
 
   alias AshUI.Authoring
 
-  @format "ash_ui/unified_ui_module"
-  @version 1
+  @legacy_format "ash_ui/unified_ui_module"
+  @legacy_version 1
+
+  @format "ash_ui/unified_ui_document"
+  @version 2
+  @legacy_read_cutoff "phase_11_upstream_compiler_delegation"
 
   @type t :: map()
+
+  @doc """
+  Returns the current persisted authoring format identifier.
+  """
+  @spec format() :: String.t()
+  def format, do: @format
+
+  @doc """
+  Returns the current persisted authoring document version.
+  """
+  @spec version() :: pos_integer()
+  def version, do: @version
+
+  @doc """
+  Returns the documented cutoff for legacy compatibility reads.
+  """
+  @spec legacy_read_cutoff() :: String.t()
+  def legacy_read_cutoff, do: @legacy_read_cutoff
 
   @doc """
   Builds a persisted authoring document from a `UnifiedUi.Dsl` module.
@@ -33,12 +54,17 @@ defmodule AshUI.Authoring.Document do
          "format" => @format,
          "version" => @version,
          "authoring" => %{
-           "module" => encode_module(module),
+           "source" => %{
+             "kind" => "unified_ui_module",
+             "module" => encode_module(module)
+           },
            "package" => encode_value(Authoring.package_identity()),
-           "module_summary" => encode_value(module_summary),
-           "composition_summary" => encode_value(composition_summary),
-           "compiler_summary" => encode_value(compiler_summary),
-           "compiler_listing" => encode_value(compiler_listing)
+           "document" => %{
+             "module_summary" => encode_value(module_summary),
+             "composition_summary" => encode_value(composition_summary),
+             "compiler_summary" => encode_value(compiler_summary),
+             "compiler_listing" => encode_value(compiler_listing)
+           }
          },
          "ash_ui" => %{
            "screen" => %{
@@ -48,8 +74,13 @@ defmodule AshUI.Authoring.Document do
            },
            "metadata" => encode_value(Keyword.get(opts, :metadata, %{})),
            "binding_metadata" => encode_value(Keyword.get(opts, :binding_metadata, %{})),
-           "extension_points" => encode_value(Authoring.extension_points()),
-           "construct_families" => encode_value(Authoring.construct_families())
+           "runtime_annotations" => %{
+             "extension_points" => encode_value(Authoring.extension_points()),
+             "construct_families" => encode_value(Authoring.construct_families())
+           },
+           "compatibility" => %{
+             "legacy_read_cutoff" => @legacy_read_cutoff
+           }
          }
        }}
     end
@@ -65,33 +96,72 @@ defmodule AshUI.Authoring.Document do
   end
 
   @doc """
-  Returns true when the given map is an Ash UI persisted authoring document.
+  Returns true when the given map is any known Ash UI persisted authoring document.
   """
   @spec authoring_document?(term()) :: boolean()
   def authoring_document?(%{"format" => @format, "version" => @version}), do: true
   def authoring_document?(%{format: @format, version: @version}), do: true
+  def authoring_document?(%{"format" => @legacy_format, "version" => @legacy_version}), do: true
+  def authoring_document?(%{format: @legacy_format, version: @legacy_version}), do: true
   def authoring_document?(_other), do: false
 
   @doc """
-  Validates a persisted authoring document shape.
+  Returns true when the given map matches the current write format.
+  """
+  @spec current_document?(term()) :: boolean()
+  def current_document?(%{"format" => @format, "version" => @version}), do: true
+  def current_document?(%{format: @format, version: @version}), do: true
+  def current_document?(_other), do: false
+
+  @doc """
+  Validates a persisted authoring document for writes.
   """
   @spec validate(term()) :: :ok | {:error, String.t()}
-  def validate(document) when is_map(document) do
+  def validate(document), do: validate_write(document)
+
+  @doc """
+  Validates the current persisted document contract.
+  """
+  @spec validate_write(term()) :: :ok | {:error, String.t()}
+  def validate_write(document) when is_map(document) do
     with true <-
-           authoring_document?(document) or
-             {:error, "must declare the ash_ui unified_ui document format"},
+           current_document?(document) or
+             {:error, "must declare the Phase 10 ash_ui unified_ui document format"},
          :ok <- validate_nested_map(document, "authoring"),
          :ok <- validate_nested_map(document, "ash_ui"),
          :ok <- validate_authoring_payload(fetch(document, "authoring")),
          :ok <- validate_ash_ui_payload(fetch(document, "ash_ui")) do
       :ok
     else
-      false -> {:error, "must declare the ash_ui unified_ui document format"}
+      false -> {:error, "must declare the Phase 10 ash_ui unified_ui document format"}
       error -> error
     end
   end
 
-  def validate(_other), do: {:error, "must be a map"}
+  def validate_write(_other), do: {:error, "must be a map"}
+
+  @doc """
+  Validates any known persisted authoring document for read compatibility.
+  """
+  @spec validate_read(term()) :: :ok | {:error, String.t()}
+  def validate_read(document) when is_map(document) do
+    cond do
+      current_document?(document) ->
+        validate_write(document)
+
+      legacy_document?(document) ->
+        validate_legacy_document(document)
+
+      true ->
+        {:error, "must declare an ash_ui unified_ui authoring document format"}
+    end
+  end
+
+  def validate_read(_other), do: {:error, "must be a map"}
+
+  defp legacy_document?(%{"format" => @legacy_format, "version" => @legacy_version}), do: true
+  defp legacy_document?(%{format: @legacy_format, version: @legacy_version}), do: true
+  defp legacy_document?(_other), do: false
 
   defp validate_module(module) do
     if Code.ensure_loaded?(module) do
@@ -104,6 +174,110 @@ defmodule AshUI.Authoring.Document do
   end
 
   defp validate_authoring_payload(authoring) do
+    with :ok <- validate_nested_map(authoring, "source"),
+         :ok <- validate_nested_map(authoring, "package"),
+         :ok <- validate_nested_map(authoring, "document") do
+      source = fetch(authoring, "source")
+      document = fetch(authoring, "document")
+
+      case fetch(source, "kind") do
+        "unified_ui_module" ->
+          validate_module_document(source, document)
+
+        other ->
+          {:error, "authoring.source.kind must be \"unified_ui_module\", got #{inspect(other)}"}
+      end
+    end
+  end
+
+  defp validate_module_document(source, document) do
+    required = [
+      "module_summary",
+      "composition_summary",
+      "compiler_summary",
+      "compiler_listing"
+    ]
+
+    with module when is_binary(module) and module != "" <- fetch(source, "module"),
+         :ok <- validate_required_map_keys(document, required, "authoring.document"),
+         true <-
+           is_map(document["module_summary"]) or {:error, module_doc_error("module_summary")},
+         true <-
+           is_list(document["composition_summary"]) or
+             {:error, module_doc_error("composition_summary")},
+         true <-
+           is_map(document["compiler_summary"]) or
+             {:error, module_doc_error("compiler_summary")},
+         true <-
+           is_map(document["compiler_listing"]) or
+             {:error, module_doc_error("compiler_listing")} do
+      :ok
+    else
+      value when is_binary(value) -> :ok
+      {:error, _message} = error -> error
+      _other -> {:error, "authoring.source.module must be a non-empty string"}
+    end
+  end
+
+  defp validate_ash_ui_payload(ash_ui) do
+    with :ok <- validate_nested_map(ash_ui, "screen"),
+         :ok <- validate_nested_map(ash_ui, "metadata"),
+         :ok <- validate_nested_map(ash_ui, "binding_metadata"),
+         :ok <- validate_nested_map(ash_ui, "runtime_annotations"),
+         :ok <- validate_nested_map(ash_ui, "compatibility"),
+         :ok <- validate_screen_payload(fetch(ash_ui, "screen")),
+         :ok <- validate_runtime_annotations(fetch(ash_ui, "runtime_annotations")),
+         :ok <- validate_compatibility(fetch(ash_ui, "compatibility")) do
+      :ok
+    end
+  end
+
+  defp validate_screen_payload(screen) do
+    cond do
+      not is_binary(screen["name"]) or screen["name"] == "" ->
+        {:error, "ash_ui.screen.name must be a non-empty string"}
+
+      not (is_nil(screen["route"]) or is_binary(screen["route"])) ->
+        {:error, "ash_ui.screen.route must be nil or a string"}
+
+      not (is_nil(screen["layout"]) or is_binary(screen["layout"])) ->
+        {:error, "ash_ui.screen.layout must be nil or a string"}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_runtime_annotations(runtime_annotations) do
+    with :ok <- validate_nested_map(runtime_annotations, "extension_points"),
+         :ok <- validate_nested_map(runtime_annotations, "construct_families") do
+      :ok
+    end
+  end
+
+  defp validate_compatibility(compatibility) do
+    case fetch(compatibility, "legacy_read_cutoff") do
+      value when is_binary(value) and value != "" -> :ok
+      _other -> {:error, "ash_ui.compatibility.legacy_read_cutoff must be a non-empty string"}
+    end
+  end
+
+  defp validate_legacy_document(document) do
+    with true <-
+           authoring_document?(document) or
+             {:error, "must declare the ash_ui unified_ui document format"},
+         :ok <- validate_nested_map(document, "authoring"),
+         :ok <- validate_nested_map(document, "ash_ui"),
+         :ok <- validate_legacy_authoring_payload(fetch(document, "authoring")),
+         :ok <- validate_legacy_ash_ui_payload(fetch(document, "ash_ui")) do
+      :ok
+    else
+      false -> {:error, "must declare the ash_ui unified_ui document format"}
+      error -> error
+    end
+  end
+
+  defp validate_legacy_authoring_payload(authoring) do
     required = [
       "module",
       "package",
@@ -129,22 +303,11 @@ defmodule AshUI.Authoring.Document do
     end
   end
 
-  defp validate_ash_ui_payload(ash_ui) do
+  defp validate_legacy_ash_ui_payload(ash_ui) do
     with :ok <- validate_nested_map(ash_ui, "screen"),
          :ok <- validate_nested_map(ash_ui, "metadata"),
          :ok <- validate_nested_map(ash_ui, "binding_metadata") do
-      screen = ash_ui["screen"]
-
-      cond do
-        not is_binary(screen["name"]) or screen["name"] == "" ->
-          {:error, "ash_ui.screen.name must be a non-empty string"}
-
-        not (is_nil(screen["route"]) or is_binary(screen["route"])) ->
-          {:error, "ash_ui.screen.route must be nil or a string"}
-
-        true ->
-          :ok
-      end
+      validate_screen_payload(fetch(ash_ui, "screen"))
     end
   end
 
@@ -154,6 +317,22 @@ defmodule AshUI.Authoring.Document do
       _other -> {:error, "#{key} must be a map"}
     end
   end
+
+  defp validate_required_map_keys(map, keys, path) do
+    case Enum.find(keys, &(not Map.has_key?(map, &1))) do
+      nil -> :ok
+      missing -> {:error, "#{path} is missing #{missing}"}
+    end
+  end
+
+  defp module_doc_error(field) do
+    "authoring.document.#{field} must be a JSON-safe #{field_type(field)}"
+  end
+
+  defp field_type("module_summary"), do: "map"
+  defp field_type("composition_summary"), do: "list"
+  defp field_type("compiler_summary"), do: "map"
+  defp field_type("compiler_listing"), do: "map"
 
   defp default_name(module_summary, module) do
     module_summary
@@ -225,17 +404,26 @@ defmodule AshUI.Authoring.Document do
         "version" -> Map.get(map, :version)
         "authoring" -> Map.get(map, :authoring)
         "ash_ui" -> Map.get(map, :ash_ui)
+        "source" -> Map.get(map, :source)
+        "package" -> Map.get(map, :package)
+        "document" -> Map.get(map, :document)
         "screen" -> Map.get(map, :screen)
         "metadata" -> Map.get(map, :metadata)
         "binding_metadata" -> Map.get(map, :binding_metadata)
+        "runtime_annotations" -> Map.get(map, :runtime_annotations)
+        "compatibility" -> Map.get(map, :compatibility)
+        "legacy_read_cutoff" -> Map.get(map, :legacy_read_cutoff)
+        "kind" -> Map.get(map, :kind)
         "module" -> Map.get(map, :module)
-        "package" -> Map.get(map, :package)
         "module_summary" -> Map.get(map, :module_summary)
         "composition_summary" -> Map.get(map, :composition_summary)
         "compiler_summary" -> Map.get(map, :compiler_summary)
         "compiler_listing" -> Map.get(map, :compiler_listing)
         "name" -> Map.get(map, :name)
         "route" -> Map.get(map, :route)
+        "layout" -> Map.get(map, :layout)
+        "extension_points" -> Map.get(map, :extension_points)
+        "construct_families" -> Map.get(map, :construct_families)
         _other -> nil
       end
   end

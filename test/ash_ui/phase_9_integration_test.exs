@@ -28,10 +28,11 @@ defmodule AshUI.Phase9IntegrationTest do
 
       assert Document.authoring_document?(screen.unified_dsl)
       assert get_in(screen.unified_dsl, ["ash_ui", "metadata", "seed"]) == "phase_9"
+      assert screen.unified_dsl["version"] == Document.version()
 
       composition_summary =
         screen.unified_dsl
-        |> get_in(["authoring", "composition_summary"])
+        |> get_in(["authoring", "document", "composition_summary"])
         |> flatten_nodes()
 
       assert Enum.any?(composition_summary, &(&1["kind"] == "hero"))
@@ -68,7 +69,7 @@ defmodule AshUI.Phase9IntegrationTest do
 
       composition_summary =
         attrs.unified_dsl
-        |> get_in(["authoring", "composition_summary"])
+        |> get_in(["authoring", "document", "composition_summary"])
         |> flatten_nodes()
 
       assert Enum.any?(composition_summary, fn node ->

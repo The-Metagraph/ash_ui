@@ -9,7 +9,7 @@ defmodule AshUI.Authoring do
   renderer integration layered around those authored definitions.
   """
 
-  alias AshUI.Authoring.{Document, Extensions, Screen}
+  alias AshUI.Authoring.{Document, Extensions, Migrator, Screen}
 
   @type module_area ::
           :dsl
@@ -104,6 +104,26 @@ defmodule AshUI.Authoring do
   @spec create_screen(module(), keyword()) :: {:ok, struct()} | {:error, term()}
   def create_screen(module, opts \\ []) do
     Screen.create(module, opts)
+  end
+
+  @doc """
+  Builds a Phase 10 persisted document from a legacy builder DSL payload.
+
+  This is an explicit migration helper, not a runtime compatibility path.
+  """
+  @spec migrate_legacy_dsl(map(), keyword()) :: {:ok, map()} | {:error, term()}
+  def migrate_legacy_dsl(dsl, opts \\ []) when is_map(dsl) and is_list(opts) do
+    Migrator.document(dsl, opts)
+  end
+
+  @doc """
+  Builds `Screen` attributes from a legacy builder DSL payload.
+
+  This is an explicit migration helper, not a runtime compatibility path.
+  """
+  @spec migrate_legacy_screen_attrs(map(), keyword()) :: {:ok, map()} | {:error, term()}
+  def migrate_legacy_screen_attrs(dsl, opts \\ []) when is_map(dsl) and is_list(opts) do
+    Migrator.screen_attrs(dsl, opts)
   end
 
   @doc """

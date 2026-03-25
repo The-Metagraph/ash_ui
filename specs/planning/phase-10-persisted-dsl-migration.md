@@ -14,65 +14,65 @@ Back to index: [README](./README.md)
 - existing screens and examples still contain builder-shaped documents today
 - migration safety matters more than preserving the builder as a public API
 
-[ ] 10 Phase 10 - Persisted DSL Migration
+[x] 10 Phase 10 - Persisted DSL Migration
   Migrate stored screen definitions from Ash UI-owned builder maps to serialized upstream `unified_ui` documents while keeping persisted screens readable and upgradable.
 
-  [ ] 10.1 Section - Stored Format Contract
+  [x] 10.1 Section - Stored Format Contract
     Define the durable serialized format that `Screen.unified_dsl` is allowed to hold.
 
-    [ ] 10.1.1 Task - Specify the persisted document boundary
+    [x] 10.1.1 Task - Specify the persisted document boundary
     Make the storage contract explicit before implementation work lands.
 
-      [ ] 10.1.1.1 Subtask - Define the serialized `unified_ui` document shape accepted by Ash UI
-      [ ] 10.1.1.2 Subtask - Define document versioning and compatibility metadata
-      [ ] 10.1.1.3 Subtask - Define where Ash-specific binding and runtime annotations are stored
-      [ ] 10.1.1.4 Subtask - Document the persisted contract in resource and screen specs
+      [x] 10.1.1.1 Subtask - Define the serialized `unified_ui` document shape accepted by Ash UI
+      [x] 10.1.1.2 Subtask - Define document versioning and migration metadata
+      [x] 10.1.1.3 Subtask - Define where Ash-specific binding and runtime annotations are stored
+      [x] 10.1.1.4 Subtask - Document the persisted contract in resource and screen specs
 
-    [ ] 10.1.2 Task - Align resource validations to the new contract
+    [x] 10.1.2 Task - Align resource validations to the new contract
     Make write-time validation match the upstream authoring model.
 
-      [ ] 10.1.2.1 Subtask - Replace builder-specific write validation with upstream document validation
-      [ ] 10.1.2.2 Subtask - Reject new writes that use unsupported builder-only structures
-      [ ] 10.1.2.3 Subtask - Translate upstream validation failures into Ash-friendly resource errors
-      [ ] 10.1.2.4 Subtask - Add coverage for invalid persisted document writes
+      [x] 10.1.2.1 Subtask - Replace builder-specific write validation with upstream document validation
+      [x] 10.1.2.2 Subtask - Reject new writes that use unsupported builder-only structures
+      [x] 10.1.2.3 Subtask - Translate upstream validation failures into Ash-friendly resource errors
+      [x] 10.1.2.4 Subtask - Add coverage for invalid persisted document writes
 
-  [ ] 10.2 Section - Legacy Screen Migration
-    Provide a safe path for existing screens to move to the new storage contract.
+  [x] 10.2 Section - Legacy Screen Migration
+    Provide a deterministic rewrite path for existing screens to move into the new storage contract without keeping the legacy storage shape alive at runtime.
 
-    [ ] 10.2.1 Task - Build the migration transformer
+    [x] 10.2.1 Task - Build the migration transformer
     Convert existing builder-shaped documents into serialized upstream documents.
 
-      [ ] 10.2.1.1 Subtask - Audit the current builder storage shape used in persisted screens
-      [ ] 10.2.1.2 Subtask - Implement a deterministic builder-map to `unified_ui` document transformer
-      [ ] 10.2.1.3 Subtask - Preserve binding, metadata, and version information during transformation
-      [ ] 10.2.1.4 Subtask - Add dry-run reporting for screens that cannot be migrated automatically
+      [x] 10.2.1.1 Subtask - Audit the current builder storage shape used in persisted screens
+      [x] 10.2.1.2 Subtask - Implement a deterministic builder-map to `unified_ui` document transformer
+      [x] 10.2.1.3 Subtask - Preserve binding, metadata, and version information during transformation
+      [x] 10.2.1.4 Subtask - Add dry-run reporting for screens that cannot be migrated automatically
 
-    [ ] 10.2.2 Task - Roll the migration through examples and shipped seeds
-    Ensure the repo no longer demonstrates the legacy authoring model.
+    [x] 10.2.2 Task - Roll the migration through examples and shipped seeds
+    Ensure the repo no longer ships or persists builder-shaped screen documents.
 
-      [ ] 10.2.2.1 Subtask - Migrate example screen seeds to the serialized upstream format
-      [ ] 10.2.2.2 Subtask - Migrate test fixtures and seeded screens used in integration coverage
-      [ ] 10.2.2.3 Subtask - Update example storage docs to describe the new persisted format
-      [ ] 10.2.2.4 Subtask - Verify no new builder-shaped documents are introduced in repo-owned seeds
+      [x] 10.2.2.1 Subtask - Migrate example screen seeds to the serialized upstream format
+      [x] 10.2.2.2 Subtask - Migrate test fixtures and seeded screens used in integration coverage
+      [x] 10.2.2.3 Subtask - Update example storage docs to describe the new persisted format
+      [x] 10.2.2.4 Subtask - Verify no new builder-shaped documents are introduced in repo-owned seeds
 
-  [ ] 10.3 Section - Read/Write Compatibility Window
-    Keep the system operable during migration without leaving the old format as a permanent API.
+  [x] 10.3 Section - Hard Cutover Enforcement
+    Keep migration explicit while making the current persisted document contract the only runtime-readable and runtime-writable format.
 
-    [ ] 10.3.1 Task - Define temporary compatibility rules
-    Control how long legacy documents remain readable.
+    [x] 10.3.1 Task - Enforce current-format runtime boundaries
+    Ensure migration happens through explicit rewrites instead of ambient compatibility.
 
-      [ ] 10.3.1.1 Subtask - Support reading legacy builder-shaped documents during the migration window
-      [ ] 10.3.1.2 Subtask - Support explicit rewrite or backfill paths for legacy screens
-      [ ] 10.3.1.3 Subtask - Block legacy-format writes once upstream authoring is available
-      [ ] 10.3.1.4 Subtask - Document the cutoff for removing legacy read compatibility
+      [x] 10.3.1.1 Subtask - Reject legacy builder-shaped documents at runtime read and compile boundaries
+      [x] 10.3.1.2 Subtask - Keep migration and backfill paths explicit through dedicated helper APIs only
+      [x] 10.3.1.3 Subtask - Block legacy-format writes now that the Phase 10 contract exists
+      [x] 10.3.1.4 Subtask - Remove spec and contract language that implies a compatibility window
 
-  [ ] 10.4 Section - Phase 10 Integration Tests
-    Validate that persisted screens survive the migration safely.
+  [x] 10.4 Section - Phase 10 Integration Tests
+    Validate that persisted screens survive migration safely under the hard-cutover contract.
 
-    [ ] 10.4.1 Task - Stored document migration scenarios
-    Verify new and old documents behave correctly through the migration window.
+    [x] 10.4.1 Task - Stored document migration scenarios
+    Verify new and migrated documents behave correctly while legacy raw payloads fail clearly.
 
-      [ ] 10.4.1.1 Subtask - Verify a new upstream-authored screen persists successfully
-      [ ] 10.4.1.2 Subtask - Verify a legacy builder-authored screen can be migrated
-      [ ] 10.4.1.3 Subtask - Verify unsupported legacy shapes are reported clearly
-      [ ] 10.4.1.4 Subtask - Verify migrated screens retain metadata, bindings, and versions
+      [x] 10.4.1.1 Subtask - Verify a new upstream-authored screen persists successfully
+      [x] 10.4.1.2 Subtask - Verify a legacy builder-authored screen can be migrated before persistence
+      [x] 10.4.1.3 Subtask - Verify unsupported legacy shapes are reported clearly without runtime fallback
+      [x] 10.4.1.4 Subtask - Verify migrated screens retain metadata, bindings, and versions

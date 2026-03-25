@@ -81,6 +81,7 @@ defmodule AshUI.DSLIntegrationTest do
   alias AshUI.Resources.Screen
   alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Test.ScreenDocumentFixtures
 
   describe "ui_screen DSL extension" do
     test "builds validated attributes at compile time" do
@@ -94,13 +95,17 @@ defmodule AshUI.DSLIntegrationTest do
     test "creates valid resource attributes" do
       # Screen resource should be properly configured
       attrs = %{
-        name: "dsl_screen_test",
-        unified_dsl: %{"type" => "screen", "root" => %{"type" => "row"}},
-        layout: :row,
-        route: "/dsl-test"
+        name: "dsl_screen_test"
       }
 
-      assert {:ok, screen} = AshUI.Data.create(Screen, attrs: attrs)
+      assert {:ok, screen} =
+               AshUI.Data.create(Screen,
+                 attrs:
+                   ScreenDocumentFixtures.resource_screen_attrs(attrs.name,
+                     layout: :row,
+                     route: "/dsl-test"
+                   )
+               )
       assert screen.layout == :row
       assert screen.route == "/dsl-test"
       assert is_map(screen.unified_dsl)
@@ -109,11 +114,16 @@ defmodule AshUI.DSLIntegrationTest do
     test "stores DSL options in resource attributes" do
       attrs = %{
         name: "dsl_metadata_test",
-        unified_dsl: %{"type" => "screen"},
         metadata: %{"custom" => "value", "priority" => 1}
       }
 
-      assert {:ok, screen} = AshUI.Data.create(Screen, attrs: attrs)
+      assert {:ok, screen} =
+               AshUI.Data.create(Screen,
+                 attrs:
+                   ScreenDocumentFixtures.resource_screen_attrs(attrs.name,
+                     metadata: attrs.metadata
+                   )
+               )
       assert screen.metadata == %{"custom" => "value", "priority" => 1}
     end
 
@@ -142,11 +152,7 @@ defmodule AshUI.DSLIntegrationTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "element_dsl_test",
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs: ScreenDocumentFixtures.resource_screen_attrs("element_dsl_test", layout: :row)
         )
 
       %{screen: screen}
@@ -232,11 +238,7 @@ defmodule AshUI.DSLIntegrationTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "binding_dsl_test",
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs: ScreenDocumentFixtures.resource_screen_attrs("binding_dsl_test", layout: :row)
         )
 
       {:ok, element} =
@@ -330,11 +332,10 @@ defmodule AshUI.DSLIntegrationTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "invalid_dsl_binding_test",
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs("invalid_dsl_binding_test",
+              layout: :row
+            )
         )
 
       {:ok, element} =

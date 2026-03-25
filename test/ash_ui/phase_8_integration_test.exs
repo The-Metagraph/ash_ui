@@ -4,6 +4,7 @@ defmodule AshUI.Phase8IntegrationTest do
   require Ash.Query
 
   alias AshUI.Authorization.Runtime
+  alias AshUI.Authoring.Migrator
   alias AshUI.Compiler
   alias AshUI.DSL.Builder
   alias AshUI.Data, as: Domain
@@ -318,21 +319,20 @@ defmodule AshUI.Phase8IntegrationTest do
     {:ok, screen} =
       Ash.create(
         Screen,
-        %{
+        Migrator.screen_attrs!(
+          Builder.column(
+            spacing: 12,
+            children: [
+              Builder.text("Phase 8 Screen", size: 18, weight: :bold),
+              Builder.button("Save", on_click: "save-profile")
+            ]
+          )
+          |> Builder.to_store(),
           name: Atom.to_string(name_atom),
           route: "/#{Atom.to_string(name_atom)}",
           layout: :column,
-          unified_dsl:
-            Builder.column(
-              spacing: 12,
-              children: [
-                Builder.text("Phase 8 Screen", size: 18, weight: :bold),
-                Builder.button("Save", on_click: "save-profile")
-              ]
-            )
-            |> Builder.to_store(),
           metadata: %{"title" => "Phase 8"}
-        },
+        ),
         domain: Domain
       )
 
@@ -346,14 +346,18 @@ defmodule AshUI.Phase8IntegrationTest do
       layout: :column,
       version: 1,
       unified_dsl:
-        Builder.column(
-          spacing: 8,
-          children: [
-            Builder.text("In-memory screen"),
-            Builder.button("Compile")
-          ]
-        )
-        |> Builder.to_store(),
+        Migrator.document!(
+          Builder.column(
+            spacing: 8,
+            children: [
+              Builder.text("In-memory screen"),
+              Builder.button("Compile")
+            ]
+          )
+          |> Builder.to_store(),
+          name: name,
+          layout: :column
+        ),
       metadata: %{}
     }
   end

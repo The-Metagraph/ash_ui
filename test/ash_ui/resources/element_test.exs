@@ -4,6 +4,7 @@ defmodule AshUI.Resources.ElementTest do
   alias AshUI.Resources.Screen
   alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
 
@@ -11,11 +12,8 @@ defmodule AshUI.Resources.ElementTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "element_test_screen",
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs("element_test_screen", layout: :row)
         )
 
       %{screen: screen}
@@ -112,11 +110,10 @@ defmodule AshUI.Resources.ElementTest do
     test "loads elements through screen relationship" do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs: %{
-            name: "association_test_screen",
-            unified_dsl: %{"type" => "screen"},
-            layout: :row
-          }
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs("association_test_screen",
+              layout: :row
+            )
         )
 
       # Create elements

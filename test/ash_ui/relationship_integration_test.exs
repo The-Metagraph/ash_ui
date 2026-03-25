@@ -4,6 +4,7 @@ defmodule AshUI.RelationshipIntegrationTest do
   alias AshUI.Resources.Screen
   alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
 
@@ -11,11 +12,9 @@ defmodule AshUI.RelationshipIntegrationTest do
     # Create a screen with multiple elements and bindings
     {:ok, screen} =
       AshUI.Data.create(Screen,
-        attrs: %{
-          name: "relationship_test_screen",
-          unified_dsl: %{"type" => "screen"},
+        attrs: ScreenDocumentFixtures.resource_screen_attrs("relationship_test_screen",
           layout: :column
-        }
+        )
       )
 
     # Create multiple elements

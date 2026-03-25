@@ -2,6 +2,7 @@ defmodule AshUI.Examples.BasicDashboardTest do
   use AshUI.DataCase, async: false
 
   alias AshUI.Compiler
+  alias AshUI.Authoring.Document
   alias AshUI.Rendering.IURAdapter
   alias BasicDashboard.Data
   alias BasicDashboard.Storage
@@ -23,6 +24,8 @@ defmodule AshUI.Examples.BasicDashboardTest do
 
     assert screen.name == "basic_dashboard"
     assert screen.__struct__ == BasicDashboard.Storage.Screen
+    assert Document.authoring_document?(screen.unified_dsl)
+    assert screen.unified_dsl["format"] == Document.format()
 
     assert {:ok, iur} = Compiler.compile(screen, ui_storage: Storage.config())
     assert {:ok, canonical_iur} = IURAdapter.to_canonical(iur)

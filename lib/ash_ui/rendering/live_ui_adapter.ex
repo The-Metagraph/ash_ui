@@ -593,7 +593,18 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp prop_class(iur), do: Map.get(iur["props"] || %{}, "class")
-  defp prop_style(iur), do: Map.get(iur["props"] || %{}, "style")
+
+  defp prop_style(iur) do
+    props = iur["props"] || %{}
+
+    Map.get(props, "inline_style") ||
+      case Map.get(props, "style") do
+        %{"extra" => %{"css" => css}} when is_binary(css) and css != "" -> css
+        %{extra: %{css: css}} when is_binary(css) and css != "" -> css
+        style when is_binary(style) -> style
+        _other -> nil
+      end
+  end
 
   defp css_classes(classes) do
     classes

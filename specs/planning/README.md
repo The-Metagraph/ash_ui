@@ -52,8 +52,12 @@ authoritative authoring boundary, persists authored modules through
 `AshUI.Authoring`, and explicitly reclassifies `AshUI.DSL.Builder` as a legacy
 migration path.
 
-The remaining remediation work now lives in Phases 10-12:
+Phase 10 is now complete: persisted `Screen.unified_dsl` writes use the Phase
+10 authoring document contract, repo-owned seeds and fixtures are migrated
+through explicit rewrite helpers, and raw builder-shaped payloads are no longer
+accepted at runtime.
 
-- migrate persisted builder-shaped documents to upstream authoring documents
+The remaining remediation work now lives in Phases 11-12:
+
 - delegate compilation to upstream `UnifiedUi.Compiler`
 - move public examples, tooling, and conformance fully off the builder-first path

@@ -4,6 +4,7 @@ defmodule BasicDashboard do
   """
 
   alias AshUI.Config
+  alias AshUI.Authoring.Migrator
   alias AshUI.DSL.Builder
   alias AshUI.Data
   alias BasicDashboard.Data, as: RuntimeData
@@ -23,13 +24,14 @@ defmodule BasicDashboard do
       Data.create(screen_resource,
         ui_storage: ui_storage,
         authorize?: false,
-        attrs: %{
-          name: @screen_name,
-          route: "/dashboard",
-          layout: :column,
-          unified_dsl: dashboard_dsl() |> Builder.to_store(),
-          metadata: %{"title" => @screen_title}
-        }
+        attrs:
+          Migrator.screen_attrs!(
+            dashboard_dsl() |> Builder.to_store(),
+            name: @screen_name,
+            route: "/dashboard",
+            layout: :column,
+            metadata: %{"title" => @screen_title}
+          )
       )
 
     screen

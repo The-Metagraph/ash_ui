@@ -8,6 +8,11 @@ Ash UI stores durable UI state as Ash resources. This contract covers the resour
 
 For screen authoring, the normative model is that `Screen.unified_dsl` stores a serialized `unified_ui` document owned by the upstream package. Ash UI owns persistence and runtime integration around that field, not the DSL grammar itself.
 
+Phase 10 defines the durable write format as an Ash UI wrapper with:
+- top-level document format and version metadata
+- an `authoring` payload owned by upstream `unified_ui`
+- an `ash_ui` payload for screen metadata, binding metadata, and migration/runtime annotations
+
 ## Control Plane
 
 **Owner**: `AshUI.Framework`
@@ -199,9 +204,29 @@ Binding record connecting runtime UI targets to Ash-side data or actions.
 
 See [spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md) for the current coverage baseline.
 
-## Gap Note
+## Persisted Document Boundary
 
-The current repository implementation still persists an Ash UI-owned builder map in `unified_dsl`. That is a known architectural gap and is being corrected by the remediation track opened from [ADR-0004](../adr/ADR-0004-unified-ui-dsl-authority.md).
+New writes MUST use the Phase 10 persisted document contract:
+
+```elixir
+%{
+  "format" => "ash_ui/unified_ui_document",
+  "version" => 2,
+  "authoring" => %{
+    "source" => %{"kind" => "unified_ui_module", "module" => "..."},
+    "package" => %{...},
+    "document" => %{...}
+  },
+  "ash_ui" => %{
+    "screen" => %{"name" => "...", "layout" => "...", "route" => "..."},
+    "metadata" => %{...},
+    "binding_metadata" => %{...},
+    "runtime_annotations" => %{...}
+  }
+}
+```
+
+Legacy builder-shaped documents are supported only as explicit migration inputs. They are not a readable or writable runtime contract.
 
 ## Related Specifications
 

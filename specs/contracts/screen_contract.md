@@ -8,6 +8,11 @@ Screens are the top-level durable UI records in Ash UI. They store `unified_dsl`
 
 Normatively, `unified_dsl` is the persisted serialized `unified_ui` screen definition owned by the upstream DSL package.
 
+Phase 10 makes that boundary explicit as a versioned persisted document with:
+- top-level `format` and `version`
+- an `authoring` payload owned by upstream `unified_ui`
+- an `ash_ui` payload for screen metadata, binding metadata, and temporary migration/runtime annotations
+
 ## Control Plane
 
 **Owner**: `AshUI.Runtime`
@@ -143,7 +148,7 @@ Screens MUST emit lifecycle telemetry.
 
 ## Implementation Note
 
-This repository currently persists screens as durable records with `unified_dsl`, but the current implementation still writes an Ash UI-owned builder map instead of serialized upstream `unified_ui` DSL. Screen lifecycle still runs through LiveView helpers and explicit `:mount` / `:unmount` resource actions while that authoring-layer refactor is pending.
+Phase 10 introduces the durable persisted authoring contract for screens. Legacy builder-shaped payloads must be rewritten through explicit migration helpers before they can be stored or compiled.
 
 ## Traceability
 

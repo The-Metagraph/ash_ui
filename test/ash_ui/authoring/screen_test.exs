@@ -21,10 +21,13 @@ defmodule AshUI.Authoring.ScreenTest do
       assert attrs.metadata["title"] == "Authored Support Screen"
       assert attrs.metadata["owner"] == "platform"
       assert Document.authoring_document?(attrs.unified_dsl)
+      assert attrs.unified_dsl["format"] == Document.format()
+      assert attrs.unified_dsl["version"] == Document.version()
+      assert get_in(attrs.unified_dsl, ["authoring", "source", "kind"]) == "unified_ui_module"
 
       composition_summary =
         attrs.unified_dsl
-        |> get_in(["authoring", "composition_summary"])
+        |> get_in(["authoring", "document", "composition_summary"])
         |> flatten_nodes()
 
       assert Enum.any?(composition_summary, &(&1["kind"] == "hero"))
@@ -53,6 +56,10 @@ defmodule AshUI.Authoring.ScreenTest do
       assert screen.metadata["seeded_by"] == "screen_test"
       assert Document.authoring_document?(screen.unified_dsl)
 
+      assert is_map(
+               get_in(screen.unified_dsl, ["ash_ui", "runtime_annotations", "extension_points"])
+             )
+
       assert {:ok, fetched} =
                Data.read_one(AshUI.Test.UIStorageScreen,
                  ui_storage: ui_storage,
@@ -72,14 +79,26 @@ defmodule AshUI.Authoring.ScreenTest do
 
     test "validates persisted authoring documents" do
       assert {:ok, attrs} = Screen.screen_attrs(AuthoredSupportScreen, route: "/authored")
-      assert :ok = Document.validate(attrs.unified_dsl)
+      assert :ok = Document.validate_write(attrs.unified_dsl)
 
       invalid =
         attrs.unified_dsl
         |> put_in(["ash_ui", "screen", "name"], "")
 
       assert {:error, "ash_ui.screen.name must be a non-empty string"} =
-               Document.validate(invalid)
+               Document.validate_write(invalid)
+    end
+
+    test "requires the Phase 10 persisted document contract for writes" do
+      legacy_v1_document = %{
+        "format" => "ash_ui/unified_ui_module",
+        "version" => 1,
+        "authoring" => %{},
+        "ash_ui" => %{}
+      }
+
+      assert {:error, "must declare the Phase 10 ash_ui unified_ui document format"} =
+               Document.validate_write(legacy_v1_document)
     end
   end
 
@@ -99,14 +118,14 @@ defmodule AshUI.Authoring.ScreenTest do
 
       composition_summary =
         attrs.unified_dsl
-        |> get_in(["authoring", "composition_summary"])
+        |> get_in(["authoring", "document", "composition_summary"])
         |> flatten_nodes()
 
       assert Enum.any?(composition_summary, fn node ->
                node["id"] == "banner_shell" and node["kind"] == "content"
              end)
 
-      compiler_summary = get_in(attrs.unified_dsl, ["authoring", "compiler_summary"])
+      compiler_summary = get_in(attrs.unified_dsl, ["authoring", "document", "compiler_summary"])
       top_level_children = Map.get(compiler_summary, "top_level_children", [])
 
       assert Enum.any?(top_level_children, fn child -> child["kind"] == "column" end)

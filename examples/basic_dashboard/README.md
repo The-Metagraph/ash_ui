@@ -9,9 +9,11 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 5. present the result with an Ash HQ-inspired dark theme, warm gradient accents, and live data cards
 6. optionally swap UI-definition storage to ETS-backed Ash resources
 
-Note: the current dashboard seed still uses `AshUI.DSL.Builder` as a legacy
-compatibility path. It remains runnable, but the preferred authoring direction
-for new apps is upstream `UnifiedUi.Dsl` persisted through `AshUI.Authoring`.
+Note: the dashboard layout is still assembled from `AshUI.DSL.Builder`
+primitives, but the persisted screen is now written through the Phase 10
+authoring migration path instead of storing the raw builder map directly.
+New apps should still prefer upstream `UnifiedUi.Dsl` modules persisted through
+`AshUI.Authoring.Screen`.
 
 ## Files
 
@@ -61,5 +63,6 @@ Adapter parity coverage currently exercises `liveview` and `elm` for the full
 dashboard screen. `desktop` is still considered work in progress, and
 `terminal_ui` is not yet present in this repo.
 
-`BasicDashboard.seed!/0` uses the configured Ash UI storage resources, so you
-can keep the same seed code while changing the backend.
+`BasicDashboard.seed!/0` migrates the builder-authored layout into the Phase 10
+persisted document contract before storing it, so you can keep the same seed
+code while changing the backend.

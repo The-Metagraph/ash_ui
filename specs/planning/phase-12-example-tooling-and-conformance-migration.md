@@ -17,24 +17,24 @@ Back to index: [README](./README.md)
 [ ] 12 Phase 12 - Example, Tooling, and Conformance Migration
   Move the public examples, tooling, docs, and governance checks to the upstream `unified_ui` authoring model and close the DSL authority gap.
 
-  [ ] 12.1 Section - Example Conversion
+  [x] 12.1 Section - Example Conversion
     Make shipped examples demonstrate the correct authoring surface.
 
-    [ ] 12.1.1 Task - Convert the dashboard example
+    [x] 12.1.1 Task - Convert the dashboard example
     Ensure the main example no longer demonstrates builder-first authoring.
 
-      [ ] 12.1.1.1 Subtask - Rewrite `basic_dashboard` screen authoring through upstream `unified_ui`
-      [ ] 12.1.1.2 Subtask - Preserve ETS-backed example data and storage flows
-      [ ] 12.1.1.3 Subtask - Preserve `liveview` and `elm` adapter parity coverage
-      [ ] 12.1.1.4 Subtask - Keep the standalone example app runnable from its own directory
+      [x] 12.1.1.1 Subtask - Rewrite `basic_dashboard` screen authoring through upstream `unified_ui`
+      [x] 12.1.1.2 Subtask - Preserve ETS-backed example data and storage flows
+      [x] 12.1.1.3 Subtask - Preserve `liveview` and `elm` adapter parity coverage
+      [x] 12.1.1.4 Subtask - Keep the standalone example app runnable from its own directory
 
-    [ ] 12.1.2 Task - Update example tooling
+    [x] 12.1.2 Task - Update example tooling
     Keep developer workflows aligned with the new authoring model.
 
-      [ ] 12.1.2.1 Subtask - Update the dashboard adapter runner for upstream-authored screens
-      [ ] 12.1.2.2 Subtask - Update mix tasks and example output summaries
-      [ ] 12.1.2.3 Subtask - Update examples/README command docs
-      [ ] 12.1.2.4 Subtask - Add regression tests covering example CLI flows
+      [x] 12.1.2.1 Subtask - Update the dashboard adapter runner for upstream-authored screens
+      [x] 12.1.2.2 Subtask - Update mix tasks and example output summaries
+      [x] 12.1.2.3 Subtask - Update examples/README command docs
+      [x] 12.1.2.4 Subtask - Add regression tests covering example CLI flows
 
   [ ] 12.2 Section - Guide And API Migration
     Remove public guidance that points users toward the legacy builder path.

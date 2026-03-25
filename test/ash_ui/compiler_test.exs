@@ -6,8 +6,6 @@ defmodule AshUI.CompilerTest do
   alias AshUI.Compilation.IUR
   alias AshUI.DSL.Builder
   alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
-  alias AshUI.Resources.Binding
   alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
@@ -19,48 +17,27 @@ defmodule AshUI.CompilerTest do
           attrs:
             ScreenDocumentFixtures.resource_screen_attrs("compiler_test_screen",
               layout: :row,
-              route: "/compiler-test"
+              route: "/compiler-test",
+              binding_metadata: %{
+                "display_name_input" => %{
+                  "source" => %{
+                    "resource" => "AshUI.Test.User",
+                    "field" => "name",
+                    "id" => "user-1"
+                  },
+                  "binding_type" => :value,
+                  "target" => "display_name",
+                  "element_id" => "display_name_input"
+                }
+              }
             )
         )
 
-      # Create test elements
-      {:ok, element1} =
-        AshUI.Data.create(Element,
-          attrs: %{
-            type: :text,
-            props: %{"content" => "Hello"},
-            screen_id: screen.id,
-            position: 1
-          }
-        )
-
-      {:ok, element2} =
-        AshUI.Data.create(Element,
-          attrs: %{
-            type: :button,
-            props: %{"label" => "Click me"},
-            screen_id: screen.id,
-            position: 2
-          }
-        )
-
-      # Create test binding
-      {:ok, _binding} =
-        AshUI.Data.create(Binding,
-          attrs: %{
-            source: %{"resource" => "Test", "field" => "value"},
-            target: "test_target",
-            binding_type: :value,
-            element_id: element1.id,
-            screen_id: screen.id
-          }
-        )
-
-      %{screen: screen, elements: [element1, element2]}
+      %{screen: screen}
     end
 
     test "compiles screen resource to valid IUR structure", %{screen: screen} do
-      assert {:ok, %IUR{} = iur} = Compiler.compile(screen, compile_mode: :resources)
+      assert {:ok, %IUR{} = iur} = Compiler.compile(screen)
 
       assert iur.type == :screen
       assert iur.name == "compiler_test_screen"
@@ -69,64 +46,38 @@ defmodule AshUI.CompilerTest do
       assert iur.attributes["route"] == "/compiler-test"
     end
 
-    test "compiles elements as IUR children", %{screen: screen} do
-      assert {:ok, %IUR{} = iur} = Compiler.compile(screen, compile_mode: :resources)
+    test "compiles authored upstream widgets as IUR children", %{screen: screen} do
+      assert {:ok, %IUR{} = iur} = Compiler.compile(screen)
 
-      assert length(iur.children) == 2
+      assert length(iur.children) == 1
 
-      # First element is text
-      [child1, child2] = iur.children
-      assert child1.type == :text
-      assert child1.props["content"] == "Hello"
+      assert %IUR{type: :column} = shell = hd(iur.children)
+      assert %IUR{type: :hero} = find_iur_node(shell, :hero)
+      assert %IUR{type: :stat} = find_iur_node(shell, :stat)
+      assert %IUR{type: :key_value} = find_iur_node(shell, :key_value)
+      assert %IUR{type: :info_list} = find_iur_node(shell, :info_list)
+      assert %IUR{type: :form_field} = find_iur_node(shell, :form_field)
+      assert %IUR{type: :textinput} = find_iur_node(shell, :textinput)
 
-      # Second element is button
-      assert child2.type == :button
-      assert child2.props["label"] == "Click me"
+      assert find_iur_node(shell, :hero).props["title"] == "Authored through UnifiedUi"
     end
 
-    test "compiles bindings as IUR bindings", %{screen: screen} do
-      assert {:ok, %IUR{} = iur} = Compiler.compile(screen, compile_mode: :resources)
+    test "compiles persisted binding metadata as IUR bindings", %{screen: screen} do
+      assert {:ok, %IUR{} = iur} = Compiler.compile(screen)
 
       assert length(iur.bindings) > 0
 
       binding = hd(iur.bindings)
       assert is_map(binding)
-      assert binding["source"]["resource"] == "Test"
-      assert binding["target"] == "test_target"
+      assert binding["source"]["resource"] == "AshUI.Test.User"
+      assert binding["target"] == "display_name"
       assert binding["binding_type"] == :value
+      assert binding["element_id"] == "display_name_input"
     end
 
     test "validates IUR after compilation", %{screen: screen} do
-      assert {:ok, %IUR{} = iur} = Compiler.compile(screen, compile_mode: :resources)
+      assert {:ok, %IUR{} = iur} = Compiler.compile(screen)
       assert :ok = IUR.validate(iur)
-    end
-  end
-
-  describe "compile/2 with options" do
-    setup do
-      {:ok, screen} =
-        AshUI.Data.create(Screen,
-          attrs:
-            ScreenDocumentFixtures.resource_screen_attrs("options_test_screen",
-              layout: :column
-            )
-        )
-
-      %{screen: screen}
-    end
-
-    test "load_elements: false skips loading elements", %{screen: screen} do
-      assert {:ok, %IUR{} = iur} =
-               Compiler.compile(screen, compile_mode: :resources, load_elements: false)
-
-      assert iur.children == []
-    end
-
-    test "load_bindings: false skips loading bindings", %{screen: screen} do
-      assert {:ok, %IUR{} = iur} =
-               Compiler.compile(screen, compile_mode: :resources, load_bindings: false)
-
-      assert iur.bindings == []
     end
   end
 
@@ -301,4 +252,12 @@ defmodule AshUI.CompilerTest do
       assert map_size(results) == 2
     end
   end
+
+  defp find_iur_node(%IUR{type: type} = node, type), do: node
+
+  defp find_iur_node(%IUR{children: children}, type) when is_list(children) do
+    Enum.find_value(children, &find_iur_node(&1, type))
+  end
+
+  defp find_iur_node(_node, _type), do: nil
 end

@@ -66,13 +66,13 @@ Back to index: [README](./README.md)
       [X] 11.3.1.3 Subtask - Verify semantic widgets survive compile and render paths intact
       [X] 11.3.1.4 Subtask - Document any remaining Ash UI runtime annotations on canonical output
 
-  [ ] 11.4 Section - Phase 11 Integration Tests
+  [X] 11.4 Section - Phase 11 Integration Tests
     Validate delegated compilation end to end.
 
-    [ ] 11.4.1 Task - Compiler delegation scenarios
+    [X] 11.4.1 Task - Compiler delegation scenarios
     Verify screens compile and render correctly through the upstream compiler path.
 
-      [ ] 11.4.1.1 Subtask - Verify an upstream-authored screen compiles through `AshUI.Compiler`
-      [ ] 11.4.1.2 Subtask - Verify live bindings hydrate correctly after upstream compilation
-      [ ] 11.4.1.3 Subtask - Verify canonical renderer output is unchanged for equivalent screens
-      [ ] 11.4.1.4 Subtask - Verify cache and incremental recompilation still behave correctly
+      [X] 11.4.1.1 Subtask - Verify an upstream-authored screen compiles through `AshUI.Compiler`
+      [X] 11.4.1.2 Subtask - Verify live bindings hydrate correctly after upstream compilation
+      [X] 11.4.1.3 Subtask - Verify canonical renderer output is unchanged for equivalent screens
+      [X] 11.4.1.4 Subtask - Verify cache and incremental recompilation still behave correctly

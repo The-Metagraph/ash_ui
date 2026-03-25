@@ -137,9 +137,11 @@ defmodule AshUI.LiveView.IntegrationTest do
 
   describe "compile_screen/1" do
     test "compiles screen to IUR successfully" do
-      screen = build_screen()
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs: ScreenDocumentFixtures.resource_screen_attrs("compile_screen_fixture")
+        )
 
-      # Note: Would need to mock Compiler and IURAdapter
       assert {:ok, iur} = Integration.compile_screen(screen)
       assert is_map(iur)
     end

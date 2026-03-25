@@ -18,14 +18,11 @@ defmodule AshUI.Compiler do
 
   @type compile_result :: {:ok, IUR.t()} | {:error, term()}
   @type screen_record :: struct()
-  @type compile_mode :: :authoring | :resources
 
   @doc """
   Compiles a screen resource to an IUR structure.
 
   ## Options
-    * `:load_elements` - Whether to load associated elements (default: true)
-    * `load_bindings` - Whether to load associated bindings (default: true)
     * `use_cache` - Whether to use compilation cache (default: true)
     * `:actor` - Actor for authorization
     * `:tenant` - Tenant for multi-tenancy
@@ -205,10 +202,6 @@ defmodule AshUI.Compiler do
 
   defp do_compile_screen(screen, opts) when is_map(screen) do
     use_cache = Keyword.get(opts, :use_cache, true)
-    load_elements? = Keyword.get(opts, :load_elements, true)
-    load_bindings? = Keyword.get(opts, :load_bindings, true)
-    compile_mode = Keyword.get(opts, :compile_mode, :authoring)
-
     cache_key = build_cache_key(screen)
 
     case maybe_get_cached(cache_key, use_cache) do
@@ -219,22 +212,8 @@ defmodule AshUI.Compiler do
         if use_cache do
           compile_and_cache(screen, cache_key, opts)
         else
-          compile_screen_uncached(screen, compile_mode, load_elements?, load_bindings?, opts)
+          compile_from_unified_dsl(screen, opts)
         end
-    end
-  end
-
-  defp compile_screen_uncached(screen, :resources, load_elements?, load_bindings?, opts)
-       when is_map(screen) do
-    compile_from_resources(screen, load_elements?, load_bindings?, opts)
-  end
-
-  defp compile_screen_uncached(screen, _compile_mode, load_elements?, load_bindings?, opts)
-       when is_map(screen) do
-    if should_compile_from_unified_dsl?(screen) do
-      compile_from_unified_dsl(screen, opts)
-    else
-      compile_from_resources(screen, load_elements?, load_bindings?, opts)
     end
   end
 
@@ -248,50 +227,6 @@ defmodule AshUI.Compiler do
     case Ash.get(screen_resource, screen_id, actor: actor, tenant: tenant, domain: domain) do
       {:ok, screen} -> {:ok, screen}
       {:error, reason} -> {:error, {:screen_not_found, reason}}
-    end
-  end
-
-  defp compile_from_resources(screen, load_elements?, load_bindings?, opts) when is_map(screen) do
-    # Build root IUR from screen
-    root_iur =
-      IUR.new(:screen,
-        id: screen.id,
-        name: screen.name,
-        attributes: %{
-          "layout" => screen.layout,
-          "route" => screen.route,
-          "unified_dsl" => screen.unified_dsl
-        },
-        metadata: screen.metadata,
-        version: "v#{screen.version}"
-      )
-
-    # Load and compile children elements
-    root_iur =
-      if load_elements? do
-        case load_elements(screen, opts) do
-          {:ok, elements} -> compile_elements(root_iur, elements)
-          {:error, _} -> root_iur
-        end
-      else
-        root_iur
-      end
-
-    # Load and compile bindings
-    root_iur =
-      if load_bindings? do
-        case load_bindings(screen, opts) do
-          {:ok, bindings} -> compile_bindings(root_iur, bindings)
-          {:error, _} -> root_iur
-        end
-      else
-        root_iur
-      end
-
-    # Validate the compiled IUR
-    case IUR.validate(root_iur) do
-      :ok -> {:ok, root_iur}
-      error -> error
     end
   end
 
@@ -435,11 +370,13 @@ defmodule AshUI.Compiler do
   defp compile_to_ash_iur(screen, %UnifiedUi.Compiler.Result{} = compiled, document)
        when is_map(screen) do
     snapshot = compiled.iur |> UnifiedIUR.Reference.snapshot() |> normalize_snapshot()
+    authored_ids = authored_snapshot_ids(compiled)
 
     children =
       snapshot
       |> Map.get("children", [])
-      |> Enum.map(&compile_snapshot_child/1)
+      |> Enum.with_index()
+      |> Enum.map(fn {child, index} -> compile_snapshot_child(child, [index], authored_ids) end)
       |> Enum.reject(&is_nil/1)
 
     root_iur =
@@ -458,88 +395,6 @@ defmodule AshUI.Compiler do
       )
 
     {:ok, root_iur}
-  end
-
-  # Load elements associated with a screen
-  defp load_elements(screen, opts) when is_map(screen) do
-    screen_id = screen.id
-    ui_storage = Keyword.get(opts, :ui_storage)
-    domain = Config.ui_storage_domain(ui_storage)
-    element_resource = Config.element_resource(ui_storage)
-
-    elements =
-      element_resource
-      |> Ash.Query.new()
-      |> Ash.Query.filter(screen_id == ^screen_id)
-      |> Ash.Query.sort(position: :asc)
-      |> Ash.read!(domain: domain)
-
-    {:ok, elements}
-  rescue
-    error -> {:error, error}
-  end
-
-  # Load bindings associated with a screen
-  defp load_bindings(screen, opts) when is_map(screen) do
-    screen_id = screen.id
-    ui_storage = Keyword.get(opts, :ui_storage)
-    domain = Config.ui_storage_domain(ui_storage)
-    binding_resource = Config.binding_resource(ui_storage)
-
-    bindings =
-      binding_resource
-      |> Ash.Query.new()
-      |> Ash.Query.filter(screen_id == ^screen_id)
-      |> Ash.read!(domain: domain)
-
-    {:ok, bindings}
-  rescue
-    error -> {:error, error}
-  end
-
-  # Compile elements into IUR children
-  defp compile_elements(root_iur, elements) do
-    compiled_children =
-      Enum.map(elements, fn element ->
-        compile_element(element)
-      end)
-
-    %{root_iur | children: compiled_children}
-  end
-
-  # Compile a single element to IUR
-  defp compile_element(element) when is_map(element) do
-    IUR.new(element.type,
-      id: element.id,
-      name: element.props["name"] || "element_#{element.id}",
-      attributes: Map.put(element.props, "position", element.position),
-      metadata: element.metadata,
-      version: "v#{element.version || 1}"
-    )
-  end
-
-  # Compile bindings into IUR bindings
-  defp compile_bindings(root_iur, bindings) do
-    compiled_bindings =
-      Enum.map(bindings, fn binding ->
-        compile_binding(binding)
-      end)
-
-    %{root_iur | bindings: compiled_bindings}
-  end
-
-  # Compile a single binding to IUR format
-  defp compile_binding(binding) when is_map(binding) do
-    %{
-      "id" => binding.id,
-      "source" => binding.source,
-      "target" => binding.target,
-      "binding_type" => binding.binding_type,
-      "transform" => binding.transform,
-      "element_id" => binding.element_id,
-      "screen_id" => binding.screen_id,
-      "metadata" => binding.metadata
-    }
   end
 
   # Cache statistics helpers
@@ -597,37 +452,36 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp should_compile_from_unified_dsl?(%{unified_dsl: dsl}) when is_map(dsl) do
-    match?({:ok, _module}, Document.source_module(dsl))
-  end
-
-  defp should_compile_from_unified_dsl?(_screen), do: false
-
   defp screen_resource?(%{__struct__: module}, opts) do
     module == Config.screen_resource(Keyword.get(opts, :ui_storage))
   end
 
   defp screen_resource?(_screen, _opts), do: false
 
-  defp compile_snapshot_child(%{"element" => nil}), do: nil
+  defp compile_snapshot_child(%{"element" => nil}, _path, _authored_ids), do: nil
 
-  defp compile_snapshot_child(%{"slot" => slot, "element" => element}) when is_map(element) do
-    compiled = compile_snapshot_element(element)
+  defp compile_snapshot_child(%{"slot" => slot, "element" => element}, path, authored_ids)
+       when is_map(element) do
+    compiled = compile_snapshot_element(element, path, authored_ids)
     %{compiled | metadata: Map.put(compiled.metadata, "slot", slot)}
   end
 
-  defp compile_snapshot_element(%{"kind" => kind} = element) do
+  defp compile_snapshot_element(%{"kind" => kind} = element, path, authored_ids) do
     props = translate_upstream_props(kind, Map.get(element, "attributes", %{}))
+    id = runtime_element_id(element, kind, path, authored_ids)
 
     IUR.new(kind_to_iur_type(kind),
-      id: runtime_identifier(Map.get(element, "id")),
-      name: runtime_name(kind, element),
+      id: id,
+      name: runtime_name(kind, element, id),
       attributes: props,
       props: props,
       children:
         element
         |> Map.get("children", [])
-        |> Enum.map(&compile_snapshot_child/1)
+        |> Enum.with_index()
+        |> Enum.map(fn {child, index} ->
+          compile_snapshot_child(child, path ++ [index], authored_ids)
+        end)
         |> Enum.reject(&is_nil/1),
       metadata: normalize_metadata(Map.get(element, "metadata", %{}))
     )
@@ -887,8 +741,52 @@ defmodule AshUI.Compiler do
   defp runtime_identifier(id) when is_atom(id), do: Atom.to_string(id)
   defp runtime_identifier(id), do: to_string(id)
 
-  defp runtime_name(kind, element) do
-    runtime_identifier(Map.get(element, "id")) || "#{kind}_node"
+  defp runtime_name(kind, element, id) do
+    runtime_identifier(Map.get(element, "name")) ||
+      runtime_identifier(Map.get(element, "id")) ||
+      id ||
+      "#{kind}_node"
+  end
+
+  defp authored_snapshot_ids(%UnifiedUi.Compiler.Result{trace: trace}) do
+    trace
+    |> Map.get(:authored_ids, [])
+    |> Enum.map(&runtime_identifier/1)
+    |> MapSet.new()
+  end
+
+  defp runtime_element_id(element, kind, path, authored_ids) do
+    element_id = runtime_identifier(Map.get(element, "id"))
+
+    cond do
+      authored_id?(element_id, authored_ids) ->
+        element_id
+
+      generated_runtime_id?(element_id) ->
+        derived_runtime_id(kind, path)
+
+      is_binary(element_id) and element_id != "" ->
+        element_id
+
+      true ->
+        derived_runtime_id(kind, path)
+    end
+  end
+
+  defp authored_id?(nil, _authored_ids), do: false
+  defp authored_id?(id, authored_ids), do: MapSet.member?(authored_ids, id)
+
+  # Upstream anonymous nodes currently arrive with UUID-like ids. Replace those
+  # with stable path-derived runtime ids so cache hits and uncached compiles
+  # render identically for equivalent authored documents.
+  defp generated_runtime_id?(id) when is_binary(id) do
+    String.match?(id, ~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i)
+  end
+
+  defp generated_runtime_id?(_id), do: false
+
+  defp derived_runtime_id(kind, path) do
+    "generated_#{kind}_#{Enum.join(path, "_")}"
   end
 
   defp snapshot_title(snapshot) do

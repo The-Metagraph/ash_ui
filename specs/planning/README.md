@@ -57,7 +57,11 @@ Phase 10 is now complete: persisted `Screen.unified_dsl` writes use the Phase
 through explicit rewrite helpers, and raw builder-shaped payloads are no longer
 accepted at runtime.
 
-The remaining remediation work now lives in Phases 11-12:
+Phase 11 is now complete: `AshUI.Compiler` delegates authored compilation to
+upstream `UnifiedUi.Compiler`, preserves stable runtime hydration and cache
+behavior, and keeps canonical renderer output stable across cached and uncached
+compilation paths.
 
-- delegate compilation to upstream `UnifiedUi.Compiler`
+The remaining remediation work now lives in Phase 12:
+
 - move public examples, tooling, and conformance fully off the builder-first path

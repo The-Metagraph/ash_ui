@@ -37,7 +37,7 @@ flowchart LR
         Screen["Configured screen resource"]
         Element["Configured element resource"]
         Binding["Configured binding resource"]
-        Builder["AshUI.DSL.Builder"]
+        Authoring["AshUI.Authoring.Screen"]
     end
 
     subgraph Compilation["Compilation plane"]
@@ -66,7 +66,7 @@ flowchart LR
     Domain --> Screen
     Domain --> Element
     Domain --> Binding
-    Builder --> Screen
+    Authoring --> Screen
     Screen --> Compiler
     Element --> Compiler
     Binding --> Compiler
@@ -107,13 +107,14 @@ Primary modules:
 - configured screen resource
 - configured element resource
 - configured binding resource
-- `AshUI.DSL.Builder`
+- `AshUI.Authoring.Screen`
 - `AshUI.DSL.Storage`
 
 Important details:
 
 - the default shipped storage backend is Postgres through `AshUI.Domain` and `AshUI.Repo`
 - the framework resolves storage modules through configuration
+- upstream `UnifiedUi.Dsl` is the authoritative authored DSL surface
 - `Screen` stores `name`, `route`, `layout`, `unified_dsl`, and metadata.
 - `Element` and `Binding` provide relational structure for querying and runtime behavior.
 - updates increment `version`, which feeds cache and rollout safety checks.

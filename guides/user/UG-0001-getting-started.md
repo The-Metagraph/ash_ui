@@ -78,37 +78,49 @@ Ash UI ships the core resources for you:
 - `AshUI.Resources.Element`
 - `AshUI.Resources.Binding`
 
-For a simple screen, the lowest-friction path is to create a `Screen` record with a `unified_dsl` map built by `AshUI.DSL.Builder`.
+For a simple screen, the supported path is to author a `UnifiedUi.Dsl` module
+and persist it through `AshUI.Authoring.Screen`.
 
 The default shipped setup uses `AshUI.Domain` with Postgres-backed resources, but the UI storage domain and resource modules are configurable if your app wants ETS-backed or other Ash-compatible storage.
 
 ```elixir
-alias AshUI.DSL.Builder
-alias AshUI.Data, as: Domain
-alias AshUI.Resources.Screen
+defmodule MyApp.UI.Dashboard do
+  use UnifiedUi.Dsl
 
-dashboard_dsl =
-  Builder.column(
-    spacing: 16,
-    children: [
-      Builder.text("Team dashboard", size: 24, weight: :bold),
-      Builder.text("Everything below is compiled from stored Ash data."),
-      Builder.button("Refresh", on_click: "refresh-dashboard")
-    ]
-  )
-  |> Builder.to_store()
+  identity do
+    id(:dashboard)
+    title("Team dashboard")
+    authored_ref([:my_app, :ui, :dashboard])
+  end
+
+  composition do
+    root(:dashboard_root)
+    mode(:screen)
+
+    column :dashboard_shell do
+      hero :dashboard_hero do
+        title("Team dashboard")
+        message("Everything below is authored upstream and stored as Ash data.")
+      end
+
+      button :refresh_button do
+        label("Refresh")
+      end
+    end
+  end
+end
 
 {:ok, screen} =
-  Domain.create(Screen,
-    attrs: %{
-      name: "dashboard",
-      route: "/dashboard",
-      layout: :column,
-      unified_dsl: dashboard_dsl,
-      metadata: %{"title" => "Dashboard"}
-    }
+  AshUI.Authoring.create_screen(MyApp.UI.Dashboard,
+    route: "/dashboard",
+    layout: :column,
+    metadata: %{"title" => "Dashboard"},
+    binding_metadata: %{"refresh_button" => %{"intent" => "refresh-dashboard"}}
   )
 ```
+
+`AshUI.Authoring.Screen.screen_attrs/2` is useful when you want to inspect the
+stored document before persisting it or merge in app-specific attributes.
 
 ## Mount the Screen in LiveView
 

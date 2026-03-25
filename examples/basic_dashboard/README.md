@@ -9,6 +9,10 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 5. present the result with an Ash HQ-inspired dark theme, warm gradient accents, and live data cards
 6. optionally swap UI-definition storage to ETS-backed Ash resources
 
+Note: the current dashboard seed still uses `AshUI.DSL.Builder` as a legacy
+compatibility path. It remains runnable, but the preferred authoring direction
+for new apps is upstream `UnifiedUi.Dsl` persisted through `AshUI.Authoring`.
+
 ## Files
 
 - `lib/basic_dashboard.ex`: seed helpers that create the screen, elements, and bindings

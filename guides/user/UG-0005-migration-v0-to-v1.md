@@ -50,27 +50,38 @@ The biggest changes are:
 If you previously modeled screens as custom resources in your app, migrate the useful parts into `AshUI.Resources.Screen` rows.
 
 ```elixir
-alias AshUI.DSL.Builder
-alias AshUI.Data, as: Domain
-alias AshUI.Resources.Screen
+defmodule MyApp.UI.Dashboard do
+  use UnifiedUi.Dsl
+
+  identity do
+    id(:dashboard)
+    title("Dashboard")
+    authored_ref([:my_app, :ui, :dashboard])
+  end
+
+  composition do
+    root(:dashboard_root)
+    mode(:screen)
+
+    column :dashboard_shell do
+      hero :dashboard_hero do
+        title("Dashboard")
+        message("Migrated onto the upstream authored DSL.")
+      end
+    end
+  end
+end
 
 {:ok, _screen} =
-  Domain.create(Screen,
-    attrs: %{
-      name: "dashboard",
-      route: "/dashboard",
-      layout: :column,
-      unified_dsl:
-        Builder.column(
-          children: [
-            Builder.text("Dashboard"),
-            Builder.button("Refresh", on_click: "refresh-dashboard")
-          ]
-        )
-        |> Builder.to_store()
-    }
+  AshUI.Authoring.create_screen(MyApp.UI.Dashboard,
+    route: "/dashboard",
+    layout: :column
   )
 ```
+
+If you must keep an existing builder-authored payload during rollout,
+`AshUI.DSL.Builder` is still available as a migration-only compatibility layer.
+It now emits a dedicated legacy-builder warning/telemetry signal when used.
 
 ## Step 2: Normalize Binding Sources
 
@@ -136,7 +147,8 @@ mix test test/ash_ui/authorization/runtime_test.exs
 
 - move screen definitions into `AshUI.Resources.Screen`
 - convert binding sources to maps
-- use `AshUI.DSL.Builder` for stored `unified_dsl`
+- persist new screen definitions through `AshUI.Authoring.Screen`
+- use `AshUI.DSL.Builder` only when migrating existing builder-authored payloads
 - mount via `AshUI.LiveView.Integration`
 - verify `:current_user` is assigned
 - confirm telemetry and authorization behavior in the target environment

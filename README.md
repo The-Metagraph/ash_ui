@@ -6,7 +6,8 @@ Ash UI is a resource-backed UI framework for Elixir built on Ash. It stores scre
 
 - default shipped `Screen`, `Element`, and `Binding` resources in `AshUI.Domain`
 - configurable UI storage domain/resource boundary with optional repo startup
-- `unified_dsl` storage and builder helpers through `AshUI.DSL.Builder`
+- required upstream `unified_ui` authoring surface through `AshUI.Authoring`
+- `unified_dsl` persistence on screen resources
 - compilation to `AshUI.Compilation.IUR` through `AshUI.Compiler`
 - canonical conversion through `AshUI.Rendering.IURAdapter`
 - LiveView mount, event, and update integration helpers
@@ -49,28 +50,47 @@ defp deps do
 end
 ```
 
-Create a screen record:
+Ash UI now treats upstream `UnifiedUi` as the authoritative authored DSL and
+compiler surface. The dependency is required as part of the library contract,
+and missing `unified_ui` should be treated as a configuration error rather than
+an optional degraded mode.
+
+Create a screen module through upstream `UnifiedUi.Dsl`, then persist it through
+Ash UI:
 
 ```elixir
-alias AshUI.DSL.Builder
-alias AshUI.Data, as: Domain
-alias AshUI.Resources.Screen
+defmodule MyApp.UI.Dashboard do
+  use UnifiedUi.Dsl
+
+  identity do
+    id(:dashboard)
+    title("Dashboard")
+    authored_ref([:my_app, :ui, :dashboard])
+  end
+
+  composition do
+    root(:dashboard_root)
+    mode(:screen)
+
+    column :dashboard_shell do
+      hero :dashboard_hero do
+        title("Dashboard")
+        message("Persisted from the authoritative UnifiedUi DSL.")
+      end
+
+      button :refresh_button do
+        label("Refresh")
+      end
+    end
+  end
+end
 
 {:ok, _screen} =
-  Domain.create(Screen,
-    attrs: %{
-      name: "dashboard",
-      route: "/dashboard",
-      layout: :column,
-      unified_dsl:
-        Builder.column(
-          children: [
-            Builder.text("Dashboard", size: 24, weight: :bold),
-            Builder.button("Refresh", on_click: "refresh-dashboard")
-          ]
-        )
-        |> Builder.to_store()
-    }
+  AshUI.Authoring.create_screen(MyApp.UI.Dashboard,
+    route: "/dashboard",
+    layout: :column,
+    metadata: %{"owner" => "platform"},
+    binding_metadata: %{"refresh_button" => %{"intent" => "refresh-dashboard"}}
   )
 ```
 
@@ -95,7 +115,7 @@ end
 
 Ash UI owns the compiler, runtime, and adapter boundary. Architecturally, the unified ecosystem renderer set is now `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui`.
 
-The repository vendors minimal `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui` packages under `packages/`. `unified_iur` is a required dependency because it defines the canonical schema boundary Ash UI produces and validates. The renderer packages remain optional path dependencies, and adapter fallbacks still exist for degraded environments.
+The repository vendors minimal `unified_ui`, `unified_iur`, `live_ui`, `elm_ui`, and `desktop_ui` packages under `packages/`. `unified_ui` is required because it owns the authored DSL and authoring compiler surface. `unified_iur` is required because it defines the canonical schema boundary Ash UI produces and validates. The renderer packages remain optional path dependencies, and adapter fallbacks still exist for degraded environments.
 
 ## Documentation
 

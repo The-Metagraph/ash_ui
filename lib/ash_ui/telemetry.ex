@@ -39,6 +39,12 @@ defmodule AshUI.Telemetry do
 
   @event_definitions [
     %{
+      event_name: [:ash_ui, :authoring, :legacy_builder],
+      description: "Legacy builder authoring path exercised",
+      measurements: [:count, :system_time],
+      metadata: @common_metadata ++ [:source, :authoring_mode]
+    },
+    %{
       event_name: [:ash_ui, :screen, :mount],
       description: "Screen mount completed",
       measurements: [:count, :duration, :system_time],

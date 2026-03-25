@@ -55,16 +55,16 @@ Back to index: [README](./README.md)
       [X] 9.2.2.3 Subtask - Define the Ash UI compatibility layer for Ash-specific metadata only
       [X] 9.2.2.4 Subtask - Add tests showing custom widgets flow through the upstream authoring pipeline
 
-  [ ] 9.3 Section - Legacy Builder Containment
+  [X] 9.3 Section - Legacy Builder Containment
     Freeze the in-repo builder as migration-only instead of continuing to grow it as a public DSL.
 
-    [ ] 9.3.1 Task - Reclassify `AshUI.DSL.Builder`
+    [X] 9.3.1 Task - Reclassify `AshUI.DSL.Builder`
     Keep existing screens migratable without letting the builder remain the long-term primary API.
 
-      [ ] 9.3.1.1 Subtask - Mark the builder as compatibility or migration-only in docs and module docs
-      [ ] 9.3.1.2 Subtask - Stop using the builder in new public examples and guides
-      [ ] 9.3.1.3 Subtask - Add warnings or telemetry when legacy builder auth flows are exercised
-      [ ] 9.3.1.4 Subtask - Define the eventual removal criteria for builder-first authoring
+      [X] 9.3.1.1 Subtask - Mark the builder as compatibility or migration-only in docs and module docs
+      [X] 9.3.1.2 Subtask - Stop using the builder in new public examples and guides
+      [X] 9.3.1.3 Subtask - Add warnings or telemetry when legacy builder auth flows are exercised
+      [X] 9.3.1.4 Subtask - Define the eventual removal criteria for builder-first authoring
 
   [ ] 9.4 Section - Phase 9 Integration Tests
     Validate that upstream authoring is the primary supported path.

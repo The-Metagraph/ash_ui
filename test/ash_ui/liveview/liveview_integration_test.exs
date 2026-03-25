@@ -5,7 +5,7 @@ defmodule AshUI.LiveView.IntegrationTest do
   alias AshUI.Resources.Binding
   alias AshUI.Resources.Screen
   alias AshUI.Test.ScreenDocumentFixtures
-  alias AshUI.Test.RuntimeFixtures
+  alias AshUI.Test.{RuntimeDomain, RuntimeFixtures}
 
   # Mock socket for testing
   defp build_socket(assigns \\ %{}) do
@@ -68,6 +68,47 @@ defmodule AshUI.LiveView.IntegrationTest do
 
       # Note: Would need to mock authorization check
       assert {:error, _reason} = Integration.mount_ui_screen(socket, :restricted_screen, %{})
+    end
+
+    test "hydrates authored value bindings onto upstream-compiled inputs" do
+      fixtures = RuntimeFixtures.seed!()
+
+      {:ok, _screen} =
+        AshUI.Data.create(Screen,
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs(
+              "bound_screen",
+              binding_metadata: %{
+                "display_name_input" => %{
+                  "source" => %{
+                    "resource" => "User",
+                    "field" => "name",
+                    "id" => fixtures.user.id
+                  },
+                  "binding_type" => :value,
+                  "target" => "display_name",
+                  "element_id" => "display_name_input"
+                }
+              }
+            )
+        )
+
+      socket =
+        build_socket(
+          current_user: build_admin(),
+          ash_ui_domains: [RuntimeDomain]
+        )
+
+      assert {:ok, mounted_socket} = Integration.mount_ui_screen(socket, :bound_screen, %{})
+
+      assert mounted_socket.assigns.ash_ui_bindings["display_name_input"].value ==
+               fixtures.user.name
+
+      input =
+        mounted_socket.assigns.ash_ui_iur
+        |> find_node("display_name_input")
+
+      assert input["props"]["value"] == fixtures.user.name
     end
   end
 
@@ -151,7 +192,9 @@ defmodule AshUI.LiveView.IntegrationTest do
             source: %{"resource" => "User", "action" => "create"},
             target: "create-user",
             binding_type: :action
-          }, domain: AshUI.Domain)
+          },
+          domain: AshUI.Domain
+        )
 
       {:ok, restricted_binding} =
         Ash.create(
@@ -162,7 +205,9 @@ defmodule AshUI.LiveView.IntegrationTest do
             target: "admin-only",
             binding_type: :action,
             metadata: %{"required_roles" => ["admin"]}
-          }, domain: AshUI.Domain)
+          },
+          domain: AshUI.Domain
+        )
 
       socket = RuntimeFixtures.socket()
       user = build_user()
@@ -222,4 +267,12 @@ defmodule AshUI.LiveView.IntegrationTest do
       assert {:error, :unauthorized} = Integration.redirect_to_login(socket, :unauthorized)
     end
   end
+
+  defp find_node(%{"id" => id} = node, id), do: node
+
+  defp find_node(%{"children" => children}, id) when is_list(children) do
+    Enum.find_value(children, &find_node(&1, id))
+  end
+
+  defp find_node(_node, _id), do: nil
 end

@@ -236,6 +236,33 @@ defmodule AshUI.CompilerTest do
       assert Compiler.cache_stats().size == 0
     end
 
+    test "cache key changes when the authored upstream document changes" do
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs("document_hash_cache_screen",
+              layout: :row
+            )
+        )
+
+      Compiler.clear_cache()
+      Compiler.init_cache()
+
+      assert {:ok, _iur} = Compiler.compile(screen, use_cache: true)
+
+      changed_document =
+        put_in(
+          screen.unified_dsl,
+          ["ash_ui", "metadata", "cache_variant"],
+          "changed"
+        )
+
+      changed_screen = %{screen | unified_dsl: changed_document}
+
+      assert {:ok, _iur} = Compiler.compile(changed_screen, use_cache: true)
+      assert Compiler.cache_stats().size == 2
+    end
+
     test "clear_cache removes all entries" do
       Compiler.clear_cache()
 

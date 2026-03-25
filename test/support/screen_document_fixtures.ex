@@ -9,13 +9,19 @@ defmodule AshUI.Test.ScreenDocumentFixtures do
     layout = Keyword.get(opts, :layout, :row)
     route = Keyword.get(opts, :route)
     metadata = Keyword.get(opts, :metadata, %{})
+    binding_metadata = Keyword.get(opts, :binding_metadata, %{})
+    active = Keyword.get(opts, :active, true)
+    version = Keyword.get(opts, :version, 1)
 
     {:ok, attrs} =
       Screen.screen_attrs(AuthoredSupportScreen,
         name: name,
         layout: layout,
         route: route,
-        metadata: metadata
+        metadata: metadata,
+        binding_metadata: binding_metadata,
+        active: active,
+        version: version
       )
 
     attrs

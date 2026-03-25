@@ -10,6 +10,7 @@ defmodule AshUI.Compiler.Incremental do
   require Logger
 
   alias AshUI.Config
+  alias AshUI.Authoring.Document
   alias AshUI.Compiler
 
   @type dependency_graph :: %{
@@ -41,7 +42,7 @@ defmodule AshUI.Compiler.Incremental do
     with true <- screen_resource?(screen, opts),
          {:ok, elements} <- load_screen_elements(screen, opts),
          graph <- build_element_dependencies(graph, screen, elements),
-         graph <- build_binding_dependencies(graph, elements, opts),
+         graph <- build_binding_dependencies(graph, screen, elements, opts),
          :ok <- detect_circular_dependencies(graph) do
       {:ok, graph}
     else
@@ -233,19 +234,25 @@ defmodule AshUI.Compiler.Incremental do
   end
 
   defp build_element_dependencies(graph, screen, elements) do
+    element_ids =
+      elements
+      |> Enum.map(& &1.id)
+      |> Kernel.++(authored_element_ids(screen))
+      |> Enum.uniq()
+
     {element_to_screen, screen_to_elements} =
-      Enum.reduce(elements, {%{}, %{screen.id => []}}, fn element, {e_to_s, s_to_e} ->
+      Enum.reduce(element_ids, {%{}, %{screen.id => []}}, fn element_id, {e_to_s, s_to_e} ->
         {
-          Map.put(e_to_s, element.id, screen.id),
-          Map.update!(s_to_e, screen.id, fn ids -> [element.id | ids] end)
+          Map.put(e_to_s, element_id, screen.id),
+          Map.update!(s_to_e, screen.id, fn ids -> [element_id | ids] end)
         }
       end)
 
     %{graph | element_to_screen: element_to_screen, screen_to_elements: screen_to_elements}
   end
 
-  defp build_binding_dependencies(graph, elements, opts) do
-    {element_to_bindings, binding_to_element} =
+  defp build_binding_dependencies(graph, screen, elements, opts) do
+    {persisted_element_to_bindings, persisted_binding_to_element} =
       Enum.reduce(elements, {%{}, %{}}, fn element, {e_to_b, b_to_e} ->
         bindings = get_element_bindings(element, opts)
         binding_ids = Enum.map(bindings, fn x -> x.id end)
@@ -265,7 +272,19 @@ defmodule AshUI.Compiler.Incremental do
         {updated_e_to_b, updated_b_to_e}
       end)
 
-    %{graph | element_to_bindings: element_to_bindings, binding_to_element: binding_to_element}
+    {authored_element_to_bindings, authored_binding_to_element} =
+      authored_binding_dependencies(screen)
+
+    %{
+      graph
+      | element_to_bindings:
+          Map.merge(persisted_element_to_bindings, authored_element_to_bindings, fn _key,
+                                                                                    left,
+                                                                                    right ->
+            Enum.uniq(left ++ right)
+          end),
+        binding_to_element: Map.merge(persisted_binding_to_element, authored_binding_to_element)
+    }
   end
 
   defp get_element_bindings(element, opts) when is_map(element) do
@@ -290,6 +309,51 @@ defmodule AshUI.Compiler.Incremental do
   end
 
   defp screen_resource?(_screen, _opts), do: false
+
+  defp authored_element_ids(%{unified_dsl: unified_dsl}) do
+    if Document.authoring_document?(unified_dsl) do
+      unified_dsl
+      |> get_in(["authoring", "document", "compiler_listing", "trace", "compiled_element_ids"])
+      |> List.wrap()
+      |> Enum.reject(&is_nil/1)
+      |> Enum.map(&to_string/1)
+    else
+      []
+    end
+  end
+
+  defp authored_element_ids(_screen), do: []
+
+  defp authored_binding_dependencies(%{unified_dsl: unified_dsl} = screen) do
+    authored_elements = MapSet.new(authored_element_ids(screen))
+
+    if Document.authoring_document?(unified_dsl) do
+      Document.binding_metadata(unified_dsl)
+      |> Enum.reduce({%{}, %{}}, fn {binding_id, metadata}, {e_to_b, b_to_e} ->
+        binding_id = to_string(binding_id)
+
+        element_id =
+          metadata
+          |> Map.get("element_id", Map.get(metadata, :element_id, binding_id))
+          |> to_string()
+
+        if MapSet.member?(authored_elements, element_id) do
+          {
+            Map.update(e_to_b, element_id, [binding_id], fn ids ->
+              Enum.uniq([binding_id | ids])
+            end),
+            Map.put(b_to_e, binding_id, element_id)
+          }
+        else
+          {e_to_b, b_to_e}
+        end
+      end)
+    else
+      {%{}, %{}}
+    end
+  end
+
+  defp authored_binding_dependencies(_screen), do: {%{}, %{}}
 
   defp find_cycles(graph) do
     # Use depth-first search to find cycles

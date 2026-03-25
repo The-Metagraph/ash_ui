@@ -118,8 +118,7 @@ defmodule AshUI.Compiler do
   """
   @spec invalidate_cache(String.t() | integer()) :: :ok
   def invalidate_cache(screen_id) do
-    cache_key = build_cache_key_from_id(screen_id)
-    delete_from_cache(cache_key)
+    delete_from_cache_prefix(cache_key_prefix(screen_id))
     :ok
   end
 
@@ -298,12 +297,10 @@ defmodule AshUI.Compiler do
 
   defp build_cache_key(screen) when is_map(screen) do
     version = Map.get(screen, :version, 1)
-    "screen:#{screen.id}:v#{version}"
+    "screen:#{screen.id}:v#{version}:#{document_cache_suffix(screen)}"
   end
 
-  defp build_cache_key_from_id(screen_id) do
-    "screen:#{screen_id}:v1"
-  end
+  defp cache_key_prefix(screen_id), do: "screen:#{screen_id}:"
 
   defp maybe_get_cached(cache_key, true) do
     case get_from_cache(cache_key) do
@@ -376,9 +373,15 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp delete_from_cache(cache_key) do
+  defp delete_from_cache_prefix(prefix) do
     try do
-      :ets.delete(:ash_ui_compiler_cache, cache_key)
+      :ash_ui_compiler_cache
+      |> :ets.tab2list()
+      |> Enum.each(fn {cache_key, _iur, _timestamp} ->
+        if String.starts_with?(cache_key, prefix) do
+          :ets.delete(:ash_ui_compiler_cache, cache_key)
+        end
+      end)
     rescue
       ArgumentError -> :ok
     end
@@ -631,10 +634,12 @@ defmodule AshUI.Compiler do
   end
 
   defp compile_runtime_bindings(_snapshot, document, screen_id) do
+    authored_ids = authored_compiled_ids(document)
+
     document
     |> Document.binding_metadata()
     |> Enum.reduce([], fn {binding_id, metadata}, acc ->
-      case build_runtime_binding(binding_id, metadata, screen_id) do
+      case build_runtime_binding(binding_id, metadata, screen_id, authored_ids) do
         nil -> acc
         binding -> [binding | acc]
       end
@@ -642,7 +647,7 @@ defmodule AshUI.Compiler do
     |> Enum.reverse()
   end
 
-  defp build_runtime_binding(binding_id, metadata, screen_id)
+  defp build_runtime_binding(binding_id, metadata, screen_id, authored_ids)
        when (is_binary(binding_id) or is_atom(binding_id)) and is_map(metadata) do
     source = normalize_runtime_source(Map.get(metadata, "source") || Map.get(metadata, :source))
 
@@ -654,19 +659,17 @@ defmodule AshUI.Compiler do
           Map.get(metadata, :type) ||
           infer_binding_type(source)
 
+      binding_type = normalize_binding_type(binding_type)
+      element_id = resolve_binding_element_id(binding_id, metadata, authored_ids)
+      target = resolve_binding_target(binding_id, metadata, source, binding_type)
+
       %{
         "id" => runtime_identifier(binding_id),
         "source" => source,
-        "target" =>
-          Map.get(metadata, "target") ||
-            Map.get(metadata, :target) ||
-            runtime_identifier(binding_id),
-        "binding_type" => normalize_binding_type(binding_type),
+        "target" => target,
+        "binding_type" => binding_type,
         "transform" => Map.get(metadata, "transform") || Map.get(metadata, :transform) || %{},
-        "element_id" =>
-          runtime_identifier(
-            Map.get(metadata, "element_id") || Map.get(metadata, :element_id) || binding_id
-          ),
+        "element_id" => element_id,
         "screen_id" => screen_id,
         "metadata" =>
           metadata
@@ -678,7 +681,54 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp build_runtime_binding(_binding_id, _metadata, _screen_id), do: nil
+  defp build_runtime_binding(_binding_id, _metadata, _screen_id, _authored_ids), do: nil
+
+  defp resolve_binding_element_id(binding_id, metadata, authored_ids) do
+    explicit =
+      Map.get(metadata, "element_id") ||
+        Map.get(metadata, :element_id)
+
+    candidate =
+      runtime_identifier(explicit || runtime_identifier(binding_id))
+
+    cond do
+      explicit ->
+        candidate
+
+      MapSet.member?(authored_ids, candidate) ->
+        candidate
+
+      true ->
+        candidate
+    end
+  end
+
+  defp resolve_binding_target(binding_id, metadata, source, :value) do
+    runtime_identifier(
+      Map.get(metadata, "target") ||
+        Map.get(metadata, :target) ||
+        Map.get(source, "field") ||
+        binding_id
+    )
+  end
+
+  defp resolve_binding_target(_binding_id, metadata, source, :list) do
+    runtime_identifier(
+      Map.get(metadata, "target") ||
+        Map.get(metadata, :target) ||
+        Map.get(source, "relationship") ||
+        "items"
+    )
+  end
+
+  defp resolve_binding_target(binding_id, metadata, source, :action) do
+    runtime_identifier(
+      Map.get(metadata, "target") ||
+        Map.get(metadata, :target) ||
+        Map.get(source, "action") ||
+        binding_id
+    )
+  end
 
   defp compile_runtime_metadata(screen, snapshot, compiled, document) do
     screen.metadata
@@ -862,6 +912,38 @@ defmodule AshUI.Compiler do
   end
 
   defp normalize_compile_error(reason), do: reason
+
+  defp authored_compiled_ids(document) do
+    document
+    |> get_in(["authoring", "document", "compiler_listing", "trace", "compiled_element_ids"])
+    |> List.wrap()
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&runtime_identifier/1)
+    |> MapSet.new()
+  end
+
+  defp document_cache_suffix(screen) do
+    document = Map.get(screen, :unified_dsl, %{})
+    hash = document_hash(document)
+    compiler = upstream_compiler_version()
+    "doc-#{hash}:compiler-#{compiler}"
+  end
+
+  defp document_hash(document) do
+    document
+    |> :erlang.term_to_binary()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
+    |> binary_part(0, 12)
+  end
+
+  defp upstream_compiler_version do
+    :unified_ui
+    |> Application.spec(:vsn)
+    |> to_string()
+  rescue
+    _ -> "unknown"
+  end
 
   defp normalize_snapshot(value) when is_list(value) do
     cond do

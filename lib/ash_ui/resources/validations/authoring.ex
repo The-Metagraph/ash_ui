@@ -8,6 +8,33 @@ defmodule AshUI.Resources.Validations.Authoring do
 
   @allowed_screen_layouts [:default, :bare, :modal, :panel, :row, :column, :grid, :stack]
   @allowed_action_signals [:click, :change, :submit, :toggle, :input]
+  @screen_binding_prefixes ["flash.", "screen.", "metadata."]
+  @screen_binding_targets ["title"]
+  @list_widgets MapSet.new(["list", "table", "info_list", "select"])
+  @action_widgets MapSet.new([
+    "button",
+    "input",
+    "textinput",
+    "textarea",
+    "select",
+    "checkbox",
+    "radio",
+    "switch",
+    "slider",
+    "form_builder"
+  ])
+  @signal_capabilities %{
+    "button" => [:click, :submit],
+    "input" => [:change, :input, :submit],
+    "textinput" => [:change, :input, :submit],
+    "textarea" => [:change, :input, :submit],
+    "select" => [:change, :input, :submit],
+    "checkbox" => [:change, :toggle],
+    "radio" => [:change, :input],
+    "switch" => [:change, :toggle],
+    "slider" => [:change, :input],
+    "form_builder" => [:submit]
+  }
 
   @spec validate_screen_definition!(map()) :: map()
   def validate_screen_definition!(definition) when is_map(definition) do
@@ -112,6 +139,25 @@ defmodule AshUI.Resources.Validations.Authoring do
     binding
   end
 
+  @spec validate_element_authority!(map(), [map()], [map()]) :: :ok
+  def validate_element_authority!(definition, bindings, actions)
+      when is_map(definition) and is_list(bindings) and is_list(actions) do
+    widget_type = definition |> Map.get(:type) |> normalize_widget_type()
+
+    Enum.each(bindings, &validate_element_binding_locality!(&1, widget_type))
+    Enum.each(actions, &validate_action_signal_ownership!(&1, widget_type))
+
+    :ok
+  end
+
+  @spec validate_screen_authority!(map(), [map()]) :: :ok
+  def validate_screen_authority!(definition, bindings)
+      when is_map(definition) and is_list(bindings) do
+    _ = definition
+    Enum.each(bindings, &validate_screen_binding_locality!/1)
+    :ok
+  end
+
   @spec validate_action_definition!(map()) :: map()
   def validate_action_definition!(action) when is_map(action) do
     id = Map.get(action, :id)
@@ -150,6 +196,14 @@ defmodule AshUI.Resources.Validations.Authoring do
 
     action
   end
+
+  @spec screen_scoped_target?(term()) :: boolean()
+  def screen_scoped_target?(target) when is_binary(target) do
+    target in @screen_binding_targets or
+      Enum.any?(@screen_binding_prefixes, &String.starts_with?(target, &1))
+  end
+
+  def screen_scoped_target?(_target), do: false
 
   @spec normalize_widget_type(term()) :: String.t() | nil
   def normalize_widget_type(type) when is_atom(type), do: Atom.to_string(type)
@@ -191,5 +245,50 @@ defmodule AshUI.Resources.Validations.Authoring do
 
   def validate_identifier!(value, label) do
     raise ArgumentError, "#{label} must be a non-empty string or atom, got: #{inspect(value)}"
+  end
+
+  defp validate_element_binding_locality!(binding, widget_type) do
+    target = Map.get(binding, :target)
+    binding_type = Map.get(binding, :binding_type, :value)
+
+    if screen_scoped_target?(target) do
+      raise ArgumentError,
+            "binding #{inspect(Map.get(binding, :id))} targets #{inspect(target)}, which is reserved for screen-scoped bindings"
+    end
+
+    if binding_type == :list and not MapSet.member?(@list_widgets, widget_type) do
+      raise ArgumentError,
+            "binding #{inspect(Map.get(binding, :id))} declares a list binding on #{inspect(widget_type)}, which does not expose collection semantics"
+    end
+
+    if binding_type == :action and not MapSet.member?(@action_widgets, widget_type) do
+      raise ArgumentError,
+            "binding #{inspect(Map.get(binding, :id))} declares an action binding on #{inspect(widget_type)}, which does not expose interactive action signals"
+    end
+
+    :ok
+  end
+
+  defp validate_screen_binding_locality!(binding) do
+    target = Map.get(binding, :target)
+
+    if screen_scoped_target?(target) do
+      :ok
+    else
+      raise ArgumentError,
+            "screen-scoped binding #{inspect(Map.get(binding, :id))} must target one of #{inspect(@screen_binding_targets)} or prefixes #{inspect(@screen_binding_prefixes)}, got: #{inspect(target)}"
+    end
+  end
+
+  defp validate_action_signal_ownership!(action, widget_type) do
+    signal = Map.get(action, :signal)
+    supported = Map.get(@signal_capabilities, widget_type, [])
+
+    if signal in supported do
+      :ok
+    else
+      raise ArgumentError,
+            "action #{inspect(Map.get(action, :id))} declares signal #{inspect(signal)} on #{inspect(widget_type)}, but supported signals are #{inspect(supported)}"
+    end
   end
 end

@@ -65,6 +65,8 @@ defmodule AshUI.Resource.DSL.Element do
     bindings = Module.get_attribute(env.module, :ash_ui_element_bindings) || []
     actions = Module.get_attribute(env.module, :ash_ui_element_actions) || []
 
+    Authoring.validate_element_authority!(definition, bindings, actions)
+
     quote do
       def __ash_ui_resource_role__, do: :element
       def __ash_ui_element_definition__, do: unquote(Macro.escape(definition))

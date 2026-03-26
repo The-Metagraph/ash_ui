@@ -53,6 +53,8 @@ defmodule AshUI.Resource.DSL.Screen do
     definition = Module.get_attribute(env.module, :ash_ui_screen_definition) || %{}
     bindings = Module.get_attribute(env.module, :ash_ui_screen_bindings) || []
 
+    Authoring.validate_screen_authority!(definition, bindings)
+
     quote do
       def __ash_ui_resource_role__, do: :screen
       def __ash_ui_screen_definition__, do: unquote(Macro.escape(definition))

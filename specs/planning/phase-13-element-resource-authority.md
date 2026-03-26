@@ -43,26 +43,26 @@ Back to index: [README](./README.md)
       [x] 13.1.2.3 Subtask - Remove or rewrite `lib/ash_ui/authoring/legacy_builder.ex` and `lib/ash_ui/authoring/migrator.ex` without compatibility shims
       [x] 13.1.2.4 Subtask - Add tests proving resource-local authoring works without `AshUI.Authoring.*`
 
-  [ ] 13.2 Section - Binding And Action Locality
+  [x] 13.2 Section - Binding And Action Locality
     Move interaction semantics back onto the owning element resource.
 
-    [ ] 13.2.1 Task - Bindings belong to the owning element resource
+    [x] 13.2.1 Task - Bindings belong to the owning element resource
     Align runtime behavior with bindings declared next to the element that
     consumes the signal.
 
-      [ ] 13.2.1.1 Subtask - Define element-local value/list/action binding DSL on the element resource
-      [ ] 13.2.1.2 Subtask - Define the small set of allowed screen-scoped binding exception cases
-      [ ] 13.2.1.3 Subtask - Validate target and signal compatibility before runtime compilation
-      [ ] 13.2.1.4 Subtask - Add tests for invalid locality, invalid target ownership, and invalid screen-scoped fallbacks
+      [x] 13.2.1.1 Subtask - Define element-local value/list/action binding DSL on the element resource
+      [x] 13.2.1.2 Subtask - Define the small set of allowed screen-scoped binding exception cases
+      [x] 13.2.1.3 Subtask - Validate target and signal compatibility before runtime compilation
+      [x] 13.2.1.4 Subtask - Add tests for invalid locality, invalid target ownership, and invalid screen-scoped fallbacks
 
-    [ ] 13.2.2 Task - Actions belong to the owning signal source
+    [x] 13.2.2 Task - Actions belong to the owning signal source
     Keep interaction actions declared on the resource that exposes the relevant
     signal.
 
-      [ ] 13.2.2.1 Subtask - Define optional action declarations for clickable, editable, togglable, and submit-capable elements
-      [ ] 13.2.2.2 Subtask - Map those declarations to Ash action execution semantics in the runtime layer
-      [ ] 13.2.2.3 Subtask - Reject action declarations that do not match the element's supported signals
-      [ ] 13.2.2.4 Subtask - Add end-to-end tests for valid and invalid signal-to-action ownership
+      [x] 13.2.2.1 Subtask - Define optional action declarations for clickable, editable, togglable, and submit-capable elements
+      [x] 13.2.2.2 Subtask - Map those declarations to Ash action execution semantics in the runtime layer
+      [x] 13.2.2.3 Subtask - Reject action declarations that do not match the element's supported signals
+      [x] 13.2.2.4 Subtask - Add end-to-end tests for valid and invalid signal-to-action ownership
 
   [ ] 13.3 Section - Hard Cutover Of The Superseded Model
     Remove the requirement to preserve the monolithic authored-screen path.

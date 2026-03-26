@@ -6,6 +6,13 @@ This contract defines the normative requirements for Ash UI resource definitions
 
 Ash UI stores durable UI state as Ash resources. This contract covers the resource-backed model implemented in this repository: `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`.
 
+For screen authoring, the normative model is that `Screen.unified_dsl` stores a serialized `unified_ui` document owned by the upstream package. Ash UI owns persistence and runtime integration around that field, not the DSL grammar itself.
+
+Phase 10 defines the durable write format as an Ash UI wrapper with:
+- top-level document format and version metadata
+- an `authoring` payload owned by upstream `unified_ui`
+- an `ash_ui` payload for screen metadata, binding metadata, and migration/runtime annotations
+
 ## Control Plane
 
 **Owner**: `AshUI.Framework`
@@ -38,7 +45,8 @@ All persisted attributes MUST have explicit Ash types and constraints where need
 **Acceptance Criteria**:
 - AC-001: Every persisted attribute declares a type
 - AC-002: Enum-like fields use constraints or documented value sets
-- AC-003: Complex fields such as `props`, `metadata`, and `unified_dsl` use structured map types
+- AC-003: Complex fields such as `props`, `metadata`, and `unified_dsl` use structured types compatible with their owning contracts
+- AC-004: `unified_dsl` is reserved for serialized `unified_ui` documents rather than Ash UI-specific authoring grammars
 
 ### REQ-RES-003: Relationship Definition
 
@@ -130,12 +138,12 @@ Atomic renderer-facing component or layout node stored as a record.
 
 Default module: `AshUI.Resources.Screen`
 
-Top-level screen record that stores the durable `unified_dsl` tree and screen metadata.
+Top-level screen record that stores the durable serialized `unified_ui` document and screen metadata.
 
 **Attributes**:
 - `id`: UUID primary key
 - `name`: unique screen identifier
-- `unified_dsl`: persisted screen tree
+- `unified_dsl`: persisted serialized `unified_ui` screen document
 - `layout`: layout hint
 - `route`: optional route
 - `metadata`: map
@@ -196,9 +204,34 @@ Binding record connecting runtime UI targets to Ash-side data or actions.
 
 See [spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md) for the current coverage baseline.
 
+## Persisted Document Boundary
+
+New writes MUST use the Phase 10 persisted document contract:
+
+```elixir
+%{
+  "format" => "ash_ui/unified_ui_document",
+  "version" => 2,
+  "authoring" => %{
+    "source" => %{"kind" => "unified_ui_module", "module" => "..."},
+    "package" => %{...},
+    "document" => %{...}
+  },
+  "ash_ui" => %{
+    "screen" => %{"name" => "...", "layout" => "...", "route" => "..."},
+    "metadata" => %{...},
+    "binding_metadata" => %{...},
+    "runtime_annotations" => %{...}
+  }
+}
+```
+
+Legacy builder-shaped documents are supported only as explicit migration inputs. They are not a readable or writable runtime contract.
+
 ## Related Specifications
 
 - [topology.md](../topology.md)
 - [screen_contract.md](screen_contract.md)
 - [binding_contract.md](binding_contract.md)
 - [../resources/README.md](../resources/README.md)
+- [../adr/ADR-0004-unified-ui-dsl-authority.md](../adr/ADR-0004-unified-ui-dsl-authority.md)

@@ -17,6 +17,10 @@ The plan aligns to:
 6. [Phase 6 - Compiler and DSL Integration](./phase-06-compiler-and-dsl-integration.md): integrate unified-ui compiler with Ash Resource loading.
 7. [Phase 7 - Renderer Package Integration](./phase-07-renderer-package-integration.md): implement live_ui/elm_ui/desktop_ui package integration.
 8. [Phase 8 - Governance Gates and Release Readiness](./phase-08-governance-gates-and-release-readiness.md): finalize CI gates, conformance tests, and rollout readiness.
+9. [Phase 9 - Unified UI DSL Authority](./phase-09-unified-ui-dsl-authority.md): make upstream `unified_ui` the authoritative authoring DSL boundary.
+10. [Phase 10 - Persisted DSL Migration](./phase-10-persisted-dsl-migration.md): migrate `Screen.unified_dsl` from Ash UI-owned builder maps to serialized upstream `unified_ui` documents.
+11. [Phase 11 - Upstream Compiler Delegation](./phase-11-upstream-compiler-delegation.md): delegate DSL compilation to upstream `unified_ui` while preserving Ash bindings and runtime behavior.
+12. [Phase 12 - Example, Tooling, and Conformance Migration](./phase-12-example-tooling-and-conformance-migration.md): move examples, docs, and governance to the upstream DSL model and close the gap.
 
 ## Shared Conventions
 - Numbering:
@@ -37,7 +41,28 @@ The plan aligns to:
 - unified-ui packages provide widgets, layouts, compilation, and rendering
 - Ash policies control access to UI resources
 - Data flows from Ash resources → Ash IUR → canonical IUR → renderer output
+- Upstream `unified_ui` owns the authoring DSL and authoring compiler
 
 ## Status Note
 
-The phase files are historical planning documents that track the implementation baseline captured in this repository. After the post-Phase-8 remediation work, the previously open Phase 1 DSL/lifecycle gap and Phase 7 renderer package gap are now closed in-repo.
+The phase files are historical planning documents that track the implementation baseline captured in this repository. After the post-Phase-8 remediation work, the previously open Phase 1 DSL/lifecycle gap and Phase 7 renderer package gap were closed in-repo.
+
+Phase 9 is now complete: Ash UI treats upstream `unified_ui` as the
+authoritative authoring boundary, persists authored modules through
+`AshUI.Authoring`, and explicitly reclassifies `AshUI.DSL.Builder` as a legacy
+migration path.
+
+Phase 10 is now complete: persisted `Screen.unified_dsl` writes use the Phase
+10 authoring document contract, repo-owned seeds and fixtures are migrated
+through explicit rewrite helpers, and raw builder-shaped payloads are no longer
+accepted at runtime.
+
+Phase 11 is now complete: `AshUI.Compiler` delegates authored compilation to
+upstream `UnifiedUi.Compiler`, preserves stable runtime hydration and cache
+behavior, and keeps canonical renderer output stable across cached and uncached
+compilation paths.
+
+Phase 12 is now complete: the shipped examples, public guides, governance
+checks, release gates, and conformance traceability now all reflect the
+upstream `UnifiedUi.Dsl` authority model rather than the older builder-first
+path.

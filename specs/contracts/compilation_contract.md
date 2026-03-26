@@ -6,6 +6,8 @@ This contract defines the normative requirements for Resource → IUR → canoni
 
 Defines the requirements for compiling Ash UI resources (UI.Element, UI.Screen, UI.Binding) into the Intermediate UI Representation (IUR), and then converting to canonical `unified_iur` format for consumption by external renderer packages.
 
+The authoritative authoring DSL and authoring compiler come from upstream `unified_ui`. Ash UI owns resource loading, binding augmentation, caching, and canonical conversion around that upstream compiler boundary.
+
 ## Control Plane
 
 **Owner**: `AshUI.Compilation` (Compilation Control Plane)
@@ -14,6 +16,7 @@ Defines the requirements for compiling Ash UI resources (UI.Element, UI.Screen, 
 
 - REQ-RES-*: Source resource definitions
 - REQ-FRAMEWORK-*: Framework contracts
+- **unified_ui** - Authoritative authoring DSL and compiler (external package)
 - **unified_iur** - Canonical intermediate representation format (external package)
 
 ## Requirements
@@ -23,10 +26,10 @@ Defines the requirements for compiling Ash UI resources (UI.Element, UI.Screen, 
 Resources MUST be compiled through a defined pipeline of stages.
 
 **Compilation Stages**:
-1. **Parse** - Extract resource definitions
-2. **Validate** - Verify schema and constraints
-3. **Normalize** - Standardize representation
-4. **Generate IUR** - Produce intermediate representation
+1. **Load** - Extract resource definitions and serialized `unified_ui` documents
+2. **Delegate Parse/Validate** - Invoke upstream `unified_ui` parsing and validation
+3. **Normalize** - Standardize Ash-side resource metadata and binding overlays
+4. **Generate IUR** - Produce intermediate representation derived from upstream compiler output
 5. **Optimize** - Apply optimizations
 6. **Cache** - Store compiled result
 
@@ -35,10 +38,11 @@ Resources MUST be compiled through a defined pipeline of stages.
 - AC-002: Each stage produces valid output for the next
 - AC-003: Pipeline failures produce clear error messages
 - AC-004: Pipeline can be configured/extended
+- AC-005: Widget and layout authoring semantics are delegated to upstream `unified_ui`
 
 ### REQ-COMP-002: Schema Validation
 
-Resource schemas MUST be validated before IUR generation.
+Resource schemas and serialized `unified_ui` documents MUST be validated before IUR generation.
 
 **Validation Rules**:
 - Required attributes are present
@@ -46,6 +50,7 @@ Resource schemas MUST be validated before IUR generation.
 - Relationships are properly defined
 - Actions are properly configured
 - No circular dependencies
+- Serialized DSL is valid for the upstream `unified_ui` compiler
 
 **Acceptance Criteria**:
 - AC-001: Invalid schemas produce compilation errors
@@ -85,7 +90,8 @@ The Intermediate UI Representation MUST have a defined schema compatible with ca
 - AC-001: Ash UI IUR is convertible to canonical unified_iur
 - AC-002: IUR is serializable (to JSON/binary)
 - AC-003: IUR contains all required information for canonical conversion
-- AC-004: IUR is independent of source resource format
+- AC-004: IUR is derived from upstream `unified_ui` compilation output rather than an Ash UI-owned authoring grammar
+- AC-005: Any Ash UI-owned runtime annotations remain namespaced under root metadata (for example `metadata.ash_ui`) instead of altering canonical widget contracts
 
 ### REQ-COMP-004: Resource Resolution
 
@@ -96,6 +102,7 @@ Compilation MUST resolve all resource references.
 - Screen layout references
 - Binding source/target references
 - Action references
+- Upstream widget and layout references
 
 **Acceptance Criteria**:
 - AC-001: All references are resolved at compile time
@@ -112,6 +119,7 @@ Compilation MUST normalize resource representations.
 - Default values are applied
 - Inherited properties are merged
 - Redundant data is eliminated
+- Upstream compiler output is translated into Ash UI runtime shape without changing widget semantics
 
 **Acceptance Criteria**:
 - AC-001: Equivalent resources produce identical IUR
@@ -142,6 +150,7 @@ Compilation MUST cache compiled IUR for performance.
 **Cache Keys**:
 - Resource ID
 - Resource version
+- Serialized `unified_ui` document hash
 - Compilation options
 - Dependency hash
 
@@ -173,6 +182,7 @@ Compilation SHOULD support incremental updates.
 
 **Incremental Strategy**:
 - Track resource dependencies
+- Track upstream DSL document dependencies
 - Recompile only changed resources
 - Propagate changes to dependents
 
@@ -294,8 +304,13 @@ classDiagram
 
 See [conformance/spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md) for complete scenario mappings.
 
+## Gap Note
+
+The current implementation still compiles an Ash UI-owned stored map format through `AshUI.DSL.Builder` and `AshUI.Compiler`. That is a known non-conformance against this contract and is tracked by [ADR-0004](../adr/ADR-0004-unified-ui-dsl-authority.md) plus the new remediation phases.
+
 ## Related Specifications
 
 - [topology.md](../topology.md)
 - [resource_contract.md](resource_contract.md)
 - [rendering_contract.md](rendering_contract.md)
+- [../adr/ADR-0004-unified-ui-dsl-authority.md](../adr/ADR-0004-unified-ui-dsl-authority.md)

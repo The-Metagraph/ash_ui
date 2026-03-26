@@ -29,6 +29,17 @@ defmodule AshUI.Compiler.ExtensionsTest do
     end
   end
 
+  describe "public authoring guidance" do
+    test "points extension authors upstream" do
+      assert Extensions.registration_mode() == :upstream_compile_time
+      assert :composition in Map.keys(Extensions.authoring_extension_points())
+      assert Map.has_key?(Extensions.construct_families(), :widgets)
+
+      guidance = Extensions.registration_guidance()
+      assert Enum.any?(guidance, &String.contains?(&1, "compile-time"))
+    end
+  end
+
   describe "register_layout/2" do
     setup do
       Extensions.init()
@@ -39,7 +50,9 @@ defmodule AshUI.Compiler.ExtensionsTest do
         module: TestLayout,
         props: [%{name: :columns, type: :integer, default: 3}],
         validate: fn _props -> :ok end,
-        compile: fn props, children -> %{type: "test_layout", props: props, children: children} end
+        compile: fn props, children ->
+          %{type: "test_layout", props: props, children: children}
+        end
       }
 
       assert :ok = Extensions.register_layout("custom:test", definition)
@@ -197,7 +210,8 @@ defmodule AshUI.Compiler.ExtensionsTest do
     end
 
     test "returns error for invalid props" do
-      props = %{} # Missing required value
+      # Missing required value
+      props = %{}
 
       assert {:error, _reason} = Extensions.compile_widget("custom:compile", props)
     end
@@ -215,7 +229,9 @@ defmodule AshUI.Compiler.ExtensionsTest do
         module: TestLayout,
         props: [],
         validate: fn _ -> :ok end,
-        compile: fn props, children -> %{type: "test_layout", props: props, children: children} end
+        compile: fn props, children ->
+          %{type: "test_layout", props: props, children: children}
+        end
       }
 
       Extensions.register_layout("custom:compile_layout", definition)

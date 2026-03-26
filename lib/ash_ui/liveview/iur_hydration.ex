@@ -51,17 +51,25 @@ defmodule AshUI.LiveView.IURHydration do
     target = binding_target(binding_state)
     value = binding_value(binding_state)
     widget_type = Map.get(node, "type")
+    binding_type = binding_type(binding_state)
+    node_id = Map.get(node, "id")
     name = Map.get(props, "name")
 
     cond do
       is_nil(target) ->
         props
 
-      Map.has_key?(props, target) ->
-        Map.put(props, target, value)
+      binding_type == :list and widget_type in ["list", "table"] ->
+        hydrate_collection_props(props, value)
 
-      input_like_widget?(widget_type) and target == name ->
+      input_like_widget?(widget_type) and target in [name, node_id] ->
         Map.put(props, input_value_key(widget_type), value)
+
+      input_like_widget?(widget_type) and binding_type == :value ->
+        Map.put(props, input_value_key(widget_type), value)
+
+      target_path(target) != [] ->
+        put_nested_prop(props, target_path(target), value)
 
       true ->
         Map.put(props, target, value)
@@ -91,6 +99,63 @@ defmodule AshUI.LiveView.IURHydration do
   defp binding_value(binding_state) do
     Map.get(binding_state, :value) || Map.get(binding_state, "value")
   end
+
+  defp binding_type(binding_state) do
+    case Map.get(binding_state, :binding_type) || Map.get(binding_state, "binding_type") do
+      value when value in [:list, "list", "collection"] -> :list
+      value when value in [:action, "action", "event"] -> :action
+      _ -> :value
+    end
+  end
+
+  defp hydrate_collection_props(props, value) when is_map(value) do
+    items = Map.get(value, :items) || Map.get(value, "items", [])
+
+    props
+    |> Map.put("items", items)
+    |> Map.put("collection", stringify_map_keys(value))
+  end
+
+  defp hydrate_collection_props(props, value) when is_list(value) do
+    Map.put(props, "items", value)
+  end
+
+  defp hydrate_collection_props(props, value), do: Map.put(props, "items", value)
+
+  defp target_path(target) when is_list(target), do: target
+
+  defp target_path(target) when is_binary(target) do
+    case String.split(target, ".", trim: true) do
+      [] -> []
+      parts -> parts
+    end
+  end
+
+  defp target_path(target) when is_atom(target), do: [Atom.to_string(target)]
+  defp target_path(_target), do: []
+
+  defp put_nested_prop(_props, [], value), do: value
+
+  defp put_nested_prop(props, [segment], value) do
+    Map.put(props, to_string(segment), value)
+  end
+
+  defp put_nested_prop(props, [segment | rest], value) do
+    key = to_string(segment)
+    nested = Map.get(props, key, %{})
+    Map.put(props, key, put_nested_prop(stringify_map_keys(nested), rest, value))
+  end
+
+  defp stringify_map_keys(map) when is_map(map) do
+    Map.new(map, fn {key, value} ->
+      {
+        to_string(key),
+        if(is_map(value), do: stringify_map_keys(value), else: value)
+      }
+    end)
+  end
+
+  defp stringify_map_keys(other), do: other
 
   defp input_like_widget?(widget_type) do
     widget_type in ["input", "textarea", "select", "slider", "radio", "checkbox", "switch"]

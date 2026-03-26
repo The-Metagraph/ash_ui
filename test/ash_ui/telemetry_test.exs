@@ -6,6 +6,7 @@ defmodule AshUI.TelemetryTest do
   alias AshUI.Resources.Screen
   alias AshUI.Runtime.BindingEvaluator
   alias AshUI.Telemetry
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
   @repo_root Path.expand("../..", __DIR__)
@@ -84,14 +85,13 @@ defmodule AshUI.TelemetryTest do
     screen = %Screen{
       id: "screen-telemetry",
       name: "Telemetry Screen",
-      unified_dsl: %{
-        type: "row",
-        props: %{},
-        children: [],
-        signals: [],
-        metadata: %{}
-      },
+      unified_dsl:
+        ScreenDocumentFixtures.migrated_screen_document(
+          "screen-telemetry",
+          AshUI.DSL.Builder.row()
+        ),
       metadata: %{},
+      layout: :row,
       version: 1
     }
 

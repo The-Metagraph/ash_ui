@@ -1,10 +1,25 @@
 defmodule AshUI.DSL.Builder do
   @moduledoc """
-  Builder functions for creating unified-ui DSL structures.
+  Legacy builder functions for migration-era `unified_dsl` maps.
 
-  Provides helper functions for building unified-ui DSL
-  that can be stored in Ash Resource attributes.
+  This module is not part of the supported public authoring path anymore.
+  Application code should author screens through upstream `UnifiedUi.Dsl`
+  modules and persist them through `AshUI.Authoring.Screen`.
+
+  Use this module only indirectly through
+  `AshUI.Authoring.migrate_legacy_dsl/2` or
+  `AshUI.Authoring.migrate_legacy_screen_attrs/2` when converting older stored
+  payloads.
+
+  Builder-first authoring is scheduled for removal once:
+
+  - persisted screens can be stored as upstream authoring documents by default
+  - compiler delegation to `UnifiedUi.Compiler` is the normal code path
+  - public examples and guides stop teaching builder-first authoring
+  - governance checks prevent builder-first public drift
   """
+
+  alias AshUI.Authoring.LegacyBuilder
 
   @type dsl_map :: %{
           required(:type) => String.t(),
@@ -551,9 +566,15 @@ defmodule AshUI.DSL.Builder do
   """
   @spec to_store(dsl_map()) :: map()
   def to_store(dsl) when is_map(dsl) do
+    LegacyBuilder.signal(:builder_to_store)
+
+    to_store_node(dsl)
+  end
+
+  defp to_store_node(dsl) when is_map(dsl) do
     # Recursively convert DSL to plain map
     dsl
-    |> Map.update!(:children, &Enum.map(&1, fn child -> to_store(child) end))
+    |> Map.update!(:children, &Enum.map(&1, fn child -> to_store_node(child) end))
     |> Map.update!(:signals, &Enum.map(&1, fn signal -> Map.new(signal) end))
     |> Map.update!(:props, &Map.new/1)
   end
@@ -567,13 +588,19 @@ defmodule AshUI.DSL.Builder do
   """
   @spec from_store(map()) :: dsl_map()
   def from_store(stored) when is_map(stored) do
+    LegacyBuilder.signal(:builder_from_store)
+
+    from_store_node(stored)
+  end
+
+  defp from_store_node(stored) when is_map(stored) do
     %{
       type: fetch_store_value(stored, :type),
       props: fetch_store_value(stored, :props, %{}) |> Map.new(),
       children:
         stored
         |> fetch_store_value(:children, [])
-        |> Enum.map(&from_store/1),
+        |> Enum.map(&from_store_node/1),
       signals:
         stored
         |> fetch_store_value(:signals, [])
@@ -598,6 +625,8 @@ defmodule AshUI.DSL.Builder do
   """
   @spec validate(dsl_map()) :: :ok | {:error, [String.t()]}
   def validate(dsl) do
+    LegacyBuilder.signal(:builder_validate)
+
     errors =
       []
       |> validate_type(dsl)

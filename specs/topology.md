@@ -6,6 +6,8 @@ This document defines the canonical topology of the Ash UI framework, including 
 
 Ash UI is a resource-driven UI framework built on the Ash Framework for Elixir, providing dynamic UI generation from database resources through Phoenix LiveView and Elm-backed web rendering.
 
+The authoritative authoring DSL and authoring compiler are owned by upstream `unified_ui`. Ash UI persists those definitions in Ash resources, layers Ash bindings and lifecycle on top, and converts the result to canonical `unified_iur` for renderer packages.
+
 ```mermaid
 flowchart TB
     subgraph Clients["Client Layer"]
@@ -187,12 +189,14 @@ flowchart TB
 - IUR Generator - Produces Intermediate UI Representation
 - Validator - Schema and constraint validation
 - Normalizer - Standardizes representation
+- Upstream `unified_ui` Compiler - Owns authoring DSL parsing, validation, and widget/layout compilation
 
 **Authority**:
 - Defines compilation stages and their ordering
-- Controls validation rules and error reporting
+- Controls Ash-side validation rules, error translation, and orchestration around the upstream compiler
 - Manages compiler cache and invalidation
-- Owns the IUR schema
+- Owns the Ash-side IUR orchestration boundary
+- Does not own the authoritative widget/layout DSL grammar
 
 ### Rendering Control Plane
 
@@ -213,6 +217,7 @@ flowchart TB
 - Validates IUR compatibility with target renderers
 
 **External Dependencies**:
+- `unified_ui` - Authoritative DSL and authoring compiler
 - `unified_iur` - Canonical intermediate representation format
 - Renderer packages are consumed as dependencies, not owned by Ash UI
 

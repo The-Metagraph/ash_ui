@@ -12,8 +12,8 @@ defmodule AshUI.Compiler do
   require Logger
 
   alias AshUI.Compilation.IUR
+  alias AshUI.Authoring.Document
   alias AshUI.Config
-  alias AshUI.DSL.Storage
   alias AshUI.Telemetry
 
   @type compile_result :: {:ok, IUR.t()} | {:error, term()}
@@ -23,8 +23,6 @@ defmodule AshUI.Compiler do
   Compiles a screen resource to an IUR structure.
 
   ## Options
-    * `:load_elements` - Whether to load associated elements (default: true)
-    * `load_bindings` - Whether to load associated bindings (default: true)
     * `use_cache` - Whether to use compilation cache (default: true)
     * `:actor` - Actor for authorization
     * `:tenant` - Tenant for multi-tenancy
@@ -57,11 +55,17 @@ defmodule AshUI.Compiler do
   end
 
   @doc """
-  Compiles a screen from unified_dsl attribute.
+  Compiles a screen from its persisted upstream `UnifiedUi` authoring document.
 
-  ## Examples
+  Ash UI delegates authoring compilation to `UnifiedUi.Compiler`, then
+  normalizes that compiler output into the Ash UI runtime shape by:
 
-      {:ok, iur} = AshUI.Compiler.compile_from_unified_dsl(screen)
+  * preserving screen route/layout/metadata
+  * lowering upstream widgets into Ash UI's internal IUR struct
+  * attaching Ash UI-owned runtime binding metadata from the persisted document
+
+  Resource-first compilation is no longer the default path for persisted
+  `unified_dsl` screens.
   """
   @spec compile_from_unified_dsl(screen_record(), keyword()) :: compile_result()
   def compile_from_unified_dsl(screen, opts \\ [])
@@ -71,8 +75,9 @@ defmodule AshUI.Compiler do
 
     with true <- screen_resource?(screen, opts),
          true <- is_map(dsl),
-         {:ok, validated_dsl} <- validate_dsl(dsl),
-         {:ok, ash_iur} <- compile_to_ash_iur(screen, validated_dsl),
+         {:ok, module} <- validate_dsl(dsl),
+         {:ok, compiled} <- compile_authored_document(module),
+         {:ok, ash_iur} <- compile_to_ash_iur(screen, compiled, dsl),
          :ok <- IUR.validate(ash_iur) do
       {:ok, ash_iur}
     else
@@ -110,8 +115,7 @@ defmodule AshUI.Compiler do
   """
   @spec invalidate_cache(String.t() | integer()) :: :ok
   def invalidate_cache(screen_id) do
-    cache_key = build_cache_key_from_id(screen_id)
-    delete_from_cache(cache_key)
+    delete_from_cache_prefix(cache_key_prefix(screen_id))
     :ok
   end
 
@@ -198,9 +202,6 @@ defmodule AshUI.Compiler do
 
   defp do_compile_screen(screen, opts) when is_map(screen) do
     use_cache = Keyword.get(opts, :use_cache, true)
-    load_elements? = Keyword.get(opts, :load_elements, true)
-    load_bindings? = Keyword.get(opts, :load_bindings, true)
-
     cache_key = build_cache_key(screen)
 
     case maybe_get_cached(cache_key, use_cache) do
@@ -211,17 +212,8 @@ defmodule AshUI.Compiler do
         if use_cache do
           compile_and_cache(screen, cache_key, opts)
         else
-          compile_screen_uncached(screen, load_elements?, load_bindings?, opts)
+          compile_from_unified_dsl(screen, opts)
         end
-    end
-  end
-
-  defp compile_screen_uncached(screen, load_elements?, load_bindings?, opts)
-       when is_map(screen) do
-    if should_compile_from_unified_dsl?(screen) do
-      compile_from_unified_dsl(screen, opts)
-    else
-      compile_from_resources(screen, load_elements?, load_bindings?, opts)
     end
   end
 
@@ -238,58 +230,12 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp compile_from_resources(screen, load_elements?, load_bindings?, opts) when is_map(screen) do
-    # Build root IUR from screen
-    root_iur =
-      IUR.new(:screen,
-        id: screen.id,
-        name: screen.name,
-        attributes: %{
-          "layout" => screen.layout,
-          "route" => screen.route,
-          "unified_dsl" => screen.unified_dsl
-        },
-        metadata: screen.metadata,
-        version: "v#{screen.version}"
-      )
-
-    # Load and compile children elements
-    root_iur =
-      if load_elements? do
-        case load_elements(screen, opts) do
-          {:ok, elements} -> compile_elements(root_iur, elements)
-          {:error, _} -> root_iur
-        end
-      else
-        root_iur
-      end
-
-    # Load and compile bindings
-    root_iur =
-      if load_bindings? do
-        case load_bindings(screen, opts) do
-          {:ok, bindings} -> compile_bindings(root_iur, bindings)
-          {:error, _} -> root_iur
-        end
-      else
-        root_iur
-      end
-
-    # Validate the compiled IUR
-    case IUR.validate(root_iur) do
-      :ok -> {:ok, root_iur}
-      error -> error
-    end
-  end
-
   defp build_cache_key(screen) when is_map(screen) do
     version = Map.get(screen, :version, 1)
-    "screen:#{screen.id}:v#{version}"
+    "screen:#{screen.id}:v#{version}:#{document_cache_suffix(screen)}"
   end
 
-  defp build_cache_key_from_id(screen_id) do
-    "screen:#{screen_id}:v1"
-  end
+  defp cache_key_prefix(screen_id), do: "screen:#{screen_id}:"
 
   defp maybe_get_cached(cache_key, true) do
     case get_from_cache(cache_key) do
@@ -362,9 +308,15 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp delete_from_cache(cache_key) do
+  defp delete_from_cache_prefix(prefix) do
     try do
-      :ets.delete(:ash_ui_compiler_cache, cache_key)
+      :ash_ui_compiler_cache
+      |> :ets.tab2list()
+      |> Enum.each(fn {cache_key, _iur, _timestamp} ->
+        if String.starts_with?(cache_key, prefix) do
+          :ets.delete(:ash_ui_compiler_cache, cache_key)
+        end
+      end)
     rescue
       ArgumentError -> :ok
     end
@@ -393,17 +345,39 @@ defmodule AshUI.Compiler do
   end
 
   defp validate_dsl(dsl) do
-    normalized_dsl = AshUI.DSL.Builder.from_store(dsl)
+    case Document.source_module(dsl) do
+      {:ok, module} ->
+        {:ok, module}
 
-    case Storage.validate_write(normalized_dsl) do
-      :ok -> {:ok, normalized_dsl}
-      {:error, errors} -> {:error, {:invalid_dsl, errors}}
+      {:error, reason} ->
+        {:error, normalize_compile_error(reason)}
     end
   end
 
-  defp compile_to_ash_iur(screen, dsl) when is_map(screen) do
-    children = [compile_dsl_node(dsl, screen.id, [0])]
-    bindings = compile_dsl_bindings(dsl, screen.id, [0])
+  defp compile_authored_document(module) when is_atom(module) do
+    {:ok, UnifiedUi.Compiler.compile!(module)}
+  rescue
+    error in [
+      ArgumentError,
+      FunctionClauseError,
+      RuntimeError,
+      Spark.Error.DslError,
+      UndefinedFunctionError
+    ] ->
+      {:error, {:upstream_compile_error, module, Exception.message(error)}}
+  end
+
+  defp compile_to_ash_iur(screen, %UnifiedUi.Compiler.Result{} = compiled, document)
+       when is_map(screen) do
+    snapshot = compiled.iur |> UnifiedIUR.Reference.snapshot() |> normalize_snapshot()
+    authored_ids = authored_snapshot_ids(compiled)
+
+    children =
+      snapshot
+      |> Map.get("children", [])
+      |> Enum.with_index()
+      |> Enum.map(fn {child, index} -> compile_snapshot_child(child, [index], authored_ids) end)
+      |> Enum.reject(&is_nil/1)
 
     root_iur =
       IUR.new(:screen,
@@ -415,94 +389,12 @@ defmodule AshUI.Compiler do
           "unified_dsl" => screen.unified_dsl
         },
         children: children,
-        bindings: bindings,
-        metadata: screen.metadata,
+        bindings: compile_runtime_bindings(snapshot, document, screen.id),
+        metadata: compile_runtime_metadata(screen, snapshot, compiled, document),
         version: "v#{screen.version || 1}"
       )
 
     {:ok, root_iur}
-  end
-
-  # Load elements associated with a screen
-  defp load_elements(screen, opts) when is_map(screen) do
-    screen_id = screen.id
-    ui_storage = Keyword.get(opts, :ui_storage)
-    domain = Config.ui_storage_domain(ui_storage)
-    element_resource = Config.element_resource(ui_storage)
-
-    elements =
-      element_resource
-      |> Ash.Query.new()
-      |> Ash.Query.filter(screen_id == ^screen_id)
-      |> Ash.Query.sort(position: :asc)
-      |> Ash.read!(domain: domain)
-
-    {:ok, elements}
-  rescue
-    error -> {:error, error}
-  end
-
-  # Load bindings associated with a screen
-  defp load_bindings(screen, opts) when is_map(screen) do
-    screen_id = screen.id
-    ui_storage = Keyword.get(opts, :ui_storage)
-    domain = Config.ui_storage_domain(ui_storage)
-    binding_resource = Config.binding_resource(ui_storage)
-
-    bindings =
-      binding_resource
-      |> Ash.Query.new()
-      |> Ash.Query.filter(screen_id == ^screen_id)
-      |> Ash.read!(domain: domain)
-
-    {:ok, bindings}
-  rescue
-    error -> {:error, error}
-  end
-
-  # Compile elements into IUR children
-  defp compile_elements(root_iur, elements) do
-    compiled_children =
-      Enum.map(elements, fn element ->
-        compile_element(element)
-      end)
-
-    %{root_iur | children: compiled_children}
-  end
-
-  # Compile a single element to IUR
-  defp compile_element(element) when is_map(element) do
-    IUR.new(element.type,
-      id: element.id,
-      name: element.props["name"] || "element_#{element.id}",
-      attributes: Map.put(element.props, "position", element.position),
-      metadata: element.metadata,
-      version: "v#{element.version || 1}"
-    )
-  end
-
-  # Compile bindings into IUR bindings
-  defp compile_bindings(root_iur, bindings) do
-    compiled_bindings =
-      Enum.map(bindings, fn binding ->
-        compile_binding(binding)
-      end)
-
-    %{root_iur | bindings: compiled_bindings}
-  end
-
-  # Compile a single binding to IUR format
-  defp compile_binding(binding) when is_map(binding) do
-    %{
-      "id" => binding.id,
-      "source" => binding.source,
-      "target" => binding.target,
-      "binding_type" => binding.binding_type,
-      "transform" => binding.transform,
-      "element_id" => binding.element_id,
-      "screen_id" => binding.screen_id,
-      "metadata" => binding.metadata
-    }
   end
 
   # Cache statistics helpers
@@ -560,131 +452,417 @@ defmodule AshUI.Compiler do
     end
   end
 
-  defp should_compile_from_unified_dsl?(%{unified_dsl: dsl}) when is_map(dsl) do
-    dsl
-    |> AshUI.DSL.Builder.from_store()
-    |> Map.get(:type)
-    |> case do
-      nil -> false
-      "screen" -> false
-      _ -> true
-    end
-  end
-
-  defp should_compile_from_unified_dsl?(_screen), do: false
-
   defp screen_resource?(%{__struct__: module}, opts) do
     module == Config.screen_resource(Keyword.get(opts, :ui_storage))
   end
 
   defp screen_resource?(_screen, _opts), do: false
 
-  defp compile_dsl_node(dsl, screen_id, path) do
-    children =
-      dsl
-      |> Map.get(:children, [])
-      |> Enum.with_index()
-      |> Enum.map(fn {child, index} ->
-        compile_dsl_node(child, screen_id, path ++ [index])
-      end)
+  defp compile_snapshot_child(%{"element" => nil}, _path, _authored_ids), do: nil
 
-    type = widget_type_to_iur_type(Map.get(dsl, :type))
-    props = Map.get(dsl, :props, %{})
+  defp compile_snapshot_child(%{"slot" => slot, "element" => element}, path, authored_ids)
+       when is_map(element) do
+    compiled = compile_snapshot_element(element, path, authored_ids)
+    %{compiled | metadata: Map.put(compiled.metadata, "slot", slot)}
+  end
 
-    IUR.new(type,
-      id: dsl_node_id(screen_id, path),
-      name: props[:name] || props["name"] || "#{Map.get(dsl, :type)}_#{Enum.join(path, "_")}",
+  defp compile_snapshot_element(%{"kind" => kind} = element, path, authored_ids) do
+    props = translate_upstream_props(kind, Map.get(element, "attributes", %{}))
+    id = runtime_element_id(element, kind, path, authored_ids)
+
+    IUR.new(kind_to_iur_type(kind),
+      id: id,
+      name: runtime_name(kind, element, id),
       attributes: props,
       props: props,
-      children: children,
-      metadata: Map.get(dsl, :metadata, %{})
+      children:
+        element
+        |> Map.get("children", [])
+        |> Enum.with_index()
+        |> Enum.map(fn {child, index} ->
+          compile_snapshot_child(child, path ++ [index], authored_ids)
+        end)
+        |> Enum.reject(&is_nil/1),
+      metadata: normalize_metadata(Map.get(element, "metadata", %{}))
     )
   end
 
-  defp compile_dsl_bindings(dsl, screen_id, path) do
-    element_id = dsl_node_id(screen_id, path)
+  defp compile_runtime_bindings(_snapshot, document, screen_id) do
+    authored_ids = authored_compiled_ids(document)
 
-    local_bindings =
-      dsl
-      |> Map.get(:signals, [])
-      |> Enum.with_index()
-      |> Enum.map(fn {signal, index} ->
-        compile_signal_binding(signal, screen_id, element_id, index)
-      end)
-
-    child_bindings =
-      dsl
-      |> Map.get(:children, [])
-      |> Enum.with_index()
-      |> Enum.flat_map(fn {child, index} ->
-        compile_dsl_bindings(child, screen_id, path ++ [index])
-      end)
-
-    local_bindings ++ child_bindings
+    document
+    |> Document.binding_metadata()
+    |> Enum.reduce([], fn {binding_id, metadata}, acc ->
+      case build_runtime_binding(binding_id, metadata, screen_id, authored_ids) do
+        nil -> acc
+        binding -> [binding | acc]
+      end
+    end)
+    |> Enum.reverse()
   end
 
-  defp compile_signal_binding(signal, screen_id, element_id, index) do
-    %{
-      "id" => "#{element_id}:signal:#{index}",
-      "source" => signal_source(signal),
-      "target" => Map.get(signal, :target),
-      "binding_type" => signal_type_to_binding_type(Map.get(signal, :type)),
-      "transform" => Map.get(signal, :transform, %{}),
-      "element_id" => element_id,
-      "screen_id" => screen_id,
-      "metadata" => %{}
-    }
-  end
+  defp build_runtime_binding(binding_id, metadata, screen_id, authored_ids)
+       when (is_binary(binding_id) or is_atom(binding_id)) and is_map(metadata) do
+    source = normalize_runtime_source(Map.get(metadata, "source") || Map.get(metadata, :source))
 
-  defp signal_source(%{source: %{} = source}), do: source
+    if is_map(source) do
+      binding_type =
+        Map.get(metadata, "binding_type") ||
+          Map.get(metadata, :binding_type) ||
+          Map.get(metadata, "type") ||
+          Map.get(metadata, :type) ||
+          infer_binding_type(source)
 
-  defp signal_source(%{source: source}) when is_binary(source) do
-    case String.split(source, ".", parts: 2) do
-      [resource, field] -> %{"resource" => resource, "field" => field}
-      _ -> %{"value" => source}
+      binding_type = normalize_binding_type(binding_type)
+      element_id = resolve_binding_element_id(binding_id, metadata, authored_ids)
+      target = resolve_binding_target(binding_id, metadata, source, binding_type)
+
+      %{
+        "id" => runtime_identifier(binding_id),
+        "source" => source,
+        "target" => target,
+        "binding_type" => binding_type,
+        "transform" => Map.get(metadata, "transform") || Map.get(metadata, :transform) || %{},
+        "element_id" => element_id,
+        "screen_id" => screen_id,
+        "metadata" =>
+          metadata
+          |> Map.new(fn {key, value} -> {to_string(key), value} end)
+          |> Map.put("authored_binding_id", runtime_identifier(binding_id))
+      }
+    else
+      nil
     end
   end
 
-  defp signal_source(%{action: action}) when is_binary(action), do: %{"action" => action}
-  defp signal_source(_signal), do: %{}
+  defp build_runtime_binding(_binding_id, _metadata, _screen_id, _authored_ids), do: nil
 
-  defp signal_type_to_binding_type(:event), do: :action
-  defp signal_type_to_binding_type(:bidirectional), do: :value
-  defp signal_type_to_binding_type(:collection), do: :list
-  defp signal_type_to_binding_type(type), do: type || :value
+  defp resolve_binding_element_id(binding_id, metadata, authored_ids) do
+    explicit =
+      Map.get(metadata, "element_id") ||
+        Map.get(metadata, :element_id)
 
-  defp dsl_node_id(screen_id, path) do
-    path_suffix = Enum.join(path, "-")
-    "#{screen_id}:dsl:#{path_suffix}"
+    candidate =
+      runtime_identifier(explicit || runtime_identifier(binding_id))
+
+    cond do
+      explicit ->
+        candidate
+
+      MapSet.member?(authored_ids, candidate) ->
+        candidate
+
+      true ->
+        candidate
+    end
   end
 
-  defp widget_type_to_iur_type("screen"), do: :screen
-  defp widget_type_to_iur_type("row"), do: :row
-  defp widget_type_to_iur_type("column"), do: :column
-  defp widget_type_to_iur_type("grid"), do: :grid
-  defp widget_type_to_iur_type("stack"), do: :stack
-  defp widget_type_to_iur_type("fragment"), do: :fragment
-  defp widget_type_to_iur_type("container"), do: :container
-  defp widget_type_to_iur_type("text"), do: :text
-  defp widget_type_to_iur_type("button"), do: :button
-  defp widget_type_to_iur_type("input"), do: :textinput
-  defp widget_type_to_iur_type("textarea"), do: :textarea
-  defp widget_type_to_iur_type("checkbox"), do: :checkbox
-  defp widget_type_to_iur_type("radio"), do: :radio
-  defp widget_type_to_iur_type("switch"), do: :switch
-  defp widget_type_to_iur_type("slider"), do: :slider
-  defp widget_type_to_iur_type("select"), do: :select
-  defp widget_type_to_iur_type("card"), do: :card
-  defp widget_type_to_iur_type("list"), do: :list
-  defp widget_type_to_iur_type("table"), do: :table
-  defp widget_type_to_iur_type("image"), do: :image
-  defp widget_type_to_iur_type("icon"), do: :icon
-  defp widget_type_to_iur_type("divider"), do: :divider
-  defp widget_type_to_iur_type("spacer"), do: :spacer
-
-  defp widget_type_to_iur_type(type) when is_binary(type) do
-    if String.starts_with?(type, "custom:"), do: :custom, else: :fragment
+  defp resolve_binding_target(binding_id, metadata, source, :value) do
+    runtime_identifier(
+      Map.get(metadata, "target") ||
+        Map.get(metadata, :target) ||
+        Map.get(source, "field") ||
+        binding_id
+    )
   end
 
-  defp widget_type_to_iur_type(_type), do: :fragment
+  defp resolve_binding_target(_binding_id, metadata, source, :list) do
+    runtime_identifier(
+      Map.get(metadata, "target") ||
+        Map.get(metadata, :target) ||
+        Map.get(source, "relationship") ||
+        "items"
+    )
+  end
+
+  defp resolve_binding_target(binding_id, metadata, source, :action) do
+    runtime_identifier(
+      Map.get(metadata, "target") ||
+        Map.get(metadata, :target) ||
+        Map.get(source, "action") ||
+        binding_id
+    )
+  end
+
+  defp compile_runtime_metadata(screen, snapshot, compiled, document) do
+    screen.metadata
+    |> Map.new(fn {key, value} -> {to_string(key), value} end)
+    |> Map.put("ash_ui", %{
+      "compiler_boundary" => "UnifiedUi.Compiler -> AshUI runtime normalization",
+      "authoring_source" => %{
+        "module" => compiled.module |> Atom.to_string() |> String.trim_leading("Elixir."),
+        "kind" => get_in(document, ["authoring", "source", "kind"])
+      },
+      "binding_metadata" => Document.binding_metadata(document),
+      "upstream" => %{
+        "identity" => normalize_snapshot(compiled.identity),
+        "composition" => normalize_snapshot(compiled.composition),
+        "trace" => normalize_snapshot(compiled.trace)
+      }
+    })
+    |> Map.put_new("title", snapshot_title(snapshot))
+  end
+
+  defp normalize_runtime_source(%{} = source) do
+    Map.new(source, fn {key, value} -> {to_string(key), value} end)
+  end
+
+  defp normalize_runtime_source(source) when is_binary(source) do
+    case String.split(source, ".", parts: 2) do
+      [resource, field] -> %{"resource" => resource, "field" => field}
+      _other -> %{"value" => source}
+    end
+  end
+
+  defp normalize_runtime_source(_other), do: nil
+
+  defp infer_binding_type(%{"action" => _action}), do: :action
+  defp infer_binding_type(%{"relationship" => _relationship}), do: :list
+  defp infer_binding_type(_source), do: :value
+
+  defp normalize_binding_type(:action), do: :action
+  defp normalize_binding_type("action"), do: :action
+  defp normalize_binding_type(:event), do: :action
+  defp normalize_binding_type("event"), do: :action
+  defp normalize_binding_type(:list), do: :list
+  defp normalize_binding_type("list"), do: :list
+  defp normalize_binding_type(:collection), do: :list
+  defp normalize_binding_type("collection"), do: :list
+  defp normalize_binding_type(_other), do: :value
+
+  defp translate_upstream_props(kind, attributes) do
+    attributes = normalize_snapshot(attributes)
+
+    case kind do
+      "text" ->
+        %{"content" => get_in(attributes, ["content", "text"])}
+
+      "label" ->
+        %{"content" => get_in(attributes, ["content", "text"])}
+
+      "badge" ->
+        attributes
+        |> Map.get("badge", %{})
+        |> Map.put("label", get_in(attributes, ["content", "text"]))
+
+      "hero" ->
+        Map.get(attributes, "hero", %{})
+
+      "button" ->
+        attributes
+        |> Map.get("button", %{})
+        |> Map.put(
+          "label",
+          get_in(attributes, ["content", "text"]) || get_in(attributes, ["label", "text"])
+        )
+
+      "text_input" ->
+        attributes
+        |> Map.get("input", %{})
+        |> Map.put_new("type", "text")
+
+      "select" ->
+        Map.get(attributes, "input", %{})
+
+      "checkbox" ->
+        Map.get(attributes, "input", %{})
+
+      "radio_group" ->
+        Map.get(attributes, "input", %{})
+
+      "toggle" ->
+        Map.get(attributes, "input", %{})
+
+      "slider" ->
+        Map.get(attributes, "input", %{})
+
+      "stat" ->
+        Map.get(attributes, "stat", %{})
+
+      "key_value" ->
+        Map.get(attributes, "key_value", %{})
+
+      "info_list" ->
+        Map.get(attributes, "info_list", %{})
+
+      "row" ->
+        layout_props(attributes)
+
+      "column" ->
+        layout_props(attributes)
+
+      "grid" ->
+        layout_props(attributes)
+
+      "stack" ->
+        layout_props(attributes)
+
+      _other ->
+        flatten_attributes(attributes)
+    end
+  end
+
+  defp layout_props(attributes) do
+    attributes
+    |> Map.get("layout", %{})
+    |> then(fn layout ->
+      if Map.has_key?(layout, "gap") do
+        Map.put(layout, "spacing", layout["gap"])
+      else
+        layout
+      end
+    end)
+  end
+
+  defp flatten_attributes(attributes) do
+    Enum.reduce(attributes, %{}, fn
+      {key, value}, acc when is_map(value) ->
+        Map.merge(acc, Map.put_new(value, "section", key))
+
+      {key, value}, acc ->
+        Map.put(acc, key, value)
+    end)
+  end
+
+  defp kind_to_iur_type(kind) when is_binary(kind) do
+    case kind do
+      "text_input" -> :textinput
+      "radio_group" -> :radio
+      "toggle" -> :switch
+      "separator" -> :divider
+      other -> String.to_atom(other)
+    end
+  end
+
+  defp kind_to_iur_type(kind) when is_atom(kind), do: kind_to_iur_type(Atom.to_string(kind))
+
+  defp runtime_identifier(nil), do: nil
+  defp runtime_identifier(id) when is_binary(id), do: id
+  defp runtime_identifier(id) when is_atom(id), do: Atom.to_string(id)
+  defp runtime_identifier(id), do: to_string(id)
+
+  defp runtime_name(kind, element, id) do
+    runtime_identifier(Map.get(element, "name")) ||
+      runtime_identifier(Map.get(element, "id")) ||
+      id ||
+      "#{kind}_node"
+  end
+
+  defp authored_snapshot_ids(%UnifiedUi.Compiler.Result{trace: trace}) do
+    trace
+    |> Map.get(:authored_ids, [])
+    |> Enum.map(&runtime_identifier/1)
+    |> MapSet.new()
+  end
+
+  defp runtime_element_id(element, kind, path, authored_ids) do
+    element_id = runtime_identifier(Map.get(element, "id"))
+
+    cond do
+      authored_id?(element_id, authored_ids) ->
+        element_id
+
+      generated_runtime_id?(element_id) ->
+        derived_runtime_id(kind, path)
+
+      is_binary(element_id) and element_id != "" ->
+        element_id
+
+      true ->
+        derived_runtime_id(kind, path)
+    end
+  end
+
+  defp authored_id?(nil, _authored_ids), do: false
+  defp authored_id?(id, authored_ids), do: MapSet.member?(authored_ids, id)
+
+  # Upstream anonymous nodes currently arrive with UUID-like ids. Replace those
+  # with stable path-derived runtime ids so cache hits and uncached compiles
+  # render identically for equivalent authored documents.
+  defp generated_runtime_id?(id) when is_binary(id) do
+    String.match?(id, ~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i)
+  end
+
+  defp generated_runtime_id?(_id), do: false
+
+  defp derived_runtime_id(kind, path) do
+    "generated_#{kind}_#{Enum.join(path, "_")}"
+  end
+
+  defp snapshot_title(snapshot) do
+    snapshot
+    |> get_in(["metadata", "annotations", "title"])
+    |> case do
+      value when is_binary(value) and value != "" -> value
+      _other -> nil
+    end
+  end
+
+  defp normalize_metadata(metadata) do
+    metadata
+    |> normalize_snapshot()
+    |> Map.drop(["annotations"])
+    |> Map.put("annotations", get_in(normalize_snapshot(metadata), ["annotations"]) || %{})
+  end
+
+  defp normalize_compile_error({:unsupported_authoring_document, _reason}) do
+    {:unsupported_authoring_document, :phase_11_upstream_modules_only}
+  end
+
+  defp normalize_compile_error(reason), do: reason
+
+  defp authored_compiled_ids(document) do
+    document
+    |> get_in(["authoring", "document", "compiler_listing", "trace", "compiled_element_ids"])
+    |> List.wrap()
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&runtime_identifier/1)
+    |> MapSet.new()
+  end
+
+  defp document_cache_suffix(screen) do
+    document = Map.get(screen, :unified_dsl, %{})
+    hash = document_hash(document)
+    compiler = upstream_compiler_version()
+    "doc-#{hash}:compiler-#{compiler}"
+  end
+
+  defp document_hash(document) do
+    document
+    |> :erlang.term_to_binary()
+    |> then(&:crypto.hash(:sha256, &1))
+    |> Base.encode16(case: :lower)
+    |> binary_part(0, 12)
+  end
+
+  defp upstream_compiler_version do
+    :unified_ui
+    |> Application.spec(:vsn)
+    |> to_string()
+  rescue
+    _ -> "unknown"
+  end
+
+  defp normalize_snapshot(value) when is_list(value) do
+    cond do
+      value == [] ->
+        []
+
+      Keyword.keyword?(value) ->
+        value
+        |> Enum.map(fn {key, item} -> {to_string(key), normalize_snapshot(item)} end)
+        |> Enum.into(%{})
+
+      true ->
+        Enum.map(value, &normalize_snapshot/1)
+    end
+  end
+
+  defp normalize_snapshot(value) when is_map(value) do
+    value
+    |> Enum.map(fn {key, item} -> {to_string(key), normalize_snapshot(item)} end)
+    |> Enum.into(%{})
+  end
+
+  defp normalize_snapshot(value), do: value
 end

@@ -1,8 +1,11 @@
 defmodule AshUI.Rendering.IURAdapterTest do
   use AshUI.DataCase, async: false
 
+  alias AshUI.Authoring.Screen
+  alias AshUI.Compiler
   alias AshUI.Compilation.IUR
   alias AshUI.Rendering.IURAdapter
+  alias AshUI.Test.{AuthoredSupportScreen, UIStorageFixtures}
 
   describe "to_canonical/1" do
     test "converts simple screen to canonical format" do
@@ -146,6 +149,64 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert child["props"]["label"] == "Submit"
       assert child["props"]["disabled"] == false
     end
+
+    test "preserves empty binding paths on authored form widgets" do
+      ash_iur =
+        IUR.new(:screen,
+          children: [
+            IUR.new(:form_field,
+              props: %{
+                "bindings" => [
+                  %{
+                    "name" => :display_name,
+                    "path" => [],
+                    "scope" => [],
+                    "depends_on" => [],
+                    "metadata" => [],
+                    "derived" => []
+                  }
+                ]
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      assert :ok = UnifiedIUR.validate(canonical)
+    end
+
+    test "converts upstream-authored semantic widgets without leaking renderer assumptions" do
+      ui_storage = UIStorageFixtures.ui_storage_config()
+
+      assert {:ok, screen} =
+               Screen.create(AuthoredSupportScreen,
+                 ui_storage: ui_storage,
+                 route: "/phase-11/authored",
+                 layout: :column,
+                 metadata: %{"seed" => "phase11"}
+               )
+
+      assert {:ok, ash_iur} = Compiler.compile(screen, ui_storage: ui_storage, use_cache: false)
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      assert :ok = UnifiedIUR.validate(canonical)
+
+      types = collect_types(canonical)
+
+      assert "hero" in types
+      assert "badge" in types
+      assert "stat" in types
+      assert "key_value" in types
+      assert "info_list" in types
+      assert "form_builder" in types
+      assert "form_field" in types
+
+      assert get_in(canonical, ["metadata", "ash_ui", "compiler_boundary"]) ==
+               "UnifiedUi.Compiler -> AshUI runtime normalization"
+
+      refute Enum.any?(canonical["children"], fn child ->
+               match?(%{"ash_ui" => _}, child["metadata"])
+             end)
+    end
   end
 
   describe "error handling" do
@@ -155,4 +216,10 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert {:error, _reason} = IURAdapter.to_canonical(invalid_iur)
     end
   end
+
+  defp collect_types(%{"type" => type, "children" => children}) do
+    [type | Enum.flat_map(children || [], &collect_types/1)]
+  end
+
+  defp collect_types(_other), do: []
 end

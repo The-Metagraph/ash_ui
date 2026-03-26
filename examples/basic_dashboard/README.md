@@ -2,16 +2,18 @@
 
 This example shows the smallest practical Ash UI flow in a Phoenix application:
 
-1. create a screen with stored `unified_dsl`
+1. author a screen module through upstream `UnifiedUi.Dsl`
+2. persist it with `AshUI.Authoring.Screen`
 2. seed ETS-backed Ash resources for dashboard data
 3. mount it through `AshUI.LiveView.Integration`
 4. delegate user events through `AshUI.LiveView.EventHandler`
-5. present the result with an Ash HQ-inspired dark theme, warm gradient accents, and live data cards
+5. render the stored screen through `liveview`, `elm`, or `desktop` adapters
 6. optionally swap UI-definition storage to ETS-backed Ash resources
 
 ## Files
 
-- `lib/basic_dashboard.ex`: seed helpers that create the screen, elements, and bindings
+- `lib/basic_dashboard.ex`: seed helpers that persist the authored screen and binding metadata
+- `lib/basic_dashboard_authored_screen.ex`: upstream `UnifiedUi.Dsl` screen module for the dashboard
 - `lib/basic_dashboard_data.ex`: example Ash domain and ETS-backed resources
 - `lib/basic_dashboard_live.ex`: a LiveView that mounts the screen and forwards events
 - `lib/basic_dashboard_storage.ex`: example ETS-backed `Screen`, `Element`, and `Binding` resources
@@ -57,5 +59,6 @@ Adapter parity coverage currently exercises `liveview` and `elm` for the full
 dashboard screen. `desktop` is still considered work in progress, and
 `terminal_ui` is not yet present in this repo.
 
-`BasicDashboard.seed!/0` uses the configured Ash UI storage resources, so you
-can keep the same seed code while changing the backend.
+`BasicDashboard.seed!/0` persists the authored `BasicDashboard.AuthoredScreen`
+module through `AshUI.Authoring.Screen`, so the example demonstrates the same
+authoring boundary that Ash UI now expects in production code.

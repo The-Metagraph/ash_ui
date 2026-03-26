@@ -2,6 +2,7 @@ defmodule AshUI.Examples.BasicDashboardTest do
   use AshUI.DataCase, async: false
 
   alias AshUI.Compiler
+  alias AshUI.Authoring.Document
   alias AshUI.Rendering.IURAdapter
   alias BasicDashboard.Data
   alias BasicDashboard.Storage
@@ -23,6 +24,12 @@ defmodule AshUI.Examples.BasicDashboardTest do
 
     assert screen.name == "basic_dashboard"
     assert screen.__struct__ == BasicDashboard.Storage.Screen
+    assert Document.authoring_document?(screen.unified_dsl)
+    assert screen.unified_dsl["format"] == Document.format()
+    assert get_in(screen.unified_dsl, ["authoring", "source", "kind"]) == "unified_ui_module"
+
+    assert get_in(screen.unified_dsl, ["authoring", "source", "module"]) ==
+             "BasicDashboard.AuthoredScreen"
 
     assert {:ok, iur} = Compiler.compile(screen, ui_storage: Storage.config())
     assert {:ok, canonical_iur} = IURAdapter.to_canonical(iur)
@@ -30,6 +37,9 @@ defmodule AshUI.Examples.BasicDashboardTest do
     assert canonical_iur["type"] == "screen"
     assert length(canonical_iur["children"]) == 1
     assert length(canonical_iur["bindings"]) >= 6
+
+    assert get_in(canonical_iur, ["metadata", "ash_ui", "authoring_source", "module"]) ==
+             "BasicDashboard.AuthoredScreen"
 
     assert Enum.any?(canonical_iur["bindings"], fn binding ->
              binding["type"] == "event" and
@@ -101,6 +111,7 @@ defmodule AshUI.Examples.BasicDashboardTest do
 
     assert html =~ "Model your dashboard. Let the runtime do the wiring."
     assert html =~ "Interactive profile editor"
+    assert html =~ "Persisted layout + runtime bindings"
     assert html =~ "phx-change=\"ash_ui_change\""
     assert html =~ "phx-click=\"ash_ui_action\""
     refute html =~ "ash-demo-shell"

@@ -2,6 +2,8 @@
 
 This directory contains the normative specifications for the Ash UI framework. All specifications are organized by control plane and include contracts, architecture decision records (ADRs), component specifications, and conformance requirements.
 
+Current architecture note: the normative target is that upstream `unified_ui` owns the authoring DSL and compiler surface, while Ash UI owns persistence, bindings, runtime orchestration, and canonical `unified_iur` conversion. The current implementation still has a documented gap against that target, tracked by [ADR-0004](./adr/ADR-0004-unified-ui-dsl-authority.md) and the remediation phases in [planning/README.md](./planning/README.md).
+
 ## Directory Structure
 
 ```
@@ -61,3 +63,4 @@ See [conformance/spec_conformance_matrix.md](conformance/spec_conformance_matrix
 - [Compilation](compilation/) - Resource → IUR compiler specifications
 - [Rendering](rendering/) - live_ui/elm_ui renderer specifications
 - [Conformance](conformance/) - Scenario catalog and conformance matrices
+- [Planning](planning/README.md) - implementation and remediation phase plans

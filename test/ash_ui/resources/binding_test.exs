@@ -4,17 +4,14 @@ defmodule AshUI.Resources.BindingTest do
   alias AshUI.Resources.Screen
   alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
 
   setup do
     {:ok, screen} =
       AshUI.Data.create(Screen,
-        attrs: %{
-          name: "binding_test_screen",
-          unified_dsl: %{"type" => "screen"},
-          layout: :row
-        }
+        attrs: ScreenDocumentFixtures.resource_screen_attrs("binding_test_screen", layout: :row)
       )
 
     {:ok, element} =

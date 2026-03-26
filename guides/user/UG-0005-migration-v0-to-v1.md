@@ -50,27 +50,62 @@ The biggest changes are:
 If you previously modeled screens as custom resources in your app, migrate the useful parts into `AshUI.Resources.Screen` rows.
 
 ```elixir
-alias AshUI.DSL.Builder
-alias AshUI.Data, as: Domain
-alias AshUI.Resources.Screen
+defmodule MyApp.UI.Dashboard do
+  use UnifiedUi.Dsl
+
+  identity do
+    id(:dashboard)
+    title("Dashboard")
+    authored_ref([:my_app, :ui, :dashboard])
+  end
+
+  composition do
+    root(:dashboard_root)
+    mode(:screen)
+
+    column :dashboard_shell do
+      hero :dashboard_hero do
+        title("Dashboard")
+        message("Migrated onto the upstream authored DSL.")
+      end
+    end
+  end
+end
 
 {:ok, _screen} =
-  Domain.create(Screen,
-    attrs: %{
-      name: "dashboard",
-      route: "/dashboard",
-      layout: :column,
-      unified_dsl:
-        Builder.column(
-          children: [
-            Builder.text("Dashboard"),
-            Builder.button("Refresh", on_click: "refresh-dashboard")
-          ]
-        )
-        |> Builder.to_store()
-    }
+  AshUI.Authoring.create_screen(MyApp.UI.Dashboard,
+    route: "/dashboard",
+    layout: :column
   )
 ```
+
+Legacy builder-shaped payloads are no longer accepted at runtime. Migrate them
+explicitly before persistence:
+
+```elixir
+{:ok, attrs} =
+  AshUI.Authoring.migrate_legacy_screen_attrs(legacy_dsl,
+    name: "dashboard",
+    route: "/dashboard",
+    layout: :column
+  )
+
+{:ok, _screen} = AshUI.Data.create(AshUI.Resources.Screen, attrs: attrs)
+```
+
+Use `AshUI.Authoring.migrate_legacy_dsl/2` when you want the persisted upstream
+document without writing the `Screen` record yet.
+
+## Remaining Migration-Only Exceptions
+
+These legacy-oriented helpers still exist for one-time migration work:
+
+- `AshUI.Authoring.migrate_legacy_dsl/2`
+- `AshUI.Authoring.migrate_legacy_screen_attrs/2`
+- the telemetry emitted for legacy authoring migration activity
+
+Do not build new screens with those helpers. Convert the old payload once, then
+keep the result in the normal upstream-authored `UnifiedUi.Dsl` flow.
 
 ## Step 2: Normalize Binding Sources
 
@@ -136,7 +171,8 @@ mix test test/ash_ui/authorization/runtime_test.exs
 
 - move screen definitions into `AshUI.Resources.Screen`
 - convert binding sources to maps
-- use `AshUI.DSL.Builder` for stored `unified_dsl`
+- persist new screen definitions through `AshUI.Authoring.Screen`
+- migrate existing builder-authored payloads once with `AshUI.Authoring.migrate_legacy_dsl/2` or `AshUI.Authoring.migrate_legacy_screen_attrs/2`
 - mount via `AshUI.LiveView.Integration`
 - verify `:current_user` is assigned
 - confirm telemetry and authorization behavior in the target environment

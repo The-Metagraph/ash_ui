@@ -328,11 +328,12 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp generate_heex(%{"type" => "text"} = iur, _opts) do
-    content = Map.get(iur["props"] || %{}, "content", "")
-    size = Map.get(iur["props"] || %{}, "size", 14)
-    color = Map.get(iur["props"] || %{}, "color", "inherit")
-    weight = Map.get(iur["props"] || %{}, "weight", "normal")
-    align = Map.get(iur["props"] || %{}, "align", "inherit")
+    props = iur["props"] || %{}
+    content = text_prop(props, ["content", "text"], "")
+    size = prop(props, "size", 14)
+    color = prop(props, "color", "inherit")
+    weight = prop(props, "weight", "normal")
+    align = prop(props, "align", "inherit")
 
     style =
       merge_style(
@@ -347,6 +348,118 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     """
     <span class="#{css_classes(["ash-text", prop_class(iur)])}"#{style_attr(style)}>#{content}</span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "label"} = iur, _opts) do
+    props = iur["props"] || %{}
+    content = text_prop(props, ["text", "content", "label"], "")
+
+    """
+    <label class="#{css_classes(["ash-label", prop_class(iur)])}"#{attr("for", dom_id(prop(props, "for")))}#{style_attr(prop_style(iur))}>#{content}</label>
+    """
+  end
+
+  defp generate_heex(%{"type" => "badge"} = iur, opts) do
+    props = iur["props"] || %{}
+    presentation = prop(props, "presentation", "default")
+    content = text_prop(props, ["text", "label", "content"], "")
+
+    """
+    <span class="#{css_classes(["ash-badge", "ash-badge-#{presentation}", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{content}
+      #{generate_children(iur["children"], opts)}
+    </span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "hero"} = iur, opts) do
+    props = iur["props"] || %{}
+    eyebrow = text_prop(props, "eyebrow")
+    title = text_prop(props, "title")
+    message = text_prop(props, "message")
+
+    """
+    <section class="#{css_classes(["ash-hero", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{if eyebrow, do: "<p class=\"ash-hero-eyebrow\">#{eyebrow}</p>", else: ""}
+      #{if title, do: "<h1 class=\"ash-hero-title\">#{title}</h1>", else: ""}
+      #{if message, do: "<p class=\"ash-hero-message\">#{message}</p>", else: ""}
+      #{generate_children(iur["children"], opts)}
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "stat"} = iur, _opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, "title")
+    value = text_prop(props, "value")
+    message = text_prop(props, "message")
+
+    """
+    <article class="#{css_classes(["ash-stat", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{if title, do: "<p class=\"ash-stat-title\">#{title}</p>", else: ""}
+      #{if value, do: "<p class=\"ash-stat-value\">#{value}</p>", else: ""}
+      #{if message, do: "<p class=\"ash-stat-message\">#{message}</p>", else: ""}
+    </article>
+    """
+  end
+
+  defp generate_heex(%{"type" => "key_value"} = iur, _opts) do
+    props = iur["props"] || %{}
+    label = text_prop(props, ["label", "title"])
+    value = text_prop(props, "value")
+    description = text_prop(props, "description")
+
+    """
+    <dl class="#{css_classes(["ash-key-value", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{if label, do: "<dt class=\"ash-key-value-label\">#{label}</dt>", else: ""}
+      #{if value, do: "<dd class=\"ash-key-value-value\">#{value}</dd>", else: ""}
+      #{if description, do: "<dd class=\"ash-key-value-description\">#{description}</dd>", else: ""}
+    </dl>
+    """
+  end
+
+  defp generate_heex(%{"type" => "info_list"} = iur, _opts) do
+    props = iur["props"] || %{}
+    items = prop(props, "items", [])
+    list_tag = if prop(props, "ordered?", false), do: "ol", else: "ul"
+
+    items_html =
+      Enum.map_join(items, fn item ->
+        item = normalize_item(item)
+        label = text_prop(item, ["label", "title", "value", "id"], "")
+        value = text_prop(item, "value")
+
+        """
+        <li class="ash-info-list-item">
+          <span class="ash-info-list-label">#{label}</span>
+          #{if value && value != label, do: "<span class=\"ash-info-list-value\">#{value}</span>", else: ""}
+        </li>
+        """
+      end)
+
+    """
+    <#{list_tag} class="#{css_classes(["ash-info-list", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{items_html}
+    </#{list_tag}>
+    """
+  end
+
+  defp generate_heex(%{"type" => "form_builder"} = iur, opts) do
+    """
+    <form class="#{css_classes(["ash-form-builder", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{generate_children(iur["children"], opts)}
+    </form>
+    """
+  end
+
+  defp generate_heex(%{"type" => "form_field"} = iur, opts) do
+    props = iur["props"] || %{}
+
+    """
+    <div class="#{css_classes(["ash-form-field", prop_class(iur)])}"#{attr("data-field-name", dom_id(prop(props, "name")))}#{style_attr(prop_style(iur))}>
+      #{generate_children(iur["children"], opts)}
+    </div>
     """
   end
 
@@ -593,7 +706,49 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp prop_class(iur), do: Map.get(iur["props"] || %{}, "class")
-  defp prop_style(iur), do: Map.get(iur["props"] || %{}, "style")
+
+  defp prop_style(iur) do
+    props = iur["props"] || %{}
+
+    prop(props, "inline_style") ||
+      case prop(props, "style") do
+        %{"extra" => %{"css" => css}} when is_binary(css) and css != "" -> css
+        %{extra: %{css: css}} when is_binary(css) and css != "" -> css
+        style when is_binary(style) -> style
+        _other -> nil
+      end
+  end
+
+  defp prop(props, key, default \\ nil) when is_map(props) and is_binary(key) do
+    Map.get(props, key, Map.get(props, String.to_atom(key), default))
+  rescue
+    ArgumentError -> Map.get(props, key, default)
+  end
+
+  defp text_prop(props, keys, default \\ nil)
+
+  defp text_prop(props, keys, default) when is_list(keys) do
+    Enum.find_value(keys, default, fn key ->
+      case prop(props, key) do
+        value when value in [nil, "", []] -> false
+        value -> to_string(value)
+      end
+    end)
+  end
+
+  defp text_prop(props, key, default), do: text_prop(props, [key], default)
+
+  defp normalize_item(item) when is_map(item), do: item
+
+  defp normalize_item(item) when is_list(item) do
+    if Keyword.keyword?(item), do: Enum.into(item, %{}), else: %{"value" => item}
+  end
+
+  defp normalize_item(item), do: %{"value" => item}
+
+  defp dom_id(nil), do: nil
+  defp dom_id(value) when is_atom(value), do: Atom.to_string(value)
+  defp dom_id(value), do: to_string(value)
 
   defp css_classes(classes) do
     classes

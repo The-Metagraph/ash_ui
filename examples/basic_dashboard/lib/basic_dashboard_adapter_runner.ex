@@ -18,6 +18,7 @@ defmodule BasicDashboard.AdapterRunner do
           renderer: renderer(),
           adapter_module: module(),
           selected_module: module(),
+          authoring_module: String.t() | nil,
           mode: :external | :adapter_fallback | :unavailable,
           canonical_iur: map(),
           output: String.t() | map(),
@@ -46,6 +47,7 @@ defmodule BasicDashboard.AdapterRunner do
            renderer: renderer,
            adapter_module: adapter_module(renderer),
            selected_module: info.module,
+           authoring_module: authored_module(screen),
            mode: info.mode,
            canonical_iur: canonical_iur,
            output: output,
@@ -81,6 +83,7 @@ defmodule BasicDashboard.AdapterRunner do
                renderer: renderer,
                adapter_module: adapter_module(renderer),
                selected_module: info.module,
+               authoring_module: authored_module(screen),
                mode: info.mode,
                canonical_iur: canonical_iur,
                output: output,
@@ -197,5 +200,9 @@ defmodule BasicDashboard.AdapterRunner do
       Application.put_env(:ash_ui, :ui_storage, previous_ui_storage)
       Application.put_env(:ash_ui, :ash_domains, previous_domains)
     end
+  end
+
+  defp authored_module(screen) do
+    get_in(screen.unified_dsl, ["authoring", "source", "module"])
   end
 end

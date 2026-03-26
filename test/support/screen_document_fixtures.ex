@@ -3,23 +3,21 @@ defmodule AshUI.Test.ScreenDocumentFixtures do
 
   alias AshUI.Authoring.{Migrator, Screen}
   alias AshUI.DSL.Builder
-  alias AshUI.Test.AuthoredSupportScreen
+  alias AshUI.Test.ResourceAuthorityScreen
 
   def resource_screen_attrs(name, opts \\ []) do
     layout = Keyword.get(opts, :layout, :row)
     route = Keyword.get(opts, :route)
     metadata = Keyword.get(opts, :metadata, %{})
-    binding_metadata = Keyword.get(opts, :binding_metadata, %{})
     active = Keyword.get(opts, :active, true)
     version = Keyword.get(opts, :version, 1)
 
     {:ok, attrs} =
-      Screen.screen_attrs(AuthoredSupportScreen,
+      Screen.screen_attrs(ResourceAuthorityScreen,
         name: name,
         layout: layout,
         route: route,
         metadata: metadata,
-        binding_metadata: binding_metadata,
         active: active,
         version: version
       )

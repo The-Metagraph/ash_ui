@@ -3,9 +3,9 @@ defmodule BasicDashboard do
   ETS-backed Ash UI example seed module for the upstream-authored dashboard.
   """
 
-  alias AshUI.Authoring.Screen, as: AuthoringScreen
   alias AshUI.Config
   alias AshUI.Data
+  alias AshUI.Resource.Authority
   alias BasicDashboard.Data, as: RuntimeData
   alias BasicDashboard.Storage
 
@@ -20,7 +20,7 @@ defmodule BasicDashboard do
     cleanup_existing_screen!(screen_resource, ui_storage)
 
     {:ok, screen} =
-      AuthoringScreen.create(BasicDashboard.AuthoredScreen,
+      Authority.create(BasicDashboard.AuthoredScreen,
         ui_storage: ui_storage,
         authorize?: false,
         name: @screen_name,

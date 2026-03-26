@@ -21,7 +21,7 @@ standalone Phoenix app, seeds ETS-backed demo data, and renders a stored
 `unified_dsl` screen through Ash UI adapters.
 
 The dashboard screen itself is authored through upstream `UnifiedUi.Dsl` and
-persisted through `AshUI.Authoring.Screen`, so the example demonstrates the
+persisted through `AshUI.Resource.Authority`, so the example demonstrates the
 current intended authoring boundary directly.
 
 Example files:

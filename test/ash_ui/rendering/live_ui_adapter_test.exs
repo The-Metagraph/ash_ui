@@ -334,7 +334,7 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
 
       assert heex =~ "ash-hero"
       assert heex =~ "Authored through UnifiedUi"
-      assert heex =~ "Persisted through AshUI.Authoring.Screen."
+      assert heex =~ "Persisted through AshUI.Resource.Authority."
       assert heex =~ "ash-badge-pill"
       assert heex =~ "Ready"
       assert heex =~ "ash-stat"
@@ -363,7 +363,7 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
           "props" => %{
             "eyebrow" => "Authoring",
             "title" => "Authored through UnifiedUi",
-            "message" => "Persisted through AshUI.Authoring.Screen."
+            "message" => "Persisted through AshUI.Resource.Authority."
           },
           "children" => [
             %{

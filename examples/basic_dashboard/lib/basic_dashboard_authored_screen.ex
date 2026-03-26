@@ -44,7 +44,7 @@ defmodule BasicDashboard.AuthoredScreen do
         title("Model your dashboard. Let the runtime do the wiring.")
 
         message(
-          "This screen is authored through UnifiedUi.Dsl, persisted through AshUI.Authoring.Screen, and hydrated from live Ash bindings without a handwritten dashboard shell."
+          "This screen is authored through UnifiedUi.Dsl, persisted through AshUI.Resource.Authority, and hydrated from live Ash bindings without a handwritten dashboard shell."
         )
 
         badge :route_badge do

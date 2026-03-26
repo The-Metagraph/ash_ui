@@ -70,6 +70,43 @@ defmodule AshUI.Runtime.ActionBinding do
   end
 
   @doc """
+  Executes an action declaration owned by an element resource.
+
+  Declared actions are normalized into the same runtime shape as `:action`
+  bindings so the execution path stays consistent.
+  """
+  @spec execute_declared_action(map(), map(), context(), keyword()) ::
+          {:ok, action_result()} | {:error, term()}
+  def execute_declared_action(action_declaration, event_data, context, opts \\ [])
+      when is_map(action_declaration) do
+    action_declaration
+    |> binding_from_action_declaration()
+    |> execute_action(event_data, context, opts)
+  end
+
+  @doc """
+  Normalizes an element-owned action declaration into an action binding shape.
+  """
+  @spec binding_from_action_declaration(map()) :: map()
+  def binding_from_action_declaration(action_declaration) when is_map(action_declaration) do
+    %{
+      "id" => Map.get(action_declaration, :id) || Map.get(action_declaration, "id"),
+      "source" => Map.get(action_declaration, :source) || Map.get(action_declaration, "source"),
+      "target" =>
+        Map.get(action_declaration, :target) ||
+          Map.get(action_declaration, "target") ||
+          default_action_target(action_declaration),
+      "binding_type" => :action,
+      "transform" => Map.get(action_declaration, :transform) || Map.get(action_declaration, "transform") || %{},
+      "metadata" =>
+        action_declaration
+        |> Map.get(:metadata, Map.get(action_declaration, "metadata", %{}))
+        |> Map.new(fn {key, value} -> {to_string(key), value} end)
+        |> Map.put_new("signal", action_signal(action_declaration))
+    }
+  end
+
+  @doc """
   Generates a LiveView event handler from an action binding.
 
   ## Parameters
@@ -141,7 +178,8 @@ defmodule AshUI.Runtime.ActionBinding do
 
   # Prepare parameters from event data and binding config
   defp prepare_params(binding, event_data, context) do
-    param_mapping = get_in(binding, [:transform, "params"]) || %{}
+    transform = Map.get(binding, :transform) || Map.get(binding, "transform") || %{}
+    param_mapping = Map.get(transform, "params") || Map.get(transform, :params) || %{}
 
     params =
       Enum.reduce(param_mapping, %{}, fn {key, source}, acc ->
@@ -229,6 +267,20 @@ defmodule AshUI.Runtime.ActionBinding do
     context
     |> Map.get(:binding_values, %{})
     |> lookup_mapping_value(key)
+  end
+
+  defp action_signal(action_declaration) do
+    Map.get(action_declaration, :signal) || Map.get(action_declaration, "signal")
+  end
+
+  defp default_action_target(action_declaration) do
+    case action_signal(action_declaration) do
+      signal when signal in [:submit, "submit"] -> "submit"
+      signal when signal in [:toggle, "toggle"] -> "toggle"
+      signal when signal in [:change, "change"] -> "change"
+      signal when signal in [:input, "input"] -> "input"
+      _ -> "action"
+    end
   end
 
   defp safe_to_existing_atom(value) when is_binary(value) do

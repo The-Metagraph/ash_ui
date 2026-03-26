@@ -18,6 +18,20 @@ defmodule AshUI.Resources.Validations.BindingSource do
     source = Subject.get_attribute(subject, :source)
     binding_type = Subject.get_attribute(subject, :binding_type)
 
+    case validate_source(source, binding_type) do
+      :ok ->
+        :ok
+
+      {:error, message} ->
+        invalid_source(source, message)
+    end
+  end
+
+  @doc """
+  Validates a binding source map and returns a plain error message on failure.
+  """
+  @spec validate_source(term(), atom() | nil) :: :ok | {:error, String.t()}
+  def validate_source(source, binding_type) do
     with :ok <- validate_source_map(source),
          :ok <- validate_required_resource(source),
          :ok <- validate_shape(source, binding_type),
@@ -25,20 +39,22 @@ defmodule AshUI.Resources.Validations.BindingSource do
          :ok <- validate_optional_identifier(source, "relationship"),
          :ok <- validate_optional_identifier(source, "action") do
       :ok
+    else
+      {:error, _message} = error -> error
     end
   end
 
   defp validate_source_map(source) when is_map(source), do: :ok
 
-  defp validate_source_map(source) do
-    invalid_source(source, "must be a map")
+  defp validate_source_map(_source) do
+    {:error, "source must be a map"}
   end
 
   defp validate_required_resource(source) do
     if valid_identifier?(source_value(source, "resource")) do
       :ok
     else
-      invalid_source(source, "must include a non-empty resource reference")
+      {:error, "source must include a non-empty resource reference"}
     end
   end
 
@@ -49,7 +65,7 @@ defmodule AshUI.Resources.Validations.BindingSource do
          valid_identifier?(source_value(source, "relationship")) do
       :ok
     else
-      invalid_source(source, "value bindings must include a field or relationship")
+      {:error, "value bindings must include a field or relationship"}
     end
   end
 
@@ -59,7 +75,7 @@ defmodule AshUI.Resources.Validations.BindingSource do
     if valid_identifier?(source_value(source, "action")) do
       :ok
     else
-      invalid_source(source, "action bindings must include an action")
+      {:error, "action bindings must include an action"}
     end
   end
 
@@ -71,7 +87,7 @@ defmodule AshUI.Resources.Validations.BindingSource do
     cond do
       not source_has_key?(source, key) -> :ok
       valid_identifier?(value) -> :ok
-      true -> invalid_source(source, "`#{key}` must be a non-empty string or atom")
+      true -> {:error, "`#{key}` must be a non-empty string or atom"}
     end
   end
 

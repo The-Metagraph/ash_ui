@@ -1,9 +1,9 @@
 defmodule AshUI.Resource.DSL do
   @moduledoc """
-  Compatibility namespace for resource-level Ash UI DSL helpers.
+  Resource-local Ash UI DSL boundary.
 
-  The concrete compile-time helpers live under `AshUI.DSL.*`, while this
-  namespace preserves the `AshUI.Resource.DSL.*` module shape referenced by
-  the planning documents and older examples.
+  Modules under `AshUI.Resource.DSL.*` are the authoritative compile-time
+  authoring surface for Ash resources that carry screen, element, binding, and
+  action semantics.
   """
 end

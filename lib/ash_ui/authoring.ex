@@ -1,15 +1,18 @@
 defmodule AshUI.Authoring do
   @moduledoc """
-  Boundary helpers for upstream `UnifiedUi` authoring.
+  Boundary helpers for resource-first Ash UI authoring.
 
-  Ash UI does not own the authored DSL grammar for widgets, layouts, theming,
-  or signals. That authority lives in the upstream `UnifiedUi` package.
+  Ash resources that use `AshUI.Resource.DSL.*` are the authoritative authoring
+  units. Upstream `UnifiedUi` still owns widget and layout grammar, but Ash UI
+  now persists relational screen and element resources instead of monolithic
+  authored-screen documents.
 
-  Ash UI owns the persistence, binding metadata, runtime orchestration, and
-  renderer integration layered around those authored definitions.
+  This module exposes package metadata plus the resource-first persistence
+  helpers that still sit at the Ash UI package boundary.
   """
 
-  alias AshUI.Authoring.{Document, Extensions, Migrator, Screen}
+  alias AshUI.Authoring.Extensions
+  alias AshUI.Resource.Authority
 
   @type module_area ::
           :dsl
@@ -83,49 +86,19 @@ defmodule AshUI.Authoring do
   end
 
   @doc """
-  Builds a JSON-safe persisted authoring document from a `UnifiedUi.Dsl` module.
-  """
-  @spec document(module(), keyword()) :: {:ok, map()} | {:error, term()}
-  def document(module, opts \\ []) do
-    Document.new(module, opts)
-  end
-
-  @doc """
-  Builds `Screen` attributes from a `UnifiedUi.Dsl` module.
+  Builds `Screen` attributes from an authoritative screen resource module.
   """
   @spec screen_attrs(module(), keyword()) :: {:ok, map()} | {:error, term()}
   def screen_attrs(module, opts \\ []) do
-    Screen.screen_attrs(module, opts)
+    Authority.screen_attrs(module, opts)
   end
 
   @doc """
-  Persists a `Screen` record from a `UnifiedUi.Dsl` module.
+  Persists a `Screen` record from an authoritative screen resource module.
   """
   @spec create_screen(module(), keyword()) :: {:ok, struct()} | {:error, term()}
   def create_screen(module, opts \\ []) do
-    Screen.create(module, opts)
-  end
-
-  @doc """
-  Builds a Phase 10 persisted document from a legacy builder DSL payload.
-
-  This is an explicit one-time migration helper, not a runtime compatibility
-  path.
-  """
-  @spec migrate_legacy_dsl(map(), keyword()) :: {:ok, map()} | {:error, term()}
-  def migrate_legacy_dsl(dsl, opts \\ []) when is_map(dsl) and is_list(opts) do
-    Migrator.document(dsl, opts)
-  end
-
-  @doc """
-  Builds `Screen` attributes from a legacy builder DSL payload.
-
-  This is an explicit one-time migration helper, not a runtime compatibility
-  path.
-  """
-  @spec migrate_legacy_screen_attrs(map(), keyword()) :: {:ok, map()} | {:error, term()}
-  def migrate_legacy_screen_attrs(dsl, opts \\ []) when is_map(dsl) and is_list(opts) do
-    Migrator.screen_attrs(dsl, opts)
+    Authority.create(module, opts)
   end
 
   @doc """

@@ -78,6 +78,39 @@ defmodule AshUI.Runtime.ActionBindingTest do
       assert error.status == :error
       assert error.errors == [%{"message" => "Unauthorized"}]
     end
+
+    test "executes a declared element action through the runtime bridge", %{context: context} do
+      action_declaration = %{
+        id: "declared-create",
+        signal: :click,
+        source: %{"resource" => "User", "action" => "create"},
+        transform: %{
+          "params" => %{
+            "name" => %{"from" => "event", "key" => "name"},
+            "email" => %{"from" => "event", "key" => "email"},
+            "nickname" => %{"from" => "static", "value" => "Declared"}
+          }
+        }
+      }
+
+      assert %{
+               "binding_type" => :action,
+               "target" => "action",
+               "metadata" => %{"signal" => :click}
+             } = ActionBinding.binding_from_action_declaration(action_declaration)
+
+      assert {:ok, result} =
+               ActionBinding.execute_declared_action(
+                 action_declaration,
+                 %{"name" => "Declared", "email" => "declared@example.com"},
+                 context
+               )
+
+      assert result.status == :ok
+      assert %User{} = result.data
+      assert result.data.name == "Declared"
+      assert result.data.nickname == "Declared"
+    end
   end
 
   describe "event_handler/2" do

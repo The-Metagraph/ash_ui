@@ -3,23 +3,9 @@ defmodule AshUI.DSL.Builder do
   Legacy builder functions for migration-era `unified_dsl` maps.
 
   This module is not part of the supported public authoring path anymore.
-  Application code should author screens through upstream `UnifiedUi.Dsl`
-  modules and persist them through `AshUI.Authoring.Screen`.
-
-  Use this module only indirectly through
-  `AshUI.Authoring.migrate_legacy_dsl/2` or
-  `AshUI.Authoring.migrate_legacy_screen_attrs/2` when converting older stored
-  payloads.
-
-  Builder-first authoring is scheduled for removal once:
-
-  - persisted screens can be stored as upstream authoring documents by default
-  - compiler delegation to `UnifiedUi.Compiler` is the normal code path
-  - public examples and guides stop teaching builder-first authoring
-  - governance checks prevent builder-first public drift
+  Application code should author screens through resource-local Ash UI screen
+  modules and persist them through `AshUI.Resource.Authority`.
   """
-
-  alias AshUI.Authoring.LegacyBuilder
 
   @type dsl_map :: %{
           required(:type) => String.t(),
@@ -566,8 +552,6 @@ defmodule AshUI.DSL.Builder do
   """
   @spec to_store(dsl_map()) :: map()
   def to_store(dsl) when is_map(dsl) do
-    LegacyBuilder.signal(:builder_to_store)
-
     to_store_node(dsl)
   end
 
@@ -588,8 +572,6 @@ defmodule AshUI.DSL.Builder do
   """
   @spec from_store(map()) :: dsl_map()
   def from_store(stored) when is_map(stored) do
-    LegacyBuilder.signal(:builder_from_store)
-
     from_store_node(stored)
   end
 
@@ -625,8 +607,6 @@ defmodule AshUI.DSL.Builder do
   """
   @spec validate(dsl_map()) :: :ok | {:error, [String.t()]}
   def validate(dsl) do
-    LegacyBuilder.signal(:builder_validate)
-
     errors =
       []
       |> validate_type(dsl)

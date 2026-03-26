@@ -92,22 +92,22 @@ defmodule AshUI.Resources.ScreenTest do
   end
 
   describe "Screen unified_dsl validation" do
-    test "rejects malformed Phase 10 authoring documents" do
+    test "rejects malformed resource-authority payloads" do
       assert {:error, error} =
                AshUI.Data.create(Screen,
                  attrs: %{
-                   name: "invalid_phase10_document",
+                   name: "invalid_resource_authority_document",
                    unified_dsl: %{
-                     "format" => "ash_ui/unified_ui_document",
-                     "version" => 2,
-                     "authoring" => %{},
-                     "ash_ui" => %{}
+                     "format" => "ash_ui/resource_authority",
+                     "version" => 1,
+                     "screen" => %{},
+                     "elements" => []
                    },
                    layout: :row
                  }
                )
 
-      assert Exception.message(error) =~ "authoring"
+      assert Exception.message(error) =~ "module reference"
       assert Exception.message(error) =~ "invalid"
     end
 
@@ -135,7 +135,7 @@ defmodule AshUI.Resources.ScreenTest do
                  }
                )
 
-      assert Exception.message(error) =~ "Phase 10"
+      assert Exception.message(error) =~ "resource_authority"
     end
   end
 

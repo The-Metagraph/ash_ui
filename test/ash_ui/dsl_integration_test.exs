@@ -124,7 +124,10 @@ defmodule AshUI.DSLIntegrationTest do
                      metadata: attrs.metadata
                    )
                )
-      assert screen.metadata == %{"custom" => "value", "priority" => 1}
+      assert Map.take(screen.metadata, ["custom", "priority"]) == %{
+               "custom" => "value",
+               "priority" => 1
+             }
     end
 
     test "invalid screen DSL fails at compile time" do
@@ -321,6 +324,7 @@ defmodule AshUI.DSLIntegrationTest do
 
     test "compatibility namespace exposes binding DSL helpers" do
       assert CompatBindingDSLFixture.attrs() == %{
+               id: "value",
                source: %{resource: "User", field: "email"},
                target: "value",
                binding_type: :value

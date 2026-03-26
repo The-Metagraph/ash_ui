@@ -75,15 +75,15 @@ Back to index: [README](./README.md)
       [x] 13.3.1.3 Subtask - Replace them with resource-local entry points and module docs
       [x] 13.3.1.4 Subtask - Add release notes and governance checks documenting the hard cut
 
-  [ ] 13.4 Section - Phase 13 Integration Tests
+  [x] 13.4 Section - Phase 13 Integration Tests
     Validate that element resources are once again the authoritative authoring
     units.
 
-    [ ] 13.4.1 Task - Resource-first authoring scenarios
+    [x] 13.4.1 Task - Resource-first authoring scenarios
     Verify the code now accepts element-resource-first authoring without the old
     document bridge.
 
-      [ ] 13.4.1.1 Subtask - Verify an element resource with embedded DSL compiles as the authoritative source
-      [ ] 13.4.1.2 Subtask - Verify element-local bindings and actions survive compilation and runtime hydration
-      [ ] 13.4.1.3 Subtask - Verify invalid signal/action declarations fail clearly at compile time
-      [ ] 13.4.1.4 Subtask - Verify `AshUI.Authoring.*`-style screen-document-first flows are rejected or removed
+      [x] 13.4.1.1 Subtask - Verify an element resource with embedded DSL compiles as the authoritative source
+      [x] 13.4.1.2 Subtask - Verify element-local bindings and actions survive compilation and runtime hydration
+      [x] 13.4.1.3 Subtask - Verify invalid signal/action declarations fail clearly at compile time
+      [x] 13.4.1.4 Subtask - Verify `AshUI.Authoring.*`-style screen-document-first flows are rejected or removed

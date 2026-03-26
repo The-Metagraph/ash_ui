@@ -64,16 +64,16 @@ Back to index: [README](./README.md)
       [x] 13.2.2.3 Subtask - Reject action declarations that do not match the element's supported signals
       [x] 13.2.2.4 Subtask - Add end-to-end tests for valid and invalid signal-to-action ownership
 
-  [ ] 13.3 Section - Hard Cutover Of The Superseded Model
+  [x] 13.3 Section - Hard Cutover Of The Superseded Model
     Remove the requirement to preserve the monolithic authored-screen path.
 
-    [ ] 13.3.1 Task - Remove the superseded document-first APIs outright
+    [x] 13.3.1 Task - Remove the superseded document-first APIs outright
     Make the hard break concrete in the implementation plan.
 
-      [ ] 13.3.1.1 Subtask - Identify all public and internal APIs that only exist for screen-document-authority authoring
-      [ ] 13.3.1.2 Subtask - Delete or rewrite those APIs without compatibility aliases
-      [ ] 13.3.1.3 Subtask - Replace them with resource-local entry points and module docs
-      [ ] 13.3.1.4 Subtask - Add release notes and governance checks documenting the hard cut
+      [x] 13.3.1.1 Subtask - Identify all public and internal APIs that only exist for screen-document-authority authoring
+      [x] 13.3.1.2 Subtask - Delete or rewrite those APIs without compatibility aliases
+      [x] 13.3.1.3 Subtask - Replace them with resource-local entry points and module docs
+      [x] 13.3.1.4 Subtask - Add release notes and governance checks documenting the hard cut
 
   [ ] 13.4 Section - Phase 13 Integration Tests
     Validate that element resources are once again the authoritative authoring

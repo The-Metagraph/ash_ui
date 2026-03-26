@@ -2,9 +2,7 @@ defmodule AshUI.CompilerTest do
   use AshUI.DataCase, async: false
 
   alias AshUI.Compiler
-  alias AshUI.Authoring.Migrator
   alias AshUI.Compilation.IUR
-  alias AshUI.DSL.Builder
   alias AshUI.Resources.Screen
   alias AshUI.Test.ScreenDocumentFixtures
 
@@ -57,9 +55,9 @@ defmodule AshUI.CompilerTest do
       assert %IUR{type: :key_value} = find_iur_node(shell, :key_value)
       assert %IUR{type: :info_list} = find_iur_node(shell, :info_list)
       assert %IUR{type: :form_field} = find_iur_node(shell, :form_field)
-      assert %IUR{type: :textinput} = find_iur_node(shell, :textinput)
+      assert %IUR{type: :input} = find_iur_node(shell, :input)
 
-      assert find_iur_node(shell, :hero).props["title"] == "Authored through UnifiedUi"
+      assert find_iur_node(shell, :hero).props["title"] == "Elements are the authoritative units"
     end
 
     test "compiles persisted binding metadata as IUR bindings", %{screen: screen} do
@@ -67,7 +65,11 @@ defmodule AshUI.CompilerTest do
 
       assert length(iur.bindings) > 0
 
-      binding = hd(iur.bindings)
+      binding =
+        Enum.find(iur.bindings, fn binding ->
+          binding["element_id"] == "display_name_input"
+        end)
+
       assert is_map(binding)
       assert binding["source"]["resource"] == "AshUI.Test.User"
       assert binding["target"] == "display_name"
@@ -111,18 +113,17 @@ defmodule AshUI.CompilerTest do
              end)
     end
 
-    test "rejects migrated builder documents after the hard cutover" do
-      attrs =
-        Migrator.screen_attrs!(
-          Builder.text("Legacy"),
-          name: "legacy_dsl_screen",
-          layout: :row
-        )
+    test "rejects payloads outside the resource-authority contract" do
+      assert {:error, error} =
+               AshUI.Data.create(Screen,
+                 attrs: %{
+                   name: "invalid_authority_screen",
+                   unified_dsl: %{"format" => "ash_ui/unified_ui_document", "version" => 2},
+                   layout: :row
+                 }
+               )
 
-      assert {:ok, screen} = AshUI.Data.create(Screen, attrs: attrs)
-
-      assert {:error, {:unsupported_authoring_document, :phase_11_upstream_modules_only}} =
-               Compiler.compile_from_unified_dsl(screen)
+      assert Exception.message(error) =~ "resource_authority"
     end
   end
 
@@ -201,12 +202,7 @@ defmodule AshUI.CompilerTest do
 
       assert {:ok, _iur} = Compiler.compile(screen, use_cache: true)
 
-      changed_document =
-        put_in(
-          screen.unified_dsl,
-          ["ash_ui", "metadata", "cache_variant"],
-          "changed"
-        )
+      changed_document = put_in(screen.unified_dsl, ["screen", "metadata", "cache_variant"], "changed")
 
       changed_screen = %{screen | unified_dsl: changed_document}
 

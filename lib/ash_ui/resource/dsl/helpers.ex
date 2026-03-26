@@ -1,11 +1,19 @@
 defmodule AshUI.Resource.DSL.Helpers do
-  @moduledoc false
+  @moduledoc """
+  Shared compile-time helpers for resource-local Ash UI DSL macros.
+  """
 
+  @doc """
+  Normalizes quoted blocks into a flat list of expressions.
+  """
   @spec block_expressions(Macro.t() | nil) :: [Macro.t()]
   def block_expressions({:__block__, _meta, expressions}), do: expressions
   def block_expressions(nil), do: []
   def block_expressions(expression), do: [expression]
 
+  @doc """
+  Extracts a keyword list of literal DSL entries from a quoted block.
+  """
   @spec extract_literal_entries!(Macro.t(), Macro.Env.t(), [atom()], String.t()) :: keyword()
   def extract_literal_entries!(block, caller, allowed_names, context) do
     block
@@ -25,6 +33,9 @@ defmodule AshUI.Resource.DSL.Helpers do
     end)
   end
 
+  @doc """
+  Evaluates a quoted literal at compile time and raises on non-literal values.
+  """
   @spec eval_literal!(Macro.t(), Macro.Env.t(), atom(), String.t()) :: term()
   def eval_literal!(ast, caller, key, context) do
     try do

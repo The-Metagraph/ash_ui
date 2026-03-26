@@ -436,7 +436,7 @@ defmodule AshUI.Rendering.ElmUIAdapterTest do
           "props" => %{
             "eyebrow" => "Authoring",
             "title" => "Authored through UnifiedUi",
-            "message" => "Persisted through AshUI.Authoring.Screen."
+            "message" => "Persisted through AshUI.Resource.Authority."
           },
           "children" => [
             %{

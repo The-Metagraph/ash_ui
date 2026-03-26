@@ -36,6 +36,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     "form_builder" => [:submit]
   }
 
+  @doc """
+  Validates the screen-scoped Ash UI DSL declared on a screen resource.
+  """
   @spec validate_screen_definition!(map()) :: map()
   def validate_screen_definition!(definition) when is_map(definition) do
     layout = Map.get(definition, :layout, :default)
@@ -63,6 +66,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     definition
   end
 
+  @doc """
+  Validates the element-scoped Ash UI DSL declared on an element resource.
+  """
   @spec validate_element_definition!(map()) :: map()
   def validate_element_definition!(definition) when is_map(definition) do
     type = Map.get(definition, :type)
@@ -95,6 +101,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     definition
   end
 
+  @doc """
+  Validates one binding declaration for either element or screen scope.
+  """
   @spec validate_binding_definition!(map(), keyword()) :: map()
   def validate_binding_definition!(binding, opts \\ []) when is_map(binding) do
     scope = Keyword.get(opts, :scope, :element)
@@ -139,6 +148,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     binding
   end
 
+  @doc """
+  Validates that an element definition owns only compatible bindings and actions.
+  """
   @spec validate_element_authority!(map(), [map()], [map()]) :: :ok
   def validate_element_authority!(definition, bindings, actions)
       when is_map(definition) and is_list(bindings) and is_list(actions) do
@@ -150,6 +162,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     :ok
   end
 
+  @doc """
+  Validates that a screen definition only uses the allowed screen-scoped bindings.
+  """
   @spec validate_screen_authority!(map(), [map()]) :: :ok
   def validate_screen_authority!(definition, bindings)
       when is_map(definition) and is_list(bindings) do
@@ -158,6 +173,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     :ok
   end
 
+  @doc """
+  Validates a single element-owned action declaration.
+  """
   @spec validate_action_definition!(map()) :: map()
   def validate_action_definition!(action) when is_map(action) do
     id = Map.get(action, :id)
@@ -197,6 +215,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     action
   end
 
+  @doc """
+  Returns true when a binding target is reserved for screen scope.
+  """
   @spec screen_scoped_target?(term()) :: boolean()
   def screen_scoped_target?(target) when is_binary(target) do
     target in @screen_binding_targets or
@@ -205,11 +226,17 @@ defmodule AshUI.Resources.Validations.Authoring do
 
   def screen_scoped_target?(_target), do: false
 
+  @doc """
+  Normalizes widget identifiers to the string form used by storage validation.
+  """
   @spec normalize_widget_type(term()) :: String.t() | nil
   def normalize_widget_type(type) when is_atom(type), do: Atom.to_string(type)
   def normalize_widget_type(type) when is_binary(type), do: type
   def normalize_widget_type(_type), do: nil
 
+  @doc """
+  Validates that a DSL child list contains only resource modules.
+  """
   @spec validate_module_list!(term(), String.t()) :: :ok
   def validate_module_list!(value, label) when is_list(value) do
     if Enum.all?(value, &is_atom/1) do
@@ -223,6 +250,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     raise ArgumentError, "#{label} must be a list of modules, got: #{inspect(value)}"
   end
 
+  @doc """
+  Validates an inline screen fragment against stored DSL rules.
+  """
   @spec validate_inline_fragment!(term(), String.t()) :: :ok
   def validate_inline_fragment!(nil, _label), do: :ok
 
@@ -237,6 +267,9 @@ defmodule AshUI.Resources.Validations.Authoring do
     raise ArgumentError, "#{label} must be a map when present, got: #{inspect(value)}"
   end
 
+  @doc """
+  Validates an authoring identifier used for bindings and actions.
+  """
   @spec validate_identifier!(term(), String.t()) :: :ok
   def validate_identifier!(value, _label)
       when (is_binary(value) and value != "") or (is_atom(value) and not is_nil(value)) do

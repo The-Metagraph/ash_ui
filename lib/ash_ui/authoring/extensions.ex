@@ -54,7 +54,7 @@ defmodule AshUI.Authoring.Extensions do
     [
       "Author new widgets and layouts as compile-time UnifiedUi DSL extensions.",
       "Patch composition entities through UnifiedUi extension points like :widget_entities and :layout_entities.",
-      "Persist screen resources through AshUI.Resource.Authority or AshUI.Authoring.Screen instead of writing monolithic screen documents."
+      "Persist screen resources through AshUI.Resource.Authority instead of writing monolithic screen documents."
     ]
   end
 end

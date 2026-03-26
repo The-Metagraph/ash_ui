@@ -3,7 +3,7 @@
 This example shows the smallest practical Ash UI flow in a Phoenix application:
 
 1. author a screen module through upstream `UnifiedUi.Dsl`
-2. persist it with `AshUI.Authoring.Screen`
+2. persist it with `AshUI.Resource.Authority`
 2. seed ETS-backed Ash resources for dashboard data
 3. mount it through `AshUI.LiveView.Integration`
 4. delegate user events through `AshUI.LiveView.EventHandler`
@@ -60,5 +60,5 @@ dashboard screen. `desktop` is still considered work in progress, and
 `terminal_ui` is not yet present in this repo.
 
 `BasicDashboard.seed!/0` persists the authored `BasicDashboard.AuthoredScreen`
-module through `AshUI.Authoring.Screen`, so the example demonstrates the same
+module through `AshUI.Resource.Authority`, so the example demonstrates the same
 authoring boundary that Ash UI now expects in production code.

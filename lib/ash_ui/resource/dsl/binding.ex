@@ -40,7 +40,9 @@ defmodule AshUI.Resource.DSL.Binding do
   def to_attributes(entries) when is_map(entries), do: entries
   def to_attributes(entries) when is_list(entries), do: entries
 
-  @doc false
+  @doc """
+  Expands a `ui_bindings` block into validated binding declarations.
+  """
   def __bindings_from_block__(block, caller) do
     block
     |> Helpers.block_expressions()

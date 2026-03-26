@@ -20,7 +20,7 @@ defmodule AshUI.Test.AuthoredSupportScreen do
       hero :hero_panel do
         eyebrow("Authoring")
         title("Authored through UnifiedUi")
-        message("Persisted through AshUI.Authoring.Screen.")
+        message("Persisted through AshUI.Resource.Authority.")
 
         badge :status_badge do
           value("Ready")

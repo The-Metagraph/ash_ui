@@ -1,11 +1,11 @@
 defmodule AshUI.Rendering.IURAdapterTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Authoring.Screen
   alias AshUI.Compiler
   alias AshUI.Compilation.IUR
   alias AshUI.Rendering.IURAdapter
-  alias AshUI.Test.{AuthoredSupportScreen, UIStorageFixtures}
+  alias AshUI.Resource.Authority
+  alias AshUI.Test.{ResourceAuthorityScreen, UIStorageFixtures}
 
   describe "to_canonical/1" do
     test "converts simple screen to canonical format" do
@@ -175,15 +175,15 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert :ok = UnifiedIUR.validate(canonical)
     end
 
-    test "converts upstream-authored semantic widgets without leaking renderer assumptions" do
+    test "converts resource-authority semantic widgets without leaking renderer assumptions" do
       ui_storage = UIStorageFixtures.ui_storage_config()
 
       assert {:ok, screen} =
-               Screen.create(AuthoredSupportScreen,
+               Authority.create(ResourceAuthorityScreen,
                  ui_storage: ui_storage,
-                 route: "/phase-11/authored",
+                 route: "/phase-13/resource-authority",
                  layout: :column,
-                 metadata: %{"seed" => "phase11"}
+                 metadata: %{"seed" => "phase13"}
                )
 
       assert {:ok, ash_iur} = Compiler.compile(screen, ui_storage: ui_storage, use_cache: false)
@@ -193,15 +193,13 @@ defmodule AshUI.Rendering.IURAdapterTest do
       types = collect_types(canonical)
 
       assert "hero" in types
-      assert "badge" in types
       assert "stat" in types
       assert "key_value" in types
       assert "info_list" in types
-      assert "form_builder" in types
       assert "form_field" in types
 
       assert get_in(canonical, ["metadata", "ash_ui", "compiler_boundary"]) ==
-               "UnifiedUi.Compiler -> AshUI runtime normalization"
+               "AshUI.Resource.Authority -> AshUI runtime normalization"
 
       refute Enum.any?(canonical["children"], fn child ->
                match?(%{"ash_ui" => _}, child["metadata"])

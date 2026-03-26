@@ -11,7 +11,8 @@ defmodule AshUI.Authoring do
   helpers that still sit at the Ash UI package boundary.
   """
 
-  alias AshUI.Authoring.{Extensions, Screen}
+  alias AshUI.Authoring.Extensions
+  alias AshUI.Resource.Authority
 
   @type module_area ::
           :dsl
@@ -89,7 +90,7 @@ defmodule AshUI.Authoring do
   """
   @spec screen_attrs(module(), keyword()) :: {:ok, map()} | {:error, term()}
   def screen_attrs(module, opts \\ []) do
-    Screen.screen_attrs(module, opts)
+    Authority.screen_attrs(module, opts)
   end
 
   @doc """
@@ -97,7 +98,7 @@ defmodule AshUI.Authoring do
   """
   @spec create_screen(module(), keyword()) :: {:ok, struct()} | {:error, term()}
   def create_screen(module, opts \\ []) do
-    Screen.create(module, opts)
+    Authority.create(module, opts)
   end
 
   @doc """

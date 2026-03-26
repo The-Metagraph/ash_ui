@@ -2,9 +2,9 @@ defmodule AshUI.Authoring.LegacyBuilder do
   @moduledoc """
   Legacy builder signaling helpers.
 
-  `AshUI.DSL.Builder` remains available only as a migration bridge while Ash UI
-  transitions persisted screens, examples, and compiler delegation to the
-  authoritative upstream `UnifiedUi.Dsl` surface.
+  This module exists only to signal explicit migration-time use of
+  `AshUI.DSL.Builder`. New application code should not call the builder
+  directly.
   """
 
   require Logger

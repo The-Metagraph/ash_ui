@@ -79,9 +79,33 @@ end
   )
 ```
 
-If you must keep an existing builder-authored payload during rollout,
-`AshUI.DSL.Builder` is still available as a migration-only compatibility layer.
-It now emits a dedicated legacy-builder warning/telemetry signal when used.
+Legacy builder-shaped payloads are no longer accepted at runtime. Migrate them
+explicitly before persistence:
+
+```elixir
+{:ok, attrs} =
+  AshUI.Authoring.migrate_legacy_screen_attrs(legacy_dsl,
+    name: "dashboard",
+    route: "/dashboard",
+    layout: :column
+  )
+
+{:ok, _screen} = AshUI.Data.create(AshUI.Resources.Screen, attrs: attrs)
+```
+
+Use `AshUI.Authoring.migrate_legacy_dsl/2` when you want the persisted upstream
+document without writing the `Screen` record yet.
+
+## Remaining Migration-Only Exceptions
+
+These legacy-oriented helpers still exist for one-time migration work:
+
+- `AshUI.Authoring.migrate_legacy_dsl/2`
+- `AshUI.Authoring.migrate_legacy_screen_attrs/2`
+- the telemetry emitted for legacy authoring migration activity
+
+Do not build new screens with those helpers. Convert the old payload once, then
+keep the result in the normal upstream-authored `UnifiedUi.Dsl` flow.
 
 ## Step 2: Normalize Binding Sources
 
@@ -148,7 +172,7 @@ mix test test/ash_ui/authorization/runtime_test.exs
 - move screen definitions into `AshUI.Resources.Screen`
 - convert binding sources to maps
 - persist new screen definitions through `AshUI.Authoring.Screen`
-- use `AshUI.DSL.Builder` only when migrating existing builder-authored payloads
+- migrate existing builder-authored payloads once with `AshUI.Authoring.migrate_legacy_dsl/2` or `AshUI.Authoring.migrate_legacy_screen_attrs/2`
 - mount via `AshUI.LiveView.Integration`
 - verify `:current_user` is assigned
 - confirm telemetry and authorization behavior in the target environment

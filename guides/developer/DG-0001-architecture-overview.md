@@ -87,9 +87,9 @@ flowchart LR
 
 The earlier specs describe first-class `UI.Screen`, `UI.Element`, and `UI.Binding` DSL-driven definitions. The implemented code still uses those resource concepts, but the operational center of gravity is now:
 
-1. Persist screen state in Ash resources.
-2. Store nested UI structure in `Screen.unified_dsl`.
-3. Compile into `AshUI.Compilation.IUR`.
+1. Author screens through upstream `UnifiedUi.Dsl`.
+2. Persist the authored document in `Screen.unified_dsl`.
+3. Compile into `AshUI.Compilation.IUR` through the upstream compiler boundary.
 4. Convert into canonical renderer input.
 5. Mount and authorize through LiveView runtime helpers.
 
@@ -121,7 +121,8 @@ Important details:
 
 ## Compilation Plane
 
-The compilation plane turns Ash UI resources into internal IUR.
+The compilation plane turns persisted upstream-authored screen documents into
+internal IUR.
 
 Primary modules:
 
@@ -130,10 +131,12 @@ Primary modules:
 - `AshUI.Compiler.Extensions`
 - `AshUI.Compiler.Incremental`
 
-There are two active compilation paths:
+The active compilation path is:
 
-- compile from `Screen.unified_dsl`
-- compile from relational screen, element, and binding records
+- compile from persisted `Screen.unified_dsl` documents authored through `UnifiedUi.Dsl`
+
+Legacy builder-shaped documents are rejected at compile boundaries and only
+survive as explicit migration input to `AshUI.Authoring`.
 
 `AshUI.Compiler` also owns:
 
@@ -207,8 +210,8 @@ That fallback behavior is intentional and is part of current release-readiness w
 
 Architectural naming note:
 
-- the external Elm-backed renderer package is now `elm_ui`
-- the current Ash UI implementation still uses `AshUI.Rendering.WebUIAdapter` as the local adapter module name until a follow-up rename lands
+- the external Elm-backed renderer package is `elm_ui`
+- the Ash UI adapter boundary is `AshUI.Rendering.ElmUIAdapter`
 
 ## Observability
 

@@ -6,6 +6,8 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
   alias AshUI.Rendering.LiveUIAdapter
   alias BasicDashboard.AdapterRunner
 
+  @moduletag :conformance
+
   defp widget_types(%{"type" => type} = node) do
     child_types =
       node
@@ -22,6 +24,7 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
 
     assert result.renderer == :liveview
     assert result.adapter_module == LiveUIAdapter
+    assert result.authoring_module == "BasicDashboard.AuthoredScreen"
     assert is_binary(result.output)
     assert result.output =~ "Model your dashboard. Let the runtime do the wiring."
     assert result.output =~ "phx-change=\"ash_ui_change\""
@@ -33,6 +36,7 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
 
     assert result.renderer == :elm
     assert result.adapter_module == ElmUIAdapter
+    assert result.authoring_module == "BasicDashboard.AuthoredScreen"
     assert is_binary(result.output)
     assert result.output =~ "<!DOCTYPE html>"
     assert result.screen.name == "basic_dashboard"
@@ -44,6 +48,8 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
     assert Map.keys(results) |> Enum.sort() == [:elm, :liveview]
     assert results.liveview.screen.id == results.elm.screen.id
     assert results.liveview.canonical_iur == results.elm.canonical_iur
+    assert results.liveview.authoring_module == "BasicDashboard.AuthoredScreen"
+    assert results.elm.authoring_module == "BasicDashboard.AuthoredScreen"
 
     Enum.each(
       [
@@ -62,9 +68,13 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
     assert results.elm.output =~ "ash-ui-elm-flags"
 
     widget_types = widget_types(results.liveview.canonical_iur)
+    assert "hero" in widget_types
+    assert "stat" in widget_types
+    assert "key_value" in widget_types
+    assert "info_list" in widget_types
+    assert "form_builder" in widget_types
     assert "input" in widget_types
     assert "button" in widget_types
-    assert Enum.count(widget_types, &(&1 == "card")) >= 4
   end
 
   test "reports terminal_ui as unavailable because it is not implemented yet" do

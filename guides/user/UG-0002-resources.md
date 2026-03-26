@@ -54,23 +54,47 @@ Important fields:
 - `active`: soft enablement flag
 - `version`: incremented on update
 
-Create a screen:
+Create a screen by authoring it through `UnifiedUi.Dsl`, then persisting the
+resulting document as a regular `Screen` record:
 
 ```elixir
 alias AshUI.Data, as: Domain
+alias AshUI.Authoring.Screen, as: AuthoringScreen
 alias AshUI.Resources.Screen
 
-{:ok, screen} =
-  Domain.create(Screen,
-    attrs: %{
-      name: "settings",
-      route: "/settings",
-      layout: :column,
-      unified_dsl: %{"type" => "column", "children" => []},
-      metadata: %{"title" => "Settings"}
-    }
+defmodule MyApp.UI.Settings do
+  use UnifiedUi.Dsl
+
+  identity do
+    id(:settings)
+    title("Settings")
+    authored_ref([:my_app, :ui, :settings])
+  end
+
+  composition do
+    root(:settings_root)
+    mode(:screen)
+
+    column :settings_shell do
+      text :settings_heading do
+        value("Settings")
+      end
+    end
+  end
+end
+
+{:ok, attrs} =
+  AuthoringScreen.screen_attrs(MyApp.UI.Settings,
+    route: "/settings",
+    layout: :column
   )
+
+{:ok, screen} = Domain.create(Screen, attrs: attrs)
 ```
+
+Do not hand-author raw `unified_dsl` maps in application code. That shape now
+belongs to persisted upstream `UnifiedUi` documents, not Ash UI-specific
+builder payloads.
 
 Read a screen by name:
 
@@ -171,7 +195,7 @@ The current resource relationships are:
 
 This gives you two workable patterns:
 
-1. Put all structure in `Screen.unified_dsl` and use bindings for dynamic behavior.
+1. Put all structure in `Screen.unified_dsl` by persisting an upstream-authored `UnifiedUi.Dsl` module and use bindings for dynamic behavior.
 2. Keep explicit `Element` and `Binding` records for relational querying and incremental composition.
 
 Many current flows use both.

@@ -20,15 +20,15 @@ Standalone example apps can then be started directly from their own directory.
 standalone Phoenix app, seeds ETS-backed demo data, and renders a stored
 `unified_dsl` screen through Ash UI adapters.
 
-The current dashboard seed still assembles its layout with builder primitives,
-but it now persists the screen through the Phase 10 migration path instead of
-storing the raw builder map. New authored screens should prefer upstream
-`UnifiedUi.Dsl` plus `AshUI.Authoring.Screen`.
+The dashboard screen itself is authored through upstream `UnifiedUi.Dsl` and
+persisted through `AshUI.Authoring.Screen`, so the example demonstrates the
+current intended authoring boundary directly.
 
 Example files:
 
 - `examples/basic_dashboard/README.md`
 - `examples/basic_dashboard/lib/basic_dashboard.ex`
+- `examples/basic_dashboard/lib/basic_dashboard_authored_screen.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_data.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_live.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_storage.ex`

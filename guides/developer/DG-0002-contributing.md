@@ -113,7 +113,16 @@ When a phase section is actually complete:
 - are tests added or updated where behavior changed?
 - do docs describe current behavior honestly, including fallbacks?
 - are telemetry and authorization implications covered where relevant?
+- do public examples and guides still demonstrate upstream `UnifiedUi.Dsl` authoring rather than a legacy migration path?
 - does a repo-wide search show no removed rename targets left in live code paths?
+
+## Migration-Only Exceptions
+
+Historical authoring references belong only in explicit migration or history
+documents. If you touch one of those areas, keep the change narrowly scoped and
+point readers back to [UG-0005](../user/UG-0005-migration-v0-to-v1.md) instead
+of reintroducing legacy authoring instructions into the main guides or example
+apps.
 
 ## See Also
 

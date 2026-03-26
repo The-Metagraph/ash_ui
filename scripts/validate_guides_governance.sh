@@ -146,6 +146,9 @@ while IFS= read -r guide; do
   fi
 done < <(find guides/user guides/developer -type f \( -name 'UG-*.md' -o -name 'DG-*.md' \) | sort)
 
+echo "Checking upstream authoring guidance boundaries..."
+bash ./scripts/validate_authoring_governance.sh || fail "authoring governance validation failed"
+
 if [[ "$failures" -ne 0 ]]; then
   echo "Guides governance validation failed."
   exit 1

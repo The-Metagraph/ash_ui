@@ -1,5 +1,12 @@
 import Config
 
+# Force SDL-backed renderers into headless mode for tests so renderer suites do
+# not open visible windows on machines with SDL installed.
+System.put_env("SDL_VIDEODRIVER", "dummy")
+System.put_env("SDL_AUDIODRIVER", "dummy")
+System.put_env("SDL_RENDER_DRIVER", "software")
+System.put_env("ASH_UI_HEADLESS_TESTS", "true")
+
 # Configure your database
 config :ash_ui, AshUI.Repo,
   username: "postgres",

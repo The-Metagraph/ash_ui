@@ -1,17 +1,23 @@
 # Resource Contract (REQ-RES-*)
 
-This contract defines the normative requirements for Ash UI resource definitions.
+This contract defines the normative requirements for Ash UI resource
+definitions.
 
 ## Purpose
 
-Ash UI stores durable UI state as Ash resources. This contract covers the resource-backed model implemented in this repository: `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`.
+Ash UI is a resource-native UI framework. The authoritative UI authoring units
+are Ash resources that opt into the `AshUI` extension.
 
-For screen authoring, the normative model is that `Screen.unified_dsl` stores a serialized `unified_ui` document owned by the upstream package. Ash UI owns persistence and runtime integration around that field, not the DSL grammar itself.
+The core model is:
 
-Phase 10 defines the durable write format as an Ash UI wrapper with:
-- top-level document format and version metadata
-- an `authoring` payload owned by upstream `unified_ui`
-- an `ash_ui` payload for screen metadata, binding metadata, and migration/runtime annotations
+- screen resources define top-level UI boundaries
+- element resources define the primary UI building blocks
+- binding declarations live with the relevant screen or element resource
+- resource relationships define UI composition
+
+Built-in storage resources such as `AshUI.Resources.Screen`,
+`AshUI.Resources.Element`, and `AshUI.Resources.Binding` may still exist as
+implementation support, but they are not the primary authoring authority.
 
 ## Control Plane
 
@@ -21,212 +27,162 @@ Phase 10 defines the durable write format as an Ash UI wrapper with:
 
 - Ash Framework
 - Ash-compatible data layer implementation
-- Phoenix LiveView
+- upstream `unified_ui` DSL constructs for embedded element/screen fragments
 
 ## Requirements
 
-### REQ-RES-001: Resource Definition
+### REQ-RES-001: Resource-Native Authoring
 
-All core UI resources MUST be defined using `Ash.Resource`, registered in a configured UI storage domain, and backed by an Ash-compatible data layer.
-
-**Acceptance Criteria**:
-- AC-001: Resources use `use Ash.Resource`
-- AC-002: The framework resolves a configured UI storage domain and resource set
-- AC-003: Resources specify a compatible Ash data layer
-- AC-004: The default shipped configuration remains `AshUI.Domain` plus `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`
-
-**Implementation Note**:
-The built-in resources in this repository use `AshPostgres`, but alternate implementations such as ETS-backed example storage are allowed if they satisfy the same contract.
-
-### REQ-RES-002: Type Safety
-
-All persisted attributes MUST have explicit Ash types and constraints where needed.
+All normative UI authoring units MUST be Ash resources using the `AshUI`
+extension.
 
 **Acceptance Criteria**:
-- AC-001: Every persisted attribute declares a type
-- AC-002: Enum-like fields use constraints or documented value sets
-- AC-003: Complex fields such as `props`, `metadata`, and `unified_dsl` use structured types compatible with their owning contracts
-- AC-004: `unified_dsl` is reserved for serialized `unified_ui` documents rather than Ash UI-specific authoring grammars
+- AC-001: Screen and element authoring begins with `use Ash.Resource`
+- AC-002: Authoring resources opt into the `AshUI` extension or equivalent
+  first-class Ash UI DSL boundary
+- AC-003: The UI authoring contract is expressed on resource modules, not only
+  inside persisted screen documents
+- AC-004: Built-in `AshUI.Resources.*` modules are documented as implementation
+  support when used, not as the sole authoring model
 
-### REQ-RES-003: Relationship Definition
+### REQ-RES-002: Element DSL Ownership
 
-Resource relationships MUST use standard Ash relationship DSL and reflect the screen/element/binding hierarchy.
-
-**Acceptance Criteria**:
-- AC-001: `Screen` has relationships to `Element` and `Binding`
-- AC-002: `Element` belongs to `Screen` and has relationships to `Binding`
-- AC-003: Foreign-key ownership is explicit in the resource definitions
-
-### REQ-RES-004: Action Definition
-
-Resources MUST expose baseline CRUD actions appropriate to their role in the system.
+Element resources MUST be able to declare their own element DSL fragment through
+the `AshUI` extension.
 
 **Acceptance Criteria**:
-- AC-001: `Screen`, `Element`, and `Binding` expose `:read`
-- AC-002: Mutable resources expose primary `:create` and `:update`
-- AC-003: Destructive operations are explicit and documented
-- AC-004: Supplemental read actions and filtered reads are allowed
+- AC-001: Element resources can declare renderer-facing widget semantics
+- AC-002: Element-level theming and styling can be declared through embedded
+  `unified_ui` constructs
+- AC-003: Element DSL definitions are validated at the resource boundary
+- AC-004: Element DSL is attached to the relevant element resource instead of
+  only being embedded in a monolithic screen document
 
-### REQ-RES-005: Validation
+### REQ-RES-003: Binding And Action Locality
 
-Resources MUST validate required attributes and structural invariants before persistence.
-
-**Acceptance Criteria**:
-- AC-001: Required attributes use `allow_nil?: false`
-- AC-002: Resource-specific invariants are enforced through changes or validation helpers
-- AC-003: Invalid data returns descriptive Ash errors
-
-### REQ-RES-006: Authorization Boundary
-
-Resources MUST participate in the authorization model, either through resource-level Ash policies or an explicit runtime authorization boundary.
+Bindings and interaction actions SHOULD be declared on the resource that owns
+the relevant UI element or screen behavior.
 
 **Acceptance Criteria**:
-- AC-001: Access to screens, elements, and bindings is not implicitly unrestricted in production flows
-- AC-002: The active authorization path is documented
-- AC-003: Policy or runtime authorization failures are surfaced clearly
+- AC-001: Element resources can declare bindings relevant to that element
+- AC-002: Element resources can declare the relevant interaction actions for the
+  signals they expose
+- AC-003: Screen resources can declare screen-scoped bindings when no single
+  element owns the behavior
+- AC-004: The contract does not require all bindings and actions to be authored
+  in a detached global screen document
 
-**Implementation Note**:
-The current repository primarily enforces authorization through runtime helpers. Full resource-level `Ash.Policy.Authorizer` wiring is still being completed.
+### REQ-RES-004: Relationship-Driven Composition
 
-### REQ-RES-007: Metadata and Versioning
-
-Resources MUST include timestamps and version metadata needed for cache invalidation and rollout safety.
-
-**Acceptance Criteria**:
-- AC-001: Resources have created and updated timestamps
-- AC-002: Resources expose a `version` attribute
-- AC-003: Version changes are available to compilation and rollout logic
-
-### REQ-RES-008: Extensions
-
-Resources MAY expose extension points or companion helpers so the compiler and runtime can layer behavior on top of persisted records.
+Resource relationships MUST express UI composition and nesting.
 
 **Acceptance Criteria**:
-- AC-001: Extension behavior is documented when present
-- AC-002: Extension hooks do not break the core resource schema
-- AC-003: Custom behavior respects the same validation and authorization boundaries
+- AC-001: Screen resources define relationships to their primary child element
+  resources
+- AC-002: Element resources can define relationships to child or companion
+  element resources
+- AC-003: Ordering and placement semantics are expressible alongside
+  relationships
+- AC-004: Compilation consumes a resource graph, not just a serialized document
+
+### REQ-RES-005: Screen-Level Inline Composition
+
+Screens MUST support direct DSL composition for cases where introducing another
+element resource is unnecessary.
+
+**Acceptance Criteria**:
+- AC-001: Screen resources can include direct DSL fragments or composition glue
+- AC-002: Inline composition is subordinate to the related element resource
+  graph
+- AC-003: Inline composition does not replace relationship-driven composition as
+  the primary model
+- AC-004: Inline composition uses the same widget/layout/theming semantics as
+  element resources
+
+### REQ-RES-006: Type Safety
+
+Authoring resources MUST keep Ash-side attributes, relationships, and UI
+extension sections type-safe and validated.
+
+**Acceptance Criteria**:
+- AC-001: Persisted attributes declare explicit Ash types
+- AC-002: Extension fields and options are validated before compilation
+- AC-003: Relationship metadata is validated together with UI composition rules
+- AC-004: Invalid authoring data returns descriptive Ash or compiler errors
+
+### REQ-RES-007: Authorization Boundary
+
+Authoring resources and runtime operations MUST participate in the authorization
+model.
+
+**Acceptance Criteria**:
+- AC-001: Screen and element access is not implicitly unrestricted in production
+  flows
+- AC-002: Binding and action execution honors authorization context
+- AC-003: The active enforcement path is documented
+- AC-004: Authorization failures are observable
+
+### REQ-RES-008: Versioning And Change Tracking
+
+Authoring resources MUST expose the metadata needed for dependency tracking,
+incremental recompilation, and cache invalidation.
+
+**Acceptance Criteria**:
+- AC-001: Authoring resources expose stable identity
+- AC-002: Version or update metadata is available for recompilation decisions
+- AC-003: Relationship changes are trackable
+- AC-004: UI extension changes can invalidate compiled output
 
 ## Resource Types
 
 ### UI.Element
 
-Default module: `AshUI.Resources.Element`
+Normative form: an application-defined Ash resource using the `AshUI`
+extension.
 
-Atomic renderer-facing component or layout node stored as a record.
-
-**Attributes**:
-- `id`: UUID primary key
-- `type`: atom component identifier
-- `props`: renderer-facing properties map
-- `variants`: list of atoms
-- `position`: integer ordering value
-- `metadata`: map
-- `active`: boolean
-- `version`: integer
-
-**Actions**:
-- `read`
-- `create`
-- `update`
-- `destroy`
-
-**Relationships**:
-- `belongs_to :screen`
-- `has_many :bindings`
+**Owns**:
+- element DSL fragment
+- optional element-local bindings
+- optional signal-linked actions
+- relationships to child or companion elements
 
 ### UI.Screen
 
-Default module: `AshUI.Resources.Screen`
+Normative form: an application-defined Ash resource using the `AshUI`
+extension.
 
-Top-level screen record that stores the durable serialized `unified_ui` document and screen metadata.
-
-**Attributes**:
-- `id`: UUID primary key
-- `name`: unique screen identifier
-- `unified_dsl`: persisted serialized `unified_ui` screen document
-- `layout`: layout hint
-- `route`: optional route
-- `metadata`: map
-- `active`: boolean
-- `version`: integer
-
-**Actions**:
-- `read`
-- `create`
-- `update`
-- `destroy`
-
-**Relationships**:
-- `has_many :elements`
-- `has_many :bindings`
+**Owns**:
+- route and screen metadata
+- primary composition relationships to element resources
+- optional inline DSL fragments for glue/layout composition
+- top-level lifecycle and mount boundary
 
 ### UI.Binding
 
-Default module: `AshUI.Resources.Binding`
+Normative form: binding declarations authored on the relevant screen or element
+resource through the `AshUI` extension.
 
-Binding record connecting runtime UI targets to Ash-side data or actions.
-
-**Attributes**:
-- `id`: UUID primary key
-- `source`: structured map describing resource, field, relationship, or action
-- `target`: renderer-facing target string such as `value`, `items`, or `submit`
-- `binding_type`: atom in `[:value, :list, :action]`
-- `transform`: map or ordered transform configuration
-- `metadata`: map
-- `active`: boolean
-- `version`: integer
-
-**Actions**:
-- `read`
-- `create`
-- `update`
-- `destroy`
-- filtered read actions are allowed
-
-**Relationships**:
-- `belongs_to :element`
-- `belongs_to :screen`
+**Implementation Note**:
+Standalone `Binding` resources may still exist for persistence, admin tooling,
+or runtime materialization, but they are not the primary authoring authority.
 
 ## Traceability
 
 | Requirement | ADR | Component Spec | Scenarios |
 |---|---|---|---|
-| REQ-RES-001 | ADR-0001, ADR-0002 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-001, SCN-004, SCN-006 |
-| REQ-RES-002 | ADR-0001 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-002 |
-| REQ-RES-003 | ADR-0001 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-003, SCN-005 |
-| REQ-RES-004 | ADR-0001 | resources/ui_screen.md, resources/ui_binding.md | SCN-004, SCN-006 |
-| REQ-RES-005 | - | compilation/validator.md | SCN-007 |
-| REQ-RES-006 | ADR-0001 | authorization_contract.md | SCN-081, SCN-084 |
-| REQ-RES-007 | ADR-0001, ADR-0002 | resources/ui_screen.md, resources/ui_element.md, resources/ui_binding.md | SCN-010 |
-| REQ-RES-008 | - | - | - |
+| REQ-RES-001 | ADR-0001, ADR-0005 | resources/ui_element.md, resources/ui_screen.md | SCN-001, SCN-004 |
+| REQ-RES-002 | ADR-0005 | resources/ui_element.md | SCN-002, SCN-011 |
+| REQ-RES-003 | ADR-0005 | resources/ui_binding.md | SCN-006, SCN-007, SCN-009 |
+| REQ-RES-004 | ADR-0005 | resources/ui_element.md, resources/ui_screen.md | SCN-003, SCN-005 |
+| REQ-RES-005 | ADR-0005 | resources/ui_screen.md | SCN-004, SCN-012 |
+| REQ-RES-006 | ADR-0001 | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-002, SCN-042 |
+| REQ-RES-007 | ADR-0001 | authorization_contract.md | SCN-081, SCN-084 |
+| REQ-RES-008 | ADR-0001, ADR-0005 | compilation_contract.md | SCN-010 |
 
 ## Conformance
 
-See [spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md) for the current coverage baseline.
-
-## Persisted Document Boundary
-
-New writes MUST use the Phase 10 persisted document contract:
-
-```elixir
-%{
-  "format" => "ash_ui/unified_ui_document",
-  "version" => 2,
-  "authoring" => %{
-    "source" => %{"kind" => "unified_ui_module", "module" => "..."},
-    "package" => %{...},
-    "document" => %{...}
-  },
-  "ash_ui" => %{
-    "screen" => %{"name" => "...", "layout" => "...", "route" => "..."},
-    "metadata" => %{...},
-    "binding_metadata" => %{...},
-    "runtime_annotations" => %{...}
-  }
-}
-```
-
-Legacy builder-shaped documents are supported only as explicit migration inputs. They are not a readable or writable runtime contract.
+See [spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md)
+for the current coverage baseline.
 
 ## Related Specifications
 
@@ -234,4 +190,4 @@ Legacy builder-shaped documents are supported only as explicit migration inputs.
 - [screen_contract.md](screen_contract.md)
 - [binding_contract.md](binding_contract.md)
 - [../resources/README.md](../resources/README.md)
-- [../adr/ADR-0004-unified-ui-dsl-authority.md](../adr/ADR-0004-unified-ui-dsl-authority.md)
+- [../adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md](../adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md)

@@ -1,17 +1,16 @@
 # Screen Contract (REQ-SCREEN-*)
 
-This contract defines the normative requirements for screen records and screen runtime behavior in Ash UI.
+This contract defines the normative requirements for screen resources and
+screen runtime behavior in Ash UI.
 
 ## Purpose
 
-Screens are the top-level durable UI records in Ash UI. They store `unified_dsl`, compose child elements and bindings, and act as the boundary mounted into LiveView sessions.
+Screens are top-level Ash resources that define mount boundaries, routes, and
+composition roots. A screen composes primarily through relationships to element
+resources, while still allowing direct inline DSL composition for glue and
+layout scaffolding.
 
-Normatively, `unified_dsl` is the persisted serialized `unified_ui` screen definition owned by the upstream DSL package.
-
-Phase 10 makes that boundary explicit as a versioned persisted document with:
-- top-level `format` and `version`
-- an `authoring` payload owned by upstream `unified_ui`
-- an `ash_ui` payload for screen metadata, binding metadata, and temporary migration/runtime annotations
+Screens are not normatively defined as monolithic persisted screen documents.
 
 ## Control Plane
 
@@ -19,38 +18,51 @@ Phase 10 makes that boundary explicit as a versioned persisted document with:
 
 ## Dependencies
 
-- REQ-RES-*: resource definitions
+- REQ-RES-*: resource-native authoring
 - REQ-COMP-*: compilation contracts
 - REQ-BIND-*: binding semantics
 
 ## Requirements
 
-### REQ-SCREEN-001: Screen Definition
+### REQ-SCREEN-001: Screen Resource Definition
 
-All screens MUST be represented as persisted `AshUI.Resources.Screen` records.
-
-```elixir
-attributes do
-  uuid_primary_key :id
-  attribute :name, :string, allow_nil?: false
-  attribute :unified_dsl, :map, default: %{}
-  attribute :layout, :atom, default: :default
-  attribute :route, :string
-  attribute :metadata, :map, default: %{}
-  attribute :active, :boolean, default: true
-  attribute :version, :integer, default: 1
-end
-```
+All screens MUST be represented as Ash resources using the `AshUI` extension.
 
 **Acceptance Criteria**:
 - AC-001: Screens use `Ash.Resource`
-- AC-002: Screens persist `name` and `unified_dsl`
-- AC-003: Screens expose layout and route metadata
-- AC-004: `unified_dsl` stores serialized upstream `unified_ui` screen definitions
+- AC-002: Screens expose route and screen metadata
+- AC-003: Screens provide an `AshUI` extension boundary for composition
+- AC-004: Screens are not modeled only as opaque serialized screen blobs
 
-### REQ-SCREEN-002: Lifecycle Management
+### REQ-SCREEN-002: Relationship-First Composition
 
-Screens MUST implement a runtime lifecycle through LiveView integration and screen state management.
+Screens MUST compose primarily through related element resources.
+
+**Acceptance Criteria**:
+- AC-001: A screen can reference primary child elements through Ash
+  relationships
+- AC-002: Relationship traversal order and placement semantics are defined
+- AC-003: Removing or changing a related element changes the compiled screen
+  graph
+- AC-004: Compiler inputs include the related element graph
+
+### REQ-SCREEN-003: Direct DSL Composition
+
+Screens MUST support direct inline DSL composition where another element
+resource would be unnecessary.
+
+**Acceptance Criteria**:
+- AC-001: Screens can embed direct widget/layout fragments
+- AC-002: Inline fragments use the same upstream `unified_ui` construct
+  semantics as element resources
+- AC-003: Inline fragments do not replace relationship-driven composition as
+  the primary model
+- AC-004: Inline fragments compose cleanly with related element resources
+
+### REQ-SCREEN-004: Lifecycle Management
+
+Screens MUST implement a runtime lifecycle through LiveView integration and
+screen state management.
 
 **Lifecycle States**:
 1. loaded
@@ -66,37 +78,28 @@ Screens MUST implement a runtime lifecycle through LiveView integration and scre
 - AC-003: Invalid lifecycle transitions are handled safely
 - AC-004: Lifecycle events emit telemetry
 
-### REQ-SCREEN-003: Element Composition
+### REQ-SCREEN-005: Screen-Scoped Bindings
 
-Screens MUST support both persisted child elements and nested structure in `unified_dsl`.
-
-**Acceptance Criteria**:
-- AC-001: Screens expose `has_many :elements`
-- AC-002: Elements preserve ordering metadata
-- AC-003: Screens expose `has_many :bindings`
-- AC-004: `unified_dsl` remains the canonical persisted screen definition for nested structure
-
-### REQ-SCREEN-004: Data Binding Context
-
-Screens MUST provide the runtime context needed for child binding resolution.
+Screens MUST support bindings that belong to the screen as a whole rather than
+to a single element.
 
 **Acceptance Criteria**:
-- AC-001: Binding evaluation is scoped to the mounted screen
-- AC-002: Binding values are assigned into screen runtime state
-- AC-003: Binding failures can be surfaced at screen level
-- AC-004: Screen updates can trigger re-render paths
+- AC-001: Screen-scoped bindings can be declared in the screen authoring surface
+- AC-002: Element-local and screen-local bindings can coexist
+- AC-003: Runtime binding evaluation preserves screen scope
+- AC-004: Screen-scoped failures surface clearly
 
-### REQ-SCREEN-005: Routing
+### REQ-SCREEN-006: Routing
 
 Routable screens MUST define a stable route path.
 
 **Acceptance Criteria**:
-- AC-001: Routed screens persist `route`
+- AC-001: Routed screens define `route`
 - AC-002: Route identifiers are unique where routing is enabled
 - AC-003: Route params are available to mount logic
 - AC-004: Missing routes are handled explicitly by the application
 
-### REQ-SCREEN-006: Session Isolation
+### REQ-SCREEN-007: Session Isolation
 
 Mounted screens MUST maintain isolated state per LiveView session.
 
@@ -106,73 +109,61 @@ Mounted screens MUST maintain isolated state per LiveView session.
 - AC-003: Disconnect cleanup releases screen-specific state
 - AC-004: Concurrent sessions are supported
 
-### REQ-SCREEN-007: Event Handling
+### REQ-SCREEN-008: Event Handling
 
 Screens MUST route user events through the runtime event handler boundary.
 
 **Acceptance Criteria**:
-- AC-001: Event targets can be matched to bindings or runtime handlers
+- AC-001: Event targets can be matched to element-local or screen-local bindings
 - AC-002: Unknown events fail safely
 - AC-003: Event errors do not crash the LiveView session
 - AC-004: Successful events can trigger re-render paths
 
-### REQ-SCREEN-008: Authorization
+### REQ-SCREEN-009: Authorization
 
-Screens MUST enforce authorization before protected mount and update flows continue.
+Screens MUST enforce authorization before protected mount and update flows
+continue.
 
 **Acceptance Criteria**:
 - AC-001: Mount checks actor access before compilation
 - AC-002: Unauthorized mounts return a safe runtime response
-- AC-003: Binding and action authorization integrate with the mounted screen context
+- AC-003: Binding and action authorization integrate with the mounted screen
+  context
 - AC-004: Authorization failures are observable
 
-### REQ-SCREEN-009: Validation
+### REQ-SCREEN-010: Validation
 
-Screens MUST validate configuration before use.
+Screens MUST validate authoring configuration before use.
 
 **Acceptance Criteria**:
 - AC-001: Invalid screen definitions fail fast
-- AC-002: Required fields produce descriptive errors
-- AC-003: Invalid `unified_dsl` is rejected before compilation
-- AC-004: Broken screen/binding relationships surface clear errors
-
-### REQ-SCREEN-010: Observability
-
-Screens MUST emit lifecycle telemetry.
-
-**Acceptance Criteria**:
-- AC-001: Mount events include screen identity
-- AC-002: Update events include runtime context
-- AC-003: Error events include screen context
-- AC-004: Events follow the shared telemetry schema
-
-## Implementation Note
-
-Phase 10 introduces the durable persisted authoring contract for screens. Legacy builder-shaped payloads must be rewritten through explicit migration helpers before they can be stored or compiled.
+- AC-002: Invalid relationship composition surfaces clear errors
+- AC-003: Invalid inline DSL fragments are rejected before compilation
+- AC-004: Broken screen/element/binding relationships surface clear errors
 
 ## Traceability
 
 | Requirement | Component Spec | Scenarios |
 |---|---|---|
 | REQ-SCREEN-001 | resources/ui_screen.md | SCN-004 |
-| REQ-SCREEN-002 | phase-04-runtime-and-liveview-integration.md | SCN-021, SCN-022, SCN-023 |
-| REQ-SCREEN-003 | resources/ui_screen.md | SCN-005 |
-| REQ-SCREEN-004 | resources/ui_binding.md | SCN-006, SCN-007 |
-| REQ-SCREEN-005 | resources/ui_screen.md | SCN-004 |
-| REQ-SCREEN-006 | phase-04-runtime-and-liveview-integration.md | SCN-024, SCN-025 |
-| REQ-SCREEN-007 | phase-04-runtime-and-liveview-integration.md | SCN-021 |
-| REQ-SCREEN-008 | authorization_contract.md | SCN-081 |
-| REQ-SCREEN-009 | compilation_contract.md | SCN-042 |
-| REQ-SCREEN-010 | observability_contract.md | SCN-105 |
+| REQ-SCREEN-002 | resources/ui_screen.md, resources/ui_element.md | SCN-005, SCN-013 |
+| REQ-SCREEN-003 | resources/ui_screen.md | SCN-012 |
+| REQ-SCREEN-004 | phase-04-runtime-and-liveview-integration.md | SCN-021, SCN-022, SCN-023 |
+| REQ-SCREEN-005 | resources/ui_binding.md | SCN-006, SCN-014 |
+| REQ-SCREEN-006 | resources/ui_screen.md | SCN-004 |
+| REQ-SCREEN-007 | phase-04-runtime-and-liveview-integration.md | SCN-024, SCN-025 |
+| REQ-SCREEN-008 | phase-04-runtime-and-liveview-integration.md | SCN-021 |
+| REQ-SCREEN-009 | authorization_contract.md | SCN-081 |
+| REQ-SCREEN-010 | compilation_contract.md | SCN-042 |
 
 ## Conformance
 
-See [spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md) for the current scenario coverage baseline.
+See [spec_conformance_matrix.md](../conformance/spec_conformance_matrix.md)
+for the current scenario coverage baseline.
 
 ## Related Specifications
 
 - [resource_contract.md](resource_contract.md)
 - [binding_contract.md](binding_contract.md)
 - [../resources/ui_screen.md](../resources/ui_screen.md)
-- [../planning/phase-04-runtime-and-liveview-integration.md](../planning/phase-04-runtime-and-liveview-integration.md)
-- [../adr/ADR-0004-unified-ui-dsl-authority.md](../adr/ADR-0004-unified-ui-dsl-authority.md)
+- [../adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md](../adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md)

@@ -1,52 +1,53 @@
 # UI.Element Component Spec
 
-## Default Module
+## Built-In Support Module
 
 `AshUI.Resources.Element`
 
-Alternate implementations may replace this module when configured as the active UI storage element resource.
+This module is the built-in storage/support implementation when a detached
+element storage resource is used. It is not the normative authoring authority.
 
 ## Purpose
 
-Defines persisted element records that support relational querying, ordering, and incremental composition alongside `Screen.unified_dsl`.
+Defines the authoritative UI building block: an Ash resource using the `AshUI`
+extension that carries its own element DSL fragment plus optional local
+bindings and interaction actions.
 
-## Persisted Attributes
+## Authoring Surface
 
-- `id`: UUID primary key
-- `type`: renderer-facing component identifier
-- `props`: component properties
-- `variants`: variant list
-- `position`: ordering value
-- `metadata`: free-form annotations
-- `active`: soft enablement flag
-- `version`: update version
-- `inserted_at`
-- `updated_at`
+- resource module declared with `use Ash.Resource`
+- `AshUI` extension section for the element DSL fragment
+- optional local binding declarations
+- optional interaction action declarations
+- ordinary Ash attributes and relationships for composition context
 
 ## Relationships
 
-- `belongs_to :screen`
-- `has_many :bindings`
+- relationship to the owning screen resource
+- optional parent/child or companion element relationships
+- optional relationship-driven ordering and placement metadata
 
 ## Actions
 
-- `read`
-- `create`
-- `update`
-- `destroy`
+- Ash actions needed by the application/resource
+- optional UI-relevant interaction actions declared through the `AshUI`
+  extension
 
 ## Runtime Role
 
-- loaded when screens compile from relational resources
-- used for ordering and association queries
-- paired with bindings for dynamic behavior
+- loaded as part of the screen's resource graph
+- contributes its DSL fragment, bindings, and actions to compilation
+- participates in incremental recompilation when it or its relationships change
 
 ## Storage Contract Notes
 
-- the framework resolves the active element resource through UI storage configuration
-- alternate implementations must preserve the documented attributes, relationships, and actions
-- the built-in implementation is Postgres-backed, but other Ash-compatible data layers are allowed
+- authoring authority belongs to the resource module and its `AshUI` extension
+- detached `AshUI.Resources.Element` records may still exist as support
+  materialization, but they are not the primary authoring model
+- alternate implementations must preserve the documented resource-first authoring
+  semantics
 
 ## Current Gaps
 
-- no element-specific storage gaps beyond the broader remaining DSL-extension work
+- the repo still needs to restore this resource-first model in code after the
+  screen-document-authority detour

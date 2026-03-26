@@ -1,12 +1,12 @@
 # Ash UI Architecture Execution Plan Index
 
-This directory contains a phased implementation plan for executing the Ash UI architecture baseline aligned with the unified-ui ecosystem.
+This directory contains phased implementation plans for executing and
+re-executing the Ash UI architecture baseline.
 
-The plan aligns to:
-- `rfcs/RFC-0002-ash-ui-unified-integration.md`
+The active architectural baseline is defined by:
 - `specs/topology.md`
 - `specs/contracts/*`
-- `specs/conformance/*`
+- `specs/adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md`
 
 ## Phase Files
 1. [Phase 1 - Core Ash Resource Integration](./phase-01-core-ash-resource-integration.md): implement Ash Resources for storing unified-ui DSL definitions with Ash actions and policies.
@@ -14,13 +14,17 @@ The plan aligns to:
 3. [Phase 3 - Data Binding and Signal Mapping](./phase-03-data-binding-and-signal-mapping.md): implement Ash resource data binding to unified-ui signals.
 4. [Phase 4 - Runtime and LiveView Integration](./phase-04-runtime-and-liveview-integration.md): implement LiveView mount/unmount and screen lifecycle.
 5. [Phase 5 - Authorization and Policy Enforcement](./phase-05-authorization-and-policy-enforcement.md): implement Ash policy integration for UI access control.
-6. [Phase 6 - Compiler and DSL Integration](./phase-06-compiler-and-dsl-integration.md): integrate unified-ui compiler with Ash Resource loading.
+6. [Phase 6 - Compiler and DSL Integration](./phase-06-compiler-and-dsl-integration.md): historical compiler integration phase.
 7. [Phase 7 - Renderer Package Integration](./phase-07-renderer-package-integration.md): implement live_ui/elm_ui/desktop_ui package integration.
 8. [Phase 8 - Governance Gates and Release Readiness](./phase-08-governance-gates-and-release-readiness.md): finalize CI gates, conformance tests, and rollout readiness.
-9. [Phase 9 - Unified UI DSL Authority](./phase-09-unified-ui-dsl-authority.md): make upstream `unified_ui` the authoritative authoring DSL boundary.
-10. [Phase 10 - Persisted DSL Migration](./phase-10-persisted-dsl-migration.md): migrate `Screen.unified_dsl` from Ash UI-owned builder maps to serialized upstream `unified_ui` documents.
-11. [Phase 11 - Upstream Compiler Delegation](./phase-11-upstream-compiler-delegation.md): delegate DSL compilation to upstream `unified_ui` while preserving Ash bindings and runtime behavior.
-12. [Phase 12 - Example, Tooling, and Conformance Migration](./phase-12-example-tooling-and-conformance-migration.md): move examples, docs, and governance to the upstream DSL model and close the gap.
+9. [Phase 9 - Unified UI DSL Authority](./phase-09-unified-ui-dsl-authority.md): historical phase that elevated upstream `unified_ui` to top-level authoring authority.
+10. [Phase 10 - Persisted DSL Migration](./phase-10-persisted-dsl-migration.md): historical migration into screen-document authority.
+11. [Phase 11 - Upstream Compiler Delegation](./phase-11-upstream-compiler-delegation.md): historical compiler delegation phase under the superseded model.
+12. [Phase 12 - Example, Tooling, and Conformance Migration](./phase-12-example-tooling-and-conformance-migration.md): historical docs/example migration under the superseded model.
+13. [Phase 13 - Element Resource Authority](./phase-13-element-resource-authority.md): restore Ash resources plus the `AshUI` extension as the primary authoring units.
+14. [Phase 14 - Relational Screen Composition](./phase-14-relational-screen-composition.md): restore screen composition through Ash relationships while retaining optional inline DSL.
+15. [Phase 15 - Compiler And Runtime Graph Realignment](./phase-15-compiler-and-runtime-graph-realignment.md): rebuild compilation and hydration around the screen/element resource graph.
+16. [Phase 16 - Example, Guide, And Conformance Realignment](./phase-16-example-guide-and-conformance-realignment.md): move examples, docs, and governance back to the resource-first model.
 
 ## Shared Conventions
 - Numbering:
@@ -35,34 +39,24 @@ The plan aligns to:
 - Integration-test requirement:
   - Each phase ends with a final integration-testing section.
 
-## Shared Assumptions and Defaults
-- Ash UI remains an Ash Framework integration layer for unified-ui
-- UI definitions are stored as Ash Resources in the database
-- unified-ui packages provide widgets, layouts, compilation, and rendering
-- Ash policies control access to UI resources
-- Data flows from Ash resources → Ash IUR → canonical IUR → renderer output
-- Upstream `unified_ui` owns the authoring DSL and authoring compiler
+## Shared Assumptions And Defaults
+- Ash UI is an Ash-resource-native UI framework
+- screen and element resources using the `AshUI` extension are the authoritative
+  authoring surface
+- relationships are the primary composition mechanism
+- direct DSL composition is still allowed at the screen boundary where useful
+- upstream `unified_ui` provides embedded widget/layout/theming DSL constructs
+  and lowering semantics
+- canonical renderer input remains `unified_iur`
+- no backward-compatibility requirement applies to the superseded monolithic
+  screen-document authority model
 
 ## Status Note
 
-The phase files are historical planning documents that track the implementation baseline captured in this repository. After the post-Phase-8 remediation work, the previously open Phase 1 DSL/lifecycle gap and Phase 7 renderer package gap were closed in-repo.
+Phases 9-12 are now historical implementation records, not the current target
+state. They captured a detour that elevated monolithic screen documents and
+upstream top-level DSL authority over the Ash resource graph.
 
-Phase 9 is now complete: Ash UI treats upstream `unified_ui` as the
-authoritative authoring boundary, persists authored modules through
-`AshUI.Authoring`, and explicitly reclassifies `AshUI.DSL.Builder` as a legacy
-migration path.
-
-Phase 10 is now complete: persisted `Screen.unified_dsl` writes use the Phase
-10 authoring document contract, repo-owned seeds and fixtures are migrated
-through explicit rewrite helpers, and raw builder-shaped payloads are no longer
-accepted at runtime.
-
-Phase 11 is now complete: `AshUI.Compiler` delegates authored compilation to
-upstream `UnifiedUi.Compiler`, preserves stable runtime hydration and cache
-behavior, and keeps canonical renderer output stable across cached and uncached
-compilation paths.
-
-Phase 12 is now complete: the shipped examples, public guides, governance
-checks, release gates, and conformance traceability now all reflect the
-upstream `UnifiedUi.Dsl` authority model rather than the older builder-first
-path.
+[ADR-0005](../adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md)
+supersedes that direction and reopens the architecture as a new remediation line
+in Phases 13-16.

@@ -1,54 +1,52 @@
 # UI.Binding Component Spec
 
-## Default Module
+## Built-In Support Module
 
 `AshUI.Resources.Binding`
 
-Alternate implementations may replace this module when configured as the active UI storage binding resource.
+This module is the built-in storage/support implementation when a detached
+binding storage resource is used. It is not the normative authoring authority.
 
 ## Purpose
 
-Defines persisted runtime bindings for value reads, list reads, and action execution.
+Defines binding declarations for value reads, list reads, and action execution.
+Normatively, bindings are authored on the relevant screen or element resource
+through the `AshUI` extension.
 
-## Persisted Attributes
+## Authoring Surface
 
-- `id`: UUID primary key
-- `source`: structured map describing resource, field, relationship, or action
-- `target`: renderer-facing target string
-- `binding_type`: one of `:value`, `:list`, `:action`
-- `transform`: transformation configuration
-- `metadata`: free-form annotations
-- `active`: soft enablement flag
-- `version`: update version
-- `inserted_at`
-- `updated_at`
+- binding declaration on a screen or element resource
+- structured `source`
+- renderer-facing `target`
+- `binding_type`
+- optional `transform`
+- optional signal-linked action declaration
 
 ## Relationships
 
-- `belongs_to :element`
-- `belongs_to :screen`
+- belongs to the owning element resource when element-local
+- belongs to the owning screen resource when screen-scoped
 
 ## Actions
 
-- `read`
-- `create`
-- `update`
-- `destroy`
-- optional filtered reads
+- runtime evaluation, update, and action execution are required
+- detached persistence actions are an implementation detail when a standalone
+  binding resource is used
 
 ## Runtime Role
 
-- evaluated by `AshUI.Runtime.BindingEvaluator`
-- written through `AshUI.Runtime.BidirectionalBinding`
-- action-triggered through `AshUI.Runtime.ActionBinding`
-- list-oriented updates handled by `AshUI.Runtime.ListBinding`
+- evaluated by the Ash UI runtime
+- scoped to the owning screen or element
+- kept close to the owning signal source and action declarations
 
 ## Storage Contract Notes
 
-- the framework resolves the active binding resource through UI storage configuration
-- alternate implementations must preserve the documented attributes, relationships, and actions
-- structured `source` and `transform` maps remain the compatibility baseline across storage backends
+- standalone `AshUI.Resources.Binding` records may still exist, but they are not
+  the primary authoring contract
+- alternate implementations must preserve resource-local binding authorship and
+  runtime semantics
 
 ## Current Gaps
 
-- no binding-resource storage gaps remain beyond the broader runtime and action contract surface
+- the implemented repo still needs to move binding authority back onto the
+  owning screen and element resources

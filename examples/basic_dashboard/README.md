@@ -1,10 +1,11 @@
 # Basic Dashboard Example
 
-This example shows the smallest practical Ash UI flow in a Phoenix application:
+This example shows the intended Ash UI authoring model in a Phoenix
+application:
 
 1. define a screen resource with `AshUI.Resource.DSL.Screen`
 2. define related element resources with `AshUI.Resource.DSL.Element`
-3. persist the composed graph with `AshUI.Resource.Authority`
+3. persist the composed screen authority graph with `AshUI.Resource.Authority`
 4. seed ETS-backed Ash resources for dashboard data
 5. mount it through `AshUI.LiveView.Integration`
 6. delegate user events through `AshUI.LiveView.EventHandler`
@@ -12,7 +13,7 @@ This example shows the smallest practical Ash UI flow in a Phoenix application:
 
 ## Files
 
-- `lib/basic_dashboard.ex`: seed helpers that persist the screen authority module
+- `lib/basic_dashboard.ex`: seed helpers plus authority-graph inspection helpers
 - `lib/basic_dashboard_screen.ex`: screen and element resource modules for the dashboard graph
 - `lib/basic_dashboard_data.ex`: example Ash domain and ETS-backed resources
 - `lib/basic_dashboard_live.ex`: a LiveView that mounts the screen and forwards events
@@ -55,9 +56,10 @@ mix ash_ui.example.basic_dashboard --renderer elm
 mix ash_ui.example.basic_dashboard --renderer desktop
 ```
 
-Adapter parity coverage currently exercises `liveview` and `elm` for the full
-dashboard screen. `desktop` is still considered work in progress, and
-`terminal_ui` is not yet present in this repo.
+Adapter parity coverage currently exercises `liveview` and `elm` against the
+same persisted screen authority graph and related element modules. `desktop` is
+still considered work in progress, and `terminal_ui` is not yet present in this
+repo.
 
 `BasicDashboard.seed!/0` persists the relationship-driven
 `BasicDashboard.Screen` resource through `AshUI.Resource.Authority`, so the

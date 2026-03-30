@@ -24,7 +24,11 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
 
     assert result.renderer == :liveview
     assert result.adapter_module == LiveUIAdapter
-    assert result.authoring_module == "BasicDashboard.Screen"
+    assert result.screen_module == "BasicDashboard.Screen"
+    assert "BasicDashboard.HeroElement" in result.element_modules
+    assert "BasicDashboard.SaveProfileButtonElement" in result.element_modules
+    assert result.graph_element_count >= 10
+    assert result.graph_binding_count >= 2
     assert is_binary(result.output)
     assert result.output =~ "Model your dashboard. Let the runtime do the wiring."
     assert result.output =~ "phx-change=\"ash_ui_change\""
@@ -36,7 +40,7 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
 
     assert result.renderer == :elm
     assert result.adapter_module == ElmUIAdapter
-    assert result.authoring_module == "BasicDashboard.Screen"
+    assert result.screen_module == "BasicDashboard.Screen"
     assert is_binary(result.output)
     assert result.output =~ "<!DOCTYPE html>"
     assert result.screen.name == "basic_dashboard"
@@ -48,8 +52,11 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
     assert Map.keys(results) |> Enum.sort() == [:elm, :liveview]
     assert results.liveview.screen.id == results.elm.screen.id
     assert results.liveview.canonical_iur == results.elm.canonical_iur
-    assert results.liveview.authoring_module == "BasicDashboard.Screen"
-    assert results.elm.authoring_module == "BasicDashboard.Screen"
+    assert results.liveview.screen_module == "BasicDashboard.Screen"
+    assert results.elm.screen_module == "BasicDashboard.Screen"
+    assert results.liveview.element_modules == results.elm.element_modules
+    assert results.liveview.graph_element_count == results.elm.graph_element_count
+    assert results.liveview.graph_binding_count == results.elm.graph_binding_count
 
     Enum.each(
       [
@@ -66,6 +73,8 @@ defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
     assert results.liveview.output =~ "phx-change=\"ash_ui_change\""
     assert results.elm.output =~ "<!DOCTYPE html>"
     assert results.elm.output =~ "ash-ui-elm-flags"
+    assert "BasicDashboard.HeroElement" in results.liveview.element_modules
+    assert "BasicDashboard.SaveProfileButtonElement" in results.liveview.element_modules
 
     widget_types = widget_types(results.liveview.canonical_iur)
     assert "hero" in widget_types

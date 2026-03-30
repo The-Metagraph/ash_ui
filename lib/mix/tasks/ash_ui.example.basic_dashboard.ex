@@ -88,7 +88,10 @@ defmodule Mix.Tasks.AshUi.Example.BasicDashboard do
       "Mode: #{result.mode}",
       "Adapter: #{inspect(result.adapter_module)}",
       "Selected module: #{inspect(result.selected_module)}",
-      "Screen module: #{result.authoring_module || "unknown"}",
+      "Screen module: #{result.screen_module || "unknown"}",
+      "Element modules: #{Enum.join(result.element_modules, ", ")}",
+      "Authority graph elements: #{result.graph_element_count}",
+      "Authority graph bindings: #{result.graph_binding_count}",
       "Screen: #{result.screen.name}",
       ""
     ]

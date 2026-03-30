@@ -18,25 +18,25 @@ Back to index: [README](./README.md)
   Realign examples, guides, and governance so the repo demonstrates the restored
   resource-first architecture instead of the superseded screen-document model.
 
-  [ ] 16.1 Section - Example Application Realignment
+  [x] 16.1 Section - Example Application Realignment
     Rebuild demo apps around screen and element resources using the `AshUI`
     extension.
 
-    [ ] 16.1.1 Task - Rebuild `basic_dashboard`
+    [x] 16.1.1 Task - Rebuild `basic_dashboard`
     Make the flagship example demonstrate the intended architecture.
 
-      [ ] 16.1.1.1 Subtask - Define the dashboard screen as a screen resource using the `AshUI` extension
-      [ ] 16.1.1.2 Subtask - Break the dashboard into element resources with local DSL, bindings, and actions
-      [ ] 16.1.1.3 Subtask - Express the dashboard structure through Ash relationships
-      [ ] 16.1.1.4 Subtask - Retain only minimal inline screen DSL where another resource would be noise
+      [x] 16.1.1.1 Subtask - Define the dashboard screen as a screen resource using the `AshUI` extension
+      [x] 16.1.1.2 Subtask - Break the dashboard into element resources with local DSL, bindings, and actions
+      [x] 16.1.1.3 Subtask - Express the dashboard structure through Ash relationships
+      [x] 16.1.1.4 Subtask - Retain only minimal inline screen DSL where another resource would be noise
 
-    [ ] 16.1.2 Task - Adapter tooling parity
+    [x] 16.1.2 Task - Adapter tooling parity
     Keep example tooling aligned with the restored authoring model.
 
-      [ ] 16.1.2.1 Subtask - Update adapter runner tooling to compile from resource graphs
-      [ ] 16.1.2.2 Subtask - Update mix tasks and example READMEs
-      [ ] 16.1.2.3 Subtask - Preserve liveview and elm parity coverage
-      [ ] 16.1.2.4 Subtask - Keep desktop and terminal_ui expectations honest in docs/tests
+      [x] 16.1.2.1 Subtask - Update adapter runner tooling to compile from resource graphs
+      [x] 16.1.2.2 Subtask - Update mix tasks and example READMEs
+      [x] 16.1.2.3 Subtask - Preserve liveview and elm parity coverage
+      [x] 16.1.2.4 Subtask - Keep desktop and terminal_ui expectations honest in docs/tests
 
   [ ] 16.2 Section - Guide And API Documentation Realignment
     Remove public teaching material that points contributors at the wrong model.

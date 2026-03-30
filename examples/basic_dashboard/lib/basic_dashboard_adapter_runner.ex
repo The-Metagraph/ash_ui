@@ -18,7 +18,10 @@ defmodule BasicDashboard.AdapterRunner do
           renderer: renderer(),
           adapter_module: module(),
           selected_module: module(),
-          authoring_module: String.t() | nil,
+          screen_module: String.t() | nil,
+          element_modules: [String.t()],
+          graph_element_count: non_neg_integer(),
+          graph_binding_count: non_neg_integer(),
           mode: :external | :adapter_fallback | :unavailable,
           canonical_iur: map(),
           output: String.t() | map(),
@@ -38,6 +41,7 @@ defmodule BasicDashboard.AdapterRunner do
            {:ok, info} <- renderer_info(renderer, opts),
            runtime <- BasicDashboard.Data.seed!(),
            screen <- BasicDashboard.seed!(),
+           graph = BasicDashboard.authority_graph!(),
            {:ok, iur} <- Compiler.compile(screen, ui_storage: Config.ui_storage()),
            {:ok, canonical_iur} <- IURAdapter.to_canonical(iur),
            {:ok, output} <-
@@ -47,7 +51,10 @@ defmodule BasicDashboard.AdapterRunner do
            renderer: renderer,
            adapter_module: adapter_module(renderer),
            selected_module: info.module,
-           authoring_module: authored_module(screen),
+           screen_module: screen_module(graph.screen),
+           element_modules: element_modules(graph.elements),
+           graph_element_count: length(graph.elements),
+           graph_binding_count: length(graph.bindings),
            mode: info.mode,
            canonical_iur: canonical_iur,
            output: output,
@@ -71,6 +78,7 @@ defmodule BasicDashboard.AdapterRunner do
              {:ok, renderer_info} <- renderer_info_map(normalized_renderers, opts),
              runtime <- BasicDashboard.Data.seed!(),
              screen <- BasicDashboard.seed!(),
+             graph = BasicDashboard.authority_graph!(),
              {:ok, iur} <- Compiler.compile(screen, ui_storage: Config.ui_storage()),
              {:ok, canonical_iur} <- IURAdapter.to_canonical(iur),
              {:ok, outputs} <- render_outputs(normalized_renderers, canonical_iur, opts) do
@@ -83,7 +91,10 @@ defmodule BasicDashboard.AdapterRunner do
                renderer: renderer,
                adapter_module: adapter_module(renderer),
                selected_module: info.module,
-               authoring_module: authored_module(screen),
+               screen_module: screen_module(graph.screen),
+               element_modules: element_modules(graph.elements),
+               graph_element_count: length(graph.elements),
+               graph_binding_count: length(graph.bindings),
                mode: info.mode,
                canonical_iur: canonical_iur,
                output: output,
@@ -202,12 +213,28 @@ defmodule BasicDashboard.AdapterRunner do
     end
   end
 
-  defp authored_module(screen) do
+  defp screen_module(screen) do
     screen
     |> get_in([Access.key(:unified_dsl, %{}), "screen", "module"])
     |> case do
       "Elixir." <> rest -> rest
       other -> other
     end
+  end
+
+  defp element_modules(elements) do
+    elements
+    |> Enum.map(fn element ->
+      element
+      |> Map.get("module")
+      |> case do
+        "Elixir." <> rest -> rest
+        other when is_binary(other) -> other
+        _other -> nil
+      end
+    end)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 end

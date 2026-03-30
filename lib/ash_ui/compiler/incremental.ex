@@ -41,13 +41,15 @@ defmodule AshUI.Compiler.Incremental do
     with true <- screen_resource?(screen, opts) do
       case authority_runtime_screen(screen) do
         {:ok, runtime_screen} ->
-          graph =
-            graph
-            |> build_element_dependencies(runtime_screen, [])
-            |> build_binding_dependencies(runtime_screen, [], opts)
+          with {:ok, elements} <- load_screen_elements(screen, opts) do
+            graph =
+              graph
+              |> build_element_dependencies(runtime_screen, elements)
+              |> build_binding_dependencies(runtime_screen, elements, opts)
 
-          with :ok <- detect_circular_dependencies(graph) do
-            {:ok, graph}
+            with :ok <- detect_circular_dependencies(graph) do
+              {:ok, graph}
+            end
           end
 
         :error ->

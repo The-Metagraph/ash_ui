@@ -66,24 +66,33 @@ defmodule AshUI.Phase12IntegrationTest do
     matrix = File.read!(project_path("specs/conformance/spec_conformance_matrix.md"))
     traceability = File.read!(project_path("specs/conformance/scenario_test_matrix.md"))
 
-    assert catalog =~ "#### SCN-050: Persisted Resource Authority Screen"
+    assert catalog =~ "#### SCN-050: Persisted Screen Authority Graph"
     assert catalog =~ "#### SCN-051: Relational Compiler Delegation"
+    assert catalog =~ "#### SCN-052: Element-Resource-First Example Authoring"
+    assert catalog =~ "#### SCN-053: Relationship-Driven Composition Semantics"
     assert catalog =~ "#### SCN-071: Renderer Parity For Resource Screens"
 
     assert matrix =~ "| REQ-COMP-001 | Compilation Pipeline |"
-    assert matrix =~ "SCN-041, SCN-050, SCN-051"
+    assert matrix =~ "SCN-041, SCN-050, SCN-051, SCN-052"
     assert matrix =~ "SCN-068, SCN-071"
     assert matrix =~ "SCN-061, SCN-071"
     assert matrix =~ "SCN-062, SCN-071"
+    assert matrix =~ "SCN-044, SCN-053"
 
     assert matrix =~
-             "| REQ-SCREEN-001 | Screen Definition | resources/ui_screen.md | SCN-004, SCN-050 |"
+             "| REQ-SCREEN-001 | Screen Definition | resources/ui_screen.md | SCN-004, SCN-050, SCN-052 |"
 
     assert traceability =~
-             "| SCN-050 | Persisted Resource Authority Screen | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |"
+             "| SCN-050 | Persisted Screen Authority Graph | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs, test/ash_ui/phase_16_integration_test.exs |"
 
     assert traceability =~
              "| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs, test/ash_ui/phase_15_integration_test.exs |"
+
+    assert traceability =~
+             "| SCN-052 | Element-Resource-First Example Authoring | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs, test/ash_ui/phase_16_integration_test.exs |"
+
+    assert traceability =~
+             "| SCN-053 | Relationship-Driven Composition Semantics | test/ash_ui/phase_14_integration_test.exs, test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_16_integration_test.exs |"
 
     assert traceability =~
              "| SCN-071 | Renderer Parity For Resource Screens | test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs |"
@@ -100,6 +109,9 @@ defmodule AshUI.Phase12IntegrationTest do
     assert File.read!(
              project_path("test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs")
            ) =~
+             "@moduletag :conformance"
+
+    assert File.read!(project_path("test/ash_ui/phase_16_integration_test.exs")) =~
              "@moduletag :conformance"
   end
 

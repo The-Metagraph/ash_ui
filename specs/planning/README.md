@@ -58,5 +58,10 @@ state. They captured a detour that elevated monolithic screen documents and
 upstream top-level DSL authority over the Ash resource graph.
 
 [ADR-0005](../adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md)
-supersedes that direction and reopens the architecture as a new remediation line
-in Phases 13-16.
+supersedes that direction and reopens the architecture as a new remediation
+line in Phases 13-16.
+
+That remediation line is now complete on the current implementation branch:
+Phases 13-16 restore element-resource authority, relational composition,
+graph-derived compilation/runtime behavior, and public example/governance
+alignment.

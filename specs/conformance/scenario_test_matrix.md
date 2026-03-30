@@ -33,10 +33,10 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-047 | Cache Invalidation | test/ash_ui/compiler_test.exs |
 | SCN-048 | Compilation Error Reporting | test/ash_ui/compiler/phase_6_integration_test.exs, test/ash_ui/phase_14_integration_test.exs |
 | SCN-049 | Incremental Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
-| SCN-050 | Persisted Screen Authority Graph | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |
+| SCN-050 | Persisted Screen Authority Graph | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs, test/ash_ui/phase_16_integration_test.exs |
 | SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs, test/ash_ui/phase_15_integration_test.exs |
-| SCN-052 | Element-Resource-First Example Authoring | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |
-| SCN-053 | Relationship-Driven Composition Semantics | test/ash_ui/phase_14_integration_test.exs, test/ash_ui/examples/basic_dashboard_test.exs |
+| SCN-052 | Element-Resource-First Example Authoring | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs, test/ash_ui/phase_16_integration_test.exs |
+| SCN-053 | Relationship-Driven Composition Semantics | test/ash_ui/phase_14_integration_test.exs, test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_16_integration_test.exs |
 | SCN-061 | LiveView Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-062 | Elm-Backed Web Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-063 | Component Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |

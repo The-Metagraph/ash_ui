@@ -98,7 +98,7 @@ defmodule AshUI.Authoring.MigratorTest do
   end
 
   describe "Section 10.2.2 - migrated screens in repo-owned seeds" do
-    test "migrated persisted screens still compile through the current compiler" do
+    test "migrated persisted screens are rejected by the current compiler hard cut" do
       dsl =
         Builder.row(
           children: [
@@ -116,9 +116,7 @@ defmodule AshUI.Authoring.MigratorTest do
             )
         )
 
-      assert {:ok, iur} = Compiler.compile(screen)
-      assert iur.type == :screen
-      assert length(iur.children) == 1
+      assert {:error, {:invalid_screen_dsl, :unsupported_format}} = Compiler.compile(screen)
     end
   end
 end

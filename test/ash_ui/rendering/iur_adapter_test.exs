@@ -199,7 +199,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert "form_field" in types
 
       assert get_in(canonical, ["metadata", "ash_ui", "compiler_boundary"]) ==
-               "AshUI.Resource.Authority -> AshUI runtime normalization"
+               "AshUI resource graph -> AshUI runtime normalization"
 
       refute Enum.any?(canonical["children"], fn child ->
                match?(%{"ash_ui" => _}, child["metadata"])

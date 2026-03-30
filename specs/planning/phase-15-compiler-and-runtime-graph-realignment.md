@@ -13,7 +13,7 @@ Back to index: [README](./README.md)
 - element resources own their DSL, bindings, and actions
 - no backward compatibility is required for the superseded document-first path
 
-[ ] 15 Phase 15 - Compiler And Runtime Graph Realignment
+[x] 15 Phase 15 - Compiler And Runtime Graph Realignment
   Rebuild compiler and runtime behavior around the screen/element resource graph
   rather than monolithic screen-document authority.
 
@@ -66,14 +66,14 @@ Back to index: [README](./README.md)
       [x] 15.3.1.3 Subtask - Update caching, telemetry, and conformance expectations
       [x] 15.3.1.4 Subtask - Document the hard break in release notes and migration guidance
 
-  [ ] 15.4 Section - Phase 15 Integration Tests
+  [x] 15.4 Section - Phase 15 Integration Tests
     Validate compilation and runtime behavior end to end under the restored
     resource-first model.
 
-    [ ] 15.4.1 Task - Graph-derived runtime scenarios
+    [x] 15.4.1 Task - Graph-derived runtime scenarios
     Verify the runtime works from the resource graph through renderer output.
 
-      [ ] 15.4.1.1 Subtask - Verify a relationally composed screen compiles to stable canonical IUR
-      [ ] 15.4.1.2 Subtask - Verify element-local bindings hydrate and react correctly
-      [ ] 15.4.1.3 Subtask - Verify element-local actions execute through event handling
-      [ ] 15.4.1.4 Subtask - Verify superseded screen-document compiler paths are removed or rejected
+      [x] 15.4.1.1 Subtask - Verify a relationally composed screen compiles to stable canonical IUR
+      [x] 15.4.1.2 Subtask - Verify element-local bindings hydrate and react correctly
+      [x] 15.4.1.3 Subtask - Verify element-local actions execute through event handling
+      [x] 15.4.1.4 Subtask - Verify superseded screen-document compiler paths are removed or rejected

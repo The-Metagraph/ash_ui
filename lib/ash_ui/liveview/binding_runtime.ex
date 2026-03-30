@@ -19,6 +19,9 @@ defmodule AshUI.LiveView.BindingRuntime do
           actions: binding_map()
         }
 
+  @doc """
+  Assigns the current binding state maps and refreshes the hydrated IUR view.
+  """
   @spec assign(Phoenix.LiveView.Socket.t(), binding_map()) :: Phoenix.LiveView.Socket.t()
   def assign(socket, bindings) when is_map(bindings) do
     partitions = partition(bindings)
@@ -38,12 +41,18 @@ defmodule AshUI.LiveView.BindingRuntime do
     |> sync_hydrated_iur(partitions)
   end
 
+  @doc """
+  Merges updated binding states into the current runtime binding map.
+  """
   @spec merge(Phoenix.LiveView.Socket.t(), binding_map()) :: Phoenix.LiveView.Socket.t()
   def merge(socket, updated_bindings) when is_map(updated_bindings) do
     current_bindings = Map.get(socket.assigns, :ash_ui_bindings, %{})
     assign(socket, Map.merge(current_bindings, updated_bindings))
   end
 
+  @doc """
+  Partitions bindings into screen, element, and action ownership groups.
+  """
   @spec partition(binding_map()) :: partitions()
   def partition(bindings) when is_map(bindings) do
     Enum.reduce(bindings, %{all: bindings, screen: %{}, elements: %{}, actions: %{}}, fn
@@ -61,6 +70,9 @@ defmodule AshUI.LiveView.BindingRuntime do
 
   def partition(_other), do: %{all: %{}, screen: %{}, elements: %{}, actions: %{}}
 
+  @doc """
+  Returns true when the given binding state represents an action binding.
+  """
   @spec action_binding?(binding_state()) :: boolean()
   def action_binding?(binding_state) when is_map(binding_state) do
     case Map.get(binding_state, :binding_type) || Map.get(binding_state, "binding_type") do
@@ -73,6 +85,9 @@ defmodule AshUI.LiveView.BindingRuntime do
     end
   end
 
+  @doc """
+  Returns the owning scope for the binding state.
+  """
   @spec owner_scope(binding_state()) :: :screen | :element
   def owner_scope(binding_state) when is_map(binding_state) do
     case owner_metadata(binding_state, "owner_scope") do
@@ -81,6 +96,9 @@ defmodule AshUI.LiveView.BindingRuntime do
     end
   end
 
+  @doc """
+  Returns the owning element identifier when the binding is element-scoped.
+  """
   @spec owner_element_id(binding_state()) :: String.t() | nil
   def owner_element_id(binding_state) when is_map(binding_state) do
     owner_metadata(binding_state, "owner_element_id") ||
@@ -88,6 +106,9 @@ defmodule AshUI.LiveView.BindingRuntime do
       Map.get(binding_state, "element_id")
   end
 
+  @doc """
+  Returns the declared owner signal for action bindings when present.
+  """
   @spec owner_signal(binding_state()) :: String.t() | nil
   def owner_signal(binding_state) when is_map(binding_state) do
     case owner_metadata(binding_state, "owner_signal") do

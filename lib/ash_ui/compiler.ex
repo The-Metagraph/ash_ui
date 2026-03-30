@@ -13,7 +13,6 @@ defmodule AshUI.Compiler do
 
   alias AshUI.Compilation.IUR
   alias AshUI.Config
-  alias AshUI.Authoring.Document
   alias AshUI.Resource.Authority
   alias AshUI.Telemetry
 
@@ -56,17 +55,11 @@ defmodule AshUI.Compiler do
   end
 
   @doc """
-  Compiles a screen from its persisted upstream `UnifiedUi` authoring document.
+  Compiles a screen from its persisted authoritative `unified_dsl` payload.
 
-  Ash UI delegates authoring compilation to `UnifiedUi.Compiler`, then
-  normalizes that compiler output into the Ash UI runtime shape by:
-
-  * preserving screen route/layout/metadata
-  * lowering upstream widgets into Ash UI's internal IUR struct
-  * attaching Ash UI-owned runtime binding metadata from the persisted document
-
-  Resource-first compilation is no longer the default path for persisted
-  `unified_dsl` screens.
+  Resource-authority screens regenerate their compiler input from the screen
+  record plus the current screen/element resource graph, using the persisted
+  payload only to resolve the root screen module and screen-level overrides.
   """
   @spec compile_from_unified_dsl(screen_record(), keyword()) :: compile_result()
   def compile_from_unified_dsl(screen, opts \\ [])
@@ -83,16 +76,6 @@ defmodule AshUI.Compiler do
 
       Authority.authority_payload?(dsl) ->
         compile_from_resource_authority(screen, dsl)
-
-      Document.authoring_document?(dsl) ->
-        with {:ok, module} <- validate_dsl(dsl),
-             {:ok, compiled} <- compile_authored_document(module),
-             {:ok, ash_iur} <- compile_to_ash_iur(screen, compiled, dsl),
-             :ok <- IUR.validate(ash_iur) do
-          {:ok, ash_iur}
-        else
-          error -> error
-        end
 
       true ->
         {:error, {:invalid_screen_dsl, :unsupported_format}}
@@ -357,64 +340,13 @@ defmodule AshUI.Compiler do
     :ok
   end
 
-  defp validate_dsl(dsl) do
-    case Document.source_module(dsl) do
-      {:ok, module} ->
-        {:ok, module}
-
-      {:error, reason} ->
-        {:error, normalize_compile_error(reason)}
-    end
-  end
-
-  defp compile_authored_document(module) when is_atom(module) do
-    {:ok, UnifiedUi.Compiler.compile!(module)}
-  rescue
-    error in [
-      ArgumentError,
-      FunctionClauseError,
-      RuntimeError,
-      Spark.Error.DslError,
-      UndefinedFunctionError
-    ] ->
-      {:error, {:upstream_compile_error, module, Exception.message(error)}}
-  end
-
-  defp compile_to_ash_iur(screen, %UnifiedUi.Compiler.Result{} = compiled, document)
-       when is_map(screen) do
-    snapshot = compiled.iur |> UnifiedIUR.Reference.snapshot() |> normalize_snapshot()
-    authored_ids = authored_snapshot_ids(compiled)
-
-    children =
-      snapshot
-      |> Map.get("children", [])
-      |> Enum.with_index()
-      |> Enum.map(fn {child, index} -> compile_snapshot_child(child, [index], authored_ids) end)
-      |> Enum.reject(&is_nil/1)
-
-    root_iur =
-      IUR.new(:screen,
-        id: screen.id,
-        name: screen.name,
-        attributes: %{
-          "layout" => screen.layout,
-          "route" => screen.route,
-          "unified_dsl" => screen.unified_dsl
-        },
-        children: children,
-        bindings: compile_runtime_bindings(snapshot, document, screen.id),
-        metadata: compile_runtime_metadata(screen, snapshot, compiled, document),
-        version: "v#{screen.version || 1}"
-      )
-
-    {:ok, root_iur}
-  end
-
-  defp compile_from_resource_authority(screen, document) when is_map(screen) and is_map(document) do
-    with :ok <- Authority.validate_payload(document),
-         {:ok, element_index} <- authority_element_index(document),
-         {compiled_children, bindings} <- compile_authority_roots(document, screen, element_index),
-         merged_children <- merge_inline_screen_children(document, compiled_children),
+  defp compile_from_resource_authority(screen, document)
+       when is_map(screen) and is_map(document) do
+    with {:ok, runtime_document} <- Authority.runtime_payload(screen),
+         {:ok, element_index} <- authority_element_index(runtime_document),
+         {compiled_children, bindings} <-
+           compile_authority_roots(runtime_document, screen, element_index),
+         merged_children <- merge_inline_screen_children(runtime_document, compiled_children),
          root_iur <-
            IUR.new(:screen,
              id: screen.id,
@@ -426,7 +358,7 @@ defmodule AshUI.Compiler do
              },
              children: merged_children,
              bindings: bindings,
-             metadata: compile_authority_runtime_metadata(screen, document),
+             metadata: compile_authority_runtime_metadata(screen, runtime_document),
              version: "v#{screen.version || 1}"
            ),
          :ok <- IUR.validate(root_iur) do
@@ -454,13 +386,16 @@ defmodule AshUI.Compiler do
       |> get_in(["composition", "roots"])
       |> List.wrap()
 
+    screen_module = get_in(document, ["screen", "module"])
+
     screen_bindings =
       document
       |> get_in(["screen", "bindings"])
       |> List.wrap()
-      |> Enum.map(&compile_screen_binding(&1, screen.id))
+      |> Enum.map(&compile_screen_binding(&1, screen.id, screen_module))
 
-    Enum.reduce(Enum.with_index(roots), {[], screen_bindings}, fn {node, index}, {children, bindings} ->
+    Enum.reduce(Enum.with_index(roots), {[], screen_bindings}, fn {node, index},
+                                                                  {children, bindings} ->
       {compiled, updated_bindings} =
         compile_authority_node(node, screen, element_index, [index], bindings)
 
@@ -491,12 +426,12 @@ defmodule AshUI.Compiler do
     element_bindings =
       element
       |> Map.get("bindings", [])
-      |> Enum.map(&compile_element_binding(&1, screen.id, element_id))
+      |> Enum.map(&compile_element_binding(&1, screen.id, element_id, module_ref, kind))
 
     action_bindings =
       element
       |> Map.get("actions", [])
-      |> Enum.map(&compile_action_binding(&1, screen.id, element_id))
+      |> Enum.map(&compile_action_binding(&1, screen.id, element_id, module_ref, kind))
 
     metadata =
       dsl
@@ -555,37 +490,71 @@ defmodule AshUI.Compiler do
     )
   end
 
-  defp compile_screen_binding(binding, screen_id) do
+  defp compile_screen_binding(binding, screen_id, screen_module) do
     binding
     |> normalize_snapshot()
     |> Map.put("binding_type", normalize_binding_type(Map.get(binding, "binding_type")))
     |> Map.put("screen_id", screen_id)
     |> Map.put("element_id", nil)
     |> Map.put("id", runtime_identifier(Map.get(binding, "id")))
-    |> Map.put("metadata", normalize_snapshot(Map.get(binding, "metadata", %{})))
+    |> Map.put(
+      "metadata",
+      owner_metadata(binding, %{
+        "owner_scope" => "screen",
+        "owner_module" => screen_module,
+        "owner_signal" => nil
+      })
+    )
     |> Map.put("transform", normalize_snapshot(Map.get(binding, "transform", %{})))
   end
 
-  defp compile_element_binding(binding, screen_id, element_id) do
+  defp compile_element_binding(binding, screen_id, element_id, module_ref, widget_type) do
     binding
     |> normalize_snapshot()
     |> Map.put("binding_type", normalize_binding_type(Map.get(binding, "binding_type")))
     |> Map.put("screen_id", screen_id)
     |> Map.put("element_id", element_id)
     |> Map.put("id", runtime_identifier(Map.get(binding, "id")))
-    |> Map.put("metadata", normalize_snapshot(Map.get(binding, "metadata", %{})))
+    |> Map.put(
+      "metadata",
+      owner_metadata(binding, %{
+        "owner_scope" => "element",
+        "owner_module" => module_ref,
+        "owner_element_id" => element_id,
+        "owner_widget_type" => kind_to_iur_type(widget_type),
+        "owner_signal" => nil
+      })
+    )
     |> Map.put("transform", normalize_snapshot(Map.get(binding, "transform", %{})))
   end
 
-  defp compile_action_binding(action, screen_id, element_id) do
+  defp compile_action_binding(action, screen_id, element_id, module_ref, widget_type) do
     action
     |> normalize_snapshot()
     |> Map.put("binding_type", :action)
     |> Map.put("screen_id", screen_id)
     |> Map.put("element_id", element_id)
     |> Map.put("id", runtime_identifier(Map.get(action, "id")))
-    |> Map.put("metadata", normalize_snapshot(Map.get(action, "metadata", %{})))
+    |> Map.put(
+      "metadata",
+      owner_metadata(action, %{
+        "owner_scope" => "element",
+        "owner_module" => module_ref,
+        "owner_element_id" => element_id,
+        "owner_widget_type" => kind_to_iur_type(widget_type),
+        "owner_signal" => normalize_snapshot(Map.get(action, "signal"))
+      })
+    )
     |> Map.put("transform", normalize_snapshot(Map.get(action, "transform", %{})))
+  end
+
+  defp owner_metadata(binding_or_action, ownership) do
+    binding_or_action
+    |> Map.get("metadata", %{})
+    |> normalize_snapshot()
+    |> Map.merge(ownership, fn _key, stored, override ->
+      if is_nil(override), do: stored, else: override
+    end)
   end
 
   defp authority_element_id(dsl, module_ref, path) do
@@ -622,7 +591,8 @@ defmodule AshUI.Compiler do
       "resource_authority" => %{
         "screen_module" => get_in(document, ["screen", "module"]),
         "composition_root_count" => length(get_in(document, ["composition", "roots"]) || []),
-        "composition_mode" => if(is_map(inline_fragment), do: "mixed", else: "relationships_only"),
+        "composition_mode" =>
+          if(is_map(inline_fragment), do: "mixed", else: "relationships_only"),
         "screen_binding_ids" => Enum.map(screen_bindings, &Map.get(&1, "id")),
         "screen_shell" => screen_shell_metadata(inline_fragment)
       }
@@ -703,168 +673,6 @@ defmodule AshUI.Compiler do
 
   defp screen_resource?(_screen, _opts), do: false
 
-  defp compile_snapshot_child(%{"element" => nil}, _path, _authored_ids), do: nil
-
-  defp compile_snapshot_child(%{"slot" => slot, "element" => element}, path, authored_ids)
-       when is_map(element) do
-    compiled = compile_snapshot_element(element, path, authored_ids)
-    %{compiled | metadata: Map.put(compiled.metadata, "slot", slot)}
-  end
-
-  defp compile_snapshot_element(%{"kind" => kind} = element, path, authored_ids) do
-    props = translate_upstream_props(kind, Map.get(element, "attributes", %{}))
-    id = runtime_element_id(element, kind, path, authored_ids)
-
-    IUR.new(kind_to_iur_type(kind),
-      id: id,
-      name: runtime_name(kind, element, id),
-      attributes: props,
-      props: props,
-      children:
-        element
-        |> Map.get("children", [])
-        |> Enum.with_index()
-        |> Enum.map(fn {child, index} ->
-          compile_snapshot_child(child, path ++ [index], authored_ids)
-        end)
-        |> Enum.reject(&is_nil/1),
-      metadata: normalize_metadata(Map.get(element, "metadata", %{}))
-    )
-  end
-
-  defp compile_runtime_bindings(_snapshot, document, screen_id) do
-    authored_ids = authored_compiled_ids(document)
-
-    document
-    |> Document.binding_metadata()
-    |> Enum.reduce([], fn {binding_id, metadata}, acc ->
-      case build_runtime_binding(binding_id, metadata, screen_id, authored_ids) do
-        nil -> acc
-        binding -> [binding | acc]
-      end
-    end)
-    |> Enum.reverse()
-  end
-
-  defp build_runtime_binding(binding_id, metadata, screen_id, authored_ids)
-       when (is_binary(binding_id) or is_atom(binding_id)) and is_map(metadata) do
-    source = normalize_runtime_source(Map.get(metadata, "source") || Map.get(metadata, :source))
-
-    if is_map(source) do
-      binding_type =
-        Map.get(metadata, "binding_type") ||
-          Map.get(metadata, :binding_type) ||
-          Map.get(metadata, "type") ||
-          Map.get(metadata, :type) ||
-          infer_binding_type(source)
-
-      binding_type = normalize_binding_type(binding_type)
-      element_id = resolve_binding_element_id(binding_id, metadata, authored_ids)
-      target = resolve_binding_target(binding_id, metadata, source, binding_type)
-
-      %{
-        "id" => runtime_identifier(binding_id),
-        "source" => source,
-        "target" => target,
-        "binding_type" => binding_type,
-        "transform" => Map.get(metadata, "transform") || Map.get(metadata, :transform) || %{},
-        "element_id" => element_id,
-        "screen_id" => screen_id,
-        "metadata" =>
-          metadata
-          |> Map.new(fn {key, value} -> {to_string(key), value} end)
-          |> Map.put("authored_binding_id", runtime_identifier(binding_id))
-      }
-    else
-      nil
-    end
-  end
-
-  defp build_runtime_binding(_binding_id, _metadata, _screen_id, _authored_ids), do: nil
-
-  defp resolve_binding_element_id(binding_id, metadata, authored_ids) do
-    explicit =
-      Map.get(metadata, "element_id") ||
-        Map.get(metadata, :element_id)
-
-    candidate =
-      runtime_identifier(explicit || runtime_identifier(binding_id))
-
-    cond do
-      explicit ->
-        candidate
-
-      MapSet.member?(authored_ids, candidate) ->
-        candidate
-
-      true ->
-        candidate
-    end
-  end
-
-  defp resolve_binding_target(binding_id, metadata, source, :value) do
-    runtime_identifier(
-      Map.get(metadata, "target") ||
-        Map.get(metadata, :target) ||
-        Map.get(source, "field") ||
-        binding_id
-    )
-  end
-
-  defp resolve_binding_target(_binding_id, metadata, source, :list) do
-    runtime_identifier(
-      Map.get(metadata, "target") ||
-        Map.get(metadata, :target) ||
-        Map.get(source, "relationship") ||
-        "items"
-    )
-  end
-
-  defp resolve_binding_target(binding_id, metadata, source, :action) do
-    runtime_identifier(
-      Map.get(metadata, "target") ||
-        Map.get(metadata, :target) ||
-        Map.get(source, "action") ||
-        binding_id
-    )
-  end
-
-  defp compile_runtime_metadata(screen, snapshot, compiled, document) do
-    screen.metadata
-    |> Map.new(fn {key, value} -> {to_string(key), value} end)
-    |> Map.put("ash_ui", %{
-      "compiler_boundary" => "UnifiedUi.Compiler -> AshUI runtime normalization",
-      "authoring_source" => %{
-        "module" => compiled.module |> Atom.to_string() |> String.trim_leading("Elixir."),
-        "kind" => get_in(document, ["authoring", "source", "kind"])
-      },
-      "binding_metadata" => Document.binding_metadata(document),
-      "upstream" => %{
-        "identity" => normalize_snapshot(compiled.identity),
-        "composition" => normalize_snapshot(compiled.composition),
-        "trace" => normalize_snapshot(compiled.trace)
-      }
-    })
-    |> Map.put_new("title", snapshot_title(snapshot))
-  end
-
-  defp normalize_runtime_source(%{} = source) do
-    Map.new(source, fn {key, value} -> {to_string(key), value} end)
-  end
-
-  defp normalize_runtime_source(source) when is_binary(source) do
-    case String.split(source, ".", parts: 2) do
-      [resource, field] -> %{"resource" => resource, "field" => field}
-      _other -> %{"value" => source}
-    end
-  end
-
-  defp normalize_runtime_source(_other), do: nil
-
-  defp infer_binding_type(%{"action" => _action}), do: :action
-  defp infer_binding_type(%{"relationship" => _relationship}), do: :list
-  defp infer_binding_type(_source), do: :value
-
   defp normalize_binding_type(:action), do: :action
   defp normalize_binding_type("action"), do: :action
   defp normalize_binding_type(:event), do: :action
@@ -874,100 +682,6 @@ defmodule AshUI.Compiler do
   defp normalize_binding_type(:collection), do: :list
   defp normalize_binding_type("collection"), do: :list
   defp normalize_binding_type(_other), do: :value
-
-  defp translate_upstream_props(kind, attributes) do
-    attributes = normalize_snapshot(attributes)
-
-    case kind do
-      "text" ->
-        %{"content" => get_in(attributes, ["content", "text"])}
-
-      "label" ->
-        %{"content" => get_in(attributes, ["content", "text"])}
-
-      "badge" ->
-        attributes
-        |> Map.get("badge", %{})
-        |> Map.put("label", get_in(attributes, ["content", "text"]))
-
-      "hero" ->
-        Map.get(attributes, "hero", %{})
-
-      "button" ->
-        attributes
-        |> Map.get("button", %{})
-        |> Map.put(
-          "label",
-          get_in(attributes, ["content", "text"]) || get_in(attributes, ["label", "text"])
-        )
-
-      "text_input" ->
-        attributes
-        |> Map.get("input", %{})
-        |> Map.put_new("type", "text")
-
-      "select" ->
-        Map.get(attributes, "input", %{})
-
-      "checkbox" ->
-        Map.get(attributes, "input", %{})
-
-      "radio_group" ->
-        Map.get(attributes, "input", %{})
-
-      "toggle" ->
-        Map.get(attributes, "input", %{})
-
-      "slider" ->
-        Map.get(attributes, "input", %{})
-
-      "stat" ->
-        Map.get(attributes, "stat", %{})
-
-      "key_value" ->
-        Map.get(attributes, "key_value", %{})
-
-      "info_list" ->
-        Map.get(attributes, "info_list", %{})
-
-      "row" ->
-        layout_props(attributes)
-
-      "column" ->
-        layout_props(attributes)
-
-      "grid" ->
-        layout_props(attributes)
-
-      "stack" ->
-        layout_props(attributes)
-
-      _other ->
-        flatten_attributes(attributes)
-    end
-  end
-
-  defp layout_props(attributes) do
-    attributes
-    |> Map.get("layout", %{})
-    |> then(fn layout ->
-      if Map.has_key?(layout, "gap") do
-        Map.put(layout, "spacing", layout["gap"])
-      else
-        layout
-      end
-    end)
-  end
-
-  defp flatten_attributes(attributes) do
-    Enum.reduce(attributes, %{}, fn
-      {key, value}, acc when is_map(value) ->
-        Map.merge(acc, Map.put_new(value, "section", key))
-
-      {key, value}, acc ->
-        Map.put(acc, key, value)
-    end)
-  end
 
   defp kind_to_iur_type(kind) when is_binary(kind) do
     case kind do
@@ -986,90 +700,20 @@ defmodule AshUI.Compiler do
   defp runtime_identifier(id) when is_atom(id), do: Atom.to_string(id)
   defp runtime_identifier(id), do: to_string(id)
 
-  defp runtime_name(kind, element, id) do
-    runtime_identifier(Map.get(element, "name")) ||
-      runtime_identifier(Map.get(element, "id")) ||
-      id ||
-      "#{kind}_node"
-  end
-
-  defp authored_snapshot_ids(%UnifiedUi.Compiler.Result{trace: trace}) do
-    trace
-    |> Map.get(:authored_ids, [])
-    |> Enum.map(&runtime_identifier/1)
-    |> MapSet.new()
-  end
-
-  defp runtime_element_id(element, kind, path, authored_ids) do
-    element_id = runtime_identifier(Map.get(element, "id"))
-
-    cond do
-      authored_id?(element_id, authored_ids) ->
-        element_id
-
-      generated_runtime_id?(element_id) ->
-        derived_runtime_id(kind, path)
-
-      is_binary(element_id) and element_id != "" ->
-        element_id
-
-      true ->
-        derived_runtime_id(kind, path)
-    end
-  end
-
-  defp authored_id?(nil, _authored_ids), do: false
-  defp authored_id?(id, authored_ids), do: MapSet.member?(authored_ids, id)
-
-  # Upstream anonymous nodes currently arrive with UUID-like ids. Replace those
-  # with stable path-derived runtime ids so cache hits and uncached compiles
-  # render identically for equivalent authored documents.
-  defp generated_runtime_id?(id) when is_binary(id) do
-    String.match?(id, ~r/\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i)
-  end
-
-  defp generated_runtime_id?(_id), do: false
-
-  defp derived_runtime_id(kind, path) do
-    "generated_#{kind}_#{Enum.join(path, "_")}"
-  end
-
-  defp snapshot_title(snapshot) do
-    snapshot
-    |> get_in(["metadata", "annotations", "title"])
-    |> case do
-      value when is_binary(value) and value != "" -> value
-      _other -> nil
-    end
-  end
-
-  defp normalize_metadata(metadata) do
-    metadata
-    |> normalize_snapshot()
-    |> Map.drop(["annotations"])
-    |> Map.put("annotations", get_in(normalize_snapshot(metadata), ["annotations"]) || %{})
-  end
-
-  defp normalize_compile_error({:unsupported_authoring_document, _reason}) do
-    {:unsupported_authoring_document, :phase_11_upstream_modules_only}
-  end
-
-  defp normalize_compile_error(reason), do: reason
-
-  defp authored_compiled_ids(document) do
-    document
-    |> get_in(["authoring", "document", "compiler_listing", "trace", "compiled_element_ids"])
-    |> List.wrap()
-    |> Enum.reject(&is_nil/1)
-    |> Enum.map(&runtime_identifier/1)
-    |> MapSet.new()
-  end
-
   defp document_cache_suffix(screen) do
-    document = Map.get(screen, :unified_dsl, %{})
-    hash = document_hash(document)
-    compiler = upstream_compiler_version()
-    "doc-#{hash}:compiler-#{compiler}"
+    authority_cache_suffix(screen)
+  end
+
+  defp authority_cache_suffix(screen) do
+    case Authority.runtime_payload(screen) do
+      {:ok, payload} ->
+        hash = document_hash(payload)
+        "graph-#{hash}:compiler-resource_graph"
+
+      {:error, _reason} ->
+        hash = document_hash(Map.get(screen, :unified_dsl, %{}))
+        "graph-fallback-#{hash}:compiler-resource_graph"
+    end
   end
 
   defp document_hash(document) do
@@ -1078,14 +722,6 @@ defmodule AshUI.Compiler do
     |> then(&:crypto.hash(:sha256, &1))
     |> Base.encode16(case: :lower)
     |> binary_part(0, 12)
-  end
-
-  defp upstream_compiler_version do
-    :unified_ui
-    |> Application.spec(:vsn)
-    |> to_string()
-  rescue
-    _ -> "unknown"
   end
 
   defp normalize_snapshot(value) when is_list(value) do

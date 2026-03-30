@@ -8,7 +8,7 @@ defmodule AshUI.Runtime.BidirectionalBinding do
 
   alias AshUI.Runtime.BindingEvaluator
   alias AshUI.Runtime.ResourceAccess
-  alias AshUI.LiveView.IURHydration
+  alias AshUI.LiveView.BindingRuntime
   alias AshUI.Resources.Binding
   alias AshUI.Telemetry
 
@@ -234,22 +234,6 @@ defmodule AshUI.Runtime.BidirectionalBinding do
 
   # Helper functions for socket management
   defp put_binding_value(socket, binding, value) do
-    target = Map.get(binding, :target) || Map.get(binding, "target")
-    ash_ui = Map.get(socket.assigns, :ash_ui, %{})
-    bindings = Map.get(ash_ui, :bindings, %{})
-
-    updated_bindings =
-      Map.put(bindings, target, %{
-        "value" => value,
-        "updated_at" => System.system_time(:millisecond)
-      })
-
-    socket =
-      %{
-        socket
-        | assigns: Map.put(socket.assigns, :ash_ui, Map.put(ash_ui, :bindings, updated_bindings))
-      }
-
     update_binding_state(socket, binding, %{value: value, error: nil})
   end
 
@@ -264,26 +248,6 @@ defmodule AshUI.Runtime.BidirectionalBinding do
   end
 
   defp put_binding_error(socket, binding, error) do
-    target = Map.get(binding, :target) || Map.get(binding, "target")
-    ash_ui = Map.get(socket.assigns, :ash_ui, %{})
-    bindings = Map.get(ash_ui, :bindings, %{})
-    binding_state = Map.get(bindings, target, %{})
-
-    updated_bindings =
-      Map.put(
-        bindings,
-        target,
-        binding_state
-        |> Map.put("error", error)
-        |> Map.put("updated_at", System.system_time(:millisecond))
-      )
-
-    socket =
-      %{
-        socket
-        | assigns: Map.put(socket.assigns, :ash_ui, Map.put(ash_ui, :bindings, updated_bindings))
-      }
-
     update_binding_state(socket, binding, %{error: error})
   end
 
@@ -303,43 +267,30 @@ defmodule AshUI.Runtime.BidirectionalBinding do
       Map.get(bindings, binding_id) ||
         (atom_binding_id && Map.get(bindings, atom_binding_id))
 
-    if is_map(existing_binding) do
-      updated_binding =
-        existing_binding
-        |> Map.merge(attrs)
-        |> Map.put(:updated_at, System.system_time(:millisecond))
+    updated_binding =
+      (existing_binding || build_runtime_binding(binding))
+      |> Map.merge(attrs)
+      |> Map.put(:updated_at, System.system_time(:millisecond))
 
-      updated_bindings =
-        bindings
-        |> Map.put(binding_id, updated_binding)
-        |> maybe_put(atom_binding_id, updated_binding)
+    updated_bindings =
+      bindings
+      |> Map.put(binding_id, updated_binding)
+      |> maybe_put(atom_binding_id, updated_binding)
 
-      %{
-        socket
-        | assigns:
-            socket.assigns
-            |> Map.put(:ash_ui_bindings, updated_bindings)
-      }
-      |> sync_hydrated_iur()
-    else
-      socket
-    end
+    BindingRuntime.assign(socket, updated_bindings)
   end
 
-  defp sync_hydrated_iur(socket) do
-    base_iur = Map.get(socket.assigns, :ash_ui_base_iur)
-    bindings = Map.get(socket.assigns, :ash_ui_bindings, %{})
-
-    case base_iur do
-      %{} = iur ->
-        %{
-          socket
-          | assigns: Map.put(socket.assigns, :ash_ui_iur, IURHydration.hydrate(iur, bindings))
-        }
-
-      _ ->
-        socket
-    end
+  defp build_runtime_binding(binding) do
+    %{
+      id: get_binding_id(binding),
+      target: Map.get(binding, :target) || Map.get(binding, "target"),
+      source: Map.get(binding, :source) || Map.get(binding, "source") || %{},
+      binding_type: Map.get(binding, :binding_type) || Map.get(binding, "binding_type"),
+      transform: Map.get(binding, :transform) || Map.get(binding, "transform") || %{},
+      metadata: Map.get(binding, :metadata) || Map.get(binding, "metadata") || %{},
+      value: nil,
+      error: nil
+    }
   end
 
   defp maybe_put(map, nil, _value), do: map

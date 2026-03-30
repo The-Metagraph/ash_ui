@@ -6,6 +6,8 @@ defmodule AshUI.LiveView.IURHydration do
   state so LiveUI rendering can work directly from stored `unified_dsl`.
   """
 
+  alias AshUI.LiveView.BindingRuntime
+
   @type canonical_iur :: map()
   @type binding_state :: map()
 
@@ -15,7 +17,11 @@ defmodule AshUI.LiveView.IURHydration do
   """
   @spec hydrate(canonical_iur(), map() | [binding_state()]) :: canonical_iur()
   def hydrate(%{"type" => "screen"} = iur, bindings) do
-    binding_states = normalize_bindings(bindings)
+    binding_states =
+      bindings
+      |> normalize_bindings()
+      |> Enum.reject(&BindingRuntime.action_binding?/1)
+      |> Enum.filter(&(BindingRuntime.owner_scope(&1) == :element))
 
     Map.update(iur, "children", [], fn children ->
       Enum.map(children, &hydrate_node(&1, binding_states))

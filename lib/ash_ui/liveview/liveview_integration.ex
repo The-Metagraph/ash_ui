@@ -13,6 +13,7 @@ defmodule AshUI.LiveView.Integration do
   alias AshUI.Config
   alias AshUI.Authorization.BindingPolicy
   alias AshUI.Authorization.Runtime
+  alias AshUI.LiveView.BindingRuntime
   alias AshUI.Runtime.BindingEvaluator
   alias AshUI.LiveView.IURHydration
   alias AshUI.LiveView.UpdateIntegration
@@ -305,13 +306,10 @@ defmodule AshUI.LiveView.Integration do
 
   defp assign_screen_state(socket, screen, iur, bindings, user, params) do
     ui_storage = current_ui_storage(socket)
-    hydrated_iur = hydrate_iur(iur, bindings)
 
     socket
     |> Phoenix.Component.assign(:ash_ui_screen, screen)
     |> Phoenix.Component.assign(:ash_ui_base_iur, iur)
-    |> Phoenix.Component.assign(:ash_ui_iur, hydrated_iur)
-    |> Phoenix.Component.assign(:ash_ui_bindings, bindings)
     |> Phoenix.Component.assign(:ash_ui_params, params)
     |> Phoenix.Component.assign(:ash_ui_storage, ui_storage)
     |> Phoenix.Component.assign(
@@ -320,7 +318,7 @@ defmodule AshUI.LiveView.Integration do
     )
     |> Phoenix.Component.assign(:ash_ui_user, user)
     |> Phoenix.Component.assign(:ash_ui_loaded_at, DateTime.utc_now())
-    |> sync_runtime_binding_assigns(bindings)
+    |> BindingRuntime.assign(bindings)
   end
 
   @doc """
@@ -371,32 +369,6 @@ defmodule AshUI.LiveView.Integration do
       error: Keyword.get(attrs, :error),
       updated_at: System.system_time(:millisecond)
     }
-  end
-
-  defp sync_runtime_binding_assigns(socket, bindings) do
-    ash_ui = Map.get(socket.assigns, :ash_ui, %{})
-    runtime_bindings = Map.get(ash_ui, :bindings, %{})
-
-    updated_runtime_bindings =
-      Enum.reduce(bindings, runtime_bindings, fn {_binding_id, binding_state}, acc ->
-        case Map.get(binding_state, :target) || Map.get(binding_state, "target") do
-          nil ->
-            acc
-
-          target ->
-            Map.put(acc, target, %{
-              "value" => Map.get(binding_state, :value),
-              "error" => Map.get(binding_state, :error),
-              "updated_at" => Map.get(binding_state, :updated_at)
-            })
-        end
-      end)
-
-    Phoenix.Component.assign(
-      socket,
-      :ash_ui,
-      Map.put(ash_ui, :bindings, updated_runtime_bindings)
-    )
   end
 
   defp binding_readable?(binding, user) do

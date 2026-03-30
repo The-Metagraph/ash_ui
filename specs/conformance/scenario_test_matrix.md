@@ -22,9 +22,9 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-023 | Screen Update | test/ash_ui/liveview/phase_4_integration_test.exs |
 | SCN-024 | Session Isolation | test/ash_ui/liveview/phase_4_integration_test.exs |
 | SCN-025 | Concurrent Sessions | test/ash_ui/liveview/phase_4_integration_test.exs |
-| SCN-026 | Screen Data Binding | test/ash_ui/liveview/phase_4_integration_test.exs, test/ash_ui/runtime/bidirectional_binding_test.exs |
-| SCN-027 | Screen Event Handling | test/ash_ui/liveview/phase_4_integration_test.exs, test/ash_ui/runtime/action_binding_test.exs |
-| SCN-041 | Resource Compilation | test/ash_ui/compiler/phase_6_integration_test.exs, test/ash_ui/phase_14_integration_test.exs |
+| SCN-026 | Screen Data Binding | test/ash_ui/liveview/phase_4_integration_test.exs, test/ash_ui/runtime/bidirectional_binding_test.exs, test/ash_ui/phase_15_integration_test.exs |
+| SCN-027 | Screen Event Handling | test/ash_ui/liveview/phase_4_integration_test.exs, test/ash_ui/runtime/action_binding_test.exs, test/ash_ui/phase_15_integration_test.exs |
+| SCN-041 | Resource Compilation | test/ash_ui/compiler/phase_6_integration_test.exs, test/ash_ui/phase_14_integration_test.exs, test/ash_ui/phase_15_integration_test.exs |
 | SCN-042 | Schema Validation | test/ash_ui/compiler_test.exs, test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-043 | IUR Generation | test/ash_ui/compiler_test.exs |
 | SCN-044 | Resource Resolution | test/ash_ui/compiler_test.exs |
@@ -34,7 +34,7 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-048 | Compilation Error Reporting | test/ash_ui/compiler/phase_6_integration_test.exs, test/ash_ui/phase_14_integration_test.exs |
 | SCN-049 | Incremental Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-050 | Persisted Resource Authority Screen | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |
-| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs |
+| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs, test/ash_ui/phase_15_integration_test.exs |
 | SCN-061 | LiveView Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-062 | Elm-Backed Web Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-063 | Component Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |

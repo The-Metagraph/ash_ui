@@ -104,6 +104,25 @@ defmodule AshUI.LiveView.IntegrationTest do
       assert mounted_socket.assigns.ash_ui_bindings["display_name_input"].value ==
                fixtures.user.name
 
+      assert Map.has_key?(mounted_socket.assigns.ash_ui_screen_bindings, "screen_notice")
+      assert Map.has_key?(mounted_socket.assigns.ash_ui_element_bindings, "display_name_input")
+      assert Map.has_key?(mounted_socket.assigns.ash_ui_action_bindings, "save_profile")
+
+      assert mounted_socket.assigns.ash_ui_screen_bindings["screen_notice"].metadata[
+               "owner_scope"
+             ] ==
+               "screen"
+
+      assert mounted_socket.assigns.ash_ui_element_bindings["display_name_input"].metadata[
+               "owner_scope"
+             ] ==
+               "element"
+
+      assert mounted_socket.assigns.ash_ui_action_bindings["save_profile"].metadata[
+               "owner_signal"
+             ] ==
+               "click"
+
       input =
         mounted_socket.assigns.ash_ui_iur
         |> find_node("display_name_input")

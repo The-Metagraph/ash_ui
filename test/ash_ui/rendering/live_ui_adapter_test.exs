@@ -197,11 +197,22 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
         "id" => "btn-1",
         "props" => %{"label" => "Submit"},
         "children" => [],
-        "metadata" => %{}
+        "metadata" => %{},
+        "bindings" => [
+          %{
+            "id" => "save_profile",
+            "type" => "event",
+            "target" => "submit",
+            "element_id" => "btn-1",
+            "metadata" => %{"owner_signal" => "click"}
+          }
+        ]
       }
 
       {:ok, heex} = LiveUIAdapter.render(iur)
       assert String.contains?(heex, "phx-click=\"ash_ui_action\"")
+      assert String.contains?(heex, "phx-value-element_id=\"btn-1\"")
+      assert String.contains?(heex, "phx-value-signal=\"click\"")
       assert String.contains?(heex, "Submit")
     end
 
@@ -217,6 +228,8 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       {:ok, heex} = LiveUIAdapter.render(iur)
       assert String.contains?(heex, "phx-blur=\"ash_ui_change\"")
       assert String.contains?(heex, "phx-change=\"ash_ui_change\"")
+      assert String.contains?(heex, "phx-value-element_id=\"input-1\"")
+      assert String.contains?(heex, "phx-value-signal=\"change\"")
       assert String.contains?(heex, "name=\"email\"")
     end
 

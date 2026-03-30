@@ -9,6 +9,7 @@ defmodule AshUI.LiveView.EventHandler do
   require Logger
 
   alias AshUI.Config
+  alias AshUI.LiveView.BindingRuntime
   alias AshUI.Runtime.ActionBinding
   alias AshUI.Runtime.BidirectionalBinding
 
@@ -69,10 +70,11 @@ defmodule AshUI.LiveView.EventHandler do
   def handle_value_change(event_params, socket) do
     binding_id = Map.get(event_params, "binding_id")
     target = Map.get(event_params, "target")
+    element_id = Map.get(event_params, "element_id")
     value = extract_value(event_params)
 
-    with {:ok, binding} <- find_value_binding(binding_id, target, socket),
-         context <- build_event_context(socket),
+    with {:ok, binding} <- find_value_binding(binding_id, target, element_id, socket),
+         context <- build_event_context(socket, binding),
          {:ok, socket} <- write_value(binding, value, socket, context) do
       {:noreply, socket}
     else
@@ -102,10 +104,12 @@ defmodule AshUI.LiveView.EventHandler do
   @spec handle_action_event(map(), Phoenix.LiveView.Socket.t()) :: event_result()
   def handle_action_event(event_params, socket) do
     action_id = Map.get(event_params, "action_id")
+    element_id = Map.get(event_params, "element_id")
+    signal = Map.get(event_params, "signal")
     event_data = extract_action_event_data(event_params)
 
-    with {:ok, binding} <- find_action_binding(action_id, socket),
-         context <- build_event_context(socket),
+    with {:ok, binding} <- find_action_binding(action_id, element_id, signal, socket),
+         context <- build_event_context(socket, binding),
          {:ok, result} <- execute_action(binding, event_data, socket, context),
          socket <- handle_action_result(result, socket) do
       {:reply, %{status: :ok}, socket}
@@ -161,21 +165,21 @@ defmodule AshUI.LiveView.EventHandler do
   @spec route_event(map(), Phoenix.LiveView.Socket.t()) ::
           {:ok, Phoenix.LiveView.Socket.t()} | {:error, term()}
   def route_event(%{type: :change} = event, socket) do
-    params = Map.merge(event.data, %{"target" => event.target})
+    params = Map.merge(event.data, %{"target" => event.target, "signal" => "change"})
 
     handle_value_change(params, socket)
     |> wrap_route_result()
   end
 
   def route_event(%{type: :click} = event, socket) do
-    params = Map.merge(event.data, %{"action_id" => event.target})
+    params = Map.merge(event.data, %{"action_id" => event.target, "signal" => "click"})
 
     handle_action_event(params, socket)
     |> wrap_route_result()
   end
 
   def route_event(%{type: :submit} = event, socket) do
-    params = Map.merge(event.data, %{"action_id" => event.target})
+    params = Map.merge(event.data, %{"action_id" => event.target, "signal" => "submit"})
 
     handle_action_event(params, socket)
     |> wrap_route_result()
@@ -240,19 +244,56 @@ defmodule AshUI.LiveView.EventHandler do
   defp wrap_route_result({:reply, _data, socket}), do: {:ok, socket}
   defp wrap_route_result({:error, reason}), do: {:error, reason}
 
-  defp find_value_binding(binding_id, _target, socket) when is_binary(binding_id) do
-    find_action_binding(binding_id, socket)
+  defp find_value_binding(binding_id, _target, element_id, socket) when is_binary(binding_id) do
+    case socket
+         |> candidate_value_bindings(element_id)
+         |> find_binding_by_id(binding_id) do
+      {:ok, binding} ->
+        if owner_element_matches?(binding, element_id) do
+          {:ok, binding}
+        else
+          {:error, :binding_not_found}
+        end
+
+      error ->
+        error
+    end
   end
 
-  defp find_value_binding(_binding_id, target, socket) do
-    find_binding_by_target(target, socket)
+  defp find_value_binding(_binding_id, target, element_id, socket) do
+    socket
+    |> candidate_value_bindings(element_id)
+    |> find_binding_by_target(target, element_id)
   end
 
-  defp find_binding_by_target(target, socket) do
-    bindings = socket.assigns[:ash_ui_bindings] || %{}
+  defp candidate_value_bindings(socket, nil) do
+    screen_bindings = screen_bindings(socket)
+    element_bindings = element_bindings(socket)
+    Map.merge(screen_bindings, element_bindings)
+  end
 
+  defp candidate_value_bindings(socket, _element_id) do
+    element_bindings(socket)
+  end
+
+  defp find_binding_by_id(bindings, binding_id) do
+    atom_binding_id = safe_to_existing_atom(binding_id)
+
+    case Map.get(bindings, binding_id) ||
+           (atom_binding_id && Map.get(bindings, atom_binding_id)) ||
+           Enum.find_value(bindings, fn {_key, binding} ->
+             if Map.get(binding, :id) == binding_id or Map.get(binding, "id") == binding_id do
+               binding
+             end
+           end) do
+      nil -> {:error, :binding_not_found}
+      binding -> {:ok, binding}
+    end
+  end
+
+  defp find_binding_by_target(bindings, target, element_id) do
     case Enum.find(bindings, fn {_id, binding} ->
-           Map.get(binding, :target) == target or Map.get(binding, "target") == target
+           binding_target(binding) == target and owner_element_matches?(binding, element_id)
          end) do
       {id, binding} ->
         binding =
@@ -267,24 +308,25 @@ defmodule AshUI.LiveView.EventHandler do
     end
   end
 
-  defp find_action_binding(action_id, socket) do
-    bindings = socket.assigns[:ash_ui_bindings] || %{}
-    atom_action_id = safe_to_existing_atom(action_id)
+  defp find_action_binding(action_id, element_id, signal, socket) do
+    bindings = action_bindings(socket)
 
-    case Map.get(bindings, action_id) ||
-           (atom_action_id && Map.get(bindings, atom_action_id)) ||
-           Enum.find_value(bindings, fn {_key, binding} ->
-             if Map.get(binding, :id) == action_id or Map.get(binding, "id") == action_id do
-               binding
-             end
-           end) do
-      nil -> {:error, :binding_not_found}
-      binding -> {:ok, binding}
+    case find_binding_by_id(bindings, action_id) do
+      {:ok, binding} ->
+        if owner_element_matches?(binding, element_id) and signal_matches?(binding, signal) do
+          {:ok, binding}
+        else
+          {:error, :binding_not_found}
+        end
+
+      {:error, :binding_not_found} ->
+        {:error, :binding_not_found}
     end
   end
 
-  defp build_event_context(socket) do
+  defp build_event_context(socket, binding) do
     ui_storage = Map.get(socket.assigns, :ash_ui_storage)
+    binding_metadata = if is_map(binding), do: binding_metadata(binding), else: %{}
 
     %{
       user_id: get_user_id(socket),
@@ -293,6 +335,12 @@ defmodule AshUI.LiveView.EventHandler do
       params: socket.assigns[:ash_ui_params] || %{},
       assigns: socket.assigns,
       binding_values: extract_binding_values(socket),
+      binding_owner: %{
+        scope: BindingRuntime.owner_scope(binding || %{}),
+        module: Map.get(binding_metadata, "owner_module"),
+        element_id: BindingRuntime.owner_element_id(binding || %{}),
+        signal: BindingRuntime.owner_signal(binding || %{})
+      },
       socket: socket,
       ui_storage: Config.ui_storage(ui_storage),
       ash_domains: Map.get(socket.assigns, :ash_ui_domains, Config.runtime_domains(ui_storage))
@@ -314,7 +362,17 @@ defmodule AshUI.LiveView.EventHandler do
   end
 
   defp execute_action(binding, event_data, _socket, context) do
-    case ActionBinding.execute_action(binding, event_data, context) do
+    executor =
+      cond do
+        BindingRuntime.action_binding?(binding) and
+            BindingRuntime.owner_scope(binding) == :element ->
+          &ActionBinding.execute_declared_action/3
+
+        true ->
+          &ActionBinding.execute_action/3
+      end
+
+    case executor.(binding, event_data, context) do
       {:ok, result} -> {:ok, result}
       {:error, %{errors: [%{"message" => "Unauthorized"} | _]}} -> {:error, :unauthorized}
       {:error, reason} -> {:error, reason}
@@ -384,7 +442,7 @@ defmodule AshUI.LiveView.EventHandler do
 
   defp extract_action_event_data(params) when is_map(params) do
     params
-    |> Map.drop(["action_id", "binding_id", "target", "value", "_target"])
+    |> Map.drop(["action_id", "binding_id", "target", "value", "_target", "element_id", "signal"])
     |> Enum.reject(fn {_key, value} -> is_nil(value) end)
     |> Map.new()
   end
@@ -402,6 +460,44 @@ defmodule AshUI.LiveView.EventHandler do
         Map.put(acc, target, value)
       end
     end)
+  end
+
+  defp binding_target(binding) do
+    Map.get(binding, :target) || Map.get(binding, "target")
+  end
+
+  defp binding_metadata(binding) do
+    Map.get(binding, :metadata) || Map.get(binding, "metadata") || %{}
+  end
+
+  defp screen_bindings(socket) do
+    Map.get(socket.assigns, :ash_ui_screen_bindings) ||
+      BindingRuntime.partition(Map.get(socket.assigns, :ash_ui_bindings, %{})).screen
+  end
+
+  defp element_bindings(socket) do
+    Map.get(socket.assigns, :ash_ui_element_bindings) ||
+      BindingRuntime.partition(Map.get(socket.assigns, :ash_ui_bindings, %{})).elements
+  end
+
+  defp action_bindings(socket) do
+    Map.get(socket.assigns, :ash_ui_action_bindings) ||
+      BindingRuntime.partition(Map.get(socket.assigns, :ash_ui_bindings, %{})).actions
+  end
+
+  defp owner_element_matches?(_binding, nil), do: true
+
+  defp owner_element_matches?(binding, element_id) do
+    BindingRuntime.owner_element_id(binding) == element_id
+  end
+
+  defp signal_matches?(_binding, nil), do: true
+
+  defp signal_matches?(binding, signal) do
+    case BindingRuntime.owner_signal(binding) do
+      nil -> true
+      owner_signal -> owner_signal == to_string(signal)
+    end
   end
 
   @doc """

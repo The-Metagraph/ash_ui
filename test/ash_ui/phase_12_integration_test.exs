@@ -83,7 +83,7 @@ defmodule AshUI.Phase12IntegrationTest do
              "| SCN-050 | Persisted Resource Authority Screen | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |"
 
     assert traceability =~
-             "| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs |"
+             "| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs, test/ash_ui/phase_15_integration_test.exs |"
 
     assert traceability =~
              "| SCN-071 | Renderer Parity For Resource Screens | test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs |"
@@ -92,6 +92,9 @@ defmodule AshUI.Phase12IntegrationTest do
              "@moduletag :conformance"
 
     assert File.read!(project_path("test/ash_ui/phase_11_integration_test.exs")) =~
+             "@moduletag :conformance"
+
+    assert File.read!(project_path("test/ash_ui/phase_15_integration_test.exs")) =~
              "@moduletag :conformance"
 
     assert File.read!(

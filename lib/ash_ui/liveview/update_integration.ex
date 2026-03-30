@@ -9,6 +9,7 @@ defmodule AshUI.LiveView.UpdateIntegration do
   require Logger
 
   alias AshUI.Config
+  alias AshUI.LiveView.BindingRuntime
   alias AshUI.LiveView.Integration
   alias AshUI.Notifications
   alias AshUI.Runtime.BindingEvaluator
@@ -194,9 +195,7 @@ defmodule AshUI.LiveView.UpdateIntegration do
 
         socket =
           socket
-          |> Phoenix.Component.assign(:ash_ui_bindings, bindings)
-          |> sync_runtime_binding_assigns(bindings)
-          |> sync_hydrated_iur()
+          |> BindingRuntime.assign(bindings)
           |> sync_binding_subscriptions()
 
         {:noreply, socket}
@@ -380,39 +379,7 @@ defmodule AshUI.LiveView.UpdateIntegration do
     do: socket
 
   defp update_socket_assigns(socket, updated_values) do
-    current_bindings = socket.assigns[:ash_ui_bindings] || %{}
-    updated_bindings = Map.merge(current_bindings, updated_values)
-
-    socket
-    |> Phoenix.Component.assign(:ash_ui_bindings, updated_bindings)
-    |> sync_runtime_binding_assigns(updated_values)
-    |> sync_hydrated_iur()
-  end
-
-  defp sync_runtime_binding_assigns(socket, bindings) do
-    ash_ui = Map.get(socket.assigns, :ash_ui, %{})
-    runtime_bindings = Map.get(ash_ui, :bindings, %{})
-
-    updated_runtime_bindings =
-      Enum.reduce(bindings, runtime_bindings, fn {_binding_id, binding_state}, acc ->
-        case Map.get(binding_state, :target) || Map.get(binding_state, "target") do
-          nil ->
-            acc
-
-          target ->
-            Map.put(acc, target, %{
-              "value" => Map.get(binding_state, :value),
-              "error" => Map.get(binding_state, :error),
-              "updated_at" => Map.get(binding_state, :updated_at)
-            })
-        end
-      end)
-
-    Phoenix.Component.assign(
-      socket,
-      :ash_ui,
-      Map.put(ash_ui, :bindings, updated_runtime_bindings)
-    )
+    BindingRuntime.merge(socket, updated_values)
   end
 
   defp maybe_trigger_render(socket) do
@@ -420,19 +387,6 @@ defmodule AshUI.LiveView.UpdateIntegration do
       {:ok, socket}
     else
       {:ok, socket}
-    end
-  end
-
-  defp sync_hydrated_iur(socket) do
-    base_iur = socket.assigns[:ash_ui_base_iur] || socket.assigns[:ash_ui_iur]
-    bindings = socket.assigns[:ash_ui_bindings] || %{}
-
-    case base_iur do
-      %{} = iur ->
-        Phoenix.Component.assign(socket, :ash_ui_iur, Integration.hydrate_iur(iur, bindings))
-
-      _ ->
-        socket
     end
   end
 

@@ -80,14 +80,14 @@ Each scenario includes:
 - Ash UI application is running
 
 **Steps**:
-1. Create an `AshUI.Resources.Screen` record with `name`, `layout`, and `unified_dsl`
-2. Create screen instance
-3. Query the screen
+1. Define a screen resource with `AshUI.Resource.DSL.Screen`
+2. Persist it through `AshUI.Resource.Authority`
+3. Query the stored `Screen` record
 
 **Expected Outcome**:
 - Screen is created with valid UUID
 - Layout attribute is set
-- `unified_dsl` is persisted
+- `unified_dsl` stores a persisted authority snapshot
 - Screen is queryable
 
 #### SCN-005: Screen Element Composition
@@ -98,30 +98,30 @@ Each scenario includes:
 - Screen and element resources exist
 
 **Steps**:
-1. Create a screen
-2. Add multiple elements to screen
-3. Query screen with elements in order
+1. Define a screen resource with multiple related element resources
+2. Declare composition semantics with `ui_relationships`
+3. Compile the persisted screen and inspect the composed output
 
 **Expected Outcome**:
-- Elements load in correct order
-- All elements are present
-- Position is maintained
+- Related elements load in the declared order
+- Child and companion placement is preserved
+- Relationship semantics survive compilation
 
 #### SCN-006: Binding Resource Creation
 
 **Requirements**: REQ-BIND-001
 
 **Preconditions**:
-- UI.Binding resource is defined
+- An element resource is defined
 
 **Steps**:
-1. Create a binding with source and target
-2. Query the binding
-3. Verify binding type
+1. Declare a `ui_bindings` entry on an element resource
+2. Persist a screen that composes that element
+3. Compile or mount the screen and inspect the normalized binding metadata
 
 **Expected Outcome**:
-- Binding is created with valid UUID
-- Source and target are stored
+- Binding metadata is produced for the owning element
+- Source and target are stored in normalized form
 - Binding type is correct
 
 #### SCN-007: Binding Value Type
@@ -132,9 +132,9 @@ Each scenario includes:
 - Element and binding resources exist
 
 **Steps**:
-1. Create a value binding
-2. Bind to Ash resource attribute
-3. Evaluate binding
+1. Declare a value binding on an element resource
+2. Bind to an Ash resource attribute
+3. Evaluate the normalized binding at runtime
 
 **Expected Outcome**:
 - Binding evaluates to source value
@@ -149,25 +149,25 @@ Each scenario includes:
 - Element and binding resources exist
 
 **Steps**:
-1. Create a list binding
-2. Bind to Ash resource collection
-3. Evaluate binding
+1. Declare a list binding on an element resource
+2. Bind to an Ash resource collection
+3. Evaluate the normalized binding at runtime
 
 **Expected Outcome**:
 - Binding evaluates to list
 - Multiple items are rendered
 - Empty list is handled
 
-#### SCN-009: Binding Action Type
+#### SCN-009: Element Action Type
 
 **Requirements**: REQ-BIND-002, REQ-BIND-008
 
 **Preconditions**:
-- Element and binding resources exist
+- Element resource exists
 
 **Steps**:
-1. Create an action binding
-2. Trigger element event
+1. Declare an action through `ui_actions`
+2. Trigger the element signal
 3. Verify action execution
 
 **Expected Outcome**:
@@ -180,11 +180,11 @@ Each scenario includes:
 **Requirements**: REQ-BIND-003
 
 **Preconditions**:
-- Binding resource exists
+- An element binding or action exists
 
 **Steps**:
-1. Create binding with valid source path
-2. Create binding with invalid source path
+1. Declare a binding or action with a valid source map
+2. Declare a binding or action with an invalid source map
 3. Compile both
 
 **Expected Outcome**:
@@ -487,7 +487,7 @@ Each scenario includes:
 - Changed resources trigger the expected recompilation target
 - Circular dependencies are reported
 
-#### SCN-050: Persisted Resource Authority Screen
+#### SCN-050: Persisted Screen Authority Graph
 
 **Requirements**: REQ-SCREEN-001, REQ-COMP-001
 
@@ -524,6 +524,41 @@ Each scenario includes:
 - Ash UI compiles the persisted relational authority graph deterministically
 - Cached and uncached compiles remain equivalent
 - Incremental recompilation preserves valid output
+
+#### SCN-052: Element-Resource-First Example Authoring
+
+**Requirements**: REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001
+
+**Preconditions**:
+- The flagship example application is available
+- The example screen and element resource modules are defined
+
+**Steps**:
+1. Seed the flagship example through `AshUI.Resource.Authority`
+2. Inspect the persisted screen payload and authority graph
+3. Verify the graph references screen and element resource modules rather than a detached screen document
+
+**Expected Outcome**:
+- The example persists one screen root plus an authority graph of related element modules
+- The persisted payload preserves resource-module provenance
+- The example demonstrates the intended authoring model publicly
+
+#### SCN-053: Relationship-Driven Composition Semantics
+
+**Requirements**: REQ-RES-003, REQ-SCREEN-003, REQ-COMP-004
+
+**Preconditions**:
+- A screen resource with nested element relationships exists
+
+**Steps**:
+1. Compile a screen with child and companion element relationships
+2. Inspect the composed IUR tree
+3. Verify ordering, slotting, and nesting are derived from declared relationship semantics
+
+**Expected Outcome**:
+- Composition order matches the declared relationship semantics
+- Nested elements remain attached to the correct owner
+- Relationship-driven composition survives regeneration and compilation
 
 ### Rendering Scenarios (SCN-061 to SCN-080)
 
@@ -1010,7 +1045,7 @@ Each scenario includes:
 | SCN-006 | Binding Resource Creation | REQ-BIND-001 | UI.Binding |
 | SCN-007 | Binding Value Type | REQ-BIND-002 | UI.Binding |
 | SCN-008 | Binding List Type | REQ-BIND-002 | UI.Binding |
-| SCN-009 | Binding Action Type | REQ-BIND-002, REQ-BIND-008 | UI.Binding |
+| SCN-009 | Element Action Type | REQ-BIND-002, REQ-BIND-008 | UI.Binding |
 | SCN-010 | Source Resolution | REQ-BIND-003 | UI.Binding |
 | SCN-011 | Binding Transformation | REQ-BIND-005 | Runtime |
 | SCN-021 | Screen Mount | REQ-SCREEN-002 | Runtime |
@@ -1029,8 +1064,10 @@ Each scenario includes:
 | SCN-047 | Cache Invalidation | REQ-COMP-007 | Cache |
 | SCN-048 | Compilation Error Reporting | REQ-COMP-008 | Compiler |
 | SCN-049 | Incremental Compilation | REQ-COMP-009 | Incremental Compiler |
-| SCN-050 | Persisted Resource Authority Screen | REQ-SCREEN-001, REQ-COMP-001 | Authoring Persistence |
+| SCN-050 | Persisted Screen Authority Graph | REQ-SCREEN-001, REQ-COMP-001 | Authoring Persistence |
 | SCN-051 | Relational Compiler Delegation | REQ-COMP-001, REQ-COMP-007 | Compiler |
+| SCN-052 | Element-Resource-First Example Authoring | REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001 | Example Authoring |
+| SCN-053 | Relationship-Driven Composition Semantics | REQ-RES-003, REQ-SCREEN-003, REQ-COMP-004 | Composition Graph |
 | SCN-061 | LiveView Rendering | REQ-RENDER-002 | LiveView Renderer |
 | SCN-062 | Elm-Backed Web Rendering | REQ-RENDER-003 | Web Renderer |
 | SCN-063 | Component Rendering | REQ-RENDER-004 | Renderer |

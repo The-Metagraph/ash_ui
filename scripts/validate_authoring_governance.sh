@@ -24,8 +24,8 @@ is_allowed_reference_file() {
 
 echo "Checking public authoring surfaces..."
 
-doc_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|Screen|migrate_legacy_dsl|migrate_legacy_screen_attrs)|UnifiedUi\.Dsl|builder-first|builder-authored|legacy builder|upstream-authored|monolithic screen document|BasicDashboard\.AuthoredScreen'
-example_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|Screen|migrate_legacy_dsl|migrate_legacy_screen_attrs)|UnifiedUi\.Dsl|AuthoredScreen|monolithic screen document'
+doc_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|Screen|migrate_legacy_dsl|migrate_legacy_screen_attrs)|UnifiedUi\.Dsl|builder-first|builder-authored|legacy builder|upstream-authored|monolithic screen document|screen-document authority|document-first|BasicDashboard\.AuthoredScreen'
+example_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|Screen|migrate_legacy_dsl|migrate_legacy_screen_attrs)|UnifiedUi\.Dsl|AuthoredScreen|monolithic screen document|screen-document authority|document-first'
 
 while IFS=: read -r file line _; do
   [[ -z "$file" ]] && continue
@@ -39,6 +39,69 @@ while IFS=: read -r file line _; do
   [[ -z "$file" ]] && continue
   fail "public example uses legacy authoring helpers: ${file}:${line}"
 done < <(rg -n "$example_pattern" examples -g '*.ex' -g '*.md' 2>/dev/null || true)
+
+require_match() {
+  local pattern="$1"
+  local description="$2"
+  shift 2
+
+  if ! rg -q "$pattern" "$@" 2>/dev/null; then
+    fail "missing ${description} in expected public surfaces"
+  fi
+}
+
+echo "Checking resource-first authoring markers..."
+
+require_match \
+  'AshUI\.Resource\.DSL\.Screen' \
+  'screen resource authoring guidance' \
+  README.md \
+  guides/user/UG-0001-getting-started.md \
+  examples/basic_dashboard/README.md
+
+require_match \
+  'AshUI\.Resource\.DSL\.Element' \
+  'element resource authoring guidance' \
+  README.md \
+  guides/user/UG-0001-getting-started.md \
+  examples/basic_dashboard/README.md
+
+require_match \
+  'AshUI\.Resource\.Authority' \
+  'resource authority persistence guidance' \
+  README.md \
+  guides/user/UG-0001-getting-started.md \
+  guides/user/UG-0002-resources.md \
+  examples/basic_dashboard/README.md
+
+require_match \
+  'ui_relationships' \
+  'relationship-driven composition guidance' \
+  README.md \
+  guides/user/UG-0001-getting-started.md \
+  guides/user/UG-0002-resources.md \
+  examples/basic_dashboard/lib/basic_dashboard_screen.ex \
+  examples/basic_dashboard/README.md
+
+require_match \
+  'ui_bindings' \
+  'element-local binding guidance' \
+  README.md \
+  guides/user/UG-0001-getting-started.md \
+  guides/user/UG-0002-resources.md \
+  guides/user/UG-0003-data-binding.md \
+  examples/basic_dashboard/lib/basic_dashboard_screen.ex \
+  examples/basic_dashboard/README.md
+
+require_match \
+  'ui_actions' \
+  'element-local action guidance' \
+  README.md \
+  guides/user/UG-0001-getting-started.md \
+  guides/user/UG-0002-resources.md \
+  guides/user/UG-0003-data-binding.md \
+  examples/basic_dashboard/lib/basic_dashboard_screen.ex \
+  examples/basic_dashboard/README.md
 
 if [[ "$failures" -ne 0 ]]; then
   echo "Authoring governance validation failed."

@@ -52,20 +52,20 @@ Back to index: [README](./README.md)
   [ ] 16.3 Section - Governance And Conformance Reset
     Prevent drift back to the superseded architecture.
 
-    [ ] 16.3.1 Task - Governance enforcement
+    [x] 16.3.1 Task - Governance enforcement
     Add gates that reject the wrong architectural signals in docs and examples.
 
-      [ ] 16.3.1.1 Subtask - Reject new public examples centered on monolithic screen-document authority
-      [ ] 16.3.1.2 Subtask - Reject public guides that present detached screen documents as the preferred model
-      [ ] 16.3.1.3 Subtask - Add review checklists for element-resource authority and relationship-driven composition
-      [ ] 16.3.1.4 Subtask - Update release readiness docs for the hard architectural cut
+      [x] 16.3.1.1 Subtask - Reject new public examples centered on monolithic screen-document authority
+      [x] 16.3.1.2 Subtask - Reject public guides that present detached screen documents as the preferred model
+      [x] 16.3.1.3 Subtask - Add review checklists for element-resource authority and relationship-driven composition
+      [x] 16.3.1.4 Subtask - Update release readiness docs for the hard architectural cut
 
     [ ] 16.3.2 Task - Conformance traceability
     Realign the scenario catalog and conformance matrix with the restored model.
 
-      [ ] 16.3.2.1 Subtask - Add scenarios for element-resource-first authoring
-      [ ] 16.3.2.2 Subtask - Add scenarios for relationship-driven composition
-      [ ] 16.3.2.3 Subtask - Remove or downgrade scenarios that only validate the superseded model
+      [x] 16.3.2.1 Subtask - Add scenarios for element-resource-first authoring
+      [x] 16.3.2.2 Subtask - Add scenarios for relationship-driven composition
+      [x] 16.3.2.3 Subtask - Remove or downgrade scenarios that only validate the superseded model
       [ ] 16.3.2.4 Subtask - Add final integration coverage for examples, governance, and compiler/runtime parity
 
   [ ] 16.4 Section - Phase 16 Integration Tests

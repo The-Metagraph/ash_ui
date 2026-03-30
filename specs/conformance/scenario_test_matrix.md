@@ -10,7 +10,7 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-002 | Element Type Validation | test/ash_ui/resources/element_test.exs |
 | SCN-003 | Element Relationship Definition | test/ash_ui/relationship_integration_test.exs |
 | SCN-004 | Screen Resource Creation | test/ash_ui/resources/screen_test.exs |
-| SCN-005 | Screen Element Composition | test/ash_ui/relationship_integration_test.exs |
+| SCN-005 | Screen Element Composition | test/ash_ui/relationship_integration_test.exs, test/ash_ui/phase_14_integration_test.exs |
 | SCN-006 | Binding Resource Creation | test/ash_ui/resources/binding_test.exs |
 | SCN-007 | Binding Value Type | test/ash_ui/runtime/binding_evaluator_test.exs, test/ash_ui/runtime/bidirectional_binding_test.exs |
 | SCN-008 | Binding List Type | test/ash_ui/runtime/list_binding_test.exs |
@@ -24,14 +24,14 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-025 | Concurrent Sessions | test/ash_ui/liveview/phase_4_integration_test.exs |
 | SCN-026 | Screen Data Binding | test/ash_ui/liveview/phase_4_integration_test.exs, test/ash_ui/runtime/bidirectional_binding_test.exs |
 | SCN-027 | Screen Event Handling | test/ash_ui/liveview/phase_4_integration_test.exs, test/ash_ui/runtime/action_binding_test.exs |
-| SCN-041 | Resource Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
+| SCN-041 | Resource Compilation | test/ash_ui/compiler/phase_6_integration_test.exs, test/ash_ui/phase_14_integration_test.exs |
 | SCN-042 | Schema Validation | test/ash_ui/compiler_test.exs, test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-043 | IUR Generation | test/ash_ui/compiler_test.exs |
 | SCN-044 | Resource Resolution | test/ash_ui/compiler_test.exs |
 | SCN-045 | Normalization | test/ash_ui/compiler_test.exs |
 | SCN-046 | Compiler Cache | test/ash_ui/compiler_test.exs, test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-047 | Cache Invalidation | test/ash_ui/compiler_test.exs |
-| SCN-048 | Compilation Error Reporting | test/ash_ui/compiler/phase_6_integration_test.exs |
+| SCN-048 | Compilation Error Reporting | test/ash_ui/compiler/phase_6_integration_test.exs, test/ash_ui/phase_14_integration_test.exs |
 | SCN-049 | Incremental Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-050 | Persisted Resource Authority Screen | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |
 | SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs |

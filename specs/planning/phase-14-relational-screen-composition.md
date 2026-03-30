@@ -13,7 +13,7 @@ Back to index: [README](./README.md)
 - inline screen DSL is allowed, but subordinate
 - Ash relationships are the primary UI composition language
 
-[ ] 14 Phase 14 - Relational Screen Composition
+[x] 14 Phase 14 - Relational Screen Composition
   Restore screen composition through Ash relationships while retaining optional
   inline DSL for glue and layout scaffolding.
 
@@ -68,13 +68,13 @@ Back to index: [README](./README.md)
       [x] 14.3.1.3 Subtask - Update docs to present inline screen DSL as a secondary escape hatch
       [x] 14.3.1.4 Subtask - Add governance checks that reject new monolithic-authority examples
 
-  [ ] 14.4 Section - Phase 14 Integration Tests
+  [x] 14.4 Section - Phase 14 Integration Tests
     Validate relational screen composition end to end.
 
-    [ ] 14.4.1 Task - Relationship-driven composition scenarios
+    [x] 14.4.1 Task - Relationship-driven composition scenarios
     Verify screens compile primarily from related element resources.
 
-      [ ] 14.4.1.1 Subtask - Verify a screen with related element resources compiles in relationship order
-      [ ] 14.4.1.2 Subtask - Verify nested element relationships produce nested IUR output
-      [ ] 14.4.1.3 Subtask - Verify mixed relational plus inline composition works
-      [ ] 14.4.1.4 Subtask - Verify illegal graphs fail fast and descriptively
+      [x] 14.4.1.1 Subtask - Verify a screen with related element resources compiles in relationship order
+      [x] 14.4.1.2 Subtask - Verify nested element relationships produce nested IUR output
+      [x] 14.4.1.3 Subtask - Verify mixed relational plus inline composition works
+      [x] 14.4.1.4 Subtask - Verify illegal graphs fail fast and descriptively

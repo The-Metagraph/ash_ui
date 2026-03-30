@@ -56,17 +56,17 @@ Back to index: [README](./README.md)
       [x] 14.2.2.3 Subtask - Define how screen metadata flows into the composed output
       [x] 14.2.2.4 Subtask - Add parity tests for relational and mixed composition
 
-  [ ] 14.3 Section - Removal Of Screen-Monolith Assumptions
+  [x] 14.3 Section - Removal Of Screen-Monolith Assumptions
     Clear out the assumptions introduced by the superseded document-first model.
 
-    [ ] 14.3.1 Task - Remove monolithic composition as the preferred path
+    [x] 14.3.1 Task - Remove monolithic composition as the preferred path
     Make sure the project no longer teaches or optimizes for screen-authority
     monoliths first.
 
-      [ ] 14.3.1.1 Subtask - Remove examples that primarily compose the whole UI inside one screen document
-      [ ] 14.3.1.2 Subtask - Update compiler assumptions that treat the screen document as the full tree
-      [ ] 14.3.1.3 Subtask - Update docs to present inline screen DSL as a secondary escape hatch
-      [ ] 14.3.1.4 Subtask - Add governance checks that reject new monolithic-authority examples
+      [x] 14.3.1.1 Subtask - Remove examples that primarily compose the whole UI inside one screen document
+      [x] 14.3.1.2 Subtask - Update compiler assumptions that treat the screen document as the full tree
+      [x] 14.3.1.3 Subtask - Update docs to present inline screen DSL as a secondary escape hatch
+      [x] 14.3.1.4 Subtask - Add governance checks that reject new monolithic-authority examples
 
   [ ] 14.4 Section - Phase 14 Integration Tests
     Validate relational screen composition end to end.

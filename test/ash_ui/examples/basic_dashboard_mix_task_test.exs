@@ -12,7 +12,7 @@ defmodule AshUI.Examples.BasicDashboardMixTaskTest do
       end)
 
     assert output =~ "Renderer: elm"
-    assert output =~ "Authoring module: BasicDashboard.AuthoredScreen"
+    assert output =~ "Screen module: BasicDashboard.Screen"
     assert output =~ "<!DOCTYPE html>"
   end
 
@@ -25,7 +25,7 @@ defmodule AshUI.Examples.BasicDashboardMixTaskTest do
       end)
 
     assert output =~ "Renderer: liveview"
-    assert output =~ "Authoring module: BasicDashboard.AuthoredScreen"
+    assert output =~ "Screen module: BasicDashboard.Screen"
     assert output =~ "phx-change=\"ash_ui_change\""
   end
 

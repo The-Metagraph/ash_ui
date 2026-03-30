@@ -113,7 +113,7 @@ When a phase section is actually complete:
 - are tests added or updated where behavior changed?
 - do docs describe current behavior honestly, including fallbacks?
 - are telemetry and authorization implications covered where relevant?
-- do public examples and guides still demonstrate upstream `UnifiedUi.Dsl` authoring rather than a legacy migration path?
+- do public examples and guides demonstrate screen and element resources as the primary authoring path?
 - does a repo-wide search show no removed rename targets left in live code paths?
 
 ## Migration-Only Exceptions

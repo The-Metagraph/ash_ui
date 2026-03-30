@@ -6,7 +6,7 @@ defmodule AshUI.Phase12IntegrationTest do
   @moduletag :integration
 
   @tag timeout: 120_000
-  test "12.4.1.1 - standalone example app runs with upstream-authored screens" do
+  test "12.4.1.1 - standalone example app runs with relationship-authored screens" do
     run_shell!(
       "cd examples/basic_dashboard && MIX_ENV=test mix deps.get && MIX_ENV=test mix compile"
     )
@@ -17,23 +17,23 @@ defmodule AshUI.Phase12IntegrationTest do
     assert File.exists?(project_path("examples/basic_dashboard/mix.exs"))
     assert screen.name == "basic_dashboard"
 
-    assert get_in(screen.unified_dsl, ["authoring", "source", "module"]) ==
-             "BasicDashboard.AuthoredScreen"
+    assert get_in(screen.unified_dsl, ["screen", "module"]) ==
+             "Elixir.BasicDashboard.Screen"
   end
 
   @tag timeout: 120_000
-  test "12.4.1.2 - adapter tooling works against upstream-authored screens" do
+  test "12.4.1.2 - adapter tooling works against relationship-authored screens" do
     liveview_output =
       run_shell!("MIX_ENV=test mix ash_ui.example.basic_dashboard --renderer liveview")
 
     elm_output = run_shell!("MIX_ENV=test mix ash_ui.example.basic_dashboard --renderer elm")
 
     assert liveview_output =~ "Renderer: liveview"
-    assert liveview_output =~ "Authoring module: BasicDashboard.AuthoredScreen"
+    assert liveview_output =~ "Screen module: BasicDashboard.Screen"
     assert liveview_output =~ "phx-change=\"ash_ui_change\""
 
     assert elm_output =~ "Renderer: elm"
-    assert elm_output =~ "Authoring module: BasicDashboard.AuthoredScreen"
+    assert elm_output =~ "Screen module: BasicDashboard.Screen"
     assert elm_output =~ "<!DOCTYPE html>"
   end
 
@@ -61,14 +61,14 @@ defmodule AshUI.Phase12IntegrationTest do
     assert output =~ "legacy authoring reference outside approved historical docs"
   end
 
-  test "12.4.1.4 - conformance coverage documents the new architecture accurately" do
+  test "12.4.1.4 - conformance coverage documents the resource-first architecture accurately" do
     catalog = File.read!(project_path("specs/conformance/scenario_catalog.md"))
     matrix = File.read!(project_path("specs/conformance/spec_conformance_matrix.md"))
     traceability = File.read!(project_path("specs/conformance/scenario_test_matrix.md"))
 
-    assert catalog =~ "#### SCN-050: Persisted Upstream DSL Screen"
-    assert catalog =~ "#### SCN-051: Upstream Compiler Delegation"
-    assert catalog =~ "#### SCN-071: Renderer Parity For Authored Screens"
+    assert catalog =~ "#### SCN-050: Persisted Resource Authority Screen"
+    assert catalog =~ "#### SCN-051: Relational Compiler Delegation"
+    assert catalog =~ "#### SCN-071: Renderer Parity For Resource Screens"
 
     assert matrix =~ "| REQ-COMP-001 | Compilation Pipeline |"
     assert matrix =~ "SCN-041, SCN-050, SCN-051"
@@ -80,13 +80,13 @@ defmodule AshUI.Phase12IntegrationTest do
              "| REQ-SCREEN-001 | Screen Definition | resources/ui_screen.md | SCN-004, SCN-050 |"
 
     assert traceability =~
-             "| SCN-050 | Persisted Upstream DSL Screen | test/ash_ui/examples/basic_dashboard_test.exs |"
+             "| SCN-050 | Persisted Resource Authority Screen | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |"
 
     assert traceability =~
-             "| SCN-051 | Upstream Compiler Delegation | test/ash_ui/phase_11_integration_test.exs |"
+             "| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs |"
 
     assert traceability =~
-             "| SCN-071 | Renderer Parity For Authored Screens | test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs |"
+             "| SCN-071 | Renderer Parity For Resource Screens | test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs |"
 
     assert File.read!(project_path("test/ash_ui/examples/basic_dashboard_test.exs")) =~
              "@moduletag :conformance"

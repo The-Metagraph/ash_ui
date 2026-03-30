@@ -182,5 +182,5 @@ The matrix provides complete traceability from:
 - Coverage reflects explicit traceability from requirement -> scenario -> conformance-tagged test file
 - Rows marked with `-` indicate intentionally uncovered or still-undocumented areas
 - The scenario test matrix is enforced by `test/ash_ui/conformance_traceability_test.exs`
-- Phase 12 adds explicit coverage for persisted upstream-authored screens and renderer parity from the shipped example app
+- Phase 12 adds explicit coverage for persisted resource-authored screens and renderer parity from the shipped example app
 - Coverage percentages should be updated whenever scenarios or conformance-tagged tests change

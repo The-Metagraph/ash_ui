@@ -33,8 +33,8 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-047 | Cache Invalidation | test/ash_ui/compiler_test.exs |
 | SCN-048 | Compilation Error Reporting | test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-049 | Incremental Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
-| SCN-050 | Persisted Upstream DSL Screen | test/ash_ui/phase_13_integration_test.exs |
-| SCN-051 | Upstream Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_13_integration_test.exs |
+| SCN-050 | Persisted Resource Authority Screen | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs |
+| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs |
 | SCN-061 | LiveView Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-062 | Elm-Backed Web Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-063 | Component Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
@@ -45,7 +45,7 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-068 | Renderer Selection | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-069 | Renderer Fallback | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-070 | Asset Management | test/ash_ui/rendering/phase_7_integration_test.exs |
-| SCN-071 | Renderer Parity For Authored Screens | test/ash_ui/phase_8_integration_test.exs |
+| SCN-071 | Renderer Parity For Resource Screens | test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs |
 | SCN-081 | Screen Mount Authorization | test/ash_ui/authorization/resource_authorizer_test.exs, test/ash_ui/authorization/phase_5_integration_test.exs |
 | SCN-082 | Action Authorization | test/ash_ui/authorization/phase_5_integration_test.exs, test/ash_ui/runtime/action_binding_test.exs |
 | SCN-083 | Field-Level Authorization | test/ash_ui/authorization/phase_5_integration_test.exs |
@@ -69,4 +69,4 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 - Only files tagged with `@moduletag :conformance` should appear in this matrix.
 - Scenario-to-test mappings are enforced by `test/ash_ui/conformance_traceability_test.exs`.
 - The conformance report consumes this matrix to summarize executable scenario coverage.
-- Phase 12 extends the matrix to prove persisted upstream-authored examples and renderer parity, not just internal compiler fixtures.
+- Phase 12 extends the matrix to prove persisted resource-authored examples and renderer parity, not just internal compiler fixtures.

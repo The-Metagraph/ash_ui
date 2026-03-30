@@ -16,7 +16,11 @@ diagram_required: true
 
 ## Overview
 
-This guide shows the shortest realistic path to getting Ash UI running in an application today. The current system centers on three Ash resources, a stored `unified_dsl` screen definition, a compiler that produces Ash UI IUR, and adapters that convert that IUR into canonical renderer input.
+This guide shows the shortest realistic path to getting Ash UI running in an
+application today. The current system centers on screen and element Ash
+resources using the Ash UI DSL extension, a stored `unified_dsl` screen
+snapshot, a compiler that produces Ash UI IUR, and adapters that convert that
+IUR into canonical renderer input.
 
 ## Prerequisites
 
@@ -29,7 +33,9 @@ Before reading this guide, you should:
 
 ## How Ash UI Flows
 
-The most important thing to understand is that Ash UI stores screen definitions as Ash data, then compiles and adapts them at runtime.
+The most important thing to understand is that Ash UI stores screen and element
+definitions as Ash data, then compiles and adapts the composed graph at
+runtime.
 
 ```mermaid
 flowchart LR
@@ -78,54 +84,143 @@ Ash UI ships the core resources for you:
 - `AshUI.Resources.Element`
 - `AshUI.Resources.Binding`
 
-For a simple screen, the supported path is to author a `UnifiedUi.Dsl` module
-and persist it through `AshUI.Authoring.Screen`.
+For a simple screen, the supported path is to define one screen resource plus
+the element resources it composes, then persist the authority graph through
+`AshUI.Resource.Authority`.
 
 The default shipped setup uses `AshUI.Domain` with Postgres-backed resources, but the UI storage domain and resource modules are configurable if your app wants ETS-backed or other Ash-compatible storage.
 
 ```elixir
-defmodule MyApp.UI.Dashboard do
-  use UnifiedUi.Dsl
+defmodule MyApp.UI.Domain do
+  use Ash.Domain, validate_config_inclusion?: false
 
-  identity do
-    id(:dashboard)
-    title("Team dashboard")
-    authored_ref([:my_app, :ui, :dashboard])
+  resources do
+    resource MyApp.UI.DashboardScreen
+    resource MyApp.UI.DashboardHero
+    resource MyApp.UI.RefreshButton
+  end
+end
+
+defmodule MyApp.UI.DashboardHero do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Element
+
+  ets do
+    private?(true)
   end
 
-  composition do
-    root(:dashboard_root)
-    mode(:screen)
+  attributes do
+    uuid_primary_key(:id)
+    attribute(:screen_id, :uuid, allow_nil?: true)
+    attribute(:parent_id, :uuid, allow_nil?: true)
+  end
 
-    column :dashboard_shell do
-      hero :dashboard_hero do
-        title("Team dashboard")
-        message("Everything below is authored upstream and stored as Ash data.")
-      end
+  actions do
+    defaults([:read])
+  end
 
-      button :refresh_button do
-        label("Refresh")
-      end
+  ui_element do
+    type :hero
+    props %{
+      eyebrow: "Operations",
+      title: "Team dashboard",
+      message: "Everything below is authored as Ash resources and stored as Ash data."
+    }
+    metadata %{id: "dashboard_hero"}
+  end
+end
+
+defmodule MyApp.UI.RefreshButton do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Element
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+    attribute(:screen_id, :uuid, allow_nil?: true)
+    attribute(:parent_id, :uuid, allow_nil?: true)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  ui_element do
+    type :button
+    props %{label: "Refresh"}
+    metadata %{id: "refresh_button"}
+  end
+end
+
+defmodule MyApp.UI.DashboardScreen do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_many :hero_elements, MyApp.UI.DashboardHero do
+      destination_attribute(:screen_id)
     end
+
+    has_many :buttons, MyApp.UI.RefreshButton do
+      destination_attribute(:screen_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :hero_elements do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+    end
+
+    relationship :buttons do
+      kind :companion
+      slot :actions
+      placement :append
+      order 1
+    end
+  end
+
+  ui_screen do
+    route "/dashboard"
+    layout :column
+    metadata %{"title" => "Dashboard"}
   end
 end
 
 {:ok, screen} =
-  AshUI.Authoring.create_screen(MyApp.UI.Dashboard,
+  AshUI.Resource.Authority.create(MyApp.UI.DashboardScreen,
     route: "/dashboard",
     layout: :column,
-    metadata: %{"title" => "Dashboard"},
-    binding_metadata: %{"refresh_button" => %{"intent" => "refresh-dashboard"}}
+    metadata: %{"title" => "Dashboard"}
   )
 ```
 
-`AshUI.Authoring.Screen.screen_attrs/2` is useful when you want to inspect the
-stored document before persisting it or merge in app-specific attributes.
+`AshUI.Resource.Authority.screen_attrs/2` is useful when you want to inspect
+the persisted payload before writing the screen record or merge in app-specific
+screen attributes.
 
 Ash UI no longer accepts older pre-v1 `unified_dsl` payloads at load or compile
 time. If you are migrating existing screens, follow the explicit one-time
 migration flow in [UG-0005](./UG-0005-migration-v0-to-v1.md) before persisting
-them.
+them. Inline screen DSL remains available, but only as a secondary escape hatch
+for shell chrome and layout glue.
 
 ## Mount the Screen in LiveView
 

@@ -3,8 +3,8 @@ defmodule AshUI do
   AshUI is a declarative UI framework built on Ash Framework.
 
   It provides:
-  - Database-driven UI definitions stored as Ash Resources
-  - upstream `UnifiedUi` authoring DSL integration for UI components
+  - Resource-first screen and element authoring through `AshUI.Resource.DSL.*`
+  - persisted `Screen.unified_dsl` snapshots generated from the resource graph
   - Phoenix LiveView runtime integration
   - Policy-based authorization for UI access
   """
@@ -17,7 +17,7 @@ defmodule AshUI do
   end
 
   @doc """
-  Returns the authoritative upstream authoring boundary used by Ash UI.
+  Returns package identity and ownership metadata for Ash UI authoring.
   """
   def authoring do
     AshUI.Authoring.package_identity()

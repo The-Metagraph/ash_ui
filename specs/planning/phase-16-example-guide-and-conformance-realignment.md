@@ -38,16 +38,16 @@ Back to index: [README](./README.md)
       [x] 16.1.2.3 Subtask - Preserve liveview and elm parity coverage
       [x] 16.1.2.4 Subtask - Keep desktop and terminal_ui expectations honest in docs/tests
 
-  [ ] 16.2 Section - Guide And API Documentation Realignment
+  [x] 16.2 Section - Guide And API Documentation Realignment
     Remove public teaching material that points contributors at the wrong model.
 
-    [ ] 16.2.1 Task - Rewrite public guidance
+    [x] 16.2.1 Task - Rewrite public guidance
     Make the resource-first model the only documented happy path.
 
-      [ ] 16.2.1.1 Subtask - Rewrite README and user guides around screen and element resources
-      [ ] 16.2.1.2 Subtask - Remove builder-first and screen-monolith-first examples
-      [ ] 16.2.1.3 Subtask - Document element-local bindings and action declarations
-      [ ] 16.2.1.4 Subtask - Document the limited role of inline screen DSL and upstream `unified_ui`
+      [x] 16.2.1.1 Subtask - Rewrite README and user guides around screen and element resources
+      [x] 16.2.1.2 Subtask - Remove builder-first and screen-monolith-first examples
+      [x] 16.2.1.3 Subtask - Document element-local bindings and action declarations
+      [x] 16.2.1.4 Subtask - Document the limited role of inline screen DSL and upstream `unified_ui`
 
   [ ] 16.3 Section - Governance And Conformance Reset
     Prevent drift back to the superseded architecture.

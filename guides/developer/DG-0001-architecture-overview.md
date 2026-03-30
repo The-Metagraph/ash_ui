@@ -6,8 +6,8 @@ title: Ash UI Architecture Overview
 audience: Framework Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-03-23
-next_review: 2026-09-23
+last_reviewed: 2026-03-30
+next_review: 2026-09-30
 related_reqs: [REQ-FRAMEWORK-001, REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-002, REQ-OBS-001]
 related_scns: [SCN-041, SCN-061, SCN-081, SCN-101]
 related_guides: [UG-0001, UG-0002, UG-0003, DG-0003]
@@ -16,7 +16,11 @@ diagram_required: true
 
 ## Overview
 
-This guide explains the current Ash UI architecture as implemented in this repository. The design has settled into a thin Ash-native control layer around stored UI resources, compiler output, canonical IUR conversion, runtime authorization, and renderer adapters.
+This guide explains the current Ash UI architecture as implemented in this
+repository. The design is centered on screen and element Ash resources as the
+authoritative UI model, with Ash UI handling persistence, compilation,
+canonical conversion, runtime authorization, and renderer orchestration around
+that resource graph.
 
 ## Prerequisites
 
@@ -85,18 +89,22 @@ flowchart LR
 
 ## Architectural Center of Gravity
 
-The earlier specs describe first-class `UI.Screen`, `UI.Element`, and `UI.Binding` DSL-driven definitions. The implemented code still uses those resource concepts, but the operational center of gravity is now:
+The operational center of gravity is now:
 
 1. Author screens and elements as Ash resources using `AshUI.Resource.DSL.*`.
-2. Persist the relational authority payload in `Screen.unified_dsl`.
-3. Compile the composed graph into `AshUI.Compilation.IUR`.
-4. Convert into canonical renderer input.
-5. Mount and authorize through LiveView runtime helpers.
+2. Express composition through Ash relationships plus `ui_relationships`.
+3. Keep bindings and signal-driven actions local to the resource that owns the widget.
+4. Persist a `Screen` record whose `unified_dsl` is a snapshot of that authority graph.
+5. Compile the composed graph into `AshUI.Compilation.IUR`.
+6. Convert into canonical renderer input and mount through runtime helpers.
 
 That means contributors should treat resource relationships plus
 compiler/runtime boundaries as the most important integration seam.
 
-The built-in modules remain `AshUI.Domain`, `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`, but framework code should treat those as defaults behind a UI storage configuration boundary rather than hard requirements.
+The built-in modules remain `AshUI.Domain`, `AshUI.Resources.Screen`,
+`AshUI.Resources.Element`, and `AshUI.Resources.Binding`, but framework code
+should treat those as storage defaults behind a UI storage configuration
+boundary rather than the primary application authoring API.
 
 ## Framework Plane
 
@@ -116,14 +124,15 @@ Important details:
 - the default shipped storage backend is Postgres through `AshUI.Domain` and `AshUI.Repo`
 - the framework resolves storage modules through configuration
 - Ash resource modules that use `AshUI.Resource.DSL.*` are the authoritative authored surface
-- `Screen` stores `name`, `route`, `layout`, `unified_dsl`, and metadata.
-- `Element` and `Binding` provide the primary relational structure for composition and runtime behavior.
-- updates increment `version`, which feeds cache and rollout safety checks.
+- `AshUI.Resource.Authority` turns that resource graph into a persisted `Screen` snapshot
+- `Screen` stores `name`, `route`, `layout`, `unified_dsl`, and metadata
+- default `Element` and `Binding` resources exist as backend/storage contracts, but application composition should be expressed through screen and element resource modules
+- updates increment `version`, which feeds cache and rollout safety checks
 
 ## Compilation Plane
 
-The compilation plane turns persisted screen-authority payloads into internal
-IUR.
+The compilation plane turns persisted screen-authority payloads plus the current
+screen/element relationship graph into internal IUR.
 
 Primary modules:
 
@@ -134,7 +143,10 @@ Primary modules:
 
 The active compilation path is:
 
-- compile from persisted `Screen.unified_dsl` authority payloads authored by screen and element resources
+- load the persisted `Screen` record
+- regenerate the current runtime payload from the authoritative screen and element resource graph
+- merge permitted runtime customizations from the persisted snapshot
+- compile the result into `AshUI.Compilation.IUR`
 
 Legacy builder-shaped documents are rejected at compile boundaries and only
 survive as explicit migration input.
@@ -164,10 +176,11 @@ The mount flow is:
 
 1. read `:current_user` from the socket
 2. load a screen by ID or by `name`
-3. authorize mount
-4. compile screen to IUR and canonical IUR
-5. evaluate bindings
-6. assign screen state onto the socket
+3. regenerate the runtime authority payload for that screen
+4. authorize mount
+5. compile screen to IUR and canonical IUR
+6. evaluate bindings and actions
+7. assign screen state onto the socket
 
 This flow is currently the best place to inspect end-to-end behavior when debugging regressions.
 
@@ -230,7 +243,8 @@ Dashboards under `priv/monitoring/dashboards/` consume the normalized telemetry 
 
 ## Design Constraints Contributors Should Respect
 
-- Preserve the control-plane boundary: framework data in resources, renderer behavior in adapters.
+- Preserve the control-plane boundary: resource-authority in Ash resources, renderer behavior in adapters.
+- Keep bindings and signal actions local to the owning element resource whenever possible.
 - Keep canonical IUR as the renderer contract.
 - Prefer additive docs and tests when changing behavior that has spec implications.
 - When runtime behavior diverges from long-range RFC language, document the current state clearly rather than hiding the transition.

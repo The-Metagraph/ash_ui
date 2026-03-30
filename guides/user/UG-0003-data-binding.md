@@ -6,8 +6,8 @@ title: Data Binding in Ash UI
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-03-20
-next_review: 2026-09-20
+last_reviewed: 2026-03-30
+next_review: 2026-09-30
 related_reqs: [REQ-BIND-001, REQ-BIND-002, REQ-BIND-003, REQ-BIND-007, REQ-BIND-008, REQ-BIND-010]
 related_scns: [SCN-006, SCN-007, SCN-009, SCN-010, SCN-021, SCN-101]
 related_guides: [UG-0001, UG-0002, UG-0004, DG-0003]
@@ -16,7 +16,9 @@ diagram_required: false
 
 ## Overview
 
-This guide explains how Ash UI bindings work today, how to shape `source` and `target` values, and how runtime helpers read, write, and execute those bindings.
+This guide explains how Ash UI bindings work today, how to shape `source` and
+`target` values, and how runtime helpers read, write, and execute bindings and
+actions declared on screen and element resources.
 
 ## Prerequisites
 
@@ -26,24 +28,30 @@ Before reading this guide, you should:
 - Understand the resource model from [UG-0002](./UG-0002-resources.md)
 - Be familiar with LiveView events and assigns
 
-## Binding Types
+## Binding Families
 
-Ash UI supports three binding types:
+At runtime, Ash UI works with three executable binding families:
 
 - `:value`: a single value for display or form state
 - `:list`: a collection-oriented binding
 - `:action`: an event-to-action binding
 
-These are stored in `AshUI.Resources.Binding.binding_type`.
+In authoring code:
+
+- `ui_bindings` declares `:value` and `:list` bindings
+- `ui_actions` declares signal-driven `:action` behavior
+
+The runtime normalizes both into the execution metadata it assigns on the
+socket, and the storage backend may persist normalized `Binding` rows for
+inspection or framework use.
 
 ## Binding Shape
 
-A binding record minimally needs:
+A binding declaration minimally needs:
 
 ```elixir
 %{
-  screen_id: screen.id,
-  element_id: element.id,
+  id: :display_name,
   binding_type: :value,
   target: "value",
   source: %{"resource" => "User", "field" => "name", "id" => "user-1"}
@@ -58,28 +66,28 @@ Important rules:
 
 ## Value Bindings
 
-Use `:value` when a field should be read into UI state and potentially written back.
+Use `:value` when a field should be read into UI state and potentially written
+back.
 
 ```elixir
-{:ok, _binding} =
-  AshUI.Data.create(AshUI.Resources.Binding,
-    attrs: %{
-      screen_id: screen.id,
-      element_id: name_input.id,
-      binding_type: :value,
-      target: "value",
-      source: %{"resource" => "User", "field" => "name", "id" => "user-1"},
-      transform: [
-        %{"function" => "trim"},
-        %{"function" => "default", "args" => ["Anonymous"]}
-      ]
-    }
-  )
+ui_bindings do
+  binding :display_name do
+    source %{"resource" => "User", "field" => "name", "id" => "user-1"}
+    target "value"
+    binding_type :value
+    transform [
+      %{"function" => "trim"},
+      %{"function" => "default", "args" => ["Anonymous"]}
+    ]
+  end
+end
 ```
 
-Evaluate a value binding:
+After compilation and mount, the runtime works with the normalized binding
+value rather than the original DSL declaration:
 
 ```elixir
+binding = socket.assigns.ash_ui_bindings["display_name"]
 context = %{user_id: "user-1", params: %{}, assigns: %{}}
 {:ok, value} = AshUI.Runtime.BindingEvaluator.evaluate(binding, context)
 ```
@@ -89,76 +97,79 @@ context = %{user_id: "user-1", params: %{}, assigns: %{}}
 Use `:list` when the element expects a collection.
 
 ```elixir
-{:ok, _binding} =
-  AshUI.Data.create(AshUI.Resources.Binding,
-    attrs: %{
-      screen_id: screen.id,
-      element_id: audit_list.id,
-      binding_type: :list,
-      target: "items",
-      source: %{"resource" => "AuditLog", "relationship" => "entries"}
-    }
-  )
+ui_bindings do
+  binding :audit_entries do
+    source %{"resource" => "AuditLog", "relationship" => "entries", "id" => "user-1"}
+    target "items"
+    binding_type :list
+    transform %{}
+  end
+end
 ```
 
-In the current runtime, list bindings follow the same evaluation path as value bindings. Keep the source map clear enough that renderer and authorization code can reason about it.
+In the current runtime, list bindings follow the same evaluation path as value
+bindings. Keep the source map clear enough that renderer and authorization code
+can reason about it.
 
-## Action Bindings
+## Action Declarations
 
-Use `:action` when the UI should trigger an Ash-side operation.
+Use `ui_actions` when the UI should trigger an Ash-side operation. This keeps
+interactive behavior local to the widget that emits the signal.
 
 ```elixir
-{:ok, _binding} =
-  AshUI.Data.create(AshUI.Resources.Binding,
-    attrs: %{
-      screen_id: screen.id,
-      element_id: save_button.id,
-      binding_type: :action,
-      target: "submit",
-      source: %{"resource" => "Profile", "action" => "save"},
-      transform: %{
-        "params" => %{
-          "display_name" => %{"from" => "event", "key" => "display_name"},
-          "actor_id" => %{"from" => "context", "key" => "user_id"}
-        }
+ui_actions do
+  action :save_profile do
+    signal :submit
+    target "submit"
+    source %{"resource" => "Profile", "action" => "save", "id" => "profile-1"}
+    transform %{
+      "params" => %{
+        "display_name" => %{"from" => "event", "key" => "display_name"},
+        "actor_id" => %{"from" => "context", "key" => "user_id"}
       }
     }
-  )
+  end
+end
 ```
 
-Persisted bindings should keep parameter mappings JSON-safe:
+Persisted parameter mappings should keep values JSON-safe:
 
 - event values: `%{"from" => "event", "key" => "display_name"}`
 - context values: `%{"from" => "context", "key" => "user_id"}`
 - static values: `%{"from" => "static", "value" => "Created"}`
 
-Tuple mappings are still accepted for in-memory compatibility, but map-based mappings are the stable stored format.
+Tuple mappings are still accepted for in-memory compatibility, but map-based
+mappings are the stable stored format.
 
-Execute an action binding:
+Execute an action from the normalized runtime metadata:
 
 ```elixir
+action = socket.assigns.ash_ui_bindings["save_profile"]
 context = %{user_id: "user-1", params: %{}, assigns: %{}}
 event_data = %{"display_name" => "Pascal"}
 
-{:ok, result} = AshUI.Runtime.ActionBinding.execute_action(binding, event_data, context)
+{:ok, result} = AshUI.Runtime.ActionBinding.execute_action(action, event_data, context)
 ```
 
-## Writing Back to Resources
+## Writing Back To Resources
 
 Bidirectional updates go through `AshUI.Runtime.BidirectionalBinding`.
 
 ```elixir
+binding = socket.assigns.ash_ui_bindings["display_name"]
 context = %{user_id: "user-1", params: %{}, assigns: %{}}
 
 {:ok, socket, result} =
   AshUI.Runtime.BidirectionalBinding.write_binding(binding, "Updated Name", socket, context)
 ```
 
-Successful writes now return the real Ash update result metadata, including the updated record and resolved field value.
+Successful writes now return the real Ash update result metadata, including the
+updated record and resolved field value.
 
-## Event Handling in LiveView
+## Event Handling In LiveView
 
-Event helpers look up bindings in `socket.assigns[:ash_ui_bindings]`.
+Event helpers look up normalized bindings and actions in
+`socket.assigns[:ash_ui_bindings]`.
 
 ```elixir
 def handle_event("ash_ui_change", params, socket) do
@@ -173,8 +184,8 @@ end
 For these handlers to work smoothly:
 
 - keep `target` values stable
-- assign `:ash_ui_user` and `:ash_ui_bindings`
-- mount through `AshUI.LiveView.Integration`
+- keep the owning element resource in the screen relationship graph
+- assign `:ash_ui_user` and mount through `AshUI.LiveView.Integration`
 
 ## Telemetry
 
@@ -198,11 +209,15 @@ Your `source` is not a map in the expected shape.
 
 ### Empty or placeholder values
 
-The runtime now resolves binding data through real Ash reads. If you see empty values, check authorization, record identifiers, and transformation defaults before assuming the renderer is broken.
+The runtime now resolves binding data through real Ash reads. If you see empty
+values, check authorization, the source map, and whether the owning element
+resource is still part of the composed screen graph before assuming the
+renderer is broken.
 
 ### Writes fail with forbidden errors
 
-Check the current user, active status, and the authorization rules around the binding source.
+Check the current user, active status, and the authorization rules around the
+binding source.
 
 ## See Also
 

@@ -313,6 +313,8 @@ defmodule AshUI.Authorization.Runtime do
         :ok
     end
 
+    :ets.delete_all_objects(:ash_ui_auth_cache)
+
     :ok
   end
 

@@ -8,7 +8,10 @@ defmodule AshUI.MixProject do
       elixir: "~> 1.15",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
-      test_coverage: [summary: [threshold: coverage_threshold()]],
+      test_coverage: [
+        summary: [threshold: coverage_threshold()],
+        ignore_modules: coverage_ignore_modules()
+      ],
       deps: deps(),
       aliases: aliases()
     ]
@@ -30,6 +33,7 @@ defmodule AshUI.MixProject do
       {:ash, "~> 3.0"},
       {:ash_postgres, "~> 2.0"},
       {:phoenix_live_view, "~> 1.0"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:jason, "~> 1.4"},
       {:postgrex, ">= 0.0.0"},
@@ -54,5 +58,13 @@ defmodule AshUI.MixProject do
   defp coverage_threshold do
     System.get_env("MIX_TEST_COVERAGE_THRESHOLD", "90")
     |> String.to_integer()
+  end
+
+  defp coverage_ignore_modules do
+    [
+      ~r/^Inspect\./,
+      ~r/^AshUI\.Test\./,
+      ~r/^BasicDashboardExample(?:\.|$)/
+    ]
   end
 end

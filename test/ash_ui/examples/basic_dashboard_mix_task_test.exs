@@ -13,6 +13,8 @@ defmodule AshUI.Examples.BasicDashboardMixTaskTest do
 
     assert output =~ "Renderer: elm"
     assert output =~ "Screen module: BasicDashboard.Screen"
+    assert output =~ "Authority graph elements:"
+    assert output =~ "Authority graph bindings:"
     assert output =~ "<!DOCTYPE html>"
   end
 
@@ -26,6 +28,7 @@ defmodule AshUI.Examples.BasicDashboardMixTaskTest do
 
     assert output =~ "Renderer: liveview"
     assert output =~ "Screen module: BasicDashboard.Screen"
+    assert output =~ "Element modules: BasicDashboard."
     assert output =~ "phx-change=\"ash_ui_change\""
   end
 

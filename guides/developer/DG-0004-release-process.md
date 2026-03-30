@@ -65,7 +65,7 @@ Before release:
 - user and developer guide indexes must be current
 - migration guidance must exist for any breaking change
 - release notes must call out fallback renderer behavior if external packages are still optional
-- release notes must call out hard cuts in compiler or runtime authority boundaries, including the removal of any superseded document-first compilation paths
+- release notes must call out hard cuts in compiler or runtime authority boundaries, including the removal of any superseded detached-authoring compilation paths
 
 ## Operational Readiness
 

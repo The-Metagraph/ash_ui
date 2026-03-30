@@ -7,6 +7,8 @@ defmodule AshUI.DSL.Builder do
   modules and persist them through `AshUI.Resource.Authority`.
   """
 
+  alias AshUI.Authoring.LegacyBuilder
+
   @type dsl_map :: %{
           required(:type) => String.t(),
           required(:props) => map(),
@@ -552,6 +554,7 @@ defmodule AshUI.DSL.Builder do
   """
   @spec to_store(dsl_map()) :: map()
   def to_store(dsl) when is_map(dsl) do
+    LegacyBuilder.signal(:builder_to_store, %{widget_type: Map.get(dsl, :type)})
     to_store_node(dsl)
   end
 
@@ -572,6 +575,7 @@ defmodule AshUI.DSL.Builder do
   """
   @spec from_store(map()) :: dsl_map()
   def from_store(stored) when is_map(stored) do
+    LegacyBuilder.signal(:builder_from_store, %{widget_type: fetch_store_value(stored, :type)})
     from_store_node(stored)
   end
 
@@ -607,6 +611,8 @@ defmodule AshUI.DSL.Builder do
   """
   @spec validate(dsl_map()) :: :ok | {:error, [String.t()]}
   def validate(dsl) do
+    LegacyBuilder.signal(:builder_validate, %{widget_type: Map.get(dsl, :type)})
+
     errors =
       []
       |> validate_type(dsl)

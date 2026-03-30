@@ -6,8 +6,8 @@ title: Getting Started with Ash UI
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-03-23
-next_review: 2026-09-23
+last_reviewed: 2026-03-30
+next_review: 2026-09-30
 related_reqs: [REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001, REQ-RENDER-001]
 related_scns: [SCN-004, SCN-021, SCN-041, SCN-061]
 related_guides: [UG-0002, UG-0003, UG-0004, DG-0001]
@@ -18,9 +18,10 @@ diagram_required: true
 
 This guide shows the shortest realistic path to getting Ash UI running in an
 application today. The current system centers on screen and element Ash
-resources using the Ash UI DSL extension, a stored `unified_dsl` screen
-snapshot, a compiler that produces Ash UI IUR, and adapters that convert that
-IUR into canonical renderer input.
+resources using the Ash UI DSL extension, relationship-driven composition,
+element-local bindings and actions, a persisted `Screen.unified_dsl` snapshot,
+and a compiler/runtime stack that turns that authority graph into renderer
+output.
 
 ## Prerequisites
 
@@ -33,21 +34,27 @@ Before reading this guide, you should:
 
 ## How Ash UI Flows
 
-The most important thing to understand is that Ash UI stores screen and element
-definitions as Ash data, then compiles and adapts the composed graph at
-runtime.
+The most important thing to understand is that Ash UI treats screen and element
+resources as the authored source of truth, then persists a screen snapshot of
+that graph for runtime loading and compilation.
 
 ```mermaid
 flowchart LR
-    Screen["AshUI.Resources.Screen"]
-    DSL["stored unified_dsl"]
+    Screen["screen resource module"]
+    Elements["element resource modules"]
+    Authority["AshUI.Resource.Authority"]
+    Persisted["persisted Screen record"]
     Compiler["AshUI.Compiler"]
     IUR["Ash UI IUR"]
     Canonical["canonical IUR"]
     Runtime["AshUI.LiveView.Integration"]
 
-    Screen --> DSL
-    DSL --> Compiler
+    Screen --> Authority
+    Elements --> Authority
+    Authority --> Persisted
+    Screen --> Compiler
+    Elements --> Compiler
+    Persisted --> Compiler
     Compiler --> IUR
     IUR --> Canonical
     Canonical --> Runtime
@@ -78,15 +85,15 @@ mix deps.get
 
 ## Create a First Screen
 
-Ash UI ships the core resources for you:
+Ash UI ships storage resources for you:
 
 - `AshUI.Resources.Screen`
 - `AshUI.Resources.Element`
 - `AshUI.Resources.Binding`
 
-For a simple screen, the supported path is to define one screen resource plus
-the element resources it composes, then persist the authority graph through
-`AshUI.Resource.Authority`.
+Those are the default persistence backend. The supported application authoring
+path is to define one screen resource plus the element resources it composes,
+then persist the authority graph through `AshUI.Resource.Authority`.
 
 The default shipped setup uses `AshUI.Domain` with Postgres-backed resources, but the UI storage domain and resource modules are configurable if your app wants ETS-backed or other Ash-compatible storage.
 
@@ -128,6 +135,15 @@ defmodule MyApp.UI.DashboardHero do
     }
     metadata %{id: "dashboard_hero"}
   end
+
+  ui_bindings do
+    binding :hero_message do
+      source %{resource: "SystemStatus", field: "summary", id: "primary"}
+      target "message"
+      binding_type :value
+      transform %{}
+    end
+  end
 end
 
 defmodule MyApp.UI.RefreshButton do
@@ -152,6 +168,15 @@ defmodule MyApp.UI.RefreshButton do
     type :button
     props %{label: "Refresh"}
     metadata %{id: "refresh_button"}
+  end
+
+  ui_actions do
+    action :refresh_dashboard do
+      signal :click
+      target "click"
+      source %{resource: "Dashboard", action: "refresh", id: "dashboard-1"}
+      transform %{}
+    end
   end
 end
 
@@ -222,6 +247,13 @@ migration flow in [UG-0005](./UG-0005-migration-v0-to-v1.md) before persisting
 them. Inline screen DSL remains available, but only as a secondary escape hatch
 for shell chrome and layout glue.
 
+The important authoring rule is locality:
+
+- `ui_relationships` defines how a screen or element composes related element resources
+- `ui_bindings` lives on the resource that owns the data-driven widget
+- `ui_actions` lives on the resource that owns the signal-emitting widget
+- `inline_fragment` is only for small shell wrappers where another element resource would be overkill
+
 ## Mount the Screen in LiveView
 
 `AshUI.LiveView.Integration.mount_ui_screen/3` loads the screen, authorizes it, compiles it, evaluates its bindings, and assigns the result onto the socket.
@@ -255,8 +287,9 @@ After mount, these assigns are available:
 
 Ash UI distinguishes between:
 
-- **UI storage** for `Screen`, `Element`, and `Binding`
+- **UI storage** for persisted `Screen`, `Element`, and `Binding` backend resources
 - **runtime data domains** used by bindings to read and write application data
+- **authoring resources** in your app that use `AshUI.Resource.DSL.Screen` and `AshUI.Resource.DSL.Element`
 
 The default UI storage configuration is built in, but apps may override it:
 
@@ -296,36 +329,58 @@ alias AshUI.Rendering.LiveUIAdapter
 {:ok, heex} = LiveUIAdapter.render(@ash_ui_iur)
 ```
 
-## Add Reactive Bindings
+## Add Reactive Bindings And Actions
 
-Bindings are separate records. They connect a UI target such as `"value"` or `"submit"` to a source map that identifies a resource field or action.
+Bindings and actions belong on the element resource that owns the widget. That
+keeps runtime behavior local to the UI fragment it drives.
 
 ```elixir
-alias AshUI.Data, as: Domain
-alias AshUI.Resources.Binding
-alias AshUI.Resources.Element
+defmodule MyApp.UI.DisplayNameInput do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Element
 
-{:ok, input} =
-  Domain.create(Element,
-    attrs: %{
-      screen_id: screen.id,
-      type: :textinput,
-      props: %{"label" => "Display name"},
-      position: 0
-    }
-  )
+  ets do
+    private?(true)
+  end
 
-{:ok, _binding} =
-  Domain.create(Binding,
-    attrs: %{
-      screen_id: screen.id,
-      element_id: input.id,
-      binding_type: :value,
-      target: "value",
-      source: %{"resource" => "User", "field" => "name", "id" => "user-1"},
-      transform: [%{"function" => "trim"}]
-    }
-  )
+  attributes do
+    uuid_primary_key(:id)
+    attribute(:screen_id, :uuid, allow_nil?: true)
+    attribute(:parent_id, :uuid, allow_nil?: true)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  ui_element do
+    type :textinput
+    props %{label: "Display name"}
+    metadata %{id: "display_name_input"}
+  end
+
+  ui_bindings do
+    binding :display_name do
+      source %{resource: "User", field: "name", id: "user-1"}
+      target "value"
+      binding_type :value
+      transform [%{"function" => "trim"}]
+    end
+  end
+
+  ui_actions do
+    action :save_profile do
+      signal :submit
+      target "submit"
+      source %{resource: "User", action: "save_profile", id: "user-1"}
+      transform %{
+        "params" => %{
+          "display_name" => %{"from" => "binding", "key" => "display_name"}
+        }
+      }
+    end
+  end
+end
 ```
 
 ## Handle LiveView Events
@@ -352,8 +407,9 @@ Confirm the socket includes `:current_user`, the user is active, the screen exis
 
 Check that:
 
-- The binding belongs to the same `screen_id`
-- `binding_type` is one of `:value`, `:list`, or `:action`
+- the element resource is part of the screen relationship graph
+- `binding_type` is one of `:value` or `:list` for `ui_bindings`
+- signal-driven behavior is declared in `ui_actions`
 - `source` is a map with at least `"resource"` plus `"field"` or `"action"`
 
 ### Rendering looks incomplete

@@ -15,9 +15,17 @@ Use this checklist before cutting an Ash UI release.
 - [ ] Code coverage meets or exceeds the release threshold of `70%`
 - [ ] `release/KNOWN_ISSUES.md` lists no critical bugs
 - [ ] Root README, guides, and release assets are current
-- [ ] Public examples and guides still demonstrate upstream `UnifiedUi.Dsl` authoring; historical migration references remain confined to ADRs, changelog notes, and UG-0005
+- [ ] Public examples and guides still demonstrate screen and element resource authoring through `AshUI.Resource.DSL.*`; historical migration references remain confined to ADRs, changelog notes, and UG-0005
 - [ ] Telemetry dashboards are available and recent signals look healthy
 - [ ] `unified_ui` and `unified_iur` are present and loadable in the release artifact
+
+## Authoring Review Checks
+
+- [ ] Public examples start from screen and element resources, not detached screen documents
+- [ ] Composition is expressed through Ash relationships plus `ui_relationships`
+- [ ] `ui_bindings` and `ui_actions` stay local to the owning element resource unless there is a real screen-wide concern
+- [ ] `inline_fragment` usage is limited to shell chrome or small layout glue
+- [ ] Historical detour language remains confined to ADRs, changelog notes, and [UG-0005](../guides/user/UG-0005-migration-v0-to-v1.md)
 
 ## Release Inputs
 
@@ -60,7 +68,7 @@ Run:
 
 Review the generated draft and merge the important items into `CHANGELOG.md`.
 
-Confirm any breaking API rename notes are present before tagging the release. For this rename, the release notes must call out `web_ui` -> `elm_ui`, `WebUI.Renderer` -> `ElmUI.Renderer`, `AshUI.Rendering.WebUIAdapter` -> `AshUI.Rendering.ElmUIAdapter`, and `:html` -> `:elm`.
+Confirm any breaking API rename notes are present before tagging the release. Release notes must also call out any hard architectural cuts, including the removal of detached screen-document-first authoring in favor of screen and element resource authority.
 
 ### 4. Dry-run the release workflow
 

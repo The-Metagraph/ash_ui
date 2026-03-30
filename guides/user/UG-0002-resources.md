@@ -6,8 +6,8 @@ title: Working with Ash UI Resources
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-03-20
-next_review: 2026-09-20
+last_reviewed: 2026-03-30
+next_review: 2026-09-30
 related_reqs: [REQ-RES-001, REQ-RES-003, REQ-RES-004, REQ-RES-007]
 related_scns: [SCN-001, SCN-003, SCN-004, SCN-005]
 related_guides: [UG-0001, UG-0003, UG-0004]
@@ -16,7 +16,10 @@ diagram_required: false
 
 ## Overview
 
-This guide explains the three Ash UI resources you work with directly: screens, elements, and bindings. It focuses on the Ash UI resource contract and the default shipped implementation in `AshUI.Domain`.
+This guide explains the Ash UI resource model. The key distinction is that
+applications author screens and elements as Ash resources using
+`AshUI.Resource.DSL.*`, while Ash UI also ships storage resources in
+`AshUI.Domain` for persistence and backend introspection.
 
 ## Prerequisites
 
@@ -26,23 +29,25 @@ Before reading this guide, you should:
 - Have read [UG-0001: Getting Started](./UG-0001-getting-started.md)
 - Know which UI storage backend your application uses
 
-## The Core Resources
+## The Core Resource Roles
 
-Ash UI stores UI state as regular Ash records:
+Ash UI has two resource layers:
 
-- `AshUI.Resources.Screen`
-- `AshUI.Resources.Element`
-- `AshUI.Resources.Binding`
+- **authoring resources**: the screen and element resources your app defines with `AshUI.Resource.DSL.Screen` and `AshUI.Resource.DSL.Element`
+- **storage resources**: the configured `Screen`, `Element`, and `Binding` backend resources, which default to `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`
 
-The shared domain is `AshUI.Domain`, so reads and writes typically go through that module.
+Most application code should focus on authoring resources and
+`AshUI.Resource.Authority`. The shipped storage resources are framework
+defaults, not the primary authoring surface.
 
-That is the default shipped setup. Ash UI can also be configured to use alternate `Screen`, `Element`, and `Binding` resources in a different domain, as long as they satisfy the same contract.
+`AshUI.Data` uses the configured UI storage domain, so persistence helpers stay
+stable even when the storage backend changes.
 
-`AshUI.Data` uses the configured UI storage domain, so application code can keep the same CRUD helpers even when the storage backend changes.
+## Screen Resources And Screen Records
 
-## Screen Records
-
-`AshUI.Resources.Screen` is the top-level composition root.
+The top-level authoring unit is a screen resource module. Persisting it through
+`AshUI.Resource.Authority` creates the `Screen` record that Ash UI loads at
+runtime.
 
 Important fields:
 
@@ -152,104 +157,114 @@ Read a screen by name:
 {:ok, screen} = Domain.read_one(Screen, filter: [name: "settings"])
 ```
 
-## Element Records
+## Element Resources
 
-`AshUI.Resources.Element` holds the atomic authored UI pieces associated with a
-screen or parent element.
-
-Important fields:
-
-- `type`: widget or layout type such as `:text`, `:button`, or `:textinput`
-- `props`: renderer-facing properties
-- `variants`: style or behavior variants
-- `screen_id`: optional top-level screen relationship
-- `parent_id`: optional parent element relationship in nested graphs
-
-Create two elements for a screen:
+Element resources are the atomic authored UI pieces associated with a screen or
+parent element. They own widget DSL, local bindings, local actions, and nested
+composition relationships.
 
 ```elixir
-alias AshUI.Resources.Element
+defmodule MyApp.UI.SettingsSaveButton do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Element
 
-{:ok, header} =
-  Domain.create(Element,
-    attrs: %{
-      screen_id: screen.id,
-      type: :text,
-      props: %{"content" => "Settings", "size" => 24},
-      position: 0
-    }
-  )
+  ets do
+    private?(true)
+  end
 
-{:ok, save_button} =
-  Domain.create(Element,
-    attrs: %{
-      screen_id: screen.id,
-      type: :button,
-      props: %{"label" => "Save"},
-      variants: [:primary],
-      position: 1
-    }
-  )
+  attributes do
+    uuid_primary_key(:id)
+    attribute(:screen_id, :uuid, allow_nil?: true)
+    attribute(:parent_id, :uuid, allow_nil?: true)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  ui_element do
+    type :button
+    props %{label: "Save"}
+    variants [:primary]
+    metadata %{id: "settings_save_button"}
+  end
+
+  ui_actions do
+    action :save_settings do
+      signal :click
+      target "click"
+      source %{resource: "Settings", action: "save", id: "settings-1"}
+      transform %{}
+    end
+  end
+end
 ```
 
-## Binding Records
+Important resource-level concerns:
 
-`AshUI.Resources.Binding` connects runtime resources and UI targets.
+- `ui_element` defines widget type, props, variants, and metadata
+- `ui_bindings` declares local data bindings
+- `ui_actions` declares local signal-to-action behavior
+- Ash relationships plus `ui_relationships` define child and companion composition
 
-Important fields:
+## Binding Declarations And Binding Records
 
-- `source`: map describing the backing resource field or action
-- `target`: target property or event name
-- `binding_type`: one of `:value`, `:list`, or `:action`
-- `transform`: optional transformation rules
-- `element_id`: optional link to an element
-- `screen_id`: parent screen
+Bindings are authored on screens or elements through `ui_screen_bindings` and
+`ui_bindings`. Ash UI may still persist normalized binding records in the
+configured storage backend, but application code should not treat
+`AshUI.Resources.Binding` as the preferred authoring API.
 
-Create a value binding and an action binding:
+Declare a value binding on the element that owns it:
 
 ```elixir
-alias AshUI.Resources.Binding
+defmodule MyApp.UI.SettingsHeading do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Element
 
-{:ok, _name_binding} =
-  Domain.create(Binding,
-    attrs: %{
-      screen_id: screen.id,
-      element_id: header.id,
-      binding_type: :value,
-      target: "content",
-      source: %{"resource" => "User", "field" => "name", "id" => "user-1"}
-    }
-  )
+  ets do
+    private?(true)
+  end
 
-{:ok, _save_binding} =
-  Domain.create(Binding,
-    attrs: %{
-      screen_id: screen.id,
-      element_id: save_button.id,
-      binding_type: :action,
-      target: "submit",
-      source: %{"resource" => "User", "action" => "save"}
-    }
-  )
+  attributes do
+    uuid_primary_key(:id)
+    attribute(:screen_id, :uuid, allow_nil?: true)
+    attribute(:parent_id, :uuid, allow_nil?: true)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  ui_element do
+    type :text
+    props %{content: "Settings", size: 24}
+    metadata %{id: "settings_heading"}
+  end
+
+  ui_bindings do
+    binding :heading_copy do
+      source %{resource: "User", field: "name", id: "user-1"}
+      target "content"
+      binding_type :value
+      transform %{}
+    end
+  end
+end
 ```
 
 ## Relationship Patterns
 
-The current resource relationships are:
-
-- Screen `has_many :elements`
-- Screen `has_many :bindings`
-- Element `belongs_to :screen`
-- Element `has_many :bindings`
-- Binding `belongs_to :screen`
-- Binding `belongs_to :element`
-
-The normative pattern is:
+The normative authoring pattern is:
 
 1. express screen composition through Ash relationships between screen and element resources
-2. keep element-local bindings and actions on the element resource that owns the widget
-3. use `Screen.unified_dsl` as persisted compiler storage, not as the hand-authored source of truth
-4. reserve screen-level inline DSL for light shell wrappers or layout glue when another resource would be noise
+2. express nested composition through Ash relationships between element resources
+3. use `ui_relationships` to define `kind`, `slot`, `placement`, and `order`
+4. keep bindings and actions local to the element resource that owns the widget
+5. use `Screen.unified_dsl` as persisted compiler storage, not as the hand-authored source of truth
+6. reserve screen-level inline DSL for light shell wrappers or layout glue when another resource would be noise
+
+The default storage resources still model Screen/Element/Binding relations, but
+those are backend persistence concerns rather than the preferred authoring API.
 
 ## UI Storage Versus Binding Source Domains
 
@@ -262,7 +277,7 @@ For example, you can keep UI definitions in ETS-backed resources while bindings 
 
 ## Versioning and Updates
 
-All three resources increment `version` on update. That matters for:
+Persisted UI storage records increment `version` on update. That matters for:
 
 - compiler cache invalidation
 - change tracking
@@ -279,9 +294,11 @@ Example update:
   )
 ```
 
-## Querying Active Records
+## Querying Active Backend Records
 
-Bindings include a `read_with_filter` action that only returns active records. For simple application code, using the domain with a filter keeps intent explicit:
+If you need to inspect backend storage directly, bindings include a
+`read_with_filter` action that only returns active records. For simple
+application code, using the domain with a filter keeps intent explicit:
 
 ```elixir
 active_bindings = Domain.read!(AshUI.Resources.Binding, filter: [screen_id: screen.id, active: true])
@@ -291,6 +308,7 @@ active_bindings = Domain.read!(AshUI.Resources.Binding, filter: [screen_id: scre
 
 - Use `name` as the stable human-facing screen identifier.
 - Use screen and element relationships as the primary composition language.
+- Keep bindings and actions local to the resource that owns the widget.
 - Use `unified_dsl` as persisted output, not an authoring shortcut.
 - Keep `props` renderer-neutral where possible.
 - Treat `metadata` as optional annotations, not core behavior.

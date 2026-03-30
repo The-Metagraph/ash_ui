@@ -21,12 +21,23 @@ defmodule AshUI.Examples.BasicDashboardTest do
   test "basic dashboard seed compiles a full dashboard screen with action and value bindings" do
     Data.seed!()
     screen = BasicDashboard.seed!()
+    graph = BasicDashboard.authority_graph!()
 
     assert screen.name == "basic_dashboard"
     assert screen.__struct__ == BasicDashboard.Storage.Screen
     assert Authority.authority_payload?(screen.unified_dsl)
     assert screen.unified_dsl["format"] == Authority.format()
     assert get_in(screen.unified_dsl, ["screen", "module"]) == "Elixir.BasicDashboard.Screen"
+    assert graph.screen.id == screen.id
+    assert length(graph.elements) >= 10
+
+    assert Enum.any?(graph.elements, fn element ->
+             element["module"] == "Elixir.BasicDashboard.HeroElement"
+           end)
+
+    assert Enum.any?(graph.elements, fn element ->
+             element["module"] == "Elixir.BasicDashboard.SaveProfileButtonElement"
+           end)
 
     assert {:ok, iur} = Compiler.compile(screen, ui_storage: Storage.config())
     assert {:ok, canonical_iur} = IURAdapter.to_canonical(iur)

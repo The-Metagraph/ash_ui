@@ -1,13 +1,20 @@
 # Ash UI
 
-Ash UI is a resource-backed UI framework for Elixir built on Ash. It stores screens, elements, and bindings as Ash data, compiles them into an internal IUR, converts that structure into canonical renderer input, and wires the result into LiveView-oriented runtime helpers.
+Ash UI is a resource-backed UI framework for Elixir built on Ash. Screen and
+element Ash resources that use `AshUI.Resource.DSL.*` are the authoritative
+authoring units. Their relationships define composition, element-local
+bindings and actions define runtime behavior, and Ash UI persists that
+authority graph as a `Screen.unified_dsl` snapshot for compilation, rendering,
+and runtime orchestration.
 
 ## What Works Today
 
-- default shipped `Screen`, `Element`, and `Binding` resources in `AshUI.Domain`
+- default shipped `Screen`, `Element`, and `Binding` storage resources in `AshUI.Domain`
 - configurable UI storage domain/resource boundary with optional repo startup
 - resource-local authoring through `AshUI.Resource.DSL.Screen` and `AshUI.Resource.DSL.Element`
-- `unified_dsl` persistence on screen resources
+- relationship-driven composition through Ash relationships and `ui_relationships`
+- element-local bindings and signal-aware actions through `ui_bindings` and `ui_actions`
+- persisted `Screen.unified_dsl` snapshots generated from the authority graph
 - compilation to `AshUI.Compilation.IUR` through `AshUI.Compiler`
 - canonical conversion through `AshUI.Rendering.IURAdapter`
 - LiveView mount, event, and update integration helpers
@@ -18,16 +25,19 @@ Ash UI is a resource-backed UI framework for Elixir built on Ash. It stores scre
 
 ```mermaid
 flowchart LR
-    Resources["Ash UI resources"]
-    DSL["stored unified_dsl"]
+    Resources["Screen + element resources"]
+    Authority["AshUI.Resource.Authority"]
+    Snapshot["Screen record + unified_dsl snapshot"]
     Compiler["AshUI.Compiler"]
     IUR["Ash UI IUR"]
     Canonical["canonical IUR"]
     Runtime["LiveView runtime"]
     Renderers["renderer adapters"]
 
-    Resources --> DSL
-    DSL --> Compiler
+    Resources --> Authority
+    Authority --> Snapshot
+    Resources --> Compiler
+    Snapshot --> Compiler
     Compiler --> IUR
     IUR --> Canonical
     Canonical --> Renderers
@@ -53,8 +63,8 @@ end
 Ash UI now treats Ash resource modules that use `AshUI.Resource.DSL.*` as the
 authoritative authoring surface. `unified_ui` still matters because it owns the
 shared widget and layout grammar under the hood, but application code should
-model screens and elements as Ash resources rather than authoring a full screen
-inside one standalone document.
+model screens and elements as Ash resources rather than authoring a detached
+screen document.
 
 Define a screen resource and related element resources, then persist the
 composed graph through Ash UI:
@@ -96,6 +106,15 @@ defmodule MyApp.UI.DashboardHero do
       message: "This hero is authored as an Ash element resource."
     }
     metadata %{id: "dashboard_hero"}
+  end
+
+  ui_bindings do
+    binding :hero_message do
+      source %{resource: "Dashboard", field: "summary", id: "dashboard-1"}
+      target "message"
+      binding_type :value
+      transform %{}
+    end
   end
 end
 
@@ -191,14 +210,21 @@ end
 
 The compiler now treats that relational authority graph as the primary source
 of composition. `Screen.unified_dsl` is a persisted snapshot of the screen and
-element graph, not a hand-authored monolithic document.
+element graph, not a hand-authored monolithic document. Bindings and actions
+belong on the element resource that owns the widget, while screen-level inline
+DSL should be limited to tiny shell fragments where another resource would add
+more noise than clarity.
 
 Older pre-v1 payloads are no longer accepted at runtime. If you are migrating
 existing data, use the one-time migration flow documented in
 [UG-0005](./guides/user/UG-0005-migration-v0-to-v1.md) before persisting the
 resource-authority payload.
 
-The default shipped storage backend is Postgres through `AshUI.Domain` and `AshUI.Repo`, but the UI storage domain and resource modules are configurable so example apps and alternate deployments can use another Ash-compatible data layer.
+The default shipped storage backend is Postgres through `AshUI.Domain` and
+`AshUI.Repo`, but the UI storage domain and resource modules are configurable
+so example apps and alternate deployments can use another Ash-compatible data
+layer. Those storage resources are framework persistence defaults, not the
+recommended application authoring surface.
 
 Mount it in LiveView:
 

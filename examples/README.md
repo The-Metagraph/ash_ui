@@ -17,8 +17,9 @@ Standalone example apps can then be started directly from their own directory.
 ### `basic_dashboard`
 
 `basic_dashboard` is the reference dashboard example. It now ships as a
-standalone Phoenix app, seeds ETS-backed demo data, and renders a stored
-`unified_dsl` screen through Ash UI adapters.
+standalone Phoenix app, seeds ETS-backed demo data, and renders a persisted
+screen authority graph backed by screen and element resource modules through
+Ash UI adapters.
 
 The dashboard screen itself is modeled as one screen resource plus related
 element resources using `AshUI.Resource.DSL.*`, then persisted through
@@ -41,8 +42,8 @@ Run the standalone app:
 
 Adapter options:
 
-- `liveview`: prints HEEx output from the LiveView renderer
-- `elm`: prints or writes the Elm-backed web shell
+- `liveview`: prints HEEx output compiled from the persisted screen authority graph
+- `elm`: prints or writes the Elm-backed web shell for that same graph
 - `desktop`: prints desktop instruction JSON
 
 Current parity coverage:

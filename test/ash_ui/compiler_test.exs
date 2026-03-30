@@ -113,6 +113,21 @@ defmodule AshUI.CompilerTest do
              end)
     end
 
+    test "regenerates the authority graph even when serialized elements are missing", %{
+      screen: screen
+    } do
+      minimal_document = %{
+        "format" => screen.unified_dsl["format"],
+        "version" => screen.unified_dsl["version"],
+        "screen" => %{"module" => get_in(screen.unified_dsl, ["screen", "module"])}
+      }
+
+      changed_screen = %{screen | unified_dsl: minimal_document}
+
+      assert {:ok, %IUR{} = iur} = Compiler.compile_from_unified_dsl(changed_screen)
+      assert Enum.any?(iur.children, &(&1.id == "screen_shell"))
+    end
+
     test "rejects payloads outside the resource-authority contract" do
       assert {:error, error} =
                AshUI.Data.create(Screen,
@@ -188,7 +203,7 @@ defmodule AshUI.CompilerTest do
       assert Compiler.cache_stats().size == 0
     end
 
-    test "cache key changes when the authored upstream document changes" do
+    test "cache key ignores serialized snapshot drift when the resource graph is unchanged" do
       {:ok, screen} =
         AshUI.Data.create(Screen,
           attrs:
@@ -202,9 +217,32 @@ defmodule AshUI.CompilerTest do
 
       assert {:ok, _iur} = Compiler.compile(screen, use_cache: true)
 
-      changed_document = put_in(screen.unified_dsl, ["screen", "metadata", "cache_variant"], "changed")
+      changed_document =
+        screen.unified_dsl
+        |> Map.put("elements", [])
+        |> put_in(["composition", "roots"], [])
 
       changed_screen = %{screen | unified_dsl: changed_document}
+
+      assert {:ok, _iur} = Compiler.compile(changed_screen, use_cache: true)
+      assert Compiler.cache_stats().size == 1
+    end
+
+    test "cache key changes when screen-level overrides change" do
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs("screen_override_cache_screen",
+              layout: :row
+            )
+        )
+
+      Compiler.clear_cache()
+      Compiler.init_cache()
+
+      assert {:ok, _iur} = Compiler.compile(screen, use_cache: true)
+
+      changed_screen = %{screen | route: "/screen-override-cache-screen-changed"}
 
       assert {:ok, _iur} = Compiler.compile(changed_screen, use_cache: true)
       assert Compiler.cache_stats().size == 2

@@ -17,24 +17,24 @@ Back to index: [README](./README.md)
   Rebuild compiler and runtime behavior around the screen/element resource graph
   rather than monolithic screen-document authority.
 
-  [ ] 15.1 Section - Graph Compiler Refactor
+  [x] 15.1 Section - Graph Compiler Refactor
     Change the compiler's primary inputs back to screen and element resources.
 
-    [ ] 15.1.1 Task - Screen-root graph traversal
+    [x] 15.1.1 Task - Screen-root graph traversal
     Make graph traversal the primary compilation entry path.
 
-      [ ] 15.1.1.1 Subtask - Load the screen resource as the root node
-      [ ] 15.1.1.2 Subtask - Traverse related element resources and ordering metadata
-      [ ] 15.1.1.3 Subtask - Collect inline screen DSL only as a secondary fragment source
-      [ ] 15.1.1.4 Subtask - Remove assumptions that the full UI tree is already serialized on the screen
+      [x] 15.1.1.1 Subtask - Load the screen resource as the root node
+      [x] 15.1.1.2 Subtask - Traverse related element resources and ordering metadata
+      [x] 15.1.1.3 Subtask - Collect inline screen DSL only as a secondary fragment source
+      [x] 15.1.1.4 Subtask - Remove assumptions that the full UI tree is already serialized on the screen
 
-    [ ] 15.1.2 Task - Embedded DSL lowering
+    [x] 15.1.2 Task - Embedded DSL lowering
     Lower resource-local DSL fragments through upstream construct semantics.
 
-      [ ] 15.1.2.1 Subtask - Lower element-local DSL fragments through upstream `unified_ui`
-      [ ] 15.1.2.2 Subtask - Lower inline screen fragments through the same path
-      [ ] 15.1.2.3 Subtask - Merge lowered fragments back into one resource-derived graph
-      [ ] 15.1.2.4 Subtask - Add deterministic IDs and stable cache keys for graph-derived nodes
+      [x] 15.1.2.1 Subtask - Lower element-local DSL fragments through upstream `unified_ui`
+      [x] 15.1.2.2 Subtask - Lower inline screen fragments through the same path
+      [x] 15.1.2.3 Subtask - Merge lowered fragments back into one resource-derived graph
+      [x] 15.1.2.4 Subtask - Add deterministic IDs and stable cache keys for graph-derived nodes
 
   [ ] 15.2 Section - Binding And Runtime Refactor
     Align runtime hydration and event handling with resource-local authorship.

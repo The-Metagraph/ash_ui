@@ -39,13 +39,26 @@ defmodule AshUI.Compiler.Incremental do
       binding_to_element: %{}
     }
 
-    # Load elements and build relationships
-    with true <- screen_resource?(screen, opts),
-         {:ok, elements} <- load_screen_elements(screen, opts),
-         graph <- build_element_dependencies(graph, screen, elements),
-         graph <- build_binding_dependencies(graph, screen, elements, opts),
-         :ok <- detect_circular_dependencies(graph) do
-      {:ok, graph}
+    with true <- screen_resource?(screen, opts) do
+      case authority_runtime_screen(screen) do
+        {:ok, runtime_screen} ->
+          graph =
+            graph
+            |> build_element_dependencies(runtime_screen, [])
+            |> build_binding_dependencies(runtime_screen, [], opts)
+
+          with :ok <- detect_circular_dependencies(graph) do
+            {:ok, graph}
+          end
+
+        :error ->
+          with {:ok, elements} <- load_screen_elements(screen, opts),
+               graph <- build_element_dependencies(graph, screen, elements),
+               graph <- build_binding_dependencies(graph, screen, elements, opts),
+               :ok <- detect_circular_dependencies(graph) do
+            {:ok, graph}
+          end
+      end
     else
       false -> {:error, :invalid_screen}
     end
@@ -310,6 +323,13 @@ defmodule AshUI.Compiler.Incremental do
   end
 
   defp screen_resource?(_screen, _opts), do: false
+
+  defp authority_runtime_screen(screen) do
+    case Authority.runtime_payload(screen) do
+      {:ok, payload} -> {:ok, %{screen | unified_dsl: payload}}
+      {:error, _reason} -> :error
+    end
+  end
 
   defp authored_element_ids(%{unified_dsl: unified_dsl}) do
     cond do

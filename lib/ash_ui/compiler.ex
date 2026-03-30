@@ -56,17 +56,11 @@ defmodule AshUI.Compiler do
   end
 
   @doc """
-  Compiles a screen from its persisted upstream `UnifiedUi` authoring document.
+  Compiles a screen from its persisted authoritative `unified_dsl` payload.
 
-  Ash UI delegates authoring compilation to `UnifiedUi.Compiler`, then
-  normalizes that compiler output into the Ash UI runtime shape by:
-
-  * preserving screen route/layout/metadata
-  * lowering upstream widgets into Ash UI's internal IUR struct
-  * attaching Ash UI-owned runtime binding metadata from the persisted document
-
-  Resource-first compilation is no longer the default path for persisted
-  `unified_dsl` screens.
+  Resource-authority screens regenerate their compiler input from the screen
+  record plus the current screen/element resource graph, using the persisted
+  payload only to resolve the root screen module and screen-level overrides.
   """
   @spec compile_from_unified_dsl(screen_record(), keyword()) :: compile_result()
   def compile_from_unified_dsl(screen, opts \\ [])
@@ -410,11 +404,13 @@ defmodule AshUI.Compiler do
     {:ok, root_iur}
   end
 
-  defp compile_from_resource_authority(screen, document) when is_map(screen) and is_map(document) do
-    with :ok <- Authority.validate_payload(document),
-         {:ok, element_index} <- authority_element_index(document),
-         {compiled_children, bindings} <- compile_authority_roots(document, screen, element_index),
-         merged_children <- merge_inline_screen_children(document, compiled_children),
+  defp compile_from_resource_authority(screen, document)
+       when is_map(screen) and is_map(document) do
+    with {:ok, runtime_document} <- Authority.runtime_payload(screen),
+         {:ok, element_index} <- authority_element_index(runtime_document),
+         {compiled_children, bindings} <-
+           compile_authority_roots(runtime_document, screen, element_index),
+         merged_children <- merge_inline_screen_children(runtime_document, compiled_children),
          root_iur <-
            IUR.new(:screen,
              id: screen.id,
@@ -426,7 +422,7 @@ defmodule AshUI.Compiler do
              },
              children: merged_children,
              bindings: bindings,
-             metadata: compile_authority_runtime_metadata(screen, document),
+             metadata: compile_authority_runtime_metadata(screen, runtime_document),
              version: "v#{screen.version || 1}"
            ),
          :ok <- IUR.validate(root_iur) do
@@ -460,7 +456,8 @@ defmodule AshUI.Compiler do
       |> List.wrap()
       |> Enum.map(&compile_screen_binding(&1, screen.id))
 
-    Enum.reduce(Enum.with_index(roots), {[], screen_bindings}, fn {node, index}, {children, bindings} ->
+    Enum.reduce(Enum.with_index(roots), {[], screen_bindings}, fn {node, index},
+                                                                  {children, bindings} ->
       {compiled, updated_bindings} =
         compile_authority_node(node, screen, element_index, [index], bindings)
 
@@ -622,7 +619,8 @@ defmodule AshUI.Compiler do
       "resource_authority" => %{
         "screen_module" => get_in(document, ["screen", "module"]),
         "composition_root_count" => length(get_in(document, ["composition", "roots"]) || []),
-        "composition_mode" => if(is_map(inline_fragment), do: "mixed", else: "relationships_only"),
+        "composition_mode" =>
+          if(is_map(inline_fragment), do: "mixed", else: "relationships_only"),
         "screen_binding_ids" => Enum.map(screen_bindings, &Map.get(&1, "id")),
         "screen_shell" => screen_shell_metadata(inline_fragment)
       }
@@ -1067,9 +1065,28 @@ defmodule AshUI.Compiler do
 
   defp document_cache_suffix(screen) do
     document = Map.get(screen, :unified_dsl, %{})
-    hash = document_hash(document)
-    compiler = upstream_compiler_version()
-    "doc-#{hash}:compiler-#{compiler}"
+
+    cond do
+      Authority.authority_payload?(document) ->
+        authority_cache_suffix(screen)
+
+      true ->
+        hash = document_hash(document)
+        compiler = upstream_compiler_version()
+        "doc-#{hash}:compiler-#{compiler}"
+    end
+  end
+
+  defp authority_cache_suffix(screen) do
+    case Authority.runtime_payload(screen) do
+      {:ok, payload} ->
+        hash = document_hash(payload)
+        "graph-#{hash}:compiler-resource_graph"
+
+      {:error, _reason} ->
+        hash = document_hash(Map.get(screen, :unified_dsl, %{}))
+        "graph-fallback-#{hash}:compiler-resource_graph"
+    end
   end
 
   defp document_hash(document) do

@@ -58,7 +58,9 @@ defmodule AshUI.Resource.Authority do
            "name" => Keyword.get(opts, :name, default_name(screen_module)),
            "route" => Keyword.get(opts, :route, Map.get(screen_definition, :route)),
            "layout" =>
-             encode_value(Keyword.get(opts, :layout, Map.get(screen_definition, :layout, :default))),
+             encode_value(
+               Keyword.get(opts, :layout, Map.get(screen_definition, :layout, :default))
+             ),
            "metadata" => encode_value(screen_metadata),
            "inline_fragment" => encode_value(Map.get(screen_definition, :inline_fragment)),
            "bindings" => Enum.map(screen_bindings, &encode_binding/1)
@@ -113,11 +115,66 @@ defmodule AshUI.Resource.Authority do
   end
 
   @doc """
+  Resolves the authoritative screen module encoded in a persisted
+  resource-authority payload.
+  """
+  @spec screen_module(term()) :: {:ok, module()} | {:error, term()}
+  def screen_module(%{} = payload) do
+    module_name =
+      get_in(payload, ["screen", "module"]) ||
+        get_in(payload, [:screen, :module])
+
+    cond do
+      not is_binary(module_name) or String.trim(module_name) == "" ->
+        {:error, {:invalid_screen_authority, :missing_screen_module}}
+
+      true ->
+        module = decode_module(module_name)
+
+        case Info.resource_role(module) do
+          :screen -> {:ok, module}
+          role -> {:error, {:invalid_screen_authority, module, role}}
+        end
+    end
+  end
+
+  def screen_module(_other), do: {:error, {:invalid_screen_authority, :invalid_payload}}
+
+  @doc """
+  Regenerates the authoritative runtime payload for a persisted screen record.
+
+  This uses the screen record as the persistence root while traversing the
+  current screen/element resource graph as the compiler source of truth.
+  """
+  @spec runtime_payload(map(), keyword()) :: {:ok, payload()} | {:error, term()}
+  def runtime_payload(screen, opts \\ [])
+
+  def runtime_payload(%{} = screen, opts) do
+    document = Map.get(screen, :unified_dsl, %{})
+    metadata = Keyword.get(opts, :metadata, Map.get(screen, :metadata, %{}))
+
+    with {:ok, screen_module} <- screen_module(document),
+         {:ok, payload} <-
+           payload(screen_module,
+             name: Keyword.get(opts, :name, Map.get(screen, :name)),
+             route: Keyword.get(opts, :route, Map.get(screen, :route)),
+             layout: Keyword.get(opts, :layout, Map.get(screen, :layout, :default)),
+             metadata: metadata
+           ) do
+      {:ok, overlay_runtime_customizations(payload, document)}
+    end
+  end
+
+  def runtime_payload(_other, _opts), do: {:error, {:invalid_screen_authority, :invalid_screen}}
+
+  @doc """
   Validates a persisted resource-authority payload.
   """
   @spec validate_payload(term()) :: :ok | {:error, String.t()}
   def validate_payload(%{} = payload) do
-    with true <- authority_payload?(payload) or {:error, "must declare the ash_ui resource_authority format"},
+    with true <-
+           authority_payload?(payload) or
+             {:error, "must declare the ash_ui resource_authority format"},
          :ok <- validate_section(payload, "screen"),
          :ok <- validate_nested_map(payload, "composition"),
          :ok <- validate_elements(Map.get(payload, "elements") || Map.get(payload, :elements, [])),
@@ -395,4 +452,83 @@ defmodule AshUI.Resource.Authority do
   defp encode_value(nil), do: nil
   defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_value(value), do: value
+
+  defp overlay_runtime_customizations(payload, document)
+       when is_map(payload) and is_map(document) do
+    payload
+    |> overlay_screen_customizations(document)
+    |> overlay_element_customizations(document)
+  end
+
+  defp overlay_runtime_customizations(payload, _document), do: payload
+
+  defp overlay_screen_customizations(payload, document) do
+    stored_screen = Map.get(document, "screen", %{})
+    runtime_screen = Map.get(payload, "screen", %{})
+
+    updated_screen =
+      runtime_screen
+      |> Map.put(
+        "bindings",
+        merge_declarations(
+          Map.get(runtime_screen, "bindings", []),
+          Map.get(stored_screen, "bindings", [])
+        )
+      )
+      |> maybe_put("inline_fragment", Map.get(stored_screen, "inline_fragment"))
+
+    Map.put(payload, "screen", updated_screen)
+  end
+
+  defp overlay_element_customizations(payload, document) do
+    stored_elements =
+      document
+      |> Map.get("elements", [])
+      |> Enum.reduce(%{}, fn element, acc ->
+        Map.put(acc, Map.get(element, "module"), element)
+      end)
+
+    updated_elements =
+      payload
+      |> Map.get("elements", [])
+      |> Enum.map(fn element ->
+        case Map.get(stored_elements, Map.get(element, "module")) do
+          nil ->
+            element
+
+          stored ->
+            element
+            |> Map.put(
+              "bindings",
+              merge_declarations(
+                Map.get(element, "bindings", []),
+                Map.get(stored, "bindings", [])
+              )
+            )
+            |> Map.put(
+              "actions",
+              merge_declarations(
+                Map.get(element, "actions", []),
+                Map.get(stored, "actions", [])
+              )
+            )
+        end
+      end)
+
+    Map.put(payload, "elements", updated_elements)
+  end
+
+  defp merge_declarations(generated, stored) do
+    Enum.reduce(stored, List.wrap(generated), fn declaration, acc ->
+      declaration_id = Map.get(declaration, "id")
+
+      case Enum.split_with(acc, &(Map.get(&1, "id") != declaration_id)) do
+        {kept, []} -> kept ++ [declaration]
+        {kept, [_existing | rest]} -> kept ++ [declaration] ++ rest
+      end
+    end)
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

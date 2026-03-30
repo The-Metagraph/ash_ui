@@ -3,8 +3,6 @@ defmodule AshUI.Compiler.IncrementalTest do
 
   alias AshUI.Compiler.Incremental
   alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
-  alias AshUI.Resources.Binding
   alias AshUI.Test.ScreenDocumentFixtures
 
   describe "build_dependencies/1" do
@@ -17,40 +15,7 @@ defmodule AshUI.Compiler.IncrementalTest do
             )
         )
 
-      # Create elements
-      {:ok, element1} =
-        AshUI.Data.create(Element,
-          attrs: %{
-            type: :text,
-            props: %{"content" => "Text 1"},
-            screen_id: screen.id,
-            position: 1
-          }
-        )
-
-      {:ok, element2} =
-        AshUI.Data.create(Element,
-          attrs: %{
-            type: :button,
-            props: %{"label" => "Button"},
-            screen_id: screen.id,
-            position: 2
-          }
-        )
-
-      # Create binding
-      {:ok, _binding} =
-        AshUI.Data.create(Binding,
-          attrs: %{
-            source: %{"resource" => "Test", "field" => "value"},
-            target: "test_target",
-            binding_type: :value,
-            element_id: element1.id,
-            screen_id: screen.id
-          }
-        )
-
-      %{screen: screen, elements: [element1, element2]}
+      %{screen: screen}
     end
 
     test "builds dependency graph for screen", %{screen: screen} do
@@ -62,19 +27,16 @@ defmodule AshUI.Compiler.IncrementalTest do
       assert is_map(graph.binding_to_element)
     end
 
-    test "tracks element to screen relationships", %{screen: screen, elements: elements} do
-      [element1 | _] = elements
-
+    test "tracks authored element to screen relationships", %{screen: screen} do
       {:ok, graph} = Incremental.build_dependencies(screen)
 
-      assert graph.element_to_screen[element1.id] == screen.id
+      assert graph.element_to_screen["dashboard_hero"] == screen.id
     end
 
-    test "tracks binding to element relationships", %{screen: screen} do
-      # Binding created in setup
+    test "tracks authored binding to element relationships", %{screen: screen} do
       {:ok, graph} = Incremental.build_dependencies(screen)
 
-      assert map_size(graph.binding_to_element) > 0
+      assert graph.binding_to_element["current_value"] == "current_value_stat"
     end
 
     test "detects no circular dependencies in valid graph", %{screen: screen} do
@@ -104,6 +66,29 @@ defmodule AshUI.Compiler.IncrementalTest do
       assert "display_name_input" in graph.screen_to_elements[screen.id]
       assert graph.binding_to_element["display_name_input"] == "display_name_input"
     end
+
+    test "rebuilds authority dependencies from the screen resource graph when serialized nodes drift" do
+      {:ok, screen} =
+        AshUI.Data.create(Screen,
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs(
+              unique_name("resource_graph_dependency_screen")
+            )
+        )
+
+      changed_document = %{
+        "format" => screen.unified_dsl["format"],
+        "version" => screen.unified_dsl["version"],
+        "screen" => %{"module" => get_in(screen.unified_dsl, ["screen", "module"])}
+      }
+
+      runtime_screen = %{screen | unified_dsl: changed_document}
+
+      assert {:ok, graph} = Incremental.build_dependencies(runtime_screen)
+      assert "dashboard_hero" in graph.screen_to_elements[screen.id]
+      assert "display_name_input" in graph.screen_to_elements[screen.id]
+      assert graph.binding_to_element["display_name_input"] == "display_name_input"
+    end
   end
 
   describe "affects_screen?/4" do
@@ -116,27 +101,13 @@ defmodule AshUI.Compiler.IncrementalTest do
             )
         )
 
-      {:ok, element} =
-        AshUI.Data.create(Element,
-          attrs: %{
-            type: :text,
-            props: %{"content" => "Test"},
-            screen_id: screen.id,
-            position: 1
-          }
-        )
-
       {:ok, graph} = Incremental.build_dependencies(screen)
 
-      %{screen: screen, element: element, graph: graph}
+      %{screen: screen, graph: graph}
     end
 
-    test "returns true when element belongs to screen", %{
-      graph: graph,
-      element: element,
-      screen: screen
-    } do
-      assert Incremental.affects_screen?(graph, :element, element.id, screen.id) == true
+    test "returns true when authored element belongs to screen", %{graph: graph, screen: screen} do
+      assert Incremental.affects_screen?(graph, :element, "dashboard_hero", screen.id) == true
     end
 
     test "returns false for unrelated element", %{graph: graph, screen: screen} do
@@ -154,38 +125,17 @@ defmodule AshUI.Compiler.IncrementalTest do
             )
         )
 
-      {:ok, element} =
-        AshUI.Data.create(Element,
-          attrs: %{
-            type: :text,
-            props: %{"content" => "Test"},
-            screen_id: screen.id,
-            position: 1
-          }
-        )
-
-      {:ok, _binding} =
-        AshUI.Data.create(Binding,
-          attrs: %{
-            source: %{"resource" => "Test", "field" => "value"},
-            target: "test_target",
-            binding_type: :value,
-            element_id: element.id,
-            screen_id: screen.id
-          }
-        )
-
       {:ok, graph} = Incremental.build_dependencies(screen)
 
-      %{screen: screen, element: element, graph: graph}
+      %{screen: screen, graph: graph}
     end
 
-    test "returns all dependents of an element", %{element: element, graph: graph} do
-      {:ok, dependents} = Incremental.get_dependents(graph, :element, element.id)
+    test "returns all dependents of an authored element", %{graph: graph} do
+      {:ok, dependents} = Incremental.get_dependents(graph, :element, "current_value_stat")
 
-      # Should include the screen and the binding
       assert length(dependents) >= 1
       assert Enum.any?(dependents, &(&1.type == :screen))
+      assert Enum.any?(dependents, &(&1.type == :binding and &1.id == "current_value"))
     end
   end
 

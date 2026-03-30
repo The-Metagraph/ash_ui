@@ -107,18 +107,23 @@ defmodule AshUI.Resource.Info do
   def composition_edges(module) when is_atom(module) do
     case resource_role(module) do
       role when role in [:screen, :element] ->
+        relationship_semantics = relationship_semantics(module)
+
         relationships =
           module
           |> Ash.Resource.Info.relationships()
           |> Enum.with_index()
           |> Enum.reduce([], fn {relationship, index}, acc ->
-            case composition_edge(module, relationship, index) do
+            case composition_edge(module, relationship, index, relationship_semantics) do
               nil -> acc
               edge -> acc ++ [edge]
             end
           end)
 
-        {:ok, relationships}
+        case unknown_relationship_semantics(module, relationship_semantics, relationships) do
+          [] -> {:ok, relationships}
+          unknown -> {:error, {:unknown_composition_relationships, module, unknown}}
+        end
 
       other ->
         {:error, {:invalid_authority_resource, module, other}}
@@ -135,24 +140,62 @@ defmodule AshUI.Resource.Info do
     end
   end
 
-  defp composition_edge(_module, relationship, index) do
+  defp composition_edge(_module, relationship, index, relationship_semantics) do
     destination = Map.get(relationship, :destination)
     type = Map.get(relationship, :type)
+    name = Map.get(relationship, :name)
 
     if type in [:has_many, :has_one] and resource_role(destination) == :element do
-      {:ok, definition} = element_definition(destination)
-      metadata = Map.get(definition, :metadata, %{})
+      semantics =
+        Map.get(relationship_semantics, name) ||
+          inferred_relationship_semantics(destination, relationship, index)
 
       %{
-        name: Map.get(relationship, :name),
+        name: name,
         destination: destination,
         type: type,
-        kind: relationship_kind(relationship),
-        slot: relationship_slot(metadata),
-        placement: relationship_placement(metadata),
-        order: relationship_order(metadata, index)
+        kind: semantics.kind,
+        slot: semantics.slot,
+        placement: semantics.placement,
+        order: semantics.order
       }
     end
+  end
+
+  defp relationship_semantics(module) do
+    if function_exported?(module, :__ash_ui_relationships__, 0) do
+      module.__ash_ui_relationships__()
+    else
+      %{}
+    end
+  end
+
+  defp unknown_relationship_semantics(module, semantics, edges) do
+    valid_names =
+      module
+      |> Ash.Resource.Info.relationships()
+      |> Enum.map(&Map.get(&1, :name))
+      |> MapSet.new()
+
+    used_names = MapSet.new(Enum.map(edges, & &1.name))
+
+    semantics
+    |> Map.keys()
+    |> Enum.reject(fn name ->
+      MapSet.member?(valid_names, name) and MapSet.member?(used_names, name)
+    end)
+  end
+
+  defp inferred_relationship_semantics(destination, relationship, index) do
+    {:ok, definition} = element_definition(destination)
+    metadata = Map.get(definition, :metadata, %{})
+
+    %{
+      kind: relationship_kind(relationship),
+      slot: relationship_slot(metadata),
+      placement: relationship_placement(metadata),
+      order: relationship_order(metadata, index)
+    }
   end
 
   defp relationship_kind(relationship) do

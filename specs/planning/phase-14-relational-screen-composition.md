@@ -36,25 +36,25 @@ Back to index: [README](./README.md)
       [x] 14.1.2.3 Subtask - Define precedence and conflict rules
       [x] 14.1.2.4 Subtask - Add tests for mixed relational and inline composition
 
-  [ ] 14.2 Section - Relationship Semantics
+  [x] 14.2 Section - Relationship Semantics
     Ensure Ash relationships are rich enough to describe the UI tree.
 
-    [ ] 14.2.1 Task - Parent/child and companion semantics
+    [x] 14.2.1 Task - Parent/child and companion semantics
     Model composition explicitly in resource relationships.
 
-      [ ] 14.2.1.1 Subtask - Define parent/child nesting semantics
-      [ ] 14.2.1.2 Subtask - Define sibling/companion element semantics
-      [ ] 14.2.1.3 Subtask - Define optional slot or placement semantics where needed
-      [ ] 14.2.1.4 Subtask - Validate cycles, duplicates, and illegal placements
+      [x] 14.2.1.1 Subtask - Define parent/child nesting semantics
+      [x] 14.2.1.2 Subtask - Define sibling/companion element semantics
+      [x] 14.2.1.3 Subtask - Define optional slot or placement semantics where needed
+      [x] 14.2.1.4 Subtask - Validate cycles, duplicates, and illegal placements
 
-    [ ] 14.2.2 Task - Screen-scoped overlays
+    [x] 14.2.2 Task - Screen-scoped overlays
     Allow screen-local wrappers without collapsing the whole screen into one
     authored document.
 
-      [ ] 14.2.2.1 Subtask - Define screen-local wrappers and layout shell semantics
-      [ ] 14.2.2.2 Subtask - Define how screen-scoped bindings participate in the composed graph
-      [ ] 14.2.2.3 Subtask - Define how screen metadata flows into the composed output
-      [ ] 14.2.2.4 Subtask - Add parity tests for relational and mixed composition
+      [x] 14.2.2.1 Subtask - Define screen-local wrappers and layout shell semantics
+      [x] 14.2.2.2 Subtask - Define how screen-scoped bindings participate in the composed graph
+      [x] 14.2.2.3 Subtask - Define how screen metadata flows into the composed output
+      [x] 14.2.2.4 Subtask - Add parity tests for relational and mixed composition
 
   [ ] 14.3 Section - Removal Of Screen-Monolith Assumptions
     Clear out the assumptions introduced by the superseded document-first model.

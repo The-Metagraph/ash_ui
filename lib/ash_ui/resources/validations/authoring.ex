@@ -8,6 +8,8 @@ defmodule AshUI.Resources.Validations.Authoring do
 
   @allowed_screen_layouts [:default, :bare, :modal, :panel, :row, :column, :grid, :stack]
   @allowed_action_signals [:click, :change, :submit, :toggle, :input]
+  @allowed_relationship_kinds [:child, :companion]
+  @allowed_relationship_placements [:append, :prepend]
   @screen_binding_prefixes ["flash.", "screen.", "metadata."]
   @screen_binding_targets ["title"]
   @list_widgets MapSet.new(["list", "table", "info_list", "select"])
@@ -208,6 +210,42 @@ defmodule AshUI.Resources.Validations.Authoring do
     end
 
     action
+  end
+
+  @doc """
+  Validates one explicit relationship-composition declaration.
+  """
+  @spec validate_relationship_definition!(map()) :: map()
+  def validate_relationship_definition!(relationship) when is_map(relationship) do
+    name = Map.get(relationship, :name)
+    kind = Map.get(relationship, :kind, :child)
+    slot = Map.get(relationship, :slot, :default)
+    placement = Map.get(relationship, :placement, :append)
+    order = Map.get(relationship, :order)
+
+    validate_identifier!(name, "relationship name")
+
+    unless kind in @allowed_relationship_kinds do
+      raise ArgumentError,
+            "relationship #{inspect(name)} kind must be one of #{inspect(@allowed_relationship_kinds)}, got: #{inspect(kind)}"
+    end
+
+    unless (is_atom(slot) and not is_nil(slot)) or (is_binary(slot) and String.trim(slot) != "") do
+      raise ArgumentError,
+            "relationship #{inspect(name)} slot must be a non-empty atom or string, got: #{inspect(slot)}"
+    end
+
+    unless placement in @allowed_relationship_placements do
+      raise ArgumentError,
+            "relationship #{inspect(name)} placement must be one of #{inspect(@allowed_relationship_placements)}, got: #{inspect(placement)}"
+    end
+
+    if not (is_nil(order) or (is_integer(order) and order >= 0)) do
+      raise ArgumentError,
+            "relationship #{inspect(name)} order must be a non-negative integer when present, got: #{inspect(order)}"
+    end
+
+    relationship
   end
 
   @doc """

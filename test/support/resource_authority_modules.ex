@@ -13,6 +13,10 @@ defmodule AshUI.Test.ResourceAuthorityDomain do
     resource(AshUI.Test.ResourceAuthorityFormFieldElement)
     resource(AshUI.Test.ResourceAuthorityInputElement)
     resource(AshUI.Test.ResourceAuthorityButtonElement)
+    resource(AshUI.Test.RelationshipSemanticsBadgeElement)
+    resource(AshUI.Test.RelationshipSemanticsPanelElement)
+    resource(AshUI.Test.RelationshipOnlyScreen)
+    resource(AshUI.Test.RelationshipMixedScreen)
   end
 end
 
@@ -60,6 +64,29 @@ defmodule AshUI.Test.ResourceAuthorityHeroElement do
 
     has_many :details_companions, AshUI.Test.ResourceAuthorityInfoListElement do
       destination_attribute(:parent_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :stats do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+    end
+
+    relationship :meta_rows do
+      kind :child
+      slot :aside
+      placement :append
+      order 1
+    end
+
+    relationship :details_companions do
+      kind :companion
+      slot :aside
+      placement :append
+      order 2
     end
   end
 
@@ -146,6 +173,29 @@ defmodule AshUI.Test.ResourceAuthorityFormPanelElement do
 
     has_many :actions_companions, AshUI.Test.ResourceAuthorityButtonElement do
       destination_attribute(:parent_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :fields do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+    end
+
+    relationship :inputs do
+      kind :child
+      slot :body
+      placement :append
+      order 1
+    end
+
+    relationship :actions_companions do
+      kind :companion
+      slot :actions
+      placement :append
+      order 2
     end
   end
 
@@ -263,6 +313,22 @@ defmodule AshUI.Test.ResourceAuthorityScreen do
     end
   end
 
+  ui_relationships do
+    relationship :hero_elements do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+    end
+
+    relationship :form_panels do
+      kind :child
+      slot :body
+      placement :append
+      order 10
+    end
+  end
+
   ui_screen do
     layout :column
     route "/resource-authority"
@@ -294,4 +360,126 @@ defmodule AshUI.Test.ResourceAuthorityScreen do
       metadata %{scope: "screen"}
     end
   end
+end
+
+defmodule AshUI.Test.RelationshipSemanticsBadgeElement do
+  @moduledoc false
+
+  use AshUI.Test.ResourceAuthorityElementBase
+
+  ui_element do
+    type :badge
+    props %{label: "Leading"}
+    metadata %{id: "leading_badge", slot: "header", position: 0}
+  end
+end
+
+defmodule AshUI.Test.RelationshipSemanticsPanelElement do
+  @moduledoc false
+
+  use AshUI.Test.ResourceAuthorityElementBase
+
+  ui_element do
+    type :card
+    props %{title: "Body panel"}
+    metadata %{id: "body_panel", slot: "body", position: 10}
+  end
+end
+
+defmodule AshUI.Test.RelationshipSemanticsBaseScreen do
+  @moduledoc false
+
+  defmacro __using__(opts) do
+    inline_fragment = Keyword.get(opts, :inline_fragment)
+
+    quote do
+      use Ash.Resource,
+        domain: AshUI.Test.ResourceAuthorityDomain,
+        data_layer: Ash.DataLayer.Ets
+
+      use AshUI.Resource.DSL.Screen
+
+      ets do
+        private?(true)
+      end
+
+      attributes do
+        uuid_primary_key(:id)
+      end
+
+      actions do
+        defaults([:read])
+      end
+
+      relationships do
+        has_many :leading_badges, AshUI.Test.RelationshipSemanticsBadgeElement do
+          destination_attribute(:screen_id)
+        end
+
+        has_many :body_panels, AshUI.Test.RelationshipSemanticsPanelElement do
+          destination_attribute(:screen_id)
+        end
+      end
+
+      ui_relationships do
+        relationship :leading_badges do
+          kind :companion
+          slot :header
+          placement :prepend
+          order 0
+        end
+
+        relationship :body_panels do
+          kind :child
+          slot :body
+          placement :append
+          order 10
+        end
+      end
+
+      ui_screen do
+        layout :column
+        route "/relationship-semantics"
+        metadata %{title: "Relationship Semantics", audience: "tests"}
+        inline_fragment unquote(inline_fragment)
+      end
+
+      ui_screen_bindings do
+        binding :screen_title do
+          source %{resource: "Demo.Page", field: "title", id: "screen-1"}
+          target "title"
+          binding_type :value
+          transform %{default: "Relationship Semantics"}
+          metadata %{scope: "screen"}
+        end
+      end
+    end
+  end
+end
+
+defmodule AshUI.Test.RelationshipOnlyScreen do
+  @moduledoc false
+
+  use AshUI.Test.RelationshipSemanticsBaseScreen
+end
+
+defmodule AshUI.Test.RelationshipMixedScreen do
+  @moduledoc false
+
+  use AshUI.Test.RelationshipSemanticsBaseScreen,
+    inline_fragment: %{
+      type: "column",
+      props: %{spacing: 8},
+      children: [
+        %{
+          type: "text",
+          props: %{content: "Mixed shell"},
+          children: [],
+          signals: [],
+          metadata: %{id: "mixed_shell_label", source: "screen"}
+        }
+      ],
+      signals: [],
+      metadata: %{id: "mixed_shell", source: "screen"}
+    }
 end

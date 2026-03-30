@@ -608,6 +608,9 @@ defmodule AshUI.Compiler do
   end
 
   defp compile_authority_runtime_metadata(screen, document) do
+    screen_bindings = get_in(document, ["screen", "bindings"]) || []
+    inline_fragment = get_in(document, ["screen", "inline_fragment"])
+
     screen.metadata
     |> Map.new(fn {key, value} -> {to_string(key), value} end)
     |> Map.put("ash_ui", %{
@@ -618,10 +621,25 @@ defmodule AshUI.Compiler do
       },
       "resource_authority" => %{
         "screen_module" => get_in(document, ["screen", "module"]),
-        "composition_root_count" => length(get_in(document, ["composition", "roots"]) || [])
+        "composition_root_count" => length(get_in(document, ["composition", "roots"]) || []),
+        "composition_mode" => if(is_map(inline_fragment), do: "mixed", else: "relationships_only"),
+        "screen_binding_ids" => Enum.map(screen_bindings, &Map.get(&1, "id")),
+        "screen_shell" => screen_shell_metadata(inline_fragment)
       }
     })
     |> Map.put_new("title", get_in(document, ["screen", "metadata", "title"]))
+  end
+
+  defp screen_shell_metadata(nil), do: nil
+
+  defp screen_shell_metadata(fragment) when is_map(fragment) do
+    metadata = Map.get(fragment, "metadata", %{})
+
+    %{
+      "id" => Map.get(metadata, "id"),
+      "type" => Map.get(fragment, "type"),
+      "source" => "screen_inline_fragment"
+    }
   end
 
   # Cache statistics helpers

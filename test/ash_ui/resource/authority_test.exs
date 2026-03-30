@@ -7,6 +7,7 @@ defmodule AshUI.Resource.AuthorityTest do
   alias AshUI.Test.ResourceAuthorityFormPanelElement
   alias AshUI.Test.ResourceAuthorityHeroElement
   alias AshUI.Test.ResourceAuthorityInputElement
+  alias AshUI.Test.RelationshipMixedScreen
   alias AshUI.Test.ResourceAuthorityScreen
   alias AshUI.Test.ResourceAuthorityStatElement
   alias AshUI.Test.UIStorageFixtures
@@ -28,6 +29,11 @@ defmodule AshUI.Resource.AuthorityTest do
                ResourceAuthorityHeroElement,
                ResourceAuthorityFormPanelElement
              ]
+
+      assert Enum.map(edges, &Map.take(&1, [:name, :kind, :slot, :placement, :order])) == [
+               %{name: :hero_elements, kind: :child, slot: :body, placement: :append, order: 0},
+               %{name: :form_panels, kind: :child, slot: :body, placement: :append, order: 10}
+             ]
     end
 
     test "exposes element definitions, bindings, and actions from resource modules" do
@@ -46,6 +52,18 @@ defmodule AshUI.Resource.AuthorityTest do
                AshUI.Test.ResourceAuthorityFormFieldElement,
                ResourceAuthorityInputElement,
                ResourceAuthorityButtonElement
+             ]
+
+      assert Enum.map(form_edges, &Map.take(&1, [:name, :kind, :slot, :placement, :order])) == [
+               %{name: :fields, kind: :child, slot: :body, placement: :append, order: 0},
+               %{name: :inputs, kind: :child, slot: :body, placement: :append, order: 1},
+               %{
+                 name: :actions_companions,
+                 kind: :companion,
+                 slot: :actions,
+                 placement: :append,
+                 order: 2
+               }
              ]
     end
   end
@@ -97,6 +115,16 @@ defmodule AshUI.Resource.AuthorityTest do
       assert screen.unified_dsl["screen"]["bindings"] |> length() == 1
       assert screen.unified_dsl["composition"]["roots"] |> length() == 2
       assert screen.unified_dsl["elements"] |> length() == 8
+    end
+
+    test "stores screen-shell metadata for mixed composition screens" do
+      assert {:ok, attrs} =
+               Authority.screen_attrs(RelationshipMixedScreen,
+                 name: "mixed_relationship_authority_screen"
+               )
+
+      assert attrs.unified_dsl["screen"]["inline_fragment"]["metadata"]["id"] == "mixed_shell"
+      assert Enum.map(attrs.unified_dsl["screen"]["bindings"], & &1["id"]) == ["screen_title"]
     end
   end
 end

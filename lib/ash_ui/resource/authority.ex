@@ -249,7 +249,9 @@ defmodule AshUI.Resource.Authority do
       {:error, {:duplicate_composition_relationships, duplicates}}
     else
       edges
-      |> Enum.sort_by(fn edge -> {edge.order, Atom.to_string(edge.name)} end)
+      |> Enum.sort_by(fn edge ->
+        {placement_rank(edge.placement), edge.order, Atom.to_string(edge.name)}
+      end)
       |> Enum.reduce_while({:ok, []}, fn edge, {:ok, acc} ->
         case build_node(edge, ancestry) do
           {:ok, node} -> {:cont, {:ok, acc ++ [node]}}
@@ -258,6 +260,10 @@ defmodule AshUI.Resource.Authority do
       end)
     end
   end
+
+  defp placement_rank(:prepend), do: 0
+  defp placement_rank("prepend"), do: 0
+  defp placement_rank(_other), do: 1
 
   defp build_node(edge, ancestry) do
     if MapSet.member?(ancestry, edge.destination) do
@@ -323,8 +329,8 @@ defmodule AshUI.Resource.Authority do
       "name" => Atom.to_string(edge.name),
       "type" => encode_value(edge.type),
       "kind" => encode_value(edge.kind),
-      "slot" => edge.slot,
-      "placement" => edge.placement,
+      "slot" => encode_value(edge.slot),
+      "placement" => encode_value(edge.placement),
       "order" => edge.order
     }
   end
@@ -386,6 +392,7 @@ defmodule AshUI.Resource.Authority do
   end
 
   defp encode_value(value) when is_list(value), do: Enum.map(value, &encode_value/1)
+  defp encode_value(nil), do: nil
   defp encode_value(value) when is_atom(value), do: Atom.to_string(value)
   defp encode_value(value), do: value
 end

@@ -102,6 +102,35 @@ defmodule AshUI.LiveView.EventHandlerTest do
 
       assert {:noreply, _updated_socket} = EventHandler.handle_value_change(params, socket)
     end
+
+    test "requires the owning element identity for element-local bindings" do
+      socket =
+        build_socket(
+          ash_ui_bindings: %{
+            "binding1" => %{
+              id: "binding1",
+              target: "display_name",
+              element_id: "display-name-input",
+              metadata: %{
+                "owner_scope" => "element",
+                "owner_element_id" => "display-name-input"
+              },
+              value: "old"
+            }
+          },
+          ash_ui_user: build_user()
+        )
+
+      params = %{
+        "binding_id" => "binding1",
+        "element_id" => "other-input",
+        "target" => "display_name",
+        "value" => "new value"
+      }
+
+      assert {:noreply, updated_socket} = EventHandler.handle_value_change(params, socket)
+      assert updated_socket.assigns.flash.error =~ ":binding_not_found"
+    end
   end
 
   describe "handle_action_event/2" do
@@ -156,6 +185,68 @@ defmodule AshUI.LiveView.EventHandlerTest do
       assert {:reply, reply, updated_socket} = EventHandler.handle_action_event(params, socket)
       assert reply[:status] == :error
       assert is_map(updated_socket.assigns[:flash])
+    end
+
+    test "requires matching owning element identity for declared actions" do
+      socket =
+        build_socket(
+          ash_ui_bindings: %{
+            "save_profile" => %{
+              id: "save_profile",
+              target: "submit",
+              binding_type: :action,
+              element_id: "save-profile-button",
+              source: %{"resource" => "User", "action" => "create"},
+              metadata: %{
+                "owner_scope" => "element",
+                "owner_element_id" => "save-profile-button",
+                "owner_signal" => "click"
+              }
+            }
+          },
+          ash_ui_user: build_user()
+        )
+
+      params = %{
+        "action_id" => "save_profile",
+        "element_id" => "other-button",
+        "signal" => "click"
+      }
+
+      assert {:reply, reply, _updated_socket} = EventHandler.handle_action_event(params, socket)
+      assert reply[:status] == :error
+      assert reply[:reason] == ":binding_not_found"
+    end
+
+    test "requires matching declared signal for actions" do
+      socket =
+        build_socket(
+          ash_ui_bindings: %{
+            "save_profile" => %{
+              id: "save_profile",
+              target: "submit",
+              binding_type: :action,
+              element_id: "save-profile-button",
+              source: %{"resource" => "User", "action" => "create"},
+              metadata: %{
+                "owner_scope" => "element",
+                "owner_element_id" => "save-profile-button",
+                "owner_signal" => "submit"
+              }
+            }
+          },
+          ash_ui_user: build_user()
+        )
+
+      params = %{
+        "action_id" => "save_profile",
+        "element_id" => "save-profile-button",
+        "signal" => "click"
+      }
+
+      assert {:reply, reply, _updated_socket} = EventHandler.handle_action_event(params, socket)
+      assert reply[:status] == :error
+      assert reply[:reason] == ":binding_not_found"
     end
   end
 

@@ -244,7 +244,7 @@ defmodule LiveUI.Renderer do
     binding = find_binding(opts, iur["id"], "event")
 
     """
-    <button type="button" class="#{css_classes(["ash-button", "ash-button-#{variant}", prop_class(iur)])}"#{style_attr(prop_style(iur))} phx-click="#{event_name(event_prefix, :action)}"#{attr("phx-value-action_id", binding && binding["id"])}>#{label}</button>
+    <button type="button" class="#{css_classes(["ash-button", "ash-button-#{variant}", prop_class(iur)])}"#{style_attr(prop_style(iur))} phx-click="#{event_name(event_prefix, :action)}"#{attr("phx-value-action_id", binding && binding["id"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", binding_signal(binding, "click"))}>#{label}</button>
     """
   end
 
@@ -261,7 +261,7 @@ defmodule LiveUI.Renderer do
     binding = find_binding(opts, iur["id"], "bidirectional")
 
     """
-    <textarea class="#{css_classes(["ash-textarea", prop_class(iur)])}" name="#{name}" rows="#{rows}" placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}>#{value}</textarea>
+    <textarea class="#{css_classes(["ash-textarea", prop_class(iur)])}" name="#{name}" rows="#{rows}" placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}>#{value}</textarea>
     """
   end
 
@@ -272,7 +272,7 @@ defmodule LiveUI.Renderer do
     binding = find_binding(opts, iur["id"], "bidirectional")
 
     """
-    <input type="checkbox" class="#{css_classes(["ash-checkbox", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))}#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])} />
+    <input type="checkbox" class="#{css_classes(["ash-checkbox", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))}#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
     """
   end
 
@@ -294,7 +294,7 @@ defmodule LiveUI.Renderer do
       end)
 
     """
-    <select class="#{css_classes(["ash-select", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))} phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}>
+    <select class="#{css_classes(["ash-select", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))} phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}>
       #{options_html}
     </select>
     """
@@ -336,7 +336,7 @@ defmodule LiveUI.Renderer do
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
 
     """
-    <input type="#{type}" class="#{css_classes(["ash-#{css_base}", prop_class(iur)])}" name="#{name}" value="#{value}" placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])} />
+    <input type="#{type}" class="#{css_classes(["ash-#{css_base}", prop_class(iur)])}" name="#{name}" value="#{value}" placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
     """
   end
 
@@ -346,6 +346,13 @@ defmodule LiveUI.Renderer do
     |> Enum.find(fn binding ->
       binding["element_id"] == element_id and binding["type"] == type
     end)
+  end
+
+  defp binding_signal(nil, default), do: default
+
+  defp binding_signal(binding, default) do
+    metadata = Map.get(binding, "metadata", %{})
+    Map.get(metadata, "owner_signal") || Map.get(metadata, "signal") || default
   end
 
   defp prop_class(iur), do: Map.get(iur["props"] || %{}, "class")

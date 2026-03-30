@@ -450,11 +450,13 @@ defmodule AshUI.Compiler do
       |> get_in(["composition", "roots"])
       |> List.wrap()
 
+    screen_module = get_in(document, ["screen", "module"])
+
     screen_bindings =
       document
       |> get_in(["screen", "bindings"])
       |> List.wrap()
-      |> Enum.map(&compile_screen_binding(&1, screen.id))
+      |> Enum.map(&compile_screen_binding(&1, screen.id, screen_module))
 
     Enum.reduce(Enum.with_index(roots), {[], screen_bindings}, fn {node, index},
                                                                   {children, bindings} ->
@@ -488,12 +490,12 @@ defmodule AshUI.Compiler do
     element_bindings =
       element
       |> Map.get("bindings", [])
-      |> Enum.map(&compile_element_binding(&1, screen.id, element_id))
+      |> Enum.map(&compile_element_binding(&1, screen.id, element_id, module_ref, kind))
 
     action_bindings =
       element
       |> Map.get("actions", [])
-      |> Enum.map(&compile_action_binding(&1, screen.id, element_id))
+      |> Enum.map(&compile_action_binding(&1, screen.id, element_id, module_ref, kind))
 
     metadata =
       dsl
@@ -552,37 +554,71 @@ defmodule AshUI.Compiler do
     )
   end
 
-  defp compile_screen_binding(binding, screen_id) do
+  defp compile_screen_binding(binding, screen_id, screen_module) do
     binding
     |> normalize_snapshot()
     |> Map.put("binding_type", normalize_binding_type(Map.get(binding, "binding_type")))
     |> Map.put("screen_id", screen_id)
     |> Map.put("element_id", nil)
     |> Map.put("id", runtime_identifier(Map.get(binding, "id")))
-    |> Map.put("metadata", normalize_snapshot(Map.get(binding, "metadata", %{})))
+    |> Map.put(
+      "metadata",
+      owner_metadata(binding, %{
+        "owner_scope" => "screen",
+        "owner_module" => screen_module,
+        "owner_signal" => nil
+      })
+    )
     |> Map.put("transform", normalize_snapshot(Map.get(binding, "transform", %{})))
   end
 
-  defp compile_element_binding(binding, screen_id, element_id) do
+  defp compile_element_binding(binding, screen_id, element_id, module_ref, widget_type) do
     binding
     |> normalize_snapshot()
     |> Map.put("binding_type", normalize_binding_type(Map.get(binding, "binding_type")))
     |> Map.put("screen_id", screen_id)
     |> Map.put("element_id", element_id)
     |> Map.put("id", runtime_identifier(Map.get(binding, "id")))
-    |> Map.put("metadata", normalize_snapshot(Map.get(binding, "metadata", %{})))
+    |> Map.put(
+      "metadata",
+      owner_metadata(binding, %{
+        "owner_scope" => "element",
+        "owner_module" => module_ref,
+        "owner_element_id" => element_id,
+        "owner_widget_type" => kind_to_iur_type(widget_type),
+        "owner_signal" => nil
+      })
+    )
     |> Map.put("transform", normalize_snapshot(Map.get(binding, "transform", %{})))
   end
 
-  defp compile_action_binding(action, screen_id, element_id) do
+  defp compile_action_binding(action, screen_id, element_id, module_ref, widget_type) do
     action
     |> normalize_snapshot()
     |> Map.put("binding_type", :action)
     |> Map.put("screen_id", screen_id)
     |> Map.put("element_id", element_id)
     |> Map.put("id", runtime_identifier(Map.get(action, "id")))
-    |> Map.put("metadata", normalize_snapshot(Map.get(action, "metadata", %{})))
+    |> Map.put(
+      "metadata",
+      owner_metadata(action, %{
+        "owner_scope" => "element",
+        "owner_module" => module_ref,
+        "owner_element_id" => element_id,
+        "owner_widget_type" => kind_to_iur_type(widget_type),
+        "owner_signal" => normalize_snapshot(Map.get(action, "signal"))
+      })
+    )
     |> Map.put("transform", normalize_snapshot(Map.get(action, "transform", %{})))
+  end
+
+  defp owner_metadata(binding_or_action, ownership) do
+    binding_or_action
+    |> Map.get("metadata", %{})
+    |> normalize_snapshot()
+    |> Map.merge(ownership, fn _key, stored, override ->
+      if is_nil(override), do: stored, else: override
+    end)
   end
 
   defp authority_element_id(dsl, module_ref, path) do

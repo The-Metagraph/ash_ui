@@ -36,24 +36,24 @@ Back to index: [README](./README.md)
       [x] 15.1.2.3 Subtask - Merge lowered fragments back into one resource-derived graph
       [x] 15.1.2.4 Subtask - Add deterministic IDs and stable cache keys for graph-derived nodes
 
-  [ ] 15.2 Section - Binding And Runtime Refactor
+  [x] 15.2 Section - Binding And Runtime Refactor
     Align runtime hydration and event handling with resource-local authorship.
 
-    [ ] 15.2.1 Task - Resource-local binding extraction
+    [x] 15.2.1 Task - Resource-local binding extraction
     Hydrate bindings from the owning resources instead of detached monoliths.
 
-      [ ] 15.2.1.1 Subtask - Extract element-local bindings with their owning element identity
-      [ ] 15.2.1.2 Subtask - Extract screen-scoped bindings separately
-      [ ] 15.2.1.3 Subtask - Preserve signal/action locality through hydration
-      [ ] 15.2.1.4 Subtask - Remove runtime assumptions tied to screen-document binding metadata
+      [x] 15.2.1.1 Subtask - Extract element-local bindings with their owning element identity
+      [x] 15.2.1.2 Subtask - Extract screen-scoped bindings separately
+      [x] 15.2.1.3 Subtask - Preserve signal/action locality through hydration
+      [x] 15.2.1.4 Subtask - Remove runtime assumptions tied to screen-document binding metadata
 
-    [ ] 15.2.2 Task - Event routing realignment
+    [x] 15.2.2 Task - Event routing realignment
     Route events back to the owning element or screen resource context.
 
-      [ ] 15.2.2.1 Subtask - Route user events through graph-derived ownership metadata
-      [ ] 15.2.2.2 Subtask - Execute declared actions against the owning resource/action boundary
-      [ ] 15.2.2.3 Subtask - Preserve authorization and error handling in the new routing path
-      [ ] 15.2.2.4 Subtask - Add integration tests for event locality and ownership
+      [x] 15.2.2.1 Subtask - Route user events through graph-derived ownership metadata
+      [x] 15.2.2.2 Subtask - Execute declared actions against the owning resource/action boundary
+      [x] 15.2.2.3 Subtask - Preserve authorization and error handling in the new routing path
+      [x] 15.2.2.4 Subtask - Add integration tests for event locality and ownership
 
   [ ] 15.3 Section - Hard Removal Of Superseded Compiler Paths
     Remove or rewrite compiler paths that only exist for the detour architecture.

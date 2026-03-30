@@ -17,24 +17,24 @@ Back to index: [README](./README.md)
   Restore screen composition through Ash relationships while retaining optional
   inline DSL for glue and layout scaffolding.
 
-  [ ] 14.1 Section - Screen Resource Composition Model
+  [x] 14.1 Section - Screen Resource Composition Model
     Define the screen as a relationship-driven composition root.
 
-    [ ] 14.1.1 Task - Define primary screen-to-element composition
+    [x] 14.1.1 Task - Define primary screen-to-element composition
     Make the screen/resource graph the normative source of composition.
 
-      [ ] 14.1.1.1 Subtask - Define how screens reference primary child element resources
-      [ ] 14.1.1.2 Subtask - Define ordering and placement semantics on those relationships
-      [ ] 14.1.1.3 Subtask - Define how nested element relationships contribute to screen composition
-      [ ] 14.1.1.4 Subtask - Add validation rules for illegal composition graphs
+      [x] 14.1.1.1 Subtask - Define how screens reference primary child element resources
+      [x] 14.1.1.2 Subtask - Define ordering and placement semantics on those relationships
+      [x] 14.1.1.3 Subtask - Define how nested element relationships contribute to screen composition
+      [x] 14.1.1.4 Subtask - Add validation rules for illegal composition graphs
 
-    [ ] 14.1.2 Task - Define inline screen composition
+    [x] 14.1.2 Task - Define inline screen composition
     Preserve direct screen DSL for cases where another resource would be noise.
 
-      [ ] 14.1.2.1 Subtask - Define allowed inline screen DSL use cases
-      [ ] 14.1.2.2 Subtask - Define merge semantics between inline fragments and related element resources
-      [ ] 14.1.2.3 Subtask - Define precedence and conflict rules
-      [ ] 14.1.2.4 Subtask - Add tests for mixed relational and inline composition
+      [x] 14.1.2.1 Subtask - Define allowed inline screen DSL use cases
+      [x] 14.1.2.2 Subtask - Define merge semantics between inline fragments and related element resources
+      [x] 14.1.2.3 Subtask - Define precedence and conflict rules
+      [x] 14.1.2.4 Subtask - Add tests for mixed relational and inline composition
 
   [ ] 14.2 Section - Relationship Semantics
     Ensure Ash relationships are rich enough to describe the UI tree.

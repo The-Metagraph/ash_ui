@@ -99,8 +99,9 @@ defmodule AshUI.Resources.ScreenTest do
                    name: "invalid_resource_authority_document",
                    unified_dsl: %{
                      "format" => "ash_ui/resource_authority",
-                     "version" => 1,
+                     "version" => 2,
                      "screen" => %{},
+                     "composition" => %{"roots" => []},
                      "elements" => []
                    },
                    layout: :row

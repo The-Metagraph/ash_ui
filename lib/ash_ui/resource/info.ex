@@ -3,6 +3,16 @@ defmodule AshUI.Resource.Info do
   Introspection helpers for resource-local Ash UI authoring modules.
   """
 
+  @type composition_edge :: %{
+          name: atom(),
+          destination: module(),
+          type: atom() | nil,
+          kind: :child | :companion,
+          slot: String.t(),
+          placement: String.t(),
+          order: non_neg_integer()
+        }
+
   @doc """
   Returns the Ash UI authoring role exposed by a resource module.
   """
@@ -85,5 +95,94 @@ defmodule AshUI.Resource.Info do
       other ->
         {:error, {:invalid_element_resource, module, other}}
     end
+  end
+
+  @doc """
+  Returns the composition relationships declared by a screen or element module.
+
+  Composition edges are the `has_one` / `has_many` relationships that point at
+  other authoritative element resources.
+  """
+  @spec composition_edges(module()) :: {:ok, [composition_edge()]} | {:error, term()}
+  def composition_edges(module) when is_atom(module) do
+    case resource_role(module) do
+      role when role in [:screen, :element] ->
+        relationships =
+          module
+          |> Ash.Resource.Info.relationships()
+          |> Enum.with_index()
+          |> Enum.reduce([], fn {relationship, index}, acc ->
+            case composition_edge(module, relationship, index) do
+              nil -> acc
+              edge -> acc ++ [edge]
+            end
+          end)
+
+        {:ok, relationships}
+
+      other ->
+        {:error, {:invalid_authority_resource, module, other}}
+    end
+  end
+
+  @doc """
+  Returns the inline fragment owned by a screen resource module.
+  """
+  @spec screen_inline_fragment(module()) :: {:ok, map() | nil} | {:error, term()}
+  def screen_inline_fragment(module) when is_atom(module) do
+    with {:ok, definition} <- screen_definition(module) do
+      {:ok, Map.get(definition, :inline_fragment)}
+    end
+  end
+
+  defp composition_edge(_module, relationship, index) do
+    destination = Map.get(relationship, :destination)
+    type = Map.get(relationship, :type)
+
+    if type in [:has_many, :has_one] and resource_role(destination) == :element do
+      {:ok, definition} = element_definition(destination)
+      metadata = Map.get(definition, :metadata, %{})
+
+      %{
+        name: Map.get(relationship, :name),
+        destination: destination,
+        type: type,
+        kind: relationship_kind(relationship),
+        slot: relationship_slot(metadata),
+        placement: relationship_placement(metadata),
+        order: relationship_order(metadata, index)
+      }
+    end
+  end
+
+  defp relationship_kind(relationship) do
+    name = relationship |> Map.get(:name) |> to_string()
+
+    if String.contains?(name, "companion") do
+      :companion
+    else
+      :child
+    end
+  end
+
+  defp relationship_slot(metadata) do
+    metadata_value(metadata, :slot) ||
+      metadata_value(metadata, :section) ||
+      "default"
+  end
+
+  defp relationship_placement(metadata) do
+    metadata_value(metadata, :placement) || "append"
+  end
+
+  defp relationship_order(metadata, fallback) do
+    case metadata_value(metadata, :order) || metadata_value(metadata, :position) do
+      value when is_integer(value) and value >= 0 -> value
+      _other -> fallback
+    end
+  end
+
+  defp metadata_value(metadata, key) when is_map(metadata) do
+    Map.get(metadata, key) || Map.get(metadata, to_string(key))
   end
 end

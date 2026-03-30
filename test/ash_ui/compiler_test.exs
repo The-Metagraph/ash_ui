@@ -123,7 +123,7 @@ defmodule AshUI.CompilerTest do
                  }
                )
 
-      assert Exception.message(error) =~ "resource_authority"
+      assert Exception.message(error) =~ "authoring must be a map"
     end
   end
 

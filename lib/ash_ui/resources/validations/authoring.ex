@@ -44,7 +44,6 @@ defmodule AshUI.Resources.Validations.Authoring do
     layout = Map.get(definition, :layout, :default)
     route = Map.get(definition, :route)
     metadata = Map.get(definition, :metadata, %{})
-    elements = Map.get(definition, :elements, [])
     inline_fragment = Map.get(definition, :inline_fragment)
 
     unless layout in @allowed_screen_layouts do
@@ -60,7 +59,6 @@ defmodule AshUI.Resources.Validations.Authoring do
       raise ArgumentError, "ui_screen metadata must be a map, got: #{inspect(metadata)}"
     end
 
-    validate_module_list!(elements, "ui_screen elements")
     validate_inline_fragment!(inline_fragment, "ui_screen inline_fragment")
 
     definition
@@ -75,7 +73,6 @@ defmodule AshUI.Resources.Validations.Authoring do
     props = Map.get(definition, :props, %{})
     variants = Map.get(definition, :variants, [])
     metadata = Map.get(definition, :metadata, %{})
-    children = Map.get(definition, :children, [])
 
     normalized_type = normalize_widget_type(type)
 
@@ -95,8 +92,6 @@ defmodule AshUI.Resources.Validations.Authoring do
     unless is_map(metadata) do
       raise ArgumentError, "ui_element metadata must be a map, got: #{inspect(metadata)}"
     end
-
-    validate_module_list!(children, "ui_element children")
 
     definition
   end

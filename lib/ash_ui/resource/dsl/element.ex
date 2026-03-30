@@ -88,7 +88,7 @@ defmodule AshUI.Resource.DSL.Element do
     Helpers.extract_literal_entries!(
       block,
       caller,
-      [:type, :props, :variants, :metadata, :children],
+      [:type, :props, :variants, :metadata],
       "ui_element"
     )
   end

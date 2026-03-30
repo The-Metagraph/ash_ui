@@ -74,7 +74,7 @@ defmodule AshUI.Resource.DSL.Screen do
     Helpers.extract_literal_entries!(
       block,
       caller,
-      [:layout, :route, :metadata, :elements, :inline_fragment],
+      [:layout, :route, :metadata, :inline_fragment],
       "ui_screen"
     )
   end

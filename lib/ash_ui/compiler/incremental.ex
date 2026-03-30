@@ -10,7 +10,6 @@ defmodule AshUI.Compiler.Incremental do
   require Logger
 
   alias AshUI.Config
-  alias AshUI.Authoring.Document
   alias AshUI.Compiler
   alias AshUI.Resource.Authority
 
@@ -332,88 +331,53 @@ defmodule AshUI.Compiler.Incremental do
   end
 
   defp authored_element_ids(%{unified_dsl: unified_dsl}) do
-    cond do
-      Document.authoring_document?(unified_dsl) ->
-        unified_dsl
-        |> get_in(["authoring", "document", "compiler_listing", "trace", "compiled_element_ids"])
-        |> List.wrap()
-        |> Enum.reject(&is_nil/1)
-        |> Enum.map(&to_string/1)
-
-      Authority.authority_payload?(unified_dsl) ->
-        unified_dsl
-        |> Map.get("elements", [])
-        |> Enum.map(&authority_element_id/1)
-        |> Enum.reject(&is_nil/1)
-
-      true ->
-        []
+    if Authority.authority_payload?(unified_dsl) do
+      unified_dsl
+      |> Map.get("elements", [])
+      |> Enum.map(&authority_element_id/1)
+      |> Enum.reject(&is_nil/1)
+    else
+      []
     end
   end
 
   defp authored_element_ids(_screen), do: []
 
-  defp authored_binding_dependencies(%{unified_dsl: unified_dsl} = screen) do
-    authored_elements = MapSet.new(authored_element_ids(screen))
-
-    cond do
-      Document.authoring_document?(unified_dsl) ->
-        Document.binding_metadata(unified_dsl)
-        |> Enum.reduce({%{}, %{}}, fn {binding_id, metadata}, {e_to_b, b_to_e} ->
-          binding_id = to_string(binding_id)
-
-          element_id =
-            metadata
-            |> Map.get("element_id", Map.get(metadata, :element_id, binding_id))
-            |> to_string()
-
-          if MapSet.member?(authored_elements, element_id) do
-            {
-              Map.update(e_to_b, element_id, [binding_id], fn ids ->
-                Enum.uniq([binding_id | ids])
-              end),
-              Map.put(b_to_e, binding_id, element_id)
-            }
-          else
+  defp authored_binding_dependencies(%{unified_dsl: unified_dsl}) do
+    if Authority.authority_payload?(unified_dsl) do
+      unified_dsl
+      |> Map.get("elements", [])
+      |> Enum.reduce({%{}, %{}}, fn element, {e_to_b, b_to_e} ->
+        case authority_element_id(element) do
+          nil ->
             {e_to_b, b_to_e}
-          end
-        end)
 
-      Authority.authority_payload?(unified_dsl) ->
-        unified_dsl
-        |> Map.get("elements", [])
-        |> Enum.reduce({%{}, %{}}, fn element, {e_to_b, b_to_e} ->
-          case authority_element_id(element) do
-            nil ->
-              {e_to_b, b_to_e}
+          element_id ->
+            binding_ids =
+              element
+              |> Map.get("bindings", [])
+              |> Enum.map(&authority_binding_id/1)
+              |> Enum.reject(&is_nil/1)
 
-            element_id ->
-              binding_ids =
-                element
-                |> Map.get("bindings", [])
-                |> Enum.map(&authority_binding_id/1)
-                |> Enum.reject(&is_nil/1)
-
-              updated_e_to_b =
-                if binding_ids == [] do
-                  e_to_b
-                else
-                  Map.update(e_to_b, element_id, binding_ids, fn ids ->
-                    Enum.uniq(ids ++ binding_ids)
-                  end)
-                end
-
-              updated_b_to_e =
-                Enum.reduce(binding_ids, b_to_e, fn binding_id, acc ->
-                  Map.put(acc, binding_id, element_id)
+            updated_e_to_b =
+              if binding_ids == [] do
+                e_to_b
+              else
+                Map.update(e_to_b, element_id, binding_ids, fn ids ->
+                  Enum.uniq(ids ++ binding_ids)
                 end)
+              end
 
-              {updated_e_to_b, updated_b_to_e}
-          end
-        end)
+            updated_b_to_e =
+              Enum.reduce(binding_ids, b_to_e, fn binding_id, acc ->
+                Map.put(acc, binding_id, element_id)
+              end)
 
-      true ->
-        {%{}, %{}}
+            {updated_e_to_b, updated_b_to_e}
+        end
+      end)
+    else
+      {%{}, %{}}
     end
   end
 

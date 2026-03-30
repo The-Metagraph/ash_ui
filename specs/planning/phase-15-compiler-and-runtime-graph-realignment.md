@@ -55,16 +55,16 @@ Back to index: [README](./README.md)
       [x] 15.2.2.3 Subtask - Preserve authorization and error handling in the new routing path
       [x] 15.2.2.4 Subtask - Add integration tests for event locality and ownership
 
-  [ ] 15.3 Section - Hard Removal Of Superseded Compiler Paths
+  [x] 15.3 Section - Hard Removal Of Superseded Compiler Paths
     Remove or rewrite compiler paths that only exist for the detour architecture.
 
-    [ ] 15.3.1 Task - Remove screen-document authority assumptions
+    [x] 15.3.1 Task - Remove screen-document authority assumptions
     Strip out the dead-end architecture rather than carrying it forever.
 
-      [ ] 15.3.1.1 Subtask - Identify compiler entry points that assume monolithic screen documents
-      [ ] 15.3.1.2 Subtask - Remove or rewrite those entry points without compatibility shims
-      [ ] 15.3.1.3 Subtask - Update caching, telemetry, and conformance expectations
-      [ ] 15.3.1.4 Subtask - Document the hard break in release notes and migration guidance
+      [x] 15.3.1.1 Subtask - Identify compiler entry points that assume monolithic screen documents
+      [x] 15.3.1.2 Subtask - Remove or rewrite those entry points without compatibility shims
+      [x] 15.3.1.3 Subtask - Update caching, telemetry, and conformance expectations
+      [x] 15.3.1.4 Subtask - Document the hard break in release notes and migration guidance
 
   [ ] 15.4 Section - Phase 15 Integration Tests
     Validate compilation and runtime behavior end to end under the restored

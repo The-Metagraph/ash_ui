@@ -12,6 +12,7 @@ defmodule AshUI.Compiler.Incremental do
   alias AshUI.Config
   alias AshUI.Authoring.Document
   alias AshUI.Compiler
+  alias AshUI.Resource.Authority
 
   @type dependency_graph :: %{
           screen_to_elements: %{String.t() => [String.t()]},
@@ -311,14 +312,22 @@ defmodule AshUI.Compiler.Incremental do
   defp screen_resource?(_screen, _opts), do: false
 
   defp authored_element_ids(%{unified_dsl: unified_dsl}) do
-    if Document.authoring_document?(unified_dsl) do
-      unified_dsl
-      |> get_in(["authoring", "document", "compiler_listing", "trace", "compiled_element_ids"])
-      |> List.wrap()
-      |> Enum.reject(&is_nil/1)
-      |> Enum.map(&to_string/1)
-    else
-      []
+    cond do
+      Document.authoring_document?(unified_dsl) ->
+        unified_dsl
+        |> get_in(["authoring", "document", "compiler_listing", "trace", "compiled_element_ids"])
+        |> List.wrap()
+        |> Enum.reject(&is_nil/1)
+        |> Enum.map(&to_string/1)
+
+      Authority.authority_payload?(unified_dsl) ->
+        unified_dsl
+        |> Map.get("elements", [])
+        |> Enum.map(&authority_element_id/1)
+        |> Enum.reject(&is_nil/1)
+
+      true ->
+        []
     end
   end
 
@@ -327,33 +336,90 @@ defmodule AshUI.Compiler.Incremental do
   defp authored_binding_dependencies(%{unified_dsl: unified_dsl} = screen) do
     authored_elements = MapSet.new(authored_element_ids(screen))
 
-    if Document.authoring_document?(unified_dsl) do
-      Document.binding_metadata(unified_dsl)
-      |> Enum.reduce({%{}, %{}}, fn {binding_id, metadata}, {e_to_b, b_to_e} ->
-        binding_id = to_string(binding_id)
+    cond do
+      Document.authoring_document?(unified_dsl) ->
+        Document.binding_metadata(unified_dsl)
+        |> Enum.reduce({%{}, %{}}, fn {binding_id, metadata}, {e_to_b, b_to_e} ->
+          binding_id = to_string(binding_id)
 
-        element_id =
-          metadata
-          |> Map.get("element_id", Map.get(metadata, :element_id, binding_id))
-          |> to_string()
+          element_id =
+            metadata
+            |> Map.get("element_id", Map.get(metadata, :element_id, binding_id))
+            |> to_string()
 
-        if MapSet.member?(authored_elements, element_id) do
-          {
-            Map.update(e_to_b, element_id, [binding_id], fn ids ->
-              Enum.uniq([binding_id | ids])
-            end),
-            Map.put(b_to_e, binding_id, element_id)
-          }
-        else
-          {e_to_b, b_to_e}
-        end
-      end)
-    else
-      {%{}, %{}}
+          if MapSet.member?(authored_elements, element_id) do
+            {
+              Map.update(e_to_b, element_id, [binding_id], fn ids ->
+                Enum.uniq([binding_id | ids])
+              end),
+              Map.put(b_to_e, binding_id, element_id)
+            }
+          else
+            {e_to_b, b_to_e}
+          end
+        end)
+
+      Authority.authority_payload?(unified_dsl) ->
+        unified_dsl
+        |> Map.get("elements", [])
+        |> Enum.reduce({%{}, %{}}, fn element, {e_to_b, b_to_e} ->
+          case authority_element_id(element) do
+            nil ->
+              {e_to_b, b_to_e}
+
+            element_id ->
+              binding_ids =
+                element
+                |> Map.get("bindings", [])
+                |> Enum.map(&authority_binding_id/1)
+                |> Enum.reject(&is_nil/1)
+
+              updated_e_to_b =
+                if binding_ids == [] do
+                  e_to_b
+                else
+                  Map.update(e_to_b, element_id, binding_ids, fn ids ->
+                    Enum.uniq(ids ++ binding_ids)
+                  end)
+                end
+
+              updated_b_to_e =
+                Enum.reduce(binding_ids, b_to_e, fn binding_id, acc ->
+                  Map.put(acc, binding_id, element_id)
+                end)
+
+              {updated_e_to_b, updated_b_to_e}
+          end
+        end)
+
+      true ->
+        {%{}, %{}}
     end
   end
 
   defp authored_binding_dependencies(_screen), do: {%{}, %{}}
+
+  defp authority_element_id(element) when is_map(element) do
+    element
+    |> Map.get("dsl", %{})
+    |> Map.get("metadata", %{})
+    |> Map.get("id")
+    |> case do
+      nil -> nil
+      value -> to_string(value)
+    end
+  end
+
+  defp authority_element_id(_element), do: nil
+
+  defp authority_binding_id(binding) when is_map(binding) do
+    case Map.get(binding, "id") do
+      nil -> nil
+      value -> to_string(value)
+    end
+  end
+
+  defp authority_binding_id(_binding), do: nil
 
   defp find_cycles(graph) do
     # Use depth-first search to find cycles

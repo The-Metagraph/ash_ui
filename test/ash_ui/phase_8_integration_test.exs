@@ -4,20 +4,17 @@ defmodule AshUI.Phase8IntegrationTest do
   require Ash.Query
 
   alias AshUI.Authorization.Runtime
-  alias AshUI.Authoring.Migrator
   alias AshUI.Compiler
-  alias AshUI.DSL.Builder
   alias AshUI.Data, as: Domain
   alias AshUI.LiveView.EventHandler
   alias AshUI.LiveView.Integration
+  alias AshUI.Resource.Authority
   alias AshUI.Rendering.DesktopUIAdapter
   alias AshUI.Rendering.LiveUIAdapter
   alias AshUI.Rendering.ElmUIAdapter
   alias AshUI.Resources.Screen
   alias AshUI.Telemetry
-  alias AshUI.Test.RuntimeDomain
-  alias AshUI.Test.RuntimeFixtures
-  alias AshUI.Test.User
+  alias AshUI.Test.{ResourceAuthorityScreen, RuntimeDomain, RuntimeFixtures, User}
 
   @moduletag :integration
   @moduletag :conformance
@@ -316,49 +313,35 @@ defmodule AshUI.Phase8IntegrationTest do
   end
 
   defp create_screen(name_atom) do
-    {:ok, screen} =
-      Ash.create(
-        Screen,
-        Migrator.screen_attrs!(
-          Builder.column(
-            spacing: 12,
-            children: [
-              Builder.text("Phase 8 Screen", size: 18, weight: :bold),
-              Builder.button("Save", on_click: "save-profile")
-            ]
-          )
-          |> Builder.to_store(),
-          name: Atom.to_string(name_atom),
-          route: "/#{Atom.to_string(name_atom)}",
-          layout: :column,
-          metadata: %{"title" => "Phase 8"}
-        ),
-        domain: Domain
+    {:ok, attrs} =
+      Authority.screen_attrs(ResourceAuthorityScreen,
+        name: Atom.to_string(name_atom),
+        route: "/#{Atom.to_string(name_atom)}",
+        layout: :column,
+        metadata: %{"title" => "Phase 8"}
       )
+
+    {:ok, screen} = Domain.create(Screen, attrs: attrs)
 
     screen
   end
 
   defp in_memory_screen(name) do
+    {:ok, attrs} =
+      Authority.screen_attrs(ResourceAuthorityScreen,
+        name: name,
+        route: "/#{name}",
+        layout: :column,
+        metadata: %{"title" => "Phase 8"}
+      )
+
     %Screen{
       id: Ecto.UUID.generate(),
       name: name,
-      layout: :column,
-      version: 1,
-      unified_dsl:
-        Migrator.document!(
-          Builder.column(
-            spacing: 8,
-            children: [
-              Builder.text("In-memory screen"),
-              Builder.button("Compile")
-            ]
-          )
-          |> Builder.to_store(),
-          name: name,
-          layout: :column
-        ),
-      metadata: %{}
+      layout: attrs.layout,
+      version: attrs.version,
+      unified_dsl: attrs.unified_dsl,
+      metadata: attrs.metadata
     }
   end
 

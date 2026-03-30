@@ -82,17 +82,15 @@ defmodule AshUI.TelemetryTest do
       :telemetry.detach(end_handler_id)
     end)
 
+    attrs = ScreenDocumentFixtures.resource_screen_attrs("screen-telemetry", layout: :row)
+
     screen = %Screen{
       id: "screen-telemetry",
-      name: "Telemetry Screen",
-      unified_dsl:
-        ScreenDocumentFixtures.migrated_screen_document(
-          "screen-telemetry",
-          AshUI.DSL.Builder.row()
-        ),
-      metadata: %{},
-      layout: :row,
-      version: 1
+      name: attrs.name,
+      unified_dsl: attrs.unified_dsl,
+      metadata: attrs.metadata,
+      layout: attrs.layout,
+      version: attrs.version
     }
 
     assert {:ok, _compiled} = Compiler.compile(screen, use_cache: false)

@@ -1,11 +1,11 @@
 defmodule AshUI.Compiler.Phase6IntegrationTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Authoring.Migrator
   alias AshUI.Compiler
   alias AshUI.Compiler.Incremental
   alias AshUI.Compiler.Extensions
   alias AshUI.DSL.Builder
+  alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
 
@@ -102,7 +102,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
                  }
                )
 
-      assert Exception.message(error) =~ "Phase 10 ash_ui unified_ui document format"
+      assert Exception.message(error) =~ "ash_ui resource_authority format"
     end
 
     test "cache hit returns cached IUR" do
@@ -339,7 +339,7 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
                  }
                )
 
-      assert Exception.message(error) =~ "Phase 10 ash_ui unified_ui document format"
+      assert Exception.message(error) =~ "ash_ui resource_authority format"
     end
   end
 
@@ -365,14 +365,10 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
     end
   end
 
-  defp migrated_screen_attrs(name, dsl, opts \\ []) do
+  defp migrated_screen_attrs(name, _dsl, opts \\ []) do
     layout = Keyword.get(opts, :layout, :row)
     metadata = Keyword.get(opts, :metadata, %{})
 
-    Migrator.screen_attrs!(Builder.to_store(dsl),
-      name: name,
-      layout: layout,
-      metadata: metadata
-    )
+    ScreenDocumentFixtures.resource_screen_attrs(name, layout: layout, metadata: metadata)
   end
 end

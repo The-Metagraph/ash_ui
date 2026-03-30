@@ -270,11 +270,11 @@ end
 defmodule AshUI.Test.UIStorageFixtures do
   @moduledoc false
 
-  alias AshUI.Authoring.Migrator
+  alias AshUI.Config
+  alias AshUI.Data
   alias AshUI.Test.RuntimeFixtures
-  alias AshUI.Test.UIStorageBinding
+  alias AshUI.Test.ScreenDocumentFixtures
   alias AshUI.Test.UIStorageDomain
-  alias AshUI.Test.UIStorageElement
   alias AshUI.Test.UIStorageScreen
 
   def ui_storage_config do
@@ -292,45 +292,35 @@ defmodule AshUI.Test.UIStorageFixtures do
   def seed_screen! do
     runtime = RuntimeFixtures.seed!()
     suffix = System.unique_integer([:positive])
+    ui_storage = ui_storage_config()
+    screen_resource = Config.screen_resource(ui_storage)
+
+    attrs =
+      ScreenDocumentFixtures.resource_screen_attrs("ets_dashboard_#{suffix}",
+        route: "/ets-dashboard",
+        layout: :column,
+        metadata: %{"title" => "ETS Dashboard"},
+        binding_metadata: %{
+          "display_name_input" => %{
+            "element_id" => "display_name_input",
+            "source" => %{
+              "resource" => "User",
+              "field" => "name",
+              "id" => runtime.user.id
+            },
+            "binding_type" => :value,
+            "target" => "display_name"
+          }
+        }
+      )
 
     {:ok, screen} =
-      Ash.create(
-        UIStorageScreen,
-        Migrator.screen_attrs!(
-          %{"type" => "screen"},
-          name: "ets_dashboard_#{suffix}",
-          route: "/ets-dashboard",
-          layout: :column,
-          metadata: %{"title" => "ETS Dashboard"}
-        ),
-        domain: UIStorageDomain
+      Data.create(screen_resource,
+        ui_storage: ui_storage,
+        authorize?: false,
+        attrs: attrs
       )
 
-    {:ok, element} =
-      Ash.create(
-        UIStorageElement,
-        %{
-          screen_id: screen.id,
-          type: :textinput,
-          props: %{"label" => "Display name"},
-          position: 0
-        },
-        domain: UIStorageDomain
-      )
-
-    {:ok, binding} =
-      Ash.create(
-        UIStorageBinding,
-        %{
-          screen_id: screen.id,
-          element_id: element.id,
-          binding_type: :value,
-          target: "value",
-          source: %{"resource" => "User", "field" => "name", "id" => runtime.user.id}
-        },
-        domain: UIStorageDomain
-      )
-
-    %{runtime: runtime, screen: screen, element: element, binding: binding}
+    %{runtime: runtime, screen: screen, binding_id: "display_name_input"}
   end
 end

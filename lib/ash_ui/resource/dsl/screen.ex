@@ -5,13 +5,16 @@ defmodule AshUI.Resource.DSL.Screen do
 
   alias AshUI.Resource.DSL.Binding
   alias AshUI.Resource.DSL.Helpers
+  alias AshUI.Resource.DSL.Relationship
   alias AshUI.Resources.Validations.Authoring
 
   defmacro __using__(_opts) do
     quote do
       import unquote(__MODULE__)
+      import unquote(Relationship)
       Module.register_attribute(__MODULE__, :ash_ui_screen_definition, persist: true)
       Module.register_attribute(__MODULE__, :ash_ui_screen_bindings, persist: true)
+      Module.register_attribute(__MODULE__, :ash_ui_relationship_definitions, persist: true)
       @before_compile unquote(__MODULE__)
     end
   end
@@ -52,6 +55,7 @@ defmodule AshUI.Resource.DSL.Screen do
   defmacro __before_compile__(env) do
     definition = Module.get_attribute(env.module, :ash_ui_screen_definition) || %{}
     bindings = Module.get_attribute(env.module, :ash_ui_screen_bindings) || []
+    relationships = Module.get_attribute(env.module, :ash_ui_relationship_definitions) || %{}
 
     Authoring.validate_screen_authority!(definition, bindings)
 
@@ -59,12 +63,14 @@ defmodule AshUI.Resource.DSL.Screen do
       def __ash_ui_resource_role__, do: :screen
       def __ash_ui_screen_definition__, do: unquote(Macro.escape(definition))
       def __ash_ui_bindings__, do: unquote(Macro.escape(bindings))
+      def __ash_ui_relationships__, do: unquote(Macro.escape(relationships))
 
       def __ash_ui_authority__ do
         %{
           role: :screen,
           screen: __ash_ui_screen_definition__(),
-          bindings: __ash_ui_bindings__()
+          bindings: __ash_ui_bindings__(),
+          relationships: __ash_ui_relationships__()
         }
       end
     end
@@ -74,7 +80,7 @@ defmodule AshUI.Resource.DSL.Screen do
     Helpers.extract_literal_entries!(
       block,
       caller,
-      [:layout, :route, :metadata, :elements, :inline_fragment],
+      [:layout, :route, :metadata, :inline_fragment],
       "ui_screen"
     )
   end

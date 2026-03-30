@@ -127,9 +127,17 @@ defmodule AshUI.Phase13IntegrationTest do
 
     test "13.4.1.4 - superseded screen-document authoring helpers are removed" do
       refute Code.ensure_loaded?(AshUI.Authoring.Screen)
-      refute Code.ensure_loaded?(AshUI.Authoring.Document)
-      refute Code.ensure_loaded?(AshUI.Authoring.Migrator)
-      refute Code.ensure_loaded?(AshUI.Authoring.LegacyBuilder)
+
+      assert Code.ensure_loaded?(AshUI.Authoring.Document)
+      assert Code.ensure_loaded?(AshUI.Authoring.Migrator)
+      assert Code.ensure_loaded?(AshUI.Authoring.LegacyBuilder)
+
+      # These modules remain available only to normalize and validate persisted
+      # resource-authority payloads. They are no longer valid public authoring
+      # entry points once AshUI.Authoring.Screen is removed.
+      assert function_exported?(AshUI.Authoring.Document, :validate, 1)
+      assert function_exported?(AshUI.Authoring.Migrator, :document, 2)
+      assert function_exported?(AshUI.Authoring.LegacyBuilder, :signal, 2)
     end
   end
 

@@ -37,7 +37,7 @@ flowchart LR
         Screen["Configured screen resource"]
         Element["Configured element resource"]
         Binding["Configured binding resource"]
-        Authoring["AshUI.Authoring.Screen"]
+        Authoring["AshUI.Resource.Authority"]
     end
 
     subgraph Compilation["Compilation plane"]
@@ -87,13 +87,14 @@ flowchart LR
 
 The earlier specs describe first-class `UI.Screen`, `UI.Element`, and `UI.Binding` DSL-driven definitions. The implemented code still uses those resource concepts, but the operational center of gravity is now:
 
-1. Author screens through upstream `UnifiedUi.Dsl`.
-2. Persist the authored document in `Screen.unified_dsl`.
-3. Compile into `AshUI.Compilation.IUR` through the upstream compiler boundary.
+1. Author screens and elements as Ash resources using `AshUI.Resource.DSL.*`.
+2. Persist the relational authority payload in `Screen.unified_dsl`.
+3. Compile the composed graph into `AshUI.Compilation.IUR`.
 4. Convert into canonical renderer input.
 5. Mount and authorize through LiveView runtime helpers.
 
-That means contributors should treat `unified_dsl` plus compiler/runtime boundaries as the most important integration seam.
+That means contributors should treat resource relationships plus
+compiler/runtime boundaries as the most important integration seam.
 
 The built-in modules remain `AshUI.Domain`, `AshUI.Resources.Screen`, `AshUI.Resources.Element`, and `AshUI.Resources.Binding`, but framework code should treat those as defaults behind a UI storage configuration boundary rather than hard requirements.
 
@@ -107,22 +108,22 @@ Primary modules:
 - configured screen resource
 - configured element resource
 - configured binding resource
-- `AshUI.Authoring.Screen`
+- `AshUI.Resource.Authority`
 - `AshUI.DSL.Storage`
 
 Important details:
 
 - the default shipped storage backend is Postgres through `AshUI.Domain` and `AshUI.Repo`
 - the framework resolves storage modules through configuration
-- upstream `UnifiedUi.Dsl` is the authoritative authored DSL surface
+- Ash resource modules that use `AshUI.Resource.DSL.*` are the authoritative authored surface
 - `Screen` stores `name`, `route`, `layout`, `unified_dsl`, and metadata.
-- `Element` and `Binding` provide relational structure for querying and runtime behavior.
+- `Element` and `Binding` provide the primary relational structure for composition and runtime behavior.
 - updates increment `version`, which feeds cache and rollout safety checks.
 
 ## Compilation Plane
 
-The compilation plane turns persisted upstream-authored screen documents into
-internal IUR.
+The compilation plane turns persisted screen-authority payloads into internal
+IUR.
 
 Primary modules:
 
@@ -133,10 +134,10 @@ Primary modules:
 
 The active compilation path is:
 
-- compile from persisted `Screen.unified_dsl` documents authored through `UnifiedUi.Dsl`
+- compile from persisted `Screen.unified_dsl` authority payloads authored by screen and element resources
 
 Legacy builder-shaped documents are rejected at compile boundaries and only
-survive as explicit migration input to `AshUI.Authoring`.
+survive as explicit migration input.
 
 `AshUI.Compiler` also owns:
 

@@ -42,49 +42,99 @@ That is the default shipped setup. Ash UI can also be configured to use alternat
 
 ## Screen Records
 
-`AshUI.Resources.Screen` is the top-level container.
+`AshUI.Resources.Screen` is the top-level composition root.
 
 Important fields:
 
 - `name`: unique identifier used by LiveView integration
-- `unified_dsl`: stored screen tree for compiler-driven screens
+- `unified_dsl`: stored snapshot of the composed screen and element graph
 - `layout`: layout hint such as `:column` or `:row`
 - `route`: optional route string
 - `metadata`: free-form metadata
 - `active`: soft enablement flag
 - `version`: incremented on update
 
-Create a screen by authoring it through `UnifiedUi.Dsl`, then persisting the
-resulting document as a regular `Screen` record:
+Create a screen by defining a screen resource module and persisting its
+authority payload as a regular `Screen` record:
 
 ```elixir
 alias AshUI.Data, as: Domain
-alias AshUI.Authoring.Screen, as: AuthoringScreen
+alias AshUI.Resource.Authority
 alias AshUI.Resources.Screen
 
-defmodule MyApp.UI.Settings do
-  use UnifiedUi.Dsl
+defmodule MyApp.UI.Domain do
+  use Ash.Domain, validate_config_inclusion?: false
 
-  identity do
-    id(:settings)
-    title("Settings")
-    authored_ref([:my_app, :ui, :settings])
+  resources do
+    resource MyApp.UI.SettingsScreen
+    resource MyApp.UI.SettingsHeading
+  end
+end
+
+defmodule MyApp.UI.SettingsHeading do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Element
+
+  ets do
+    private?(true)
   end
 
-  composition do
-    root(:settings_root)
-    mode(:screen)
+  attributes do
+    uuid_primary_key(:id)
+    attribute(:screen_id, :uuid, allow_nil?: true)
+    attribute(:parent_id, :uuid, allow_nil?: true)
+  end
 
-    column :settings_shell do
-      text :settings_heading do
-        value("Settings")
-      end
+  actions do
+    defaults([:read])
+  end
+
+  ui_element do
+    type :text
+    props %{content: "Settings", size: 24}
+    metadata %{id: "settings_heading"}
+  end
+end
+
+defmodule MyApp.UI.SettingsScreen do
+  use Ash.Resource, domain: MyApp.UI.Domain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_many :heading_texts, MyApp.UI.SettingsHeading do
+      destination_attribute(:screen_id)
     end
+  end
+
+  ui_relationships do
+    relationship :heading_texts do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+    end
+  end
+
+  ui_screen do
+    route "/settings"
+    layout :column
   end
 end
 
 {:ok, attrs} =
-  AuthoringScreen.screen_attrs(MyApp.UI.Settings,
+  Authority.screen_attrs(MyApp.UI.SettingsScreen,
     route: "/settings",
     layout: :column
   )
@@ -92,9 +142,9 @@ end
 {:ok, screen} = Domain.create(Screen, attrs: attrs)
 ```
 
-Do not hand-author raw `unified_dsl` maps in application code. That shape now
-belongs to persisted upstream `UnifiedUi` documents, not Ash UI-specific
-builder payloads.
+Do not hand-author raw `unified_dsl` maps in application code. That shape is a
+persisted storage snapshot of the resource authority graph, not the primary
+authoring surface.
 
 Read a screen by name:
 
@@ -104,15 +154,16 @@ Read a screen by name:
 
 ## Element Records
 
-`AshUI.Resources.Element` holds atomic UI pieces associated with a screen.
+`AshUI.Resources.Element` holds the atomic authored UI pieces associated with a
+screen or parent element.
 
 Important fields:
 
 - `type`: widget or layout type such as `:text`, `:button`, or `:textinput`
 - `props`: renderer-facing properties
 - `variants`: style or behavior variants
-- `position`: ordering value inside a screen
-- `screen_id`: parent screen relationship
+- `screen_id`: optional top-level screen relationship
+- `parent_id`: optional parent element relationship in nested graphs
 
 Create two elements for a screen:
 
@@ -143,7 +194,7 @@ alias AshUI.Resources.Element
 
 ## Binding Records
 
-`AshUI.Resources.Binding` connects resources and UI targets.
+`AshUI.Resources.Binding` connects runtime resources and UI targets.
 
 Important fields:
 
@@ -193,12 +244,12 @@ The current resource relationships are:
 - Binding `belongs_to :screen`
 - Binding `belongs_to :element`
 
-This gives you two workable patterns:
+The normative pattern is:
 
-1. Put all structure in `Screen.unified_dsl` by persisting an upstream-authored `UnifiedUi.Dsl` module and use bindings for dynamic behavior.
-2. Keep explicit `Element` and `Binding` records for relational querying and incremental composition.
-
-Many current flows use both.
+1. express screen composition through Ash relationships between screen and element resources
+2. keep element-local bindings and actions on the element resource that owns the widget
+3. use `Screen.unified_dsl` as persisted compiler storage, not as the hand-authored source of truth
+4. reserve screen-level inline DSL for light shell wrappers or layout glue when another resource would be noise
 
 ## UI Storage Versus Binding Source Domains
 
@@ -239,7 +290,8 @@ active_bindings = Domain.read!(AshUI.Resources.Binding, filter: [screen_id: scre
 ## Practical Modeling Advice
 
 - Use `name` as the stable human-facing screen identifier.
-- Use `unified_dsl` for nested layout structure that would be awkward to model only with rows in SQL.
+- Use screen and element relationships as the primary composition language.
+- Use `unified_dsl` as persisted output, not an authoring shortcut.
 - Keep `props` renderer-neutral where possible.
 - Treat `metadata` as optional annotations, not core behavior.
 - Keep binding `source` maps explicit so authorization and runtime code can inspect them safely.

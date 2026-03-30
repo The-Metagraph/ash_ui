@@ -12,8 +12,9 @@ defmodule AshUI.Compiler do
   require Logger
 
   alias AshUI.Compilation.IUR
-  alias AshUI.Authoring.Document
   alias AshUI.Config
+  alias AshUI.Authoring.Document
+  alias AshUI.Resource.Authority
   alias AshUI.Telemetry
 
   @type compile_result :: {:ok, IUR.t()} | {:error, term()}
@@ -73,16 +74,28 @@ defmodule AshUI.Compiler do
   def compile_from_unified_dsl(screen, opts) when is_map(screen) do
     dsl = Map.get(screen, :unified_dsl)
 
-    with true <- screen_resource?(screen, opts),
-         true <- is_map(dsl),
-         {:ok, module} <- validate_dsl(dsl),
-         {:ok, compiled} <- compile_authored_document(module),
-         {:ok, ash_iur} <- compile_to_ash_iur(screen, compiled, dsl),
-         :ok <- IUR.validate(ash_iur) do
-      {:ok, ash_iur}
-    else
-      false -> {:error, :invalid_screen}
-      error -> error
+    cond do
+      not screen_resource?(screen, opts) ->
+        {:error, :invalid_screen}
+
+      not is_map(dsl) ->
+        {:error, :invalid_screen}
+
+      Authority.authority_payload?(dsl) ->
+        compile_from_resource_authority(screen, dsl)
+
+      Document.authoring_document?(dsl) ->
+        with {:ok, module} <- validate_dsl(dsl),
+             {:ok, compiled} <- compile_authored_document(module),
+             {:ok, ash_iur} <- compile_to_ash_iur(screen, compiled, dsl),
+             :ok <- IUR.validate(ash_iur) do
+          {:ok, ash_iur}
+        else
+          error -> error
+        end
+
+      true ->
+        {:error, {:invalid_screen_dsl, :unsupported_format}}
     end
   end
 
@@ -395,6 +408,238 @@ defmodule AshUI.Compiler do
       )
 
     {:ok, root_iur}
+  end
+
+  defp compile_from_resource_authority(screen, document) when is_map(screen) and is_map(document) do
+    with :ok <- Authority.validate_payload(document),
+         {:ok, element_index} <- authority_element_index(document),
+         {compiled_children, bindings} <- compile_authority_roots(document, screen, element_index),
+         merged_children <- merge_inline_screen_children(document, compiled_children),
+         root_iur <-
+           IUR.new(:screen,
+             id: screen.id,
+             name: screen.name,
+             attributes: %{
+               "layout" => screen.layout,
+               "route" => screen.route,
+               "unified_dsl" => screen.unified_dsl
+             },
+             children: merged_children,
+             bindings: bindings,
+             metadata: compile_authority_runtime_metadata(screen, document),
+             version: "v#{screen.version || 1}"
+           ),
+         :ok <- IUR.validate(root_iur) do
+      {:ok, root_iur}
+    end
+  end
+
+  defp authority_element_index(document) do
+    elements =
+      document
+      |> Map.get("elements", [])
+      |> List.wrap()
+
+    index =
+      Enum.reduce(elements, %{}, fn element, acc ->
+        Map.put(acc, Map.get(element, "module"), element)
+      end)
+
+    {:ok, index}
+  end
+
+  defp compile_authority_roots(document, screen, element_index) do
+    roots =
+      document
+      |> get_in(["composition", "roots"])
+      |> List.wrap()
+
+    screen_bindings =
+      document
+      |> get_in(["screen", "bindings"])
+      |> List.wrap()
+      |> Enum.map(&compile_screen_binding(&1, screen.id))
+
+    Enum.reduce(Enum.with_index(roots), {[], screen_bindings}, fn {node, index}, {children, bindings} ->
+      {compiled, updated_bindings} =
+        compile_authority_node(node, screen, element_index, [index], bindings)
+
+      {children ++ [compiled], updated_bindings}
+    end)
+  end
+
+  defp compile_authority_node(node, screen, element_index, path, bindings)
+       when is_map(node) and is_map(screen) do
+    module_ref = Map.get(node, "module")
+    relationship = Map.get(node, "relationship", %{})
+    element = Map.fetch!(element_index, module_ref)
+    dsl = Map.get(element, "dsl", %{})
+    kind = Map.get(dsl, "type")
+    element_id = authority_element_id(dsl, module_ref, path)
+
+    {children, bindings} =
+      node
+      |> Map.get("children", [])
+      |> Enum.with_index()
+      |> Enum.reduce({[], bindings}, fn {child, index}, {compiled_children, acc} ->
+        {compiled_child, updated_bindings} =
+          compile_authority_node(child, screen, element_index, path ++ [index], acc)
+
+        {compiled_children ++ [compiled_child], updated_bindings}
+      end)
+
+    element_bindings =
+      element
+      |> Map.get("bindings", [])
+      |> Enum.map(&compile_element_binding(&1, screen.id, element_id))
+
+    action_bindings =
+      element
+      |> Map.get("actions", [])
+      |> Enum.map(&compile_action_binding(&1, screen.id, element_id))
+
+    metadata =
+      dsl
+      |> Map.get("metadata", %{})
+      |> normalize_snapshot()
+      |> Map.put("authoring_module", module_ref)
+      |> Map.put("composition", normalize_snapshot(relationship))
+
+    props = Map.get(dsl, "props", %{}) |> normalize_snapshot()
+
+    compiled =
+      IUR.new(kind_to_iur_type(kind),
+        id: element_id,
+        name: element_id,
+        attributes: props,
+        props: props,
+        children: children,
+        metadata: metadata
+      )
+
+    {compiled, bindings ++ element_bindings ++ action_bindings}
+  end
+
+  defp merge_inline_screen_children(document, compiled_children) do
+    case get_in(document, ["screen", "inline_fragment"]) do
+      nil ->
+        compiled_children
+
+      fragment when is_map(fragment) ->
+        [compile_inline_fragment(fragment, compiled_children, ["screen_inline"])]
+    end
+  end
+
+  defp compile_inline_fragment(%{} = fragment, extra_children, path) do
+    type = Map.get(fragment, "type")
+    props = Map.get(fragment, "props", %{}) |> normalize_snapshot()
+    metadata = Map.get(fragment, "metadata", %{}) |> normalize_snapshot()
+    variants = Map.get(fragment, "variants", []) |> normalize_snapshot()
+    fragment_id = authority_inline_id(metadata, type, path)
+
+    inline_children =
+      fragment
+      |> Map.get("children", [])
+      |> Enum.with_index()
+      |> Enum.map(fn {child, index} ->
+        compile_inline_fragment(child, [], path ++ [index])
+      end)
+
+    IUR.new(kind_to_iur_type(type),
+      id: fragment_id,
+      name: fragment_id,
+      attributes: props,
+      props: props,
+      children: inline_children ++ extra_children,
+      metadata: Map.put(metadata, "variants", variants)
+    )
+  end
+
+  defp compile_screen_binding(binding, screen_id) do
+    binding
+    |> normalize_snapshot()
+    |> Map.put("binding_type", normalize_binding_type(Map.get(binding, "binding_type")))
+    |> Map.put("screen_id", screen_id)
+    |> Map.put("element_id", nil)
+    |> Map.put("id", runtime_identifier(Map.get(binding, "id")))
+    |> Map.put("metadata", normalize_snapshot(Map.get(binding, "metadata", %{})))
+    |> Map.put("transform", normalize_snapshot(Map.get(binding, "transform", %{})))
+  end
+
+  defp compile_element_binding(binding, screen_id, element_id) do
+    binding
+    |> normalize_snapshot()
+    |> Map.put("binding_type", normalize_binding_type(Map.get(binding, "binding_type")))
+    |> Map.put("screen_id", screen_id)
+    |> Map.put("element_id", element_id)
+    |> Map.put("id", runtime_identifier(Map.get(binding, "id")))
+    |> Map.put("metadata", normalize_snapshot(Map.get(binding, "metadata", %{})))
+    |> Map.put("transform", normalize_snapshot(Map.get(binding, "transform", %{})))
+  end
+
+  defp compile_action_binding(action, screen_id, element_id) do
+    action
+    |> normalize_snapshot()
+    |> Map.put("binding_type", :action)
+    |> Map.put("screen_id", screen_id)
+    |> Map.put("element_id", element_id)
+    |> Map.put("id", runtime_identifier(Map.get(action, "id")))
+    |> Map.put("metadata", normalize_snapshot(Map.get(action, "metadata", %{})))
+    |> Map.put("transform", normalize_snapshot(Map.get(action, "transform", %{})))
+  end
+
+  defp authority_element_id(dsl, module_ref, path) do
+    metadata = Map.get(dsl, "metadata", %{})
+
+    runtime_identifier(Map.get(metadata, "id")) ||
+      module_ref
+      |> String.split(".")
+      |> List.last()
+      |> Macro.underscore()
+      |> case do
+        "" -> "authority_#{Enum.join(path, "_")}"
+        name -> name
+      end
+  end
+
+  defp authority_inline_id(metadata, type, path) do
+    runtime_identifier(Map.get(metadata, "id")) ||
+      "inline_#{runtime_identifier(type)}_#{Enum.join(path, "_")}"
+  end
+
+  defp compile_authority_runtime_metadata(screen, document) do
+    screen_bindings = get_in(document, ["screen", "bindings"]) || []
+    inline_fragment = get_in(document, ["screen", "inline_fragment"])
+
+    screen.metadata
+    |> Map.new(fn {key, value} -> {to_string(key), value} end)
+    |> Map.put("ash_ui", %{
+      "compiler_boundary" => "AshUI resource graph -> AshUI runtime normalization",
+      "authoring_source" => %{
+        "module" => get_in(document, ["screen", "module"]),
+        "kind" => "resource_authority"
+      },
+      "resource_authority" => %{
+        "screen_module" => get_in(document, ["screen", "module"]),
+        "composition_root_count" => length(get_in(document, ["composition", "roots"]) || []),
+        "composition_mode" => if(is_map(inline_fragment), do: "mixed", else: "relationships_only"),
+        "screen_binding_ids" => Enum.map(screen_bindings, &Map.get(&1, "id")),
+        "screen_shell" => screen_shell_metadata(inline_fragment)
+      }
+    })
+    |> Map.put_new("title", get_in(document, ["screen", "metadata", "title"]))
+  end
+
+  defp screen_shell_metadata(nil), do: nil
+
+  defp screen_shell_metadata(fragment) when is_map(fragment) do
+    metadata = Map.get(fragment, "metadata", %{})
+
+    %{
+      "id" => Map.get(metadata, "id"),
+      "type" => Map.get(fragment, "type"),
+      "source" => "screen_inline_fragment"
+    }
   end
 
   # Cache statistics helpers

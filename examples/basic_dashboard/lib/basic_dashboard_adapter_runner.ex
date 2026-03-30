@@ -203,6 +203,11 @@ defmodule BasicDashboard.AdapterRunner do
   end
 
   defp authored_module(screen) do
-    get_in(screen.unified_dsl, ["authoring", "source", "module"])
+    screen
+    |> get_in([Access.key(:unified_dsl, %{}), "screen", "module"])
+    |> case do
+      "Elixir." <> rest -> rest
+      other -> other
+    end
   end
 end

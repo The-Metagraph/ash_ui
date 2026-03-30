@@ -20,15 +20,16 @@ Standalone example apps can then be started directly from their own directory.
 standalone Phoenix app, seeds ETS-backed demo data, and renders a stored
 `unified_dsl` screen through Ash UI adapters.
 
-The dashboard screen itself is authored through upstream `UnifiedUi.Dsl` and
-persisted through `AshUI.Resource.Authority`, so the example demonstrates the
-current intended authoring boundary directly.
+The dashboard screen itself is modeled as one screen resource plus related
+element resources using `AshUI.Resource.DSL.*`, then persisted through
+`AshUI.Resource.Authority`, so the example demonstrates the current intended
+resource-first authoring boundary directly.
 
 Example files:
 
 - `examples/basic_dashboard/README.md`
 - `examples/basic_dashboard/lib/basic_dashboard.ex`
-- `examples/basic_dashboard/lib/basic_dashboard_authored_screen.ex`
+- `examples/basic_dashboard/lib/basic_dashboard_screen.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_data.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_live.ex`
 - `examples/basic_dashboard/lib/basic_dashboard_storage.ex`

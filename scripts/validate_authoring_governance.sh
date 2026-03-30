@@ -24,8 +24,8 @@ is_allowed_reference_file() {
 
 echo "Checking public authoring surfaces..."
 
-doc_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|migrate_legacy_dsl|migrate_legacy_screen_attrs)|builder-first|builder-authored|legacy builder'
-example_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|Screen|migrate_legacy_dsl|migrate_legacy_screen_attrs)'
+doc_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|Screen|migrate_legacy_dsl|migrate_legacy_screen_attrs)|UnifiedUi\.Dsl|builder-first|builder-authored|legacy builder|upstream-authored|monolithic screen document|BasicDashboard\.AuthoredScreen'
+example_pattern='AshUI\.DSL\.Builder|AshUI\.Authoring\.(Document|Migrator|LegacyBuilder|Screen|migrate_legacy_dsl|migrate_legacy_screen_attrs)|UnifiedUi\.Dsl|AuthoredScreen|monolithic screen document'
 
 while IFS=: read -r file line _; do
   [[ -z "$file" ]] && continue

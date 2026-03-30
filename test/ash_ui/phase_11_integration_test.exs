@@ -1,12 +1,14 @@
 defmodule AshUI.Phase11IntegrationTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Authoring.Screen
+  alias AshUI.Config
   alias AshUI.Compiler
   alias AshUI.Compiler.Incremental
+  alias AshUI.Data
   alias AshUI.LiveView.Integration
   alias AshUI.Rendering.{ElmUIAdapter, IURAdapter, LiveUIAdapter}
-  alias AshUI.Test.{AuthoredSupportScreen, RuntimeDomain, RuntimeFixtures, UIStorageFixtures}
+  alias AshUI.Resources.Screen
+  alias AshUI.Test.{RuntimeDomain, RuntimeFixtures, ScreenDocumentFixtures, UIStorageFixtures}
 
   @moduletag :conformance
 
@@ -18,7 +20,7 @@ defmodule AshUI.Phase11IntegrationTest do
   end
 
   describe "Section 11.4.1 - compiler delegation scenarios" do
-    test "11.4.1.1 - Verify an upstream-authored screen compiles through AshUI.Compiler", %{
+    test "11.4.1.1 - Verify a resource-authority screen compiles through AshUI.Compiler", %{
       ui_storage: ui_storage
     } do
       screen = create_screen!(ui_storage, "phase11_compile")
@@ -30,10 +32,10 @@ defmodule AshUI.Phase11IntegrationTest do
       assert canonical["type"] == "screen"
 
       assert get_in(canonical, ["metadata", "ash_ui", "authoring_source", "module"]) ==
-               "AshUI.Test.AuthoredSupportScreen"
+               "Elixir.AshUI.Test.ResourceAuthorityScreen"
     end
 
-    test "11.4.1.2 - Verify live bindings hydrate correctly after upstream compilation", %{
+    test "11.4.1.2 - Verify live bindings hydrate correctly after resource-authority compilation", %{
       ui_storage: ui_storage
     } do
       fixtures = RuntimeFixtures.seed!()
@@ -95,7 +97,7 @@ defmodule AshUI.Phase11IntegrationTest do
     test "11.4.1.4 - Verify cache and incremental recompilation still behave correctly", %{
       ui_storage: ui_storage
     } do
-      screen =
+      _ui_storage_screen =
         create_screen!(ui_storage, "phase11_incremental",
           binding_metadata: %{
             "display_name_input" => %{
@@ -107,19 +109,36 @@ defmodule AshUI.Phase11IntegrationTest do
           }
         )
 
-      assert {:ok, _iur} = Compiler.compile(screen, ui_storage: ui_storage, use_cache: true)
-      assert {:ok, _iur} = Compiler.compile(screen, ui_storage: ui_storage, use_cache: true)
+      {:ok, screen} =
+        Data.create(Screen,
+          attrs:
+            ScreenDocumentFixtures.resource_screen_attrs("phase11_incremental_default",
+              route: "/phase11_incremental_default",
+              layout: :column,
+              metadata: %{"seed" => "phase11_incremental_default"},
+              binding_metadata: %{
+                "display_name_input" => %{
+                  "source" => %{"resource" => "User", "field" => "name", "id" => "user-1"},
+                  "binding_type" => :value,
+                  "target" => "display_name",
+                  "element_id" => "display_name_input"
+                }
+              }
+            )
+        )
+
+      assert {:ok, _iur} = Compiler.compile(screen, use_cache: true)
+      assert {:ok, _iur} = Compiler.compile(screen, use_cache: true)
       assert Compiler.cache_stats().hits >= 1
 
-      assert {:ok, graph} = Incremental.build_dependencies(screen, ui_storage: ui_storage)
+      assert {:ok, graph} = Incremental.build_dependencies(screen)
       assert "display_name_input" in Map.get(graph.screen_to_elements, screen.id, [])
 
       assert {:ok, recompiled_iur} =
                Incremental.recompile_on_change(
                  screen.id,
                  :element,
-                 "display_name_input",
-                 ui_storage: ui_storage
+                 "display_name_input"
                )
 
       assert :ok = AshUI.Compilation.IUR.validate(recompiled_iur)
@@ -128,15 +147,22 @@ defmodule AshUI.Phase11IntegrationTest do
 
   defp create_screen!(ui_storage, prefix, opts \\ []) do
     suffix = System.unique_integer([:positive])
+    screen_resource = Config.screen_resource(ui_storage)
+    binding_metadata = Keyword.get(opts, :binding_metadata, %{})
 
-    {:ok, screen} =
-      Screen.create(AuthoredSupportScreen,
-        ui_storage: ui_storage,
-        name: "#{prefix}_#{suffix}",
+    attrs =
+      ScreenDocumentFixtures.resource_screen_attrs("#{prefix}_#{suffix}",
         route: "/#{prefix}",
         layout: :column,
         metadata: %{"seed" => prefix},
-        binding_metadata: Keyword.get(opts, :binding_metadata, %{})
+        binding_metadata: binding_metadata
+      )
+
+    {:ok, screen} =
+      Data.create(screen_resource,
+        ui_storage: ui_storage,
+        authorize?: false,
+        attrs: attrs
       )
 
     screen

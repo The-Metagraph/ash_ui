@@ -106,6 +106,12 @@ defmodule AshUI.DSL.Storage do
     valid_layouts = ["screen", "row", "column", "grid", "stack", "fragment", "container"]
 
     valid_widgets = [
+      "hero",
+      "badge",
+      "stat",
+      "key_value",
+      "info_list",
+      "form_field",
       "text",
       "button",
       "input",

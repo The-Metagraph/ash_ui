@@ -102,7 +102,7 @@ Verify:
 - compile failure shape
 - cache behavior
 - canonical conversion compatibility
-- upstream `UnifiedUi.Dsl` modules persist and compile without builder migration helpers
+- resource-authority screen graphs persist and compile without falling back to superseded screen-document flows
 
 ### LiveView and runtime changes
 
@@ -144,7 +144,7 @@ If an integration test mounts by name, create a real `Screen` record in setup in
 
 The built-in resource tests use the default Postgres-backed storage, but runtime resource-resolution tests already exercise ETS-backed Ash resources. When changing compiler or LiveView loading code, verify whether the behavior should depend on the configured UI storage backend or only on the resource contract.
 
-### Legacy authoring references
+### Legacy or superseded authoring references
 
 Legacy authoring helpers are migration-only. Public examples, guides, and
 release paths should not depend on them anymore. If a docs or example change

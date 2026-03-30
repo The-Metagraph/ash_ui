@@ -50,15 +50,15 @@ defmodule AshUI.PluggableUIStorageTest do
   end
 
   test "Compiler compiles screens from alternate UI storage resources" do
-    %{screen: screen, binding: binding} = UIStorageFixtures.seed_screen!()
+    %{screen: screen, binding_id: binding_id} = UIStorageFixtures.seed_screen!()
 
     assert {:ok, iur} = Compiler.compile(screen.id)
     assert iur.id == screen.id
-    assert Enum.any?(iur.bindings, &(&1["id"] == binding.id))
+    assert Enum.any?(iur.bindings, &(&1["id"] == binding_id))
   end
 
   test "LiveView mount loads and evaluates bindings from alternate UI storage resources" do
-    %{screen: screen, runtime: runtime, binding: binding} = UIStorageFixtures.seed_screen!()
+    %{screen: screen, runtime: runtime, binding_id: binding_id} = UIStorageFixtures.seed_screen!()
 
     socket =
       %Phoenix.LiveView.Socket{
@@ -74,6 +74,6 @@ defmodule AshUI.PluggableUIStorageTest do
     assert {:ok, mounted_socket} = Integration.mount_ui_screen(socket, screen.name, %{})
     assert mounted_socket.assigns[:ash_ui_screen].id == screen.id
     assert mounted_socket.assigns[:ash_ui_storage][:domain] == AshUI.Test.UIStorageDomain
-    assert mounted_socket.assigns[:ash_ui_bindings][binding.id].value == runtime.user.name
+    assert mounted_socket.assigns[:ash_ui_bindings][binding_id].value == runtime.user.name
   end
 end

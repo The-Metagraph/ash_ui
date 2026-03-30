@@ -5,14 +5,17 @@ defmodule AshUI.Resource.DSL.Element do
 
   alias AshUI.Resource.DSL.Binding
   alias AshUI.Resource.DSL.Helpers
+  alias AshUI.Resource.DSL.Relationship
   alias AshUI.Resources.Validations.Authoring
 
   defmacro __using__(_opts) do
     quote do
       import unquote(__MODULE__)
+      import unquote(Relationship)
       Module.register_attribute(__MODULE__, :ash_ui_element_definition, persist: true)
       Module.register_attribute(__MODULE__, :ash_ui_element_bindings, persist: true)
       Module.register_attribute(__MODULE__, :ash_ui_element_actions, persist: true)
+      Module.register_attribute(__MODULE__, :ash_ui_relationship_definitions, persist: true)
       @before_compile unquote(__MODULE__)
     end
   end
@@ -64,6 +67,7 @@ defmodule AshUI.Resource.DSL.Element do
     definition = Module.get_attribute(env.module, :ash_ui_element_definition) || %{}
     bindings = Module.get_attribute(env.module, :ash_ui_element_bindings) || []
     actions = Module.get_attribute(env.module, :ash_ui_element_actions) || []
+    relationships = Module.get_attribute(env.module, :ash_ui_relationship_definitions) || %{}
 
     Authoring.validate_element_authority!(definition, bindings, actions)
 
@@ -72,13 +76,15 @@ defmodule AshUI.Resource.DSL.Element do
       def __ash_ui_element_definition__, do: unquote(Macro.escape(definition))
       def __ash_ui_bindings__, do: unquote(Macro.escape(bindings))
       def __ash_ui_actions__, do: unquote(Macro.escape(actions))
+      def __ash_ui_relationships__, do: unquote(Macro.escape(relationships))
 
       def __ash_ui_authority__ do
         %{
           role: :element,
           element: __ash_ui_element_definition__(),
           bindings: __ash_ui_bindings__(),
-          actions: __ash_ui_actions__()
+          actions: __ash_ui_actions__(),
+          relationships: __ash_ui_relationships__()
         }
       end
     end
@@ -88,7 +94,7 @@ defmodule AshUI.Resource.DSL.Element do
     Helpers.extract_literal_entries!(
       block,
       caller,
-      [:type, :props, :variants, :metadata, :children],
+      [:type, :props, :variants, :metadata],
       "ui_element"
     )
   end

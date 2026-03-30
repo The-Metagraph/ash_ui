@@ -487,41 +487,41 @@ Each scenario includes:
 - Changed resources trigger the expected recompilation target
 - Circular dependencies are reported
 
-#### SCN-050: Persisted Upstream DSL Screen
+#### SCN-050: Persisted Resource Authority Screen
 
 **Requirements**: REQ-SCREEN-001, REQ-COMP-001
 
 **Preconditions**:
-- A screen module is authored through `UnifiedUi.Dsl`
+- A screen resource module and related element resources are defined through `AshUI.Resource.DSL.*`
 - UI storage is configured
 
 **Steps**:
-1. Persist the authored screen through `AshUI.Authoring.Screen`
+1. Persist the resource-authority screen through `AshUI.Resource.Authority`
 2. Read the stored `Screen` record back from UI storage
-3. Compile the stored document into Ash UI IUR
-4. Verify the canonical metadata preserves the authored module identity
+3. Compile the stored authority payload into Ash UI IUR
+4. Verify the canonical metadata preserves the screen resource module identity
 
 **Expected Outcome**:
-- The stored `unified_dsl` is a persisted upstream authoring document
+- The stored `unified_dsl` is a persisted resource-authority payload
 - The screen compiles successfully after persistence
 - Canonical metadata preserves authoring provenance
 
-#### SCN-051: Upstream Compiler Delegation
+#### SCN-051: Relational Compiler Delegation
 
 **Requirements**: REQ-COMP-001, REQ-COMP-007
 
 **Preconditions**:
-- A persisted upstream-authored screen exists
+- A persisted resource-authority screen exists
 - Compiler caching is enabled
 
 **Steps**:
 1. Compile the screen through `AshUI.Compiler`
 2. Recompile with and without cache
-3. Verify the delegated compiler path produces equivalent canonical output
+3. Verify the compiler produces equivalent canonical output for the relational authority graph
 4. Verify cache or incremental recompilation still behaves correctly
 
 **Expected Outcome**:
-- Ash UI delegates authored compilation through the upstream compiler path
+- Ash UI compiles the persisted relational authority graph deterministically
 - Cached and uncached compiles remain equivalent
 - Incremental recompilation preserves valid output
 
@@ -691,23 +691,23 @@ Each scenario includes:
 - JavaScript references are emitted
 - Asset paths use the configured base URL
 
-#### SCN-071: Renderer Parity For Authored Screens
+#### SCN-071: Renderer Parity For Resource Screens
 
 **Requirements**: REQ-RENDER-001, REQ-RENDER-002, REQ-RENDER-003
 
 **Preconditions**:
-- A persisted upstream-authored screen exists
+- A persisted resource-authority screen exists
 - `liveview` and `elm` renderers are available
 
 **Steps**:
-1. Compile one authored screen into canonical IUR
+1. Compile one relationship-authored screen into canonical IUR
 2. Render that same canonical structure through `liveview`
 3. Render that same canonical structure through `elm`
-4. Verify both outputs preserve the authored content and semantic widget set
+4. Verify both outputs preserve the composed resource content and semantic widget set
 
 **Expected Outcome**:
 - Both renderers consume the same canonical IUR
-- Shared authored content appears in both outputs
+- Shared resource-authored content appears in both outputs
 - Semantic widgets survive renderer parity checks
 
 ### Authorization Scenarios (SCN-081 to SCN-100)
@@ -1029,8 +1029,8 @@ Each scenario includes:
 | SCN-047 | Cache Invalidation | REQ-COMP-007 | Cache |
 | SCN-048 | Compilation Error Reporting | REQ-COMP-008 | Compiler |
 | SCN-049 | Incremental Compilation | REQ-COMP-009 | Incremental Compiler |
-| SCN-050 | Persisted Upstream DSL Screen | REQ-SCREEN-001, REQ-COMP-001 | Authoring Persistence |
-| SCN-051 | Upstream Compiler Delegation | REQ-COMP-001, REQ-COMP-007 | Compiler |
+| SCN-050 | Persisted Resource Authority Screen | REQ-SCREEN-001, REQ-COMP-001 | Authoring Persistence |
+| SCN-051 | Relational Compiler Delegation | REQ-COMP-001, REQ-COMP-007 | Compiler |
 | SCN-061 | LiveView Rendering | REQ-RENDER-002 | LiveView Renderer |
 | SCN-062 | Elm-Backed Web Rendering | REQ-RENDER-003 | Web Renderer |
 | SCN-063 | Component Rendering | REQ-RENDER-004 | Renderer |
@@ -1041,7 +1041,7 @@ Each scenario includes:
 | SCN-068 | Renderer Selection | REQ-RENDER-001 | Renderer Registry |
 | SCN-069 | Renderer Fallback | REQ-RENDER-006 | Renderer Selector |
 | SCN-070 | Asset Management | REQ-RENDER-008 | Web Renderer |
-| SCN-071 | Renderer Parity For Authored Screens | REQ-RENDER-001, REQ-RENDER-002, REQ-RENDER-003 | Renderer Parity |
+| SCN-071 | Renderer Parity For Resource Screens | REQ-RENDER-001, REQ-RENDER-002, REQ-RENDER-003 | Renderer Parity |
 | SCN-081 | Screen Mount Authorization | REQ-AUTH-002 | Authorization |
 | SCN-082 | Action Authorization | REQ-AUTH-003 | Authorization |
 | SCN-083 | Field-Level Authorization | REQ-AUTH-004 | Authorization |

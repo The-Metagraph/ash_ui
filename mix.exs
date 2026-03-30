@@ -33,6 +33,7 @@ defmodule AshUI.MixProject do
       {:ash, "~> 3.0"},
       {:ash_postgres, "~> 2.0"},
       {:phoenix_live_view, "~> 1.0"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:jason, "~> 1.4"},
       {:postgrex, ">= 0.0.0"},

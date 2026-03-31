@@ -23,25 +23,26 @@ defmodule AshUI.Rendering.IURAdapter do
   def to_canonical(%IUR{} = ash_iur, opts \\ []) do
     telemetry? = Keyword.get(opts, :telemetry, true)
 
-    with :ok <- IUR.validate(ash_iur) do
-      try do
-        canonical = convert_iur(ash_iur)
-        :ok = maybe_validate_with_unified_iur(canonical)
+    case IUR.validate(ash_iur) do
+      :ok ->
+        try do
+          canonical = convert_iur(ash_iur)
+          :ok = maybe_validate_with_unified_iur(canonical)
 
-        if telemetry? do
-          Telemetry.execute(
-            [:ash_ui, :rendering, :convert_success],
-            %{count: 1},
-            %{resource_id: ash_iur.id, resource_type: ash_iur.type, status: :ok}
-          )
+          if telemetry? do
+            Telemetry.execute(
+              [:ash_ui, :rendering, :convert_success],
+              %{count: 1},
+              %{resource_id: ash_iur.id, resource_type: ash_iur.type, status: :ok}
+            )
+          end
+
+          {:ok, canonical}
+        rescue
+          error ->
+            emit_conversion_error(ash_iur, telemetry?, error)
         end
 
-        {:ok, canonical}
-      rescue
-        error ->
-          emit_conversion_error(ash_iur, telemetry?, error)
-      end
-    else
       {:error, reason} ->
         emit_conversion_error(ash_iur, telemetry?, reason)
     end

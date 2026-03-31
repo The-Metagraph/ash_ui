@@ -41,38 +41,45 @@ defmodule AshUI.Rendering.Selector do
   @spec select_with_fallback(Plug.Conn.t() | map(), keyword()) ::
           {:ok, atom(), module(), boolean()} | {:error, term()}
   def select_with_fallback(conn_or_map, opts \\ []) do
-    with {:ok, requested_type} <- select_renderer_type(conn_or_map, opts) do
-      case Registry.resolve_renderer(requested_type, opts) do
-        {:ok, info} ->
-          fallback_used = info.mode == :adapter_fallback
+    case select_renderer_type(conn_or_map, opts) do
+      {:ok, requested_type} ->
+        case Registry.resolve_renderer(requested_type, opts) do
+          {:ok, info} ->
+            fallback_used = info.mode == :adapter_fallback
 
-          maybe_record_fallback(
-            requested_type,
-            requested_type,
-            info,
-            :adapter_fallback,
-            fallback_used
-          )
+            maybe_record_fallback(
+              requested_type,
+              requested_type,
+              info,
+              :adapter_fallback,
+              fallback_used
+            )
 
-          {:ok, requested_type, info.module, fallback_used}
+            {:ok, requested_type, info.module, fallback_used}
 
-        {:error, :not_available} ->
-          case resolve_fallback_renderer(Keyword.put(opts, :exclude, requested_type)) do
-            {:ok, fallback_type, fallback_info} ->
-              record_fallback(requested_type, fallback_type, fallback_info, :alternative_renderer)
-              {:ok, fallback_type, fallback_info.module, true}
+          {:error, :not_available} ->
+            case resolve_fallback_renderer(Keyword.put(opts, :exclude, requested_type)) do
+              {:ok, fallback_type, fallback_info} ->
+                record_fallback(
+                  requested_type,
+                  fallback_type,
+                  fallback_info,
+                  :alternative_renderer
+                )
 
-            {:error, :no_fallback} ->
-              {:error, {:renderer_not_available, requested_type}}
+                {:ok, fallback_type, fallback_info.module, true}
 
-            error ->
-              error
-          end
+              {:error, :no_fallback} ->
+                {:error, {:renderer_not_available, requested_type}}
 
-        {:error, :not_found} ->
-          {:error, {:renderer_not_found, requested_type}}
-      end
-    else
+              error ->
+                error
+            end
+
+          {:error, :not_found} ->
+            {:error, {:renderer_not_found, requested_type}}
+        end
+
       {:error, {:unknown_renderer, _unknown} = reason} ->
         context_opts = Keyword.put(opts, :ignore_headers, true)
 

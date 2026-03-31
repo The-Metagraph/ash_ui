@@ -14,162 +14,164 @@ defmodule AshUI.Resources.Screen do
     data_layer: AshPostgres.DataLayer
 
   postgres do
-    table "ui_screens"
-    repo AshUI.Repo
+    table("ui_screens")
+    repo(AshUI.Repo)
   end
 
   pub_sub do
-    module AshUI.Notifications
-    prefix @resource_topic_prefix
+    module(AshUI.Notifications)
+    prefix(@resource_topic_prefix)
 
-    publish :create, "changes"
-    publish :update, "changes"
-    publish :destroy, "changes"
+    publish(:create, "changes")
+    publish(:update, "changes")
+    publish(:destroy, "changes")
   end
 
   attributes do
-    uuid_primary_key :id
-    attribute :name, :string, allow_nil?: false
-    attribute :unified_dsl, :map, default: %{}
-    attribute :layout, :atom, default: :default
-    attribute :route, :string
-    attribute :metadata, :map, default: %{}
-    attribute :active, :boolean, default: true
-    attribute :version, :integer, default: 1
-    create_timestamp :inserted_at
-    update_timestamp :updated_at
+    uuid_primary_key(:id)
+    attribute(:name, :string, allow_nil?: false)
+    attribute(:unified_dsl, :map, default: %{})
+    attribute(:layout, :atom, default: :default)
+    attribute(:route, :string)
+    attribute(:metadata, :map, default: %{})
+    attribute(:active, :boolean, default: true)
+    attribute(:version, :integer, default: 1)
+    create_timestamp(:inserted_at)
+    update_timestamp(:updated_at)
   end
 
   identities do
-    identity :unique_name, [:name]
+    identity(:unique_name, [:name])
   end
 
   relationships do
     has_many :elements, AshUI.Resources.Element do
-      destination_attribute :screen_id
+      destination_attribute(:screen_id)
     end
 
     has_many :bindings, AshUI.Resources.Binding do
-      destination_attribute :screen_id
+      destination_attribute(:screen_id)
     end
 
     has_many :screen_level_bindings, AshUI.Resources.Binding do
-      destination_attribute :screen_id
-      filter expr(is_nil(element_id))
+      destination_attribute(:screen_id)
+      filter(expr(is_nil(element_id)))
     end
   end
 
   validations do
-    validate {AshUI.Resources.Validations.UnifiedDSL, []}, on: [:create]
+    validate({AshUI.Resources.Validations.UnifiedDSL, []}, on: [:create])
 
-    validate {AshUI.Resources.Validations.UnifiedDSL, []},
+    validate({AshUI.Resources.Validations.UnifiedDSL, []},
       on: [:update],
       where: [changing(:unified_dsl)]
+    )
   end
 
   actions do
-    defaults [:read]
+    defaults([:read])
 
     read :mount do
-      get? true
+      get?(true)
 
       argument :user_id, :string do
-        allow_nil? false
+        allow_nil?(false)
       end
 
       argument :params, :map do
-        allow_nil? false
-        default %{}
+        allow_nil?(false)
+        default(%{})
       end
 
-      prepare build(load: [:elements, :bindings, :screen_level_bindings])
+      prepare(build(load: [:elements, :bindings, :screen_level_bindings]))
     end
 
     create :create do
-      primary? true
-      accept [:name, :unified_dsl, :layout, :route, :metadata, :active, :version]
+      primary?(true)
+      accept([:name, :unified_dsl, :layout, :route, :metadata, :active, :version])
     end
 
     update :update do
-      primary? true
-      require_atomic? false
-      accept [:name, :unified_dsl, :layout, :route, :metadata, :active]
-      change increment(:version)
+      primary?(true)
+      require_atomic?(false)
+      accept([:name, :unified_dsl, :layout, :route, :metadata, :active])
+      change(increment(:version))
     end
 
     destroy :destroy do
-      primary? true
-      change cascade_destroy(:elements)
-      change cascade_destroy(:screen_level_bindings)
+      primary?(true)
+      change(cascade_destroy(:elements))
+      change(cascade_destroy(:screen_level_bindings))
     end
 
     action :unmount, :map do
       argument :screen_id, :uuid do
-        allow_nil? false
+        allow_nil?(false)
       end
 
       argument :user_id, :string do
-        allow_nil? false
+        allow_nil?(false)
       end
 
       argument :reason, :string do
-        allow_nil? false
-        default "liveview_terminate"
+        allow_nil?(false)
+        default("liveview_terminate")
       end
 
       argument :params, :map do
-        allow_nil? false
-        default %{}
+        allow_nil?(false)
+        default(%{})
       end
 
-      run fn input, _context ->
+      run(fn input, _context ->
         screen_id = input.arguments.screen_id
         user_id = input.arguments.user_id
         reason = input.arguments.reason
         params = input.arguments.params
 
-        with {:ok, screen} <-
-               Ash.get(__MODULE__, screen_id,
-                 action: :read,
-                 domain: AshUI.Domain,
-                 authorize?: false
-               ) do
-          {:ok,
-           %{
-             screen_id: screen.id,
-             screen_name: screen.name,
-             user_id: user_id,
-             reason: reason,
-             params: params,
-             cleaned_up: true,
-             unmounted_at: DateTime.utc_now()
-           }}
-        else
-          {:error, error} -> {:error, error}
+        case Ash.get(__MODULE__, screen_id,
+               action: :read,
+               domain: AshUI.Domain,
+               authorize?: false
+             ) do
+          {:ok, screen} ->
+            {:ok,
+             %{
+               screen_id: screen.id,
+               screen_name: screen.name,
+               user_id: user_id,
+               reason: reason,
+               params: params,
+               cleaned_up: true,
+               unmounted_at: DateTime.utc_now()
+             }}
+
+          {:error, error} ->
+            {:error, error}
         end
-      end
+      end)
     end
   end
 
   policies do
     bypass actor_absent() do
-      authorize_if always()
+      authorize_if(always())
     end
 
     bypass actor_attribute_equals(:role, :admin) do
-      authorize_if always()
+      authorize_if(always())
     end
 
     policy action([:read, :mount]) do
-      authorize_if {AshUI.Authorization.Checks.ScreenAccess, mode: :read}
+      authorize_if({AshUI.Authorization.Checks.ScreenAccess, mode: :read})
     end
 
     policy action(:create) do
-      authorize_if {AshUI.Authorization.Checks.ScreenAccess, mode: :manage}
+      authorize_if({AshUI.Authorization.Checks.ScreenAccess, mode: :manage})
     end
 
     policy action([:update, :destroy]) do
-      authorize_if {AshUI.Authorization.Checks.ScreenAccess, mode: :manage}
+      authorize_if({AshUI.Authorization.Checks.ScreenAccess, mode: :manage})
     end
   end
 end

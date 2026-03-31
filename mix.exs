@@ -12,6 +12,7 @@ defmodule AshUI.MixProject do
         summary: [threshold: coverage_threshold()],
         ignore_modules: coverage_ignore_modules()
       ],
+      dialyzer: dialyzer(),
       deps: deps(),
       aliases: aliases()
     ]
@@ -34,6 +35,7 @@ defmodule AshUI.MixProject do
       {:ash_postgres, "~> 2.0"},
       {:phoenix_live_view, "~> 1.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:igniter, "~> 0.6", only: [:dev, :test]},
       {:jason, "~> 1.4"},
       {:postgrex, ">= 0.0.0"},
@@ -52,6 +54,13 @@ defmodule AshUI.MixProject do
   defp aliases do
     [
       format: ["format"]
+    ]
+  end
+
+  defp dialyzer do
+    [
+      ignore_warnings: ".dialyzer_ignore.exs",
+      plt_add_apps: [:mix]
     ]
   end
 

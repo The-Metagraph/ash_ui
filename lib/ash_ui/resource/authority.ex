@@ -170,17 +170,15 @@ defmodule AshUI.Resource.Authority do
   """
   @spec validate_payload(term()) :: :ok | {:error, String.t()}
   def validate_payload(%{} = payload) do
-    with true <-
-           authority_payload?(payload) or
-             {:error, "must declare the ash_ui resource_authority format"},
-         :ok <- validate_section(payload, "screen"),
-         :ok <- validate_nested_map(payload, "composition"),
-         :ok <- validate_elements(Map.get(payload, "elements") || Map.get(payload, :elements, [])),
-         :ok <- validate_composition(payload) do
-      :ok
+    if authority_payload?(payload) do
+      with :ok <- validate_section(payload, "screen"),
+           :ok <- validate_nested_map(payload, "composition"),
+           :ok <- validate_elements(Map.get(payload, "elements") || Map.get(payload, :elements, [])),
+           :ok <- validate_composition(payload) do
+        :ok
+      end
     else
-      false -> {:error, "must declare the ash_ui resource_authority format"}
-      {:error, _message} = error -> error
+      {:error, "must declare the ash_ui resource_authority format"}
     end
   end
 

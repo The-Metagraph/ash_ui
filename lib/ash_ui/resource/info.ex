@@ -3,6 +3,8 @@ defmodule AshUI.Resource.Info do
   Introspection helpers for resource-local Ash UI authoring modules.
   """
 
+  alias Ash.Resource.Info, as: AshResourceInfo
+
   @type composition_edge :: %{
           name: atom(),
           destination: module(),
@@ -111,7 +113,7 @@ defmodule AshUI.Resource.Info do
 
         relationships =
           module
-          |> Ash.Resource.Info.relationships()
+          |> AshResourceInfo.relationships()
           |> Enum.with_index()
           |> Enum.reduce([], fn {relationship, index}, acc ->
             case composition_edge(module, relationship, index, relationship_semantics) do
@@ -173,7 +175,7 @@ defmodule AshUI.Resource.Info do
   defp unknown_relationship_semantics(module, semantics, edges) do
     valid_names =
       module
-      |> Ash.Resource.Info.relationships()
+      |> AshResourceInfo.relationships()
       |> Enum.map(&Map.get(&1, :name))
       |> MapSet.new()
 

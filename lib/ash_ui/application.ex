@@ -7,18 +7,24 @@ defmodule AshUI.Application do
 
   use Application
 
+  alias AshUI.Authorization.Runtime
+  alias AshUI.Compiler
+  alias AshUI.Rendering.Registry
+  alias AshUI.Telemetry
+  alias Phoenix.PubSub
+
   @impl true
   @doc """
   Starts the Ash UI supervision tree.
   """
   def start(_type, _args) do
-    AshUI.Compiler.init_cache()
-    AshUI.Authorization.Runtime.init_cache()
+    Compiler.init_cache()
+    Runtime.init_cache()
 
     children = [
-      {Phoenix.PubSub, name: AshUI.PubSub},
-      AshUI.Telemetry,
-      AshUI.Rendering.Registry
+      {PubSub, name: AshUI.PubSub},
+      Telemetry,
+      Registry
     ]
     children = maybe_add_storage_repo(children)
 

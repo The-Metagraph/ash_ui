@@ -169,7 +169,6 @@
           # Keep them disabled for now so `mix credo --strict` can serve as a
           # usable gate, and re-enable them incrementally in follow-up cleanup
           # PRs as the backlog is burned down.
-          {Credo.Check.Design.AliasUsage, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.Nesting, []},
           #

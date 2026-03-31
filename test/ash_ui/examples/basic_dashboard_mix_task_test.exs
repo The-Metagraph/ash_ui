@@ -3,12 +3,14 @@ defmodule AshUI.Examples.BasicDashboardMixTaskTest do
 
   import ExUnit.CaptureIO
 
+  alias Mix.Tasks.AshUi.Example.BasicDashboard, as: BasicDashboardTask
+
   test "renders the dashboard with the elm renderer by default" do
     Mix.Task.reenable("ash_ui.example.basic_dashboard")
 
     output =
       capture_io(fn ->
-        Mix.Tasks.AshUi.Example.BasicDashboard.run([])
+        BasicDashboardTask.run([])
       end)
 
     assert output =~ "Renderer: elm"
@@ -23,7 +25,7 @@ defmodule AshUI.Examples.BasicDashboardMixTaskTest do
 
     output =
       capture_io(fn ->
-        Mix.Tasks.AshUi.Example.BasicDashboard.run(["--renderer", "liveview"])
+        BasicDashboardTask.run(["--renderer", "liveview"])
       end)
 
     assert output =~ "Renderer: liveview"
@@ -37,7 +39,7 @@ defmodule AshUI.Examples.BasicDashboardMixTaskTest do
 
     assert_raise Mix.Error, ~r/Unsupported renderer \"html\"/, fn ->
       capture_io(fn ->
-        Mix.Tasks.AshUi.Example.BasicDashboard.run(["--renderer", "html"])
+        BasicDashboardTask.run(["--renderer", "html"])
       end)
     end
   end

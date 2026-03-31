@@ -6,6 +6,7 @@ defmodule AshUI.Authorization.Policies do
   to UI screens, elements, and bindings.
   """
 
+  alias Ash.Resource.Info, as: AshResourceInfo
   alias AshUI.Authorization.BindingPolicy
   alias AshUI.Authorization.ElementPolicy
   alias AshUI.Authorization.ScreenPolicy
@@ -367,7 +368,7 @@ defmodule AshUI.Authorization.Policies do
   defp resolve_action_name(resource, action) do
     target = to_string(action || :read)
 
-    case Enum.find(Ash.Resource.Info.actions(resource), fn existing ->
+    case Enum.find(AshResourceInfo.actions(resource), fn existing ->
            Atom.to_string(existing.name) == target
          end) do
       nil -> action || :read

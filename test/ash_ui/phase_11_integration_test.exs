@@ -1,6 +1,7 @@
 defmodule AshUI.Phase11IntegrationTest do
   use AshUI.DataCase, async: false
 
+  alias AshUI.Compilation.IUR
   alias AshUI.Compiler
   alias AshUI.Compiler.Incremental
   alias AshUI.Config
@@ -142,7 +143,7 @@ defmodule AshUI.Phase11IntegrationTest do
                  "display_name_input"
                )
 
-      assert :ok = AshUI.Compilation.IUR.validate(recompiled_iur)
+      assert :ok = IUR.validate(recompiled_iur)
     end
   end
 

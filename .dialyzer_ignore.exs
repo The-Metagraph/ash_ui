@@ -28,5 +28,4 @@
   {"lib/ash_ui/runtime/action_binding.ex", :unused_fun},
   {"lib/ash_ui/runtime/action_binding.ex", :guard_fail},
   {"lib/ash_ui/runtime/resource_access.ex", :pattern_match_cov},
-  {"lib/ash_ui/telemetry.ex", :neg_guard_fail}
 ]

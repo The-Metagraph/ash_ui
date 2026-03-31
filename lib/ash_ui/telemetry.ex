@@ -359,7 +359,6 @@ defmodule AshUI.Telemetry do
 
   defp counter(rows, key), do: Map.get(rows, key, 0)
 
-  defp increment_counter(_key, amount) when not is_integer(amount), do: :ok
   defp increment_counter(_key, amount) when amount < 0, do: :ok
 
   defp increment_counter(key, amount) do

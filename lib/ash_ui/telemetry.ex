@@ -417,9 +417,7 @@ defmodule AshUI.Telemetry do
   end
 
   defp event_key(event_name) do
-    event_name
-    |> Enum.map(&to_string/1)
-    |> Enum.join(".")
+    Enum.map_join(event_name, ".", &to_string/1)
   end
 
   defp ensure_metrics_table do

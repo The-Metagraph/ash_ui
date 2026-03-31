@@ -363,13 +363,11 @@ defmodule AshUI.LiveView.EventHandler do
 
   defp execute_action(binding, event_data, _socket, context) do
     executor =
-      cond do
-        BindingRuntime.action_binding?(binding) and
-            BindingRuntime.owner_scope(binding) == :element ->
-          &ActionBinding.execute_declared_action/3
-
-        true ->
-          &ActionBinding.execute_action/3
+      if BindingRuntime.action_binding?(binding) and
+           BindingRuntime.owner_scope(binding) == :element do
+        &ActionBinding.execute_declared_action/3
+      else
+        &ActionBinding.execute_action/3
       end
 
     case executor.(binding, event_data, context) do

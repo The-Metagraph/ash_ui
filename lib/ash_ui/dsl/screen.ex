@@ -40,7 +40,8 @@ defmodule AshUI.DSL.Screen do
 
   defp extract_entries(expression, caller), do: [extract_entry(expression, caller)]
 
-  defp extract_entry({name, _meta, [value_ast]}, caller) when name in [:layout, :route, :metadata] do
+  defp extract_entry({name, _meta, [value_ast]}, caller)
+       when name in [:layout, :route, :metadata] do
     {name, eval_literal!(value_ast, caller, name)}
   end
 
@@ -81,8 +82,12 @@ defmodule AshUI.DSL.Screen do
       value
     rescue
       _error ->
-        raise ArgumentError,
-              "ui_screen #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+        reraise ArgumentError,
+                [
+                  message:
+                    "ui_screen #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+                ],
+                __STACKTRACE__
     end
   end
 end

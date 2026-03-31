@@ -185,20 +185,18 @@ defmodule AshUI.LiveView.UpdateIntegration do
     params = socket.assigns[:ash_ui_params] || %{}
     compiled_iur = socket.assigns[:ash_ui_base_iur] || socket.assigns[:ash_ui_iur]
 
-    cond do
-      not Config.screen_record?(screen, Map.get(socket.assigns, :ash_ui_storage)) or is_nil(user) ->
-        {:noreply, socket}
+    if not Config.screen_record?(screen, Map.get(socket.assigns, :ash_ui_storage)) or is_nil(user) do
+      {:noreply, socket}
+    else
+      {:ok, bindings} =
+        Integration.evaluate_bindings(screen, socket, user, params, compiled_iur)
 
-      true ->
-        {:ok, bindings} =
-          Integration.evaluate_bindings(screen, socket, user, params, compiled_iur)
+      socket =
+        socket
+        |> BindingRuntime.assign(bindings)
+        |> sync_binding_subscriptions()
 
-        socket =
-          socket
-          |> BindingRuntime.assign(bindings)
-          |> sync_binding_subscriptions()
-
-        {:noreply, socket}
+      {:noreply, socket}
     end
   end
 

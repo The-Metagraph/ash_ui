@@ -59,7 +59,8 @@ defmodule AshUI.DSL.Binding do
         :ok
 
       {:target, value} ->
-        raise ArgumentError, "ui_binding target must be a non-empty string, got: #{inspect(value)}"
+        raise ArgumentError,
+              "ui_binding target must be a non-empty string, got: #{inspect(value)}"
 
       {:binding_type, value} when value in @allowed_binding_types ->
         :ok
@@ -84,8 +85,12 @@ defmodule AshUI.DSL.Binding do
       value
     rescue
       _error ->
-        raise ArgumentError,
-              "ui_binding #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+        reraise ArgumentError,
+                [
+                  message:
+                    "ui_binding #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+                ],
+                __STACKTRACE__
     end
   end
 end

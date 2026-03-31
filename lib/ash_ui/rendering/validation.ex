@@ -98,7 +98,7 @@ defmodule AshUI.Rendering.Validation do
   defp validate_canonical_root(iur) do
     case Map.get(iur, "type") do
       nil ->
-        {:error, ConversionError.missing_field(:canonical_validation, nil, "type")}
+        {:error, ConversionError.missing_field(:canonical_validation, nil, :type)}
 
       type when is_binary(type) ->
         :ok
@@ -127,7 +127,7 @@ defmodule AshUI.Rendering.Validation do
       :ok
     else
       id = Map.get(child, "id", "unknown")
-      {:error, ConversionError.missing_field(:canonical_child_validation, id, "type")}
+      {:error, ConversionError.missing_field(:canonical_child_validation, id, :type)}
     end
   end
 

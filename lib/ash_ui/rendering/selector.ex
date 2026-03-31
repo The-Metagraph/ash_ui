@@ -100,8 +100,6 @@ defmodule AshUI.Rendering.Selector do
             end
         end
 
-      error ->
-        error
     end
   end
 

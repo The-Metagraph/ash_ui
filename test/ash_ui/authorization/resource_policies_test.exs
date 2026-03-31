@@ -6,10 +6,10 @@ defmodule AshUI.Authorization.ResourcePoliciesTest do
   alias AshUI.Authorization.BindingPolicy
 
   # Mock users
-  defp build_admin(), do: %{id: "admin-1", role: :admin, active: true}
+  defp build_admin, do: %{id: "admin-1", role: :admin, active: true}
   defp build_user(id \\ "user-1"), do: %{id: id, role: :user, active: true}
-  defp build_inactive(), do: %{id: "user-2", role: :user, active: false}
-  defp build_guest(), do: %{id: nil, role: :guest, active: true}
+  defp build_inactive, do: %{id: "user-2", role: :user, active: false}
+  defp build_guest, do: %{id: nil, role: :guest, active: true}
 
   # Mock resources
   defp build_screen(opts) do

@@ -121,6 +121,7 @@
           #
           {Credo.Check.Refactor.Apply, []},
           {Credo.Check.Refactor.CondStatements, []},
+          {Credo.Check.Readability.PreferImplicitTry, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.FilterCount, []},
           {Credo.Check.Refactor.FilterFilter, []},
@@ -173,7 +174,6 @@
           # PRs as the backlog is burned down.
           {Credo.Check.Design.AliasUsage, []},
           {Credo.Check.Readability.AliasOrder, []},
-          {Credo.Check.Readability.ParenthesesOnZeroArityDefs, []},
           {Credo.Check.Readability.PreferImplicitTry, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.Nesting, []},

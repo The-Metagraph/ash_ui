@@ -108,15 +108,14 @@ defmodule AshUI.Authorization.Runtime do
         emit_auth_telemetry(:action_inactive, context)
         {:forbidden, %{reason: :inactive, message: "Your account is not active"}}
 
-      {:error, :action_forbidden} ->
+      {:error, :policy_forbidden} ->
         emit_auth_telemetry(:action_forbidden, context)
 
         {:forbidden,
-         %{reason: :forbidden, message: "You don't have permission to perform this action"}}
-
-      {:error, reason} ->
-        emit_auth_telemetry(:action_error, context)
-        {:forbidden, %{reason: reason, message: format_action_error(reason)}}
+         %{
+           reason: :policy_forbidden,
+           message: "This request is blocked by the configured resource policy"
+         }}
     end
   end
 
@@ -459,26 +458,9 @@ defmodule AshUI.Authorization.Runtime do
   defp get_resource_id(%{id: id}), do: id
   defp get_resource_id(_), do: "unknown"
 
-  defp format_action_error(reason) do
-    case reason do
-      :forbidden -> "You don't have permission to perform this action"
-      :policy_forbidden -> "This request is blocked by the configured resource policy"
-      :invalid_params -> "Invalid parameters provided"
-      _ -> "Action not allowed"
-    end
-  end
-
   defp policy_subject(%{__struct__: resource} = record, action) do
     if ash_resource?(resource) do
       {:ok, record, normalize_policy_action(resource, action), policy_opts(resource)}
-    else
-      :skip
-    end
-  end
-
-  defp policy_subject(resource, action) when is_atom(resource) do
-    if ash_resource?(resource) do
-      {:ok, resource, normalize_policy_action(resource, action), policy_opts(resource)}
     else
       :skip
     end

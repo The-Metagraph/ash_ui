@@ -325,8 +325,6 @@ defmodule AshUI.Compiler.Incremental do
     module == Config.screen_resource(Keyword.get(opts, :ui_storage))
   end
 
-  defp screen_resource?(_screen, _opts), do: false
-
   defp authority_runtime_screen(screen) do
     case Authority.runtime_payload(screen) do
       {:ok, payload} -> {:ok, %{screen | unified_dsl: payload}}
@@ -411,8 +409,8 @@ defmodule AshUI.Compiler.Incremental do
 
   defp find_cycles(graph) do
     # Use depth-first search to find cycles
-    visited = MapSet.new()
-    rec_stack = MapSet.new()
+    visited = []
+    rec_stack = []
 
     find_cycles_in_nodes(graph, visited, rec_stack, Map.keys(graph.screen_to_elements))
   end
@@ -420,22 +418,22 @@ defmodule AshUI.Compiler.Incremental do
   defp find_cycles_in_nodes(_graph, _visited, _rec_stack, []), do: []
 
   defp find_cycles_in_nodes(graph, visited, rec_stack, [node | rest]) do
-    if MapSet.member?(rec_stack, node) do
+    if node in rec_stack do
       # Found a cycle
       [%{type: :screen, id: node, cycle: true}]
     else
-      if MapSet.member?(visited, node) do
+      if node in visited do
         find_cycles_in_nodes(graph, visited, rec_stack, rest)
       else
-        visited = MapSet.put(visited, node)
-        rec_stack = MapSet.put(rec_stack, node)
+        visited = [node | visited]
+        rec_stack = [node | rec_stack]
 
         # Check children (elements)
         children = Map.get(graph.screen_to_elements, node, [])
         child_cycles = find_cycles_in_nodes(graph, visited, rec_stack, children)
 
         # Continue with rest
-        rest_cycles = find_cycles_in_nodes(graph, visited, MapSet.delete(rec_stack, node), rest)
+        rest_cycles = find_cycles_in_nodes(graph, visited, List.delete(rec_stack, node), rest)
 
         child_cycles ++ rest_cycles
       end

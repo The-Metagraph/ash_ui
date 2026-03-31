@@ -31,7 +31,7 @@ defmodule AshUI.DSL.Storage do
 
       attribute :unified_dsl, AshUI.DSL.Storage.attribute_type()
   """
-  @spec attribute_type() :: Ash.Type.Type.t()
+  @spec attribute_type() :: :map
   def attribute_type do
     # Use :map type for storing JSON/DSL
     :map

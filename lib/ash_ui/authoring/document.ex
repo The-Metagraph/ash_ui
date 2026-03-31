@@ -154,17 +154,15 @@ defmodule AshUI.Authoring.Document do
   """
   @spec validate_write(term()) :: :ok | {:error, String.t()}
   def validate_write(document) when is_map(document) do
-    with true <-
-           current_document?(document) or
-             {:error, "must declare the Phase 10 ash_ui unified_ui document format"},
-         :ok <- validate_nested_map(document, "authoring"),
-         :ok <- validate_nested_map(document, "ash_ui"),
-         :ok <- validate_authoring_payload(fetch(document, "authoring")),
-         :ok <- validate_ash_ui_payload(fetch(document, "ash_ui")) do
-      :ok
+    if current_document?(document) do
+      with :ok <- validate_nested_map(document, "authoring"),
+           :ok <- validate_nested_map(document, "ash_ui"),
+           :ok <- validate_authoring_payload(fetch(document, "authoring")),
+           :ok <- validate_ash_ui_payload(fetch(document, "ash_ui")) do
+        :ok
+      end
     else
-      false -> {:error, "must declare the Phase 10 ash_ui unified_ui document format"}
-      error -> error
+      {:error, "must declare the Phase 10 ash_ui unified_ui document format"}
     end
   end
 
@@ -197,17 +195,16 @@ defmodule AshUI.Authoring.Document do
   """
   @spec source_module(term()) :: {:ok, module()} | {:error, term()}
   def source_module(document) when is_map(document) do
-    with true <-
-           authoring_document?(document) or
-             {:error, {:invalid_authoring_document, :phase_10_current_format_required}},
-         {:ok, module_name} <- source_module_name(document),
-         module <- decode_module(module_name),
-         true <- Code.ensure_loaded?(module) or {:error, {:unknown_source_module, module_name}} do
-      {:ok, module}
+    if authoring_document?(document) do
+      with {:ok, module_name} <- source_module_name(document),
+           module <- decode_module(module_name),
+           true <- Code.ensure_loaded?(module) or {:error, {:unknown_source_module, module_name}} do
+        {:ok, module}
+      else
+        {:error, _reason} = error -> error
+      end
     else
-      {:error, _reason} = error -> error
-      false -> {:error, {:invalid_authoring_document, :phase_10_current_format_required}}
-      other -> {:error, {:invalid_authoring_document, other}}
+      {:error, {:invalid_authoring_document, :phase_10_current_format_required}}
     end
   end
 
@@ -313,12 +310,7 @@ defmodule AshUI.Authoring.Document do
              {:error, "authoring.source.migration.from_version must be 1"} do
       :ok
     else
-      {:error, _message} = error ->
-        error
-
-      _other ->
-        {:error,
-         "migrated authoring documents must include identity, composition, and migration metadata"}
+      {:error, _message} = error -> error
     end
   end
 

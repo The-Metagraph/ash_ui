@@ -21,7 +21,7 @@ defmodule AshUI.Compiler.Extensions do
           module: module(),
           props: [map()],
           validate: (map() -> :ok | {:error, term()}),
-          compile: (map() -> map())
+          compile: (map(), [map()] -> map())
         }
 
   @doc """

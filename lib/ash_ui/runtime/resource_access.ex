@@ -551,7 +551,6 @@ defmodule AshUI.Runtime.ResourceAccess do
     case authorize_record(record, resolved, :read) do
       :ok -> {:ok, record}
       {:error, :unauthorized} -> {:ok, nil}
-      {:error, reason} -> {:error, reason}
     end
   end
 

@@ -172,11 +172,9 @@
           # PRs as the backlog is burned down.
           {Credo.Check.Design.AliasUsage, []},
           {Credo.Check.Readability.AliasOrder, []},
-          {Credo.Check.Readability.PreferImplicitTry, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.Nesting, []},
           {Credo.Check.Refactor.RedundantWithClauseResult, []},
-          {Credo.Check.Warning.ExpensiveEmptyEnumCheck, []},
 
           #
           # Checks scheduled for next check update (opt-in for now)

@@ -294,14 +294,12 @@ defmodule AshUI.Compiler do
   end
 
   defp get_from_cache(cache_key) do
-    try do
-      case :ets.lookup(:ash_ui_compiler_cache, cache_key) do
-        [{^cache_key, iur, _timestamp}] -> {:ok, iur}
-        [] -> :miss
-      end
-    rescue
-      ArgumentError -> :miss
+    case :ets.lookup(:ash_ui_compiler_cache, cache_key) do
+      [{^cache_key, iur, _timestamp}] -> {:ok, iur}
+      [] -> :miss
     end
+  rescue
+    ArgumentError -> :miss
   end
 
   defp delete_from_cache_prefix(prefix) do
@@ -660,11 +658,9 @@ defmodule AshUI.Compiler do
   end
 
   defp ensure_stats_table do
-    try do
-      :ets.new(:ash_ui_cache_stats, [:named_table, :public])
-    rescue
-      ArgumentError -> :ok
-    end
+    :ets.new(:ash_ui_cache_stats, [:named_table, :public])
+  rescue
+    ArgumentError -> :ok
   end
 
   defp screen_resource?(%{__struct__: module}, opts) do

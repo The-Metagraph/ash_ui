@@ -412,11 +412,9 @@ defmodule AshUI.LiveView.EventHandler do
   end
 
   defp safe_to_existing_atom(value) when is_binary(value) do
-    try do
-      String.to_existing_atom(value)
-    rescue
-      ArgumentError -> nil
-    end
+    String.to_existing_atom(value)
+  rescue
+    ArgumentError -> nil
   end
 
   defp safe_to_existing_atom(_value), do: nil

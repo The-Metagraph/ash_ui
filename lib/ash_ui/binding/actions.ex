@@ -20,9 +20,10 @@ defmodule AshUI.Binding.Actions do
 
   defp resolve_source(source, _context) do
     # Parse source path like "MyApp.Accounts.User.name"
-    # and resolve to actual value from context
+    # and resolve to actual value from context.
     _parts = String.split(source, ".")
-    # TODO: Implement actual source resolution
+
+    # Placeholder until source-path evaluation lands.
     {:ok, "Resolved Value"}
   end
 

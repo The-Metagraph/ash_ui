@@ -297,11 +297,9 @@ defmodule AshUI.Runtime.BidirectionalBinding do
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
 
   defp maybe_to_existing_atom(value) when is_binary(value) do
-    try do
-      String.to_existing_atom(value)
-    rescue
-      ArgumentError -> nil
-    end
+    String.to_existing_atom(value)
+  rescue
+    ArgumentError -> nil
   end
 
   defp maybe_to_existing_atom(value) when is_atom(value), do: value

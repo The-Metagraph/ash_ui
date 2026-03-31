@@ -131,12 +131,10 @@ defmodule AshUI.Compiler.Extensions do
   """
   @spec registered_widgets() :: [widget_def()]
   def registered_widgets do
-    try do
-      :ets.tab2list(:ash_ui_widgets)
-      |> Enum.map(fn {_type, def} -> def end)
-    rescue
-      ArgumentError -> []
-    end
+    :ets.tab2list(:ash_ui_widgets)
+    |> Enum.map(fn {_type, def} -> def end)
+  rescue
+    ArgumentError -> []
   end
 
   @doc """
@@ -148,12 +146,10 @@ defmodule AshUI.Compiler.Extensions do
   """
   @spec registered_layouts() :: [layout_def()]
   def registered_layouts do
-    try do
-      :ets.tab2list(:ash_ui_layouts)
-      |> Enum.map(fn {_type, def} -> def end)
-    rescue
-      ArgumentError -> []
-    end
+    :ets.tab2list(:ash_ui_layouts)
+    |> Enum.map(fn {_type, def} -> def end)
+  rescue
+    ArgumentError -> []
   end
 
   @doc """
@@ -165,14 +161,12 @@ defmodule AshUI.Compiler.Extensions do
   """
   @spec get_widget(String.t()) :: {:ok, widget_def()} | {:error, :not_found}
   def get_widget(type) do
-    try do
-      case :ets.lookup(:ash_ui_widgets, type) do
-        [{^type, definition}] -> {:ok, definition}
-        [] -> {:error, :not_found}
-      end
-    rescue
-      ArgumentError -> {:error, :not_found}
+    case :ets.lookup(:ash_ui_widgets, type) do
+      [{^type, definition}] -> {:ok, definition}
+      [] -> {:error, :not_found}
     end
+  rescue
+    ArgumentError -> {:error, :not_found}
   end
 
   @doc """
@@ -184,14 +178,12 @@ defmodule AshUI.Compiler.Extensions do
   """
   @spec get_layout(String.t()) :: {:ok, layout_def()} | {:error, :not_found}
   def get_layout(type) do
-    try do
-      case :ets.lookup(:ash_ui_layouts, type) do
-        [{^type, definition}] -> {:ok, definition}
-        [] -> {:error, :not_found}
-      end
-    rescue
-      ArgumentError -> {:error, :not_found}
+    case :ets.lookup(:ash_ui_layouts, type) do
+      [{^type, definition}] -> {:ok, definition}
+      [] -> {:error, :not_found}
     end
+  rescue
+    ArgumentError -> {:error, :not_found}
   end
 
   @doc """

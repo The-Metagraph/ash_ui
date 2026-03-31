@@ -97,7 +97,8 @@ defmodule AshUI.Runtime.ActionBinding do
           Map.get(action_declaration, "target") ||
           default_action_target(action_declaration),
       "binding_type" => :action,
-      "transform" => Map.get(action_declaration, :transform) || Map.get(action_declaration, "transform") || %{},
+      "transform" =>
+        Map.get(action_declaration, :transform) || Map.get(action_declaration, "transform") || %{},
       "metadata" =>
         action_declaration
         |> Map.get(:metadata, Map.get(action_declaration, "metadata", %{}))
@@ -284,11 +285,9 @@ defmodule AshUI.Runtime.ActionBinding do
   end
 
   defp safe_to_existing_atom(value) when is_binary(value) do
-    try do
-      String.to_existing_atom(value)
-    rescue
-      ArgumentError -> nil
-    end
+    String.to_existing_atom(value)
+  rescue
+    ArgumentError -> nil
   end
 
   defp safe_to_existing_atom(_value), do: nil

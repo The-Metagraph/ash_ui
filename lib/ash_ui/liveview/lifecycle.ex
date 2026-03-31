@@ -334,16 +334,14 @@ defmodule AshUI.LiveView.Lifecycle do
   end
 
   defp execute_hook(hook, socket, hook_type) do
-    try do
-      case :erlang.fun_info(hook, :arity) do
-        {:arity, 2} -> hook.(hook_type, socket)
-        _ -> hook.(socket)
-      end
-    rescue
-      e ->
-        Logger.error("Ash UI lifecycle hook #{hook_type} failed: #{inspect(e)}")
-        socket
+    case :erlang.fun_info(hook, :arity) do
+      {:arity, 2} -> hook.(hook_type, socket)
+      _ -> hook.(socket)
     end
+  rescue
+    e ->
+      Logger.error("Ash UI lifecycle hook #{hook_type} failed: #{inspect(e)}")
+      socket
   end
 
   defp user_hooks_for(_hooks, :user_callback), do: []

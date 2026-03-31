@@ -38,17 +38,15 @@ defmodule AshUI.Resource.DSL.Helpers do
   """
   @spec eval_literal!(Macro.t(), Macro.Env.t(), atom(), String.t()) :: term()
   def eval_literal!(ast, caller, key, context) do
-    try do
-      {value, _binding} = Code.eval_quoted(ast, [], caller)
-      value
-    rescue
-      _error ->
-        reraise ArgumentError,
-                [
-                  message:
-                    "#{context} #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
-                ],
-                __STACKTRACE__
-    end
+    {value, _binding} = Code.eval_quoted(ast, [], caller)
+    value
+  rescue
+    _error ->
+      reraise ArgumentError,
+              [
+                message:
+                  "#{context} #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+              ],
+              __STACKTRACE__
   end
 end

@@ -9,11 +9,7 @@ defmodule AshUI.Runtime.ActionBinding do
   alias AshUI.Resources.Binding
   alias AshUI.Runtime.ResourceAccess
 
-  @type context :: %{
-          user_id: String.t() | nil,
-          params: map(),
-          assigns: map()
-        }
+  @type context :: map()
 
   @type action_result :: %{
           status: :ok | :error,
@@ -290,8 +286,6 @@ defmodule AshUI.Runtime.ActionBinding do
     ArgumentError -> nil
   end
 
-  defp safe_to_existing_atom(_value), do: nil
-
   # Call Ash action
   defp call_ash_action(source, params, context, opts),
     do: ResourceAccess.execute_action(source, params, context, opts)
@@ -363,8 +357,6 @@ defmodule AshUI.Runtime.ActionBinding do
     }
   end
 
-  # Format action error for display
-  defp format_action_error(reason) when is_binary(reason), do: [%{"message" => reason}]
   defp format_action_error(:unauthorized), do: [%{"message" => "Unauthorized"}]
   defp format_action_error(reason), do: [%{"message" => inspect(reason)}]
 

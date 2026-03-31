@@ -10,11 +10,7 @@ defmodule AshUI.Runtime.BindingEvaluator do
   alias AshUI.Runtime.ResourceAccess
   alias AshUI.Telemetry
 
-  @type context :: %{
-          user_id: String.t() | nil,
-          params: map(),
-          assigns: map()
-        }
+  @type context :: map()
 
   @type evaluation_result :: {:ok, term()} | {:error, term()}
 

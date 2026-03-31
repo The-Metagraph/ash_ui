@@ -43,10 +43,6 @@ defmodule AshUI.LiveView.EventHandler do
          {:ok, socket} <- route_event(event, socket) do
       {:noreply, socket}
     else
-      {:error, :unknown_event} ->
-        Logger.debug("Unknown event: #{event_name}")
-        {:noreply, socket}
-
       {:error, reason} ->
         Logger.error("Event handling failed: #{inspect(reason)}")
         socket = assign_flash(socket, :error, "Action failed: #{inspect(reason)}")
@@ -242,7 +238,6 @@ defmodule AshUI.LiveView.EventHandler do
 
   defp wrap_route_result({:noreply, socket}), do: {:ok, socket}
   defp wrap_route_result({:reply, _data, socket}), do: {:ok, socket}
-  defp wrap_route_result({:error, reason}), do: {:error, reason}
 
   defp find_value_binding(binding_id, _target, element_id, socket) when is_binary(binding_id) do
     case socket

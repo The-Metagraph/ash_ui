@@ -13,11 +13,7 @@ defmodule AshUI.Runtime.BidirectionalBinding do
   alias AshUI.Telemetry
 
   @type socket :: map()
-  @type context :: %{
-          user_id: String.t() | nil,
-          params: map(),
-          assigns: map()
-        }
+  @type context :: map()
 
   @doc """
   Reads binding value from Ash resource and updates socket assigns.

@@ -4,9 +4,9 @@ defmodule AshUI.Authorization.PoliciesTest do
   alias AshUI.Authorization.Policies
 
   # Mock users
-  defp build_admin(), do: %{id: "admin-1", role: :admin, active: true}
-  defp build_user(), do: %{id: "user-1", role: :user, active: true}
-  defp build_inactive(), do: %{id: "user-2", role: :user, active: false}
+  defp build_admin, do: %{id: "admin-1", role: :admin, active: true}
+  defp build_user, do: %{id: "user-1", role: :user, active: true}
+  defp build_inactive, do: %{id: "user-2", role: :user, active: false}
   # Mock resources
   defp build_screen(opts \\ []) do
     Enum.into(opts, %{

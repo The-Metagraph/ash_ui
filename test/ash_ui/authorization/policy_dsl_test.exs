@@ -4,9 +4,9 @@ defmodule AshUI.Authorization.PolicyDSLTest do
   alias AshUI.Authorization.PolicyDSL
 
   # Mock users
-  defp build_admin(), do: %{id: "admin-1", role: :admin, active: true}
+  defp build_admin, do: %{id: "admin-1", role: :admin, active: true}
   defp build_user(id \\ "user-1"), do: %{id: id, role: :user, active: true}
-  defp build_inactive(), do: %{id: "user-2", role: :user, active: false}
+  defp build_inactive, do: %{id: "user-2", role: :user, active: false}
 
   # Mock resources
   defp build_resource(opts \\ []) do
@@ -167,28 +167,31 @@ defmodule AshUI.Authorization.PolicyDSLTest do
 
   describe "all_of/1" do
     test "returns true when all policies pass" do
-      combined = PolicyDSL.all_of([
-        fn user -> user.active end,
-        fn user -> user.role == :admin end
-      ])
+      combined =
+        PolicyDSL.all_of([
+          fn user -> user.active end,
+          fn user -> user.role == :admin end
+        ])
 
       assert combined.(build_admin(), build_resource()) == true
     end
 
     test "returns false when any policy fails" do
-      combined = PolicyDSL.all_of([
-        fn user -> user.active end,
-        fn user -> user.role == :admin end
-      ])
+      combined =
+        PolicyDSL.all_of([
+          fn user -> user.active end,
+          fn user -> user.role == :admin end
+        ])
 
       assert combined.(build_user(), build_resource()) == false
     end
 
     test "handles 2-arity policies" do
-      combined = PolicyDSL.all_of([
-        fn _user, resource -> resource.public end,
-        fn user -> user.active end
-      ])
+      combined =
+        PolicyDSL.all_of([
+          fn _user, resource -> resource.public end,
+          fn user -> user.active end
+        ])
 
       assert combined.(build_user(), build_resource(public: true)) == true
       assert combined.(build_user(), build_resource(public: false)) == false
@@ -197,29 +200,32 @@ defmodule AshUI.Authorization.PolicyDSLTest do
 
   describe "any_of/1" do
     test "returns true when any policy passes" do
-      combined = PolicyDSL.any_of([
-        fn user -> user.role == :admin end,
-        fn user -> user.role == :superadmin end
-      ])
+      combined =
+        PolicyDSL.any_of([
+          fn user -> user.role == :admin end,
+          fn user -> user.role == :superadmin end
+        ])
 
       assert combined.(build_admin(), build_resource()) == true
     end
 
     test "returns false when all policies fail" do
-      combined = PolicyDSL.any_of([
-        fn user -> user.role == :superadmin end,
-        fn user -> user.role == :moderator end
-      ])
+      combined =
+        PolicyDSL.any_of([
+          fn user -> user.role == :superadmin end,
+          fn user -> user.role == :moderator end
+        ])
 
       assert combined.(build_user(), build_resource()) == false
     end
 
     test "handles boolean values" do
-      combined = PolicyDSL.any_of([
-        false,
-        true,
-        false
-      ])
+      combined =
+        PolicyDSL.any_of([
+          false,
+          true,
+          false
+        ])
 
       assert combined.(build_user(), build_resource()) == true
     end
@@ -227,7 +233,7 @@ defmodule AshUI.Authorization.PolicyDSLTest do
 
   describe "not_/1" do
     test "negates 1-arity function" do
-      not_admin = PolicyDSL.not_(& &1.role == :admin)
+      not_admin = PolicyDSL.not_(&(&1.role == :admin))
 
       assert not_admin.(build_user()) == true
       assert not_admin.(build_admin()) == false
@@ -255,10 +261,11 @@ defmodule AshUI.Authorization.PolicyDSLTest do
 
   describe "document_policy/2" do
     test "creates policy documentation" do
-      docs = PolicyDSL.document_policy(:screen_read, %{
-        description: "Allows reading screens",
-        checks: [:user_active]
-      })
+      docs =
+        PolicyDSL.document_policy(:screen_read, %{
+          description: "Allows reading screens",
+          checks: [:user_active]
+        })
 
       assert docs.name == :screen_read
       assert docs.description == "Allows reading screens"

@@ -4,9 +4,9 @@ defmodule AshUI.Authorization.RuntimeTest do
   alias AshUI.Authorization.Runtime
 
   # Mock users
-  defp build_admin(), do: %{id: "admin-1", role: :admin, active: true}
+  defp build_admin, do: %{id: "admin-1", role: :admin, active: true}
   defp build_user(id \\ "user-1"), do: %{id: id, role: :user, active: true}
-  defp build_inactive(), do: %{id: "user-2", role: :user, active: false}
+  defp build_inactive, do: %{id: "user-2", role: :user, active: false}
 
   # Mock socket
   defp build_socket(assigns) do
@@ -78,7 +78,9 @@ defmodule AshUI.Authorization.RuntimeTest do
     end
 
     test "forbids inactive user" do
-      assert {:forbidden, reason} = Runtime.check_action_authorization(build_inactive(), :update, %{})
+      assert {:forbidden, reason} =
+               Runtime.check_action_authorization(build_inactive(), :update, %{})
+
       assert reason.reason == :inactive
     end
 

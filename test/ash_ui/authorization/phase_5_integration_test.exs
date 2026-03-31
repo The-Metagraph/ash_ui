@@ -11,9 +11,9 @@ defmodule AshUI.Authorization.Phase5IntegrationTest do
   @moduletag :conformance
 
   # Mock users
-  defp build_admin(), do: %{id: "admin-1", role: :admin, active: true}
+  defp build_admin, do: %{id: "admin-1", role: :admin, active: true}
   defp build_user(id \\ "user-1"), do: %{id: id, role: :user, active: true}
-  defp build_inactive(), do: %{id: "user-2", role: :user, active: false}
+  defp build_inactive, do: %{id: "user-2", role: :user, active: false}
 
   # Mock socket
   defp build_socket(assigns) do

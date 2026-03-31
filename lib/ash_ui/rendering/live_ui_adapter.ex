@@ -762,7 +762,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp css_classes(classes) do
     classes
     |> List.flatten()
-    |> Enum.reject(&is_nil_or_empty?/1)
+    |> Enum.reject(&nil_or_empty?/1)
     |> Enum.join(" ")
   end
 
@@ -777,13 +777,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp merge_style(defaults, extra) do
     defaults
     |> List.wrap()
-    |> Enum.reject(&is_nil_or_empty?/1)
-    |> Kernel.++(if is_nil_or_empty?(extra), do: [], else: [extra])
+    |> Enum.reject(&nil_or_empty?/1)
+    |> Kernel.++(if nil_or_empty?(extra), do: [], else: [extra])
     |> Enum.join("; ")
   end
 
   defp event_name(prefix, :action), do: "#{prefix}_action"
   defp event_name(prefix, :change), do: "#{prefix}_change"
 
-  defp is_nil_or_empty?(value), do: value in [nil, ""]
+  defp nil_or_empty?(value), do: value in [nil, ""]
 end

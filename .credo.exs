@@ -171,7 +171,6 @@
           # usable gate, and re-enable them incrementally in follow-up cleanup
           # PRs as the backlog is burned down.
           {Credo.Check.Design.AliasUsage, []},
-          {Credo.Check.Readability.AliasOrder, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.Nesting, []},
           {Credo.Check.Refactor.RedundantWithClauseResult, []},

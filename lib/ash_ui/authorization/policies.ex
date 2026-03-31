@@ -7,13 +7,13 @@ defmodule AshUI.Authorization.Policies do
   """
 
   alias AshUI.Authorization.BindingPolicy
-  alias AshUI.Config
   alias AshUI.Authorization.ElementPolicy
   alias AshUI.Authorization.ScreenPolicy
-  alias AshUI.Runtime.ResourceAccess
+  alias AshUI.Config
   alias AshUI.Resources.Binding
   alias AshUI.Resources.Element
   alias AshUI.Resources.Screen
+  alias AshUI.Runtime.ResourceAccess
 
   @type policy_result :: :authorized | :forbidden | {:error, term()}
 

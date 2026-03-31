@@ -1,8 +1,8 @@
 defmodule AshUI.Rendering.LiveUIAdapterTest do
   use ExUnit.Case, async: true
 
-  alias AshUI.Rendering.LiveUIAdapter
   alias AshUI.Compilation.IUR
+  alias AshUI.Rendering.LiveUIAdapter
 
   describe "Section 7.2.1 - LiveUI Renderer Adapter" do
     test "render/2 returns HEEx for screen IUR" do

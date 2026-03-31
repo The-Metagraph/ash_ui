@@ -1,9 +1,9 @@
 defmodule AshUI.Resources.ElementTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Resources.Element
+  alias AshUI.Resources.Screen
   alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
@@ -12,8 +12,7 @@ defmodule AshUI.Resources.ElementTest do
     setup do
       {:ok, screen} =
         AshUI.Data.create(Screen,
-          attrs:
-            ScreenDocumentFixtures.resource_screen_attrs("element_test_screen", layout: :row)
+          attrs: ScreenDocumentFixtures.resource_screen_attrs("element_test_screen", layout: :row)
         )
 
       %{screen: screen}

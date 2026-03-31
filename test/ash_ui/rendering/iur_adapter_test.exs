@@ -1,8 +1,8 @@
 defmodule AshUI.Rendering.IURAdapterTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Compiler
   alias AshUI.Compilation.IUR
+  alias AshUI.Compiler
   alias AshUI.Rendering.IURAdapter
   alias AshUI.Resource.Authority
   alias AshUI.Test.{ResourceAuthorityScreen, UIStorageFixtures}

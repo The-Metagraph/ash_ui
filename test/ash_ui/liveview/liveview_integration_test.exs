@@ -4,8 +4,8 @@ defmodule AshUI.LiveView.IntegrationTest do
   alias AshUI.LiveView.Integration
   alias AshUI.Resources.Binding
   alias AshUI.Resources.Screen
-  alias AshUI.Test.ScreenDocumentFixtures
   alias AshUI.Test.{RuntimeDomain, RuntimeFixtures}
+  alias AshUI.Test.ScreenDocumentFixtures
 
   # Mock socket for testing
   defp build_socket(assigns \\ %{}) do

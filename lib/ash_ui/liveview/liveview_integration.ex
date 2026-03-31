@@ -9,15 +9,15 @@ defmodule AshUI.LiveView.Integration do
   require Logger
   require Ash.Query
 
-  alias AshUI.Compiler
-  alias AshUI.Config
   alias AshUI.Authorization.BindingPolicy
   alias AshUI.Authorization.Runtime
+  alias AshUI.Compiler
+  alias AshUI.Config
   alias AshUI.LiveView.BindingRuntime
-  alias AshUI.Runtime.BindingEvaluator
   alias AshUI.LiveView.IURHydration
   alias AshUI.LiveView.UpdateIntegration
   alias AshUI.Rendering.IURAdapter
+  alias AshUI.Runtime.BindingEvaluator
   alias AshUI.Telemetry
 
   @type screen_identifier :: String.t() | atom() | integer()

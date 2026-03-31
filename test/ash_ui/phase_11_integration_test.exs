@@ -1,9 +1,9 @@
 defmodule AshUI.Phase11IntegrationTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Config
   alias AshUI.Compiler
   alias AshUI.Compiler.Incremental
+  alias AshUI.Config
   alias AshUI.Data
   alias AshUI.LiveView.Integration
   alias AshUI.Rendering.{ElmUIAdapter, IURAdapter, LiveUIAdapter}
@@ -35,9 +35,10 @@ defmodule AshUI.Phase11IntegrationTest do
                "Elixir.AshUI.Test.ResourceAuthorityScreen"
     end
 
-    test "11.4.1.2 - Verify live bindings hydrate correctly after resource-authority compilation", %{
-      ui_storage: ui_storage
-    } do
+    test "11.4.1.2 - Verify live bindings hydrate correctly after resource-authority compilation",
+         %{
+           ui_storage: ui_storage
+         } do
       fixtures = RuntimeFixtures.seed!()
 
       screen =

@@ -471,12 +471,10 @@ defmodule AshUI.LiveView.ErrorHandler do
   end
 
   defp format_validation_errors(errors) when is_list(errors) do
-    errors
-    |> Enum.map(fn
+    Enum.map_join(errors, ", ", fn
       {field, {message, _}} -> "#{field}: #{message}"
       {field, message} -> "#{field}: #{message}"
     end)
-    |> Enum.join(", ")
   end
 
   defp format_validation_errors(error), do: inspect(error)

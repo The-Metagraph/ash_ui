@@ -99,7 +99,11 @@ defmodule AshUI.Runtime.ListBinding do
     }
 
     updated_subscriptions = Map.put(subscriptions, subscription_id, subscription)
-    updated_socket = %{socket | assigns: put_in(socket.assigns, [:ash_ui, :list_subscriptions], updated_subscriptions)}
+
+    updated_socket = %{
+      socket
+      | assigns: put_in(socket.assigns, [:ash_ui, :list_subscriptions], updated_subscriptions)
+    }
 
     {:ok, updated_socket}
   end
@@ -174,7 +178,8 @@ defmodule AshUI.Runtime.ListBinding do
   end
 
   defp get_total_count(collection) do
-    Map.get(collection, :total) || Map.get(collection, "total") || length(extract_items(collection))
+    Map.get(collection, :total) || Map.get(collection, "total") ||
+      length(extract_items(collection))
   end
 
   defp extract_items(collection) do
@@ -188,6 +193,7 @@ defmodule AshUI.Runtime.ListBinding do
     # Store change for UI update
     changes = get_in(socket.assigns, [:ash_ui, :list_changes, target]) || []
     updated_changes = [{:insert, change_data} | changes]
+
     updated_socket =
       put_assign_path(socket, [:ash_ui, :list_changes, target], updated_changes)
 
@@ -229,8 +235,13 @@ defmodule AshUI.Runtime.ListBinding do
 
     # Update total count
     current_total = get_in(socket.assigns, [:ash_ui, :lists, target, "total"]) || 0
+
     updated_socket =
-      put_assign_path(updated_socket, [:ash_ui, :lists, target, "total"], max(current_total - 1, 0))
+      put_assign_path(
+        updated_socket,
+        [:ash_ui, :lists, target, "total"],
+        max(current_total - 1, 0)
+      )
 
     {:ok, updated_socket, true}
   end
@@ -326,16 +337,14 @@ defmodule AshUI.Runtime.ListBinding do
   defp merge_item_change(%{__struct__: _} = item, change_data) do
     Enum.reduce(change_data, item, fn {key, value}, acc ->
       atom_key =
-        cond do
-          is_atom(key) ->
-            key
-
-          true ->
-            try do
-              String.to_existing_atom(to_string(key))
-            rescue
-              ArgumentError -> nil
-            end
+        if is_atom(key) do
+          key
+        else
+          try do
+            String.to_existing_atom(to_string(key))
+          rescue
+            ArgumentError -> nil
+          end
         end
 
       if atom_key && Map.has_key?(acc, atom_key) do

@@ -175,13 +175,10 @@
           {Credo.Check.Readability.AliasOrder, []},
           {Credo.Check.Readability.ParenthesesOnZeroArityDefs, []},
           {Credo.Check.Readability.PreferImplicitTry, []},
-          {Credo.Check.Refactor.CondStatements, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
-          {Credo.Check.Refactor.MapJoin, []},
           {Credo.Check.Refactor.Nesting, []},
           {Credo.Check.Refactor.RedundantWithClauseResult, []},
           {Credo.Check.Warning.ExpensiveEmptyEnumCheck, []},
-          {Credo.Check.Warning.RaiseInsideRescue, []},
 
           #
           # Checks scheduled for next check update (opt-in for now)

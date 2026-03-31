@@ -36,7 +36,8 @@ defmodule AshUI.DSL.Element do
 
   defp extract_entries(expression, caller), do: [extract_entry(expression, caller)]
 
-  defp extract_entry({name, _meta, [value_ast]}, caller) when name in [:type, :props, :variants] do
+  defp extract_entry({name, _meta, [value_ast]}, caller)
+       when name in [:type, :props, :variants] do
     {name, eval_literal!(value_ast, caller, name)}
   end
 
@@ -55,7 +56,8 @@ defmodule AshUI.DSL.Element do
           end
 
         if not (is_binary(type) and Storage.valid_widget_type?(type)) do
-          raise ArgumentError, "ui_element type must be a known widget type, got: #{inspect(value)}"
+          raise ArgumentError,
+                "ui_element type must be a known widget type, got: #{inspect(value)}"
         end
 
       {:props, value} when is_map(value) ->
@@ -82,8 +84,12 @@ defmodule AshUI.DSL.Element do
       value
     rescue
       _error ->
-        raise ArgumentError,
-              "ui_element #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+        reraise ArgumentError,
+                [
+                  message:
+                    "ui_element #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+                ],
+                __STACKTRACE__
     end
   end
 end

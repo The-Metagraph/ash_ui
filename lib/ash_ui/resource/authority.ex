@@ -124,17 +124,15 @@ defmodule AshUI.Resource.Authority do
       get_in(payload, ["screen", "module"]) ||
         get_in(payload, [:screen, :module])
 
-    cond do
-      not is_binary(module_name) or String.trim(module_name) == "" ->
-        {:error, {:invalid_screen_authority, :missing_screen_module}}
+    if not is_binary(module_name) or String.trim(module_name) == "" do
+      {:error, {:invalid_screen_authority, :missing_screen_module}}
+    else
+      module = decode_module(module_name)
 
-      true ->
-        module = decode_module(module_name)
-
-        case Info.resource_role(module) do
-          :screen -> {:ok, module}
-          role -> {:error, {:invalid_screen_authority, module, role}}
-        end
+      case Info.resource_role(module) do
+        :screen -> {:ok, module}
+        role -> {:error, {:invalid_screen_authority, module, role}}
+      end
     end
   end
 

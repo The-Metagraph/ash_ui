@@ -43,8 +43,12 @@ defmodule AshUI.Resource.DSL.Helpers do
       value
     rescue
       _error ->
-        raise ArgumentError,
-              "#{context} #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+        reraise ArgumentError,
+                [
+                  message:
+                    "#{context} #{key} must use a compile-time literal, got: #{Macro.to_string(ast)}"
+                ],
+                __STACKTRACE__
     end
   end
 end

@@ -2,7 +2,9 @@ defmodule AshUI.DSLIntegrationTest do
   use AshUI.DataCase, async: false
 
   defmodule ScreenDSLFixture do
-    use AshUI.DSL.Screen
+    alias AshUI.DSL.Screen, as: ScreenDSL
+
+    use ScreenDSL
 
     def attrs do
       ui_screen do
@@ -10,12 +12,14 @@ defmodule AshUI.DSLIntegrationTest do
         route("/dsl-screen")
         metadata(%{title: "DSL Screen", priority: 1})
       end
-      |> AshUI.DSL.Screen.to_attributes()
+      |> ScreenDSL.to_attributes()
     end
   end
 
   defmodule ElementDSLFixture do
-    use AshUI.DSL.Element
+    alias AshUI.DSL.Element, as: ElementDSL
+
+    use ElementDSL
 
     def attrs do
       ui_element do
@@ -23,12 +27,14 @@ defmodule AshUI.DSLIntegrationTest do
         props(%{label: "Save"})
         variants([:primary, :large])
       end
-      |> AshUI.DSL.Element.to_attributes()
+      |> ElementDSL.to_attributes()
     end
   end
 
   defmodule BindingDSLFixture do
-    use AshUI.DSL.Binding
+    alias AshUI.DSL.Binding, as: BindingDSL
+
+    use BindingDSL
 
     def attrs do
       ui_binding do
@@ -37,36 +43,42 @@ defmodule AshUI.DSLIntegrationTest do
         binding_type(:value)
         transform(%{default: "Anonymous"})
       end
-      |> AshUI.DSL.Binding.to_attributes()
+      |> BindingDSL.to_attributes()
     end
   end
 
   defmodule CompatScreenDSLFixture do
-    use AshUI.Resource.DSL.Screen
+    alias AshUI.Resource.DSL.Screen, as: CompatScreenDSL
+
+    use CompatScreenDSL
 
     def attrs do
       ui_screen do
         layout(:grid)
         route("/compat-screen")
       end
-      |> AshUI.Resource.DSL.Screen.to_attributes()
+      |> CompatScreenDSL.to_attributes()
     end
   end
 
   defmodule CompatElementDSLFixture do
-    use AshUI.Resource.DSL.Element
+    alias AshUI.Resource.DSL.Element, as: CompatElementDSL
+
+    use CompatElementDSL
 
     def attrs do
       ui_element do
         type(:text)
         props(%{label: "Compat"})
       end
-      |> AshUI.Resource.DSL.Element.to_attributes()
+      |> CompatElementDSL.to_attributes()
     end
   end
 
   defmodule CompatBindingDSLFixture do
-    use AshUI.Resource.DSL.Binding
+    alias AshUI.Resource.DSL.Binding, as: CompatBindingDSL
+
+    use CompatBindingDSL
 
     def attrs do
       ui_binding do
@@ -74,7 +86,7 @@ defmodule AshUI.DSLIntegrationTest do
         target("value")
         binding_type(:value)
       end
-      |> AshUI.Resource.DSL.Binding.to_attributes()
+      |> CompatBindingDSL.to_attributes()
     end
   end
 

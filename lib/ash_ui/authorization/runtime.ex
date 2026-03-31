@@ -8,6 +8,7 @@ defmodule AshUI.Authorization.Runtime do
 
   require Logger
 
+  alias Ash.Resource.Info, as: AshResourceInfo
   alias AshUI.Authorization.BindingPolicy
   alias AshUI.Authorization.Policies
   alias AshUI.Authorization.ScreenPolicy
@@ -486,14 +487,14 @@ defmodule AshUI.Authorization.Runtime do
   defp policy_subject(_resource, _action), do: :skip
 
   defp normalize_policy_action(resource, :mount) do
-    case Enum.any?(Ash.Resource.Info.actions(resource), &(&1.name == :mount)) do
+    case Enum.any?(AshResourceInfo.actions(resource), &(&1.name == :mount)) do
       true -> :mount
       false -> :read
     end
   end
 
   defp normalize_policy_action(resource, action) do
-    case Enum.find(Ash.Resource.Info.actions(resource), fn existing ->
+    case Enum.find(AshResourceInfo.actions(resource), fn existing ->
            existing.name == action
          end) do
       nil -> action
@@ -506,7 +507,7 @@ defmodule AshUI.Authorization.Runtime do
   end
 
   defp ash_resource?(module) do
-    Ash.Resource.Info.attributes(module)
+    AshResourceInfo.attributes(module)
     true
   rescue
     _ -> false

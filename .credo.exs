@@ -121,7 +121,6 @@
           #
           {Credo.Check.Refactor.Apply, []},
           {Credo.Check.Refactor.CondStatements, []},
-          {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.FilterCount, []},
           {Credo.Check.Refactor.FilterFilter, []},
           {Credo.Check.Refactor.FunctionArity, []},
@@ -130,7 +129,6 @@
           {Credo.Check.Refactor.MatchInCondition, []},
           {Credo.Check.Refactor.NegatedConditionsInUnless, []},
           {Credo.Check.Refactor.NegatedConditionsWithElse, []},
-          {Credo.Check.Refactor.Nesting, []},
           {Credo.Check.Refactor.RejectReject, []},
           {Credo.Check.Refactor.UnlessWithElse, []},
           {Credo.Check.Refactor.WithClauses, []},
@@ -162,15 +160,6 @@
           {Credo.Check.Warning.WrongTestFilename, []}
         ],
         disabled: [
-          #
-          # Historical repo baseline
-          #
-          # These checks already have broad existing debt across the codebase.
-          # Keep them disabled for now so `mix credo --strict` can serve as a
-          # usable gate, and re-enable them incrementally in follow-up cleanup
-          # PRs as the backlog is burned down.
-          {Credo.Check.Refactor.CyclomaticComplexity, []},
-          {Credo.Check.Refactor.Nesting, []},
           #
           # Controversial and experimental checks (opt-in, just move the check to `:enabled`
           #   and be sure to use `mix credo --strict` to see low priority checks)

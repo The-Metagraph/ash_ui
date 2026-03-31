@@ -261,13 +261,9 @@ defmodule AshUI.Rendering.Selector do
     header_value = get_request_header(conn_or_map, header_name)
 
     if is_binary(header_value) do
-      if values == [] do
-        true
-      else
-        Enum.any?(values, fn value ->
-          String.contains?(String.downcase(header_value), value)
-        end)
-      end
+      Enum.any?(values, fn value ->
+        String.contains?(String.downcase(header_value), value)
+      end)
     else
       false
     end
@@ -277,11 +273,7 @@ defmodule AshUI.Rendering.Selector do
     param_value = get_request_param(conn_or_map, param_name)
 
     if param_value do
-      if values == [] do
-        true
-      else
-        param_value in values
-      end
+      param_value in values
     else
       false
     end

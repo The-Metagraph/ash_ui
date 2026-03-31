@@ -22,6 +22,10 @@ defmodule BasicDashboardExampleWeb do
   end
 
   defmacro __using__(which) when is_atom(which) do
-    apply(__MODULE__, which, [])
+    case which do
+      :router -> router()
+      :html -> html()
+      other -> raise ArgumentError, "unknown BasicDashboardExampleWeb helper: #{inspect(other)}"
+    end
   end
 end

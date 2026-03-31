@@ -131,6 +131,7 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     assets_url = Keyword.get(opts, :assets_url, "/assets")
 
     ports = extract_elm_ports(iur)
+
     flags = %{
       "screen" => iur,
       "ports" => ports
@@ -205,7 +206,7 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     renderer_module = elm_ui_renderer_module()
 
     try do
-      case apply(renderer_module, :render, [canonical_iur, opts]) do
+      case renderer_module.render(canonical_iur, opts) do
         {:ok, html} -> {:ok, html}
         {:error, reason} -> {:error, {:elm_ui_error, reason}}
         other -> {:error, {:unexpected_response, other}}

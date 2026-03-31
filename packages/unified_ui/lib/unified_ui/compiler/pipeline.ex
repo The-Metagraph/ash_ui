@@ -815,8 +815,7 @@ defmodule UnifiedUi.Compiler.Pipeline do
         [] -> Element.new(:widget, :empty_field_control, id: "#{node.id}-control")
       end
 
-    apply(Forms, constructor, [
-      control,
+    opts =
       common_opts(node, attachments,
         name: node.field_name,
         label: node.label,
@@ -824,7 +823,11 @@ defmodule UnifiedUi.Compiler.Pipeline do
         path: node.value_path,
         default: node.default_value
       )
-    ])
+
+    case constructor do
+      :field -> Forms.field(control, opts)
+      :form_field -> Forms.form_field(control, opts)
+    end
   end
 
   defp lower_children(node, context, visited) do

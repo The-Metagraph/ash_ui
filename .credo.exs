@@ -172,13 +172,11 @@
           # usable gate, and re-enable them incrementally in follow-up cleanup
           # PRs as the backlog is burned down.
           {Credo.Check.Design.AliasUsage, []},
-          {Credo.Check.Design.TagTODO, []},
           {Credo.Check.Readability.AliasOrder, []},
           {Credo.Check.Readability.ParenthesesOnZeroArityDefs, []},
           {Credo.Check.Readability.PredicateFunctionNames, []},
           {Credo.Check.Readability.PreferImplicitTry, []},
           {Credo.Check.Readability.WithSingleClause, []},
-          {Credo.Check.Refactor.Apply, []},
           {Credo.Check.Refactor.CondStatements, []},
           {Credo.Check.Refactor.CyclomaticComplexity, []},
           {Credo.Check.Refactor.MapJoin, []},

@@ -249,7 +249,7 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     renderer_module = desktop_ui_renderer_module()
 
     try do
-      case apply(renderer_module, :render, [canonical_iur, opts]) do
+      case renderer_module.render(canonical_iur, opts) do
         {:ok, instructions} -> {:ok, instructions}
         {:error, reason} -> {:error, {:desktop_ui_error, reason}}
         other -> {:error, {:unexpected_response, other}}

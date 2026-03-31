@@ -2,8 +2,8 @@ defmodule AshUI.Compiler.Phase6IntegrationTest do
   use AshUI.DataCase, async: false
 
   alias AshUI.Compiler
-  alias AshUI.Compiler.Incremental
   alias AshUI.Compiler.Extensions
+  alias AshUI.Compiler.Incremental
   alias AshUI.DSL.Builder
   alias AshUI.Test.ScreenDocumentFixtures
 

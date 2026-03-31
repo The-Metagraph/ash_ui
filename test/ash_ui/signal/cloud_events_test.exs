@@ -1,8 +1,8 @@
 defmodule AshUI.Signal.CloudEventsTest do
   use ExUnit.Case, async: true
 
-  alias AshUI.Signal.Struct
   alias AshUI.Signal.CloudEvents
+  alias AshUI.Signal.Struct
 
   describe "to_cloud_event/1" do
     test "converts signal to CloudEvents format" do

@@ -1,9 +1,9 @@
 defmodule AshUI.Examples.BasicDashboardAdapterRunnerTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Rendering.Registry
   alias AshUI.Rendering.ElmUIAdapter
   alias AshUI.Rendering.LiveUIAdapter
+  alias AshUI.Rendering.Registry
   alias BasicDashboard.AdapterRunner
 
   @moduletag :conformance

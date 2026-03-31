@@ -1,9 +1,9 @@
 defmodule AshUI.Resources.BindingTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Resources.Element
+  alias AshUI.Resources.Screen
   alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance

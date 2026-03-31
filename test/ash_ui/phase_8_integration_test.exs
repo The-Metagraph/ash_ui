@@ -8,10 +8,10 @@ defmodule AshUI.Phase8IntegrationTest do
   alias AshUI.Data, as: Domain
   alias AshUI.LiveView.EventHandler
   alias AshUI.LiveView.Integration
-  alias AshUI.Resource.Authority
   alias AshUI.Rendering.DesktopUIAdapter
-  alias AshUI.Rendering.LiveUIAdapter
   alias AshUI.Rendering.ElmUIAdapter
+  alias AshUI.Rendering.LiveUIAdapter
+  alias AshUI.Resource.Authority
   alias AshUI.Resources.Screen
   alias AshUI.Telemetry
   alias AshUI.Test.{ResourceAuthorityScreen, RuntimeDomain, RuntimeFixtures, User}

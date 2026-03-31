@@ -1,8 +1,8 @@
 defmodule AshUI.Rendering.ElmUIAdapterTest do
   use ExUnit.Case, async: true
 
-  alias AshUI.Rendering.ElmUIAdapter
   alias AshUI.Compilation.IUR
+  alias AshUI.Rendering.ElmUIAdapter
 
   describe "Section 7.3.1 - ElmUI Renderer Adapter" do
     test "render/2 returns HTML for screen IUR" do

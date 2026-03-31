@@ -18,8 +18,8 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   fallback implementation using the IURAdapter.
   """
 
-  alias AshUI.Rendering.IURAdapter
   alias AshUI.Compilation.IUR
+  alias AshUI.Rendering.IURAdapter
   alias AshUI.Telemetry
 
   @doc """

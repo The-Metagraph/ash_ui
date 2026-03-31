@@ -1,9 +1,9 @@
 defmodule AshUI.RelationshipIntegrationTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Resources.Element
+  alias AshUI.Resources.Screen
   alias AshUI.Test.ScreenDocumentFixtures
 
   @moduletag :conformance
@@ -12,9 +12,10 @@ defmodule AshUI.RelationshipIntegrationTest do
     # Create a screen with multiple elements and bindings
     {:ok, screen} =
       AshUI.Data.create(Screen,
-        attrs: ScreenDocumentFixtures.resource_screen_attrs("relationship_test_screen",
-          layout: :column
-        )
+        attrs:
+          ScreenDocumentFixtures.resource_screen_attrs("relationship_test_screen",
+            layout: :column
+          )
       )
 
     # Create multiple elements
@@ -117,6 +118,7 @@ defmodule AshUI.RelationshipIntegrationTest do
         )
 
       assert length(elements) == 2
+
       Enum.each(elements, fn element ->
         assert element.position > 1
       end)
@@ -166,7 +168,7 @@ defmodule AshUI.RelationshipIntegrationTest do
       # Each element should have 2 bindings
       total_bindings =
         screen_with_all.elements
-        |> Enum.map(&(length(&1.bindings)))
+        |> Enum.map(&length(&1.bindings))
         |> Enum.sum()
 
       assert total_bindings == 6

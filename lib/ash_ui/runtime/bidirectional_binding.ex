@@ -6,10 +6,10 @@ defmodule AshUI.Runtime.BidirectionalBinding do
   user input back to Ash resources with proper change tracking.
   """
 
-  alias AshUI.Runtime.BindingEvaluator
-  alias AshUI.Runtime.ResourceAccess
   alias AshUI.LiveView.BindingRuntime
   alias AshUI.Resources.Binding
+  alias AshUI.Runtime.BindingEvaluator
+  alias AshUI.Runtime.ResourceAccess
   alias AshUI.Telemetry
 
   @type socket :: map()

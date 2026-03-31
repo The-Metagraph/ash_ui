@@ -1,9 +1,9 @@
 defmodule AshUI.LiveView.Phase4IntegrationTest do
   use ExUnit.Case, async: false
 
-  alias AshUI.LiveView.Lifecycle
   alias AshUI.LiveView.ErrorHandler
   alias AshUI.LiveView.EventHandler
+  alias AshUI.LiveView.Lifecycle
   alias AshUI.LiveView.UpdateIntegration
   alias AshUI.Test.RuntimeDomain
   alias AshUI.Test.RuntimeFixtures

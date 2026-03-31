@@ -1,11 +1,11 @@
 defmodule AshUI.Authorization.Phase5IntegrationTest do
   use ExUnit.Case, async: false
 
-  alias AshUI.Authorization.Runtime
-  alias AshUI.Authorization.Policies
-  alias AshUI.Authorization.ScreenPolicy
-  alias AshUI.Authorization.ElementPolicy
   alias AshUI.Authorization.BindingPolicy
+  alias AshUI.Authorization.ElementPolicy
+  alias AshUI.Authorization.Policies
+  alias AshUI.Authorization.Runtime
+  alias AshUI.Authorization.ScreenPolicy
   alias AshUI.AuthorizationError
 
   @moduletag :conformance

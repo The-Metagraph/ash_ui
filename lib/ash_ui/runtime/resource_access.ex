@@ -8,8 +8,8 @@ defmodule AshUI.Runtime.ResourceAccess do
 
   require Ash.Query
 
-  alias AshUI.Config
   alias AshUI.Authorization.Policies
+  alias AshUI.Config
 
   @type context :: map()
   @type resolved :: %{

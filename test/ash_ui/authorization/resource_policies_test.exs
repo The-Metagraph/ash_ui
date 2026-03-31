@@ -1,9 +1,9 @@
 defmodule AshUI.Authorization.ResourcePoliciesTest do
   use ExUnit.Case, async: true
 
-  alias AshUI.Authorization.ScreenPolicy
-  alias AshUI.Authorization.ElementPolicy
   alias AshUI.Authorization.BindingPolicy
+  alias AshUI.Authorization.ElementPolicy
+  alias AshUI.Authorization.ScreenPolicy
 
   # Mock users
   defp build_admin, do: %{id: "admin-1", role: :admin, active: true}

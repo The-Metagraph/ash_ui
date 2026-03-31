@@ -8,9 +8,9 @@ defmodule AshUI.Authorization.Runtime do
 
   require Logger
 
+  alias AshUI.Authorization.BindingPolicy
   alias AshUI.Authorization.Policies
   alias AshUI.Authorization.ScreenPolicy
-  alias AshUI.Authorization.BindingPolicy
   alias AshUI.Telemetry
 
   @type auth_result :: :authorized | {:forbidden, map()} | {:error, term()}

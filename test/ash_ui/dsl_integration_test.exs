@@ -6,9 +6,9 @@ defmodule AshUI.DSLIntegrationTest do
 
     def attrs do
       ui_screen do
-        layout :row
-        route "/dsl-screen"
-        metadata %{title: "DSL Screen", priority: 1}
+        layout(:row)
+        route("/dsl-screen")
+        metadata(%{title: "DSL Screen", priority: 1})
       end
       |> AshUI.DSL.Screen.to_attributes()
     end
@@ -19,9 +19,9 @@ defmodule AshUI.DSLIntegrationTest do
 
     def attrs do
       ui_element do
-        type :button
-        props %{label: "Save"}
-        variants [:primary, :large]
+        type(:button)
+        props(%{label: "Save"})
+        variants([:primary, :large])
       end
       |> AshUI.DSL.Element.to_attributes()
     end
@@ -32,10 +32,10 @@ defmodule AshUI.DSLIntegrationTest do
 
     def attrs do
       ui_binding do
-        source %{resource: "User", field: "name"}
-        target "value"
-        binding_type :value
-        transform %{default: "Anonymous"}
+        source(%{resource: "User", field: "name"})
+        target("value")
+        binding_type(:value)
+        transform(%{default: "Anonymous"})
       end
       |> AshUI.DSL.Binding.to_attributes()
     end
@@ -46,8 +46,8 @@ defmodule AshUI.DSLIntegrationTest do
 
     def attrs do
       ui_screen do
-        layout :grid
-        route "/compat-screen"
+        layout(:grid)
+        route("/compat-screen")
       end
       |> AshUI.Resource.DSL.Screen.to_attributes()
     end
@@ -58,8 +58,8 @@ defmodule AshUI.DSLIntegrationTest do
 
     def attrs do
       ui_element do
-        type :text
-        props %{label: "Compat"}
+        type(:text)
+        props(%{label: "Compat"})
       end
       |> AshUI.Resource.DSL.Element.to_attributes()
     end
@@ -70,17 +70,17 @@ defmodule AshUI.DSLIntegrationTest do
 
     def attrs do
       ui_binding do
-        source %{resource: "User", field: "email"}
-        target "value"
-        binding_type :value
+        source(%{resource: "User", field: "email"})
+        target("value")
+        binding_type(:value)
       end
       |> AshUI.Resource.DSL.Binding.to_attributes()
     end
   end
 
-  alias AshUI.Resources.Screen
-  alias AshUI.Resources.Element
   alias AshUI.Resources.Binding
+  alias AshUI.Resources.Element
+  alias AshUI.Resources.Screen
   alias AshUI.Test.ScreenDocumentFixtures
 
   describe "ui_screen DSL extension" do
@@ -106,6 +106,7 @@ defmodule AshUI.DSLIntegrationTest do
                      route: "/dsl-test"
                    )
                )
+
       assert screen.layout == :row
       assert screen.route == "/dsl-test"
       assert is_map(screen.unified_dsl)
@@ -124,6 +125,7 @@ defmodule AshUI.DSLIntegrationTest do
                      metadata: attrs.metadata
                    )
                )
+
       assert Map.take(screen.metadata, ["custom", "priority"]) == %{
                "custom" => "value",
                "priority" => 1

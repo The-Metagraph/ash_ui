@@ -9,8 +9,8 @@ defmodule AshUI.Compiler.Incremental do
   require Ash.Query
   require Logger
 
-  alias AshUI.Config
   alias AshUI.Compiler
+  alias AshUI.Config
   alias AshUI.Resource.Authority
 
   @type dependency_graph :: %{

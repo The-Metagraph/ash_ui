@@ -3,11 +3,11 @@ defmodule AshUI.Rendering.Phase7IntegrationTest do
 
   alias AshUI.Rendering.{
     DesktopUIAdapter,
+    ElmUIAdapter,
     IURAdapter,
     LiveUIAdapter,
     Registry,
-    Selector,
-    ElmUIAdapter
+    Selector
   }
 
   alias AshUI.Compilation.IUR

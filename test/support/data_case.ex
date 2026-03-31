@@ -8,8 +8,8 @@ defmodule AshUI.DataCase do
 
   using do
     quote do
-      alias AshUI.Repo
       alias AshUI.Data, as: Domain
+      alias AshUI.Repo
 
       import Ecto.Query
       import AshUI.DataCase

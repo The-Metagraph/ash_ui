@@ -3,11 +3,11 @@ defmodule AshUI.Resource.AuthorityTest do
 
   alias AshUI.Resource.Authority
   alias AshUI.Resource.Info
+  alias AshUI.Test.RelationshipMixedScreen
   alias AshUI.Test.ResourceAuthorityButtonElement
   alias AshUI.Test.ResourceAuthorityFormPanelElement
   alias AshUI.Test.ResourceAuthorityHeroElement
   alias AshUI.Test.ResourceAuthorityInputElement
-  alias AshUI.Test.RelationshipMixedScreen
   alias AshUI.Test.ResourceAuthorityScreen
   alias AshUI.Test.ResourceAuthorityStatElement
   alias AshUI.Test.UIStorageFixtures
@@ -82,6 +82,7 @@ defmodule AshUI.Resource.AuthorityTest do
       assert attrs.unified_dsl["format"] == Authority.format()
       assert attrs.unified_dsl["version"] == Authority.version()
       assert attrs.unified_dsl["screen"]["module"] == "Elixir.AshUI.Test.ResourceAuthorityScreen"
+
       assert Enum.map(attrs.unified_dsl["composition"]["roots"], & &1["module"]) == [
                "Elixir.AshUI.Test.ResourceAuthorityHeroElement",
                "Elixir.AshUI.Test.ResourceAuthorityFormPanelElement"

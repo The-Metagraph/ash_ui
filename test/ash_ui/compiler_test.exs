@@ -1,8 +1,8 @@
 defmodule AshUI.CompilerTest do
   use AshUI.DataCase, async: false
 
-  alias AshUI.Compiler
   alias AshUI.Compilation.IUR
+  alias AshUI.Compiler
   alias AshUI.Resources.Screen
   alias AshUI.Test.ScreenDocumentFixtures
 

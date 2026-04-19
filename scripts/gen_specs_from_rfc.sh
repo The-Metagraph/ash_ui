@@ -10,6 +10,11 @@ Options:
   --rfc <path>   Path to RFC markdown file.
   --dry-run      Print planned file writes without creating files.
   --overwrite    Overwrite existing target files for create rows.
+
+Notes:
+  - This generator writes Spec Led subject stubs under `.spec/specs/`.
+  - It expects Spec Creation Plan rows whose target path already uses the
+    `.spec/specs/<subject>.spec.md` form.
 USAGE
 }
 
@@ -24,26 +29,25 @@ titleize() {
     | awk '{for(i=1;i<=NF;i++){$i=toupper(substr($i,1,1)) tolower(substr($i,2))}; print}'
 }
 
-relative_prefix_to_specs_root() {
+to_subject_id() {
   local spec_path="$1"
-  local dir rel up i
+  local slug
 
-  dir="$(dirname "$spec_path")"
-  rel="${dir#specs}"
-  rel="${rel#/}"
+  slug="${spec_path#.spec/specs/}"
+  slug="${slug%.spec.md}"
+  slug="$(echo "$slug" | tr '/-' '._' | tr '[:upper:]' '[:lower:]')"
 
-  if [[ -z "$rel" ]]; then
-    echo "."
-    return
+  echo "ashui.${slug}"
+}
+
+render_list_or_none() {
+  local lines="$1"
+
+  if [[ -n "$lines" ]]; then
+    printf '%s' "$lines"
+  else
+    echo "- None recorded in the RFC plan"
   fi
-
-  IFS='/' read -r -a parts <<< "$rel"
-  up=".."
-  for ((i=1; i<${#parts[@]}; i++)); do
-    up="$up/.."
-  done
-
-  echo "$up"
 }
 
 ROOT="${RFC_GOVERNANCE_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
@@ -105,7 +109,7 @@ if [[ "$RFC_PATH" == "$ROOT"/* ]]; then
   RFC_PATH_REL="${RFC_PATH#$ROOT/}"
 fi
 
-CONTRACT_REFS="$(rg -o 'specs/contracts/[a-z0-9_]+\.md' "$RFC_PATH" | sort -u || true)"
+CURRENT_TRUTH_REFS="$(rg -o '\.spec/(specs|decisions)/[A-Za-z0-9._/-]+\.md' "$RFC_PATH" | sort -u || true)"
 
 PLAN_BLOCK="$(awk '/^## Spec Creation Plan/{flag=1;next}/^## /{if(flag)exit}flag' "$RFC_PATH")"
 if [[ -z "$PLAN_BLOCK" ]]; then
@@ -123,7 +127,11 @@ while IFS= read -r line; do
   [[ -z "$line" ]] && continue
   [[ "$line" == \|* ]] || continue
 
-  if echo "$line" | rg -q '^\|[[:space:]]*Action[[:space:]]*\|'; then
+  if echo "$line" | rg -q '^\|[[:space:]]*(Action|Spec)[[:space:]]*\|'; then
+    continue
+  fi
+
+  if echo "$line" | rg -q '^\|[[:space:]-]+\|'; then
     continue
   fi
 
@@ -133,15 +141,34 @@ while IFS= read -r line; do
 
   rows_seen=$((rows_seen + 1))
 
-  IFS='|' read -r _ action spec_path component_title control_plane req_cell scn_cell ac_cell _ <<< "$line"
+  IFS='|' read -r _ col1 col2 col3 col4 col5 col6 col7 col8 _ <<< "$line"
 
-  action="$(trim "$action" | tr '[:upper:]' '[:lower:]')"
-  spec_path="$(trim "$spec_path")"
-  component_title="$(trim "$component_title")"
-  control_plane="$(trim "$control_plane")"
-  req_cell="$(trim "$req_cell")"
-  scn_cell="$(trim "$scn_cell")"
-  ac_cell="$(trim "$ac_cell")"
+  col1="$(trim "$col1")"
+  col2="$(trim "$col2")"
+  col3="$(trim "$col3")"
+  col4="$(trim "$col4")"
+  col5="$(trim "$col5")"
+  col6="$(trim "$col6")"
+  col7="$(trim "$col7")"
+  col8="$(trim "$col8")"
+
+  action="create"
+  spec_path="$col1"
+  component_title="$col2"
+  control_plane="$col3"
+  req_cell="$col4"
+  scn_cell="$col5"
+  ac_cell="$col6"
+
+  if [[ "$col1" =~ ^(create|update|skip)$ ]]; then
+    action="$(echo "$col1" | tr '[:upper:]' '[:lower:]')"
+    spec_path="$col2"
+    component_title="$col3"
+    control_plane="$col4"
+    req_cell="$col5"
+    scn_cell="$col6"
+    ac_cell="$col7"
+  fi
 
   if [[ "$action" != "create" ]]; then
     echo "INFO: skipping non-create action '$action' for $spec_path"
@@ -150,14 +177,14 @@ while IFS= read -r line; do
 
   create_rows=$((create_rows + 1))
 
-  if ! echo "$spec_path" | rg -q '^specs/.+\.md$'; then
-    echo "ERROR: invalid spec path '$spec_path' (must match specs/*.md)"
+  if ! echo "$spec_path" | rg -q '^\.spec/specs/.+\.spec\.md$'; then
+    echo "ERROR: invalid spec path '$spec_path' (must match .spec/specs/*.spec.md)"
     errors=$((errors + 1))
     continue
   fi
 
   if [[ -z "$component_title" ]]; then
-    component_title="$(titleize "$(basename "$spec_path" .md)")"
+    component_title="$(titleize "$(basename "$spec_path" .spec.md)")"
   fi
 
   if [[ -f "$spec_path" && "$OVERWRITE" -eq 0 ]]; then
@@ -166,20 +193,11 @@ while IFS= read -r line; do
     continue
   fi
 
-  up="$(relative_prefix_to_specs_root "$spec_path")"
-  repo_root_prefix="$up/.."
-  control_plane_contract_link="$up/contracts/control_plane_ownership_matrix.md"
-  adr_link="$up/adr/ADR-0001-control-plane-authority.md"
-  topology_link="$up/topology.md"
-  rfc_link="$repo_root_prefix/$RFC_PATH_REL"
+  subject_id="$(to_subject_id "$spec_path")"
 
   req_tokens="$(echo "$req_cell" | rg -o 'REQ-[A-Z]+(?:-[0-9]{3}|-\*)?' | awk '!seen[$0]++' || true)"
-  scn_tokens="$(echo "$scn_cell" | rg -o 'SCN-[0-9]+' | awk '!seen[$0]++' || true)"
+  scn_tokens="$(echo "$scn_cell" | rg -o 'SCN-[0-9A-Z]+' | awk '!seen[$0]++' || true)"
   ac_tokens="$(echo "$ac_cell" | rg -o 'AC-[0-9]{2}' | awk '!seen[$0]++' || true)"
-
-  if [[ -z "$ac_tokens" ]]; then
-    ac_tokens="AC-01"
-  fi
 
   req_lines=""
   while IFS= read -r req; do
@@ -193,22 +211,17 @@ while IFS= read -r line; do
     scn_lines+="- \`$scn\`"$'\n'
   done <<< "$scn_tokens"
 
-  ac_rows=""
+  ac_lines=""
   while IFS= read -r ac; do
     [[ -z "$ac" ]] && continue
-    ac_rows+="| \`$ac\` | TODO: define criterion from $RFC_ID. | TODO: add deterministic verification mapped to required SCN coverage. |"$'\n'
+    ac_lines+="- \`$ac\`: TODO translate this acceptance criterion into a subject requirement and proof."$'\n'
   done <<< "$ac_tokens"
 
-  contract_lines=""
-  while IFS= read -r contract_ref; do
-    [[ -z "$contract_ref" ]] && continue
-    contract_file="$(basename "$contract_ref")"
-    contract_lines+="- [$contract_file]($up/contracts/$contract_file)"$'\n'
-  done <<< "$CONTRACT_REFS"
-
-  if [[ -z "$contract_lines" ]]; then
-    contract_lines+="- [control_plane_ownership_matrix.md]($control_plane_contract_link)"$'\n'
-  fi
+  truth_lines=""
+  while IFS= read -r truth_ref; do
+    [[ -z "$truth_ref" ]] && continue
+    truth_lines+="- \`$truth_ref\`"$'\n'
+  done <<< "$CURRENT_TRUTH_REFS"
 
   if [[ "$DRY_RUN" -eq 1 ]]; then
     echo "DRY RUN: would write $spec_path"
@@ -220,41 +233,56 @@ while IFS= read -r line; do
   cat > "$spec_path" <<EOF_SPEC
 # $component_title
 
-## Purpose
+## Intent
 
-\`$component_title\` is introduced by [$RFC_ID]($rfc_link) and defines runtime behavior for this component surface.
+\`$component_title\` is introduced by \`$RFC_ID\` and should capture the
+current-truth contract for this surface in Spec Led form.
 
-## Control Plane
+## RFC Context
 
-Primary control-plane ownership: **$control_plane**.
+- RFC source: \`$RFC_PATH_REL\`
+- Control plane: \`${control_plane:-TODO}\`
 
-## Topology Context
+## RFC Mapping
 
-- [Topology]($topology_link)
+### Imported Requirement Tokens
 
-## Governance Mapping
+$(render_list_or_none "$req_lines")
+### Imported Scenario Tokens
 
-### Requirement Families
+$(render_list_or_none "$scn_lines")
+### Imported Acceptance Criteria
 
-$req_lines
-### Scenario Coverage
+$(render_list_or_none "$ac_lines")
+### Related Current Truth Refs Mentioned In The RFC
 
-$scn_lines
-### Source RFC
+$(render_list_or_none "$truth_lines")
+```spec-meta
+id: $subject_id
+kind: module
+status: active
+summary: TODO: summarize the behavior this subject governs.
+surface:
+  - TODO
+```
 
-- [$RFC_ID]($rfc_link)
+## Requirements
 
-## Acceptance Criteria
+```spec-requirements
+- id: ${subject_id}.todo_requirement
+  statement: TODO: translate the RFC intent for $component_title into a normative requirement.
+  priority: must
+  stability: evolving
+```
 
-| Acceptance ID (AC-XX) | Criterion | Verification |
-|---|---|---|
-$ac_rows
-## Normative Contracts
+## Verification
 
-$contract_lines
-## Control Plane ADR
-
-- [ADR-0001-control-plane-authority.md]($adr_link)
+```spec-verification
+- kind: command
+  target: TODO
+  covers:
+    - ${subject_id}.todo_requirement
+```
 EOF_SPEC
 
   created=$((created + 1))

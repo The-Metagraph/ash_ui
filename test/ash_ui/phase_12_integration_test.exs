@@ -61,46 +61,54 @@ defmodule AshUI.Phase12IntegrationTest do
     assert output =~ "legacy authoring reference outside approved historical docs"
   end
 
-  test "12.4.1.4 - conformance coverage documents the resource-first architecture accurately" do
-    catalog = File.read!(project_path("specs/conformance/scenario_catalog.md"))
-    matrix = File.read!(project_path("specs/conformance/spec_conformance_matrix.md"))
-    traceability = File.read!(project_path("specs/conformance/scenario_test_matrix.md"))
+  test "12.4.1.4 - the .spec workspace documents the resource-first architecture accurately" do
+    workspace = File.read!(project_path(".spec/README.md"))
+    architecture = File.read!(project_path(".spec/specs/architecture.spec.md"))
+    resource_authoring = File.read!(project_path(".spec/specs/resource_authoring.spec.md"))
+    runtime = File.read!(project_path(".spec/specs/runtime_authorization.spec.md"))
+    rendering = File.read!(project_path(".spec/specs/rendering.spec.md"))
+    governance = File.read!(project_path(".spec/specs/governance.spec.md"))
 
-    assert catalog =~ "#### SCN-050: Persisted Screen Authority Graph"
-    assert catalog =~ "#### SCN-051: Relational Compiler Delegation"
-    assert catalog =~ "#### SCN-052: Element-Resource-First Example Authoring"
-    assert catalog =~ "#### SCN-053: Relationship-Driven Composition Semantics"
-    assert catalog =~ "#### SCN-071: Renderer Parity For Resource Screens"
+    element_decision =
+      File.read!(project_path(".spec/decisions/ashui.decision.element_resource_authority.md"))
 
-    assert matrix =~ "| REQ-COMP-001 | Compilation Pipeline |"
-    assert matrix =~ "SCN-041, SCN-050, SCN-051, SCN-052"
-    assert matrix =~ "SCN-068, SCN-071"
-    assert matrix =~ "SCN-061, SCN-071"
-    assert matrix =~ "SCN-062, SCN-071"
-    assert matrix =~ "SCN-044, SCN-053"
+    superseded_decision =
+      File.read!(project_path(".spec/decisions/ashui.decision.unified_ui_dsl_authority.md"))
 
-    assert matrix =~
-             "| REQ-SCREEN-001 | Screen Definition | resources/ui_screen.md | SCN-004, SCN-050, SCN-052 |"
+    assert workspace =~ "mix spec.prime --base HEAD"
 
-    assert traceability =~
-             "| SCN-050 | Persisted Screen Authority Graph | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs, test/ash_ui/phase_16_integration_test.exs |"
+    assert architecture =~ "id: ashui.architecture"
+    assert architecture =~ "relationship graph"
+    assert architecture =~ "ashui.decision.element_resource_authority"
 
-    assert traceability =~
-             "| SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs, test/ash_ui/phase_15_integration_test.exs |"
+    assert resource_authoring =~ "id: ashui.resource_authoring"
+    assert resource_authoring =~ "ui_bindings"
+    assert resource_authoring =~ "ui_actions"
+    assert resource_authoring =~ "AshUI.Resource.Authority"
 
-    assert traceability =~
-             "| SCN-052 | Element-Resource-First Example Authoring | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs, test/ash_ui/phase_16_integration_test.exs |"
+    assert runtime =~ "mount_ui_screen/3"
+    assert runtime =~ "check_mount_authorization"
+    assert runtime =~ "handle_action_event"
 
-    assert traceability =~
-             "| SCN-053 | Relationship-Driven Composition Semantics | test/ash_ui/phase_14_integration_test.exs, test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_16_integration_test.exs |"
+    assert rendering =~ "canonical unified_iur-compatible maps"
+    assert rendering =~ "elm_ui"
+    assert rendering =~ "optional path dependencies"
 
-    assert traceability =~
-             "| SCN-071 | Renderer Parity For Resource Screens | test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs |"
+    assert governance =~ ".spec/state.json"
+    assert governance =~ "scripts/validate_specs_governance.sh"
+
+    assert element_decision =~ "status: accepted"
+    assert element_decision =~ "resource-first architecture"
+    assert superseded_decision =~ "status: superseded"
+    assert superseded_decision =~ "superseded_by: ashui.decision.element_resource_authority"
 
     assert File.read!(project_path("test/ash_ui/examples/basic_dashboard_test.exs")) =~
              "@moduletag :conformance"
 
-    assert File.read!(project_path("test/ash_ui/phase_11_integration_test.exs")) =~
+    assert File.read!(project_path("test/ash_ui/phase_13_integration_test.exs")) =~
+             "@moduletag :conformance"
+
+    assert File.read!(project_path("test/ash_ui/phase_14_integration_test.exs")) =~
              "@moduletag :conformance"
 
     assert File.read!(project_path("test/ash_ui/phase_15_integration_test.exs")) =~
@@ -138,7 +146,7 @@ defmodule AshUI.Phase12IntegrationTest do
       |> Map.merge(extra_env)
       |> Enum.to_list()
 
-    System.cmd("bash", ["-lc", command], cd: root_dir(), env: env, stderr_to_stdout: true)
+    AshUI.TestShell.run(command, cd: root_dir(), env: env, stderr_to_stdout: true)
   end
 
   defp temp_dir(prefix) do

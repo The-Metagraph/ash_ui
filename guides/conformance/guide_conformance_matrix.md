@@ -101,4 +101,4 @@ This document tracks conformance of guides against specifications and scenarios.
 
 - [../contracts/guide_contract.md](../contracts/guide_contract.md)
 - [../contracts/guide_traceability_contract.md](../contracts/guide_traceability_contract.md)
-- [../../specs/conformance/spec_conformance_matrix.md](../../specs/conformance/spec_conformance_matrix.md)
+- [../../.spec/specs/governance.spec.md](../../.spec/specs/governance.spec.md)

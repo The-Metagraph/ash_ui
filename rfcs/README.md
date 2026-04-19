@@ -77,5 +77,5 @@ See [templates/rfc-template.md](templates/rfc-template.md) for the RFC template.
 
 ## Related Documentation
 
-- [../specs/](../specs/) - Technical specifications
+- [../.spec/README.md](../.spec/README.md) - Technical specifications
 - [../guides/](../guides/) - User and developer guides

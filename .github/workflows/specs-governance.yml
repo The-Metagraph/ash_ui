@@ -11,17 +11,23 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    env:
-      DIFF_BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
-      DIFF_HEAD: ${{ github.sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Setup BEAM
+        uses: erlef/setup-beam@v1
+        with:
+          version-type: strict
+          version-file: .tool-versions
+
       - name: Install ripgrep
         run: sudo apt-get update && sudo apt-get install -y ripgrep
+
+      - name: Install deps
+        run: mix deps.get
 
       - name: Validate specs governance
         run: ./scripts/validate_specs_governance.sh

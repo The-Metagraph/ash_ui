@@ -30,7 +30,7 @@ Before reading this guide, you should:
 
 A release candidate is only meaningful when these are aligned:
 
-- implementation status in `specs/planning/`
+- current truth in `.spec/specs/` and `.spec/decisions/`
 - conformance and governance checks
 - README and guide accuracy
 - telemetry/dashboard readiness
@@ -40,7 +40,7 @@ A release candidate is only meaningful when these are aligned:
 
 1. Confirm the relevant phase checklist items are complete.
 2. Run focused test suites for changed subsystems.
-3. Run governance validation scripts for specs, RFCs, and guides.
+3. Run governance validation scripts for the `.spec` workspace, RFCs, and guides.
 4. Review telemetry dashboards and error rates.
 5. Update version numbers and release notes.
 6. Tag and publish the release artifact.
@@ -103,7 +103,7 @@ Every release candidate should have:
 - a short rollback procedure
 - a communication template for reverting or pausing rollout
 
-These are formalized further in the Phase 8 release checklist documents.
+These are formalized further in the release checklist and `.spec` governance subject.
 
 ## See Also
 
@@ -111,4 +111,4 @@ These are formalized further in the Phase 8 release checklist documents.
 - [DG-0003: Testing Guide](./DG-0003-testing-guide.md)
 - [UG-0005: Migration Guide from v0 to v1](../user/UG-0005-migration-v0-to-v1.md)
 - [release/README.md](../../release/README.md)
-- [phase-08-governance-gates-and-release-readiness.md](../../specs/planning/phase-08-governance-gates-and-release-readiness.md)
+- [governance.spec.md](../../.spec/specs/governance.spec.md)

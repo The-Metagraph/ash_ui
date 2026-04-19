@@ -380,7 +380,7 @@ Build Ash UI as an official unified-ui extension for Ash Framework.
 - [unified-ui Widgets](https://github.com/your-org/unified/blob/main/.spec/specs/unified-ui/widgets.spec.md)
 - [unified-iur Constructs](https://github.com/your-org/unified/blob/main/.spec/specs/unified-iur/constructs.spec.md)
 - [RFC-0001: Ash UI Governance System](RFC-0001-ash-ui-governance-system.md)
-- [ADR-0001: Control Plane Authority](../specs/adr/ADR-0001-control-plane-authority.md)
+- [Control Plane Authority](../.spec/decisions/ashui.decision.control_plane_authority.md)
 
 ---
 

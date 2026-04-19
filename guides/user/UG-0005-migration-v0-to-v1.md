@@ -257,4 +257,4 @@ mix test test/ash_ui/authorization/runtime_test.exs
 - [UG-0001: Getting Started](./UG-0001-getting-started.md)
 - [UG-0003: Data Binding](./UG-0003-data-binding.md)
 - [DG-0004: Release Process](../developer/DG-0004-release-process.md)
-- [phase-08-governance-gates-and-release-readiness.md](../../specs/planning/phase-08-governance-gates-and-release-readiness.md)
+- [ashui.decision.element_resource_authority.md](../../.spec/decisions/ashui.decision.element_resource_authority.md)

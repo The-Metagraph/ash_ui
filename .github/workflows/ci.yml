@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
     paths:
-      - "specs/**"
+      - ".spec/**"
       - "guides/**"
       - "lib/**"
       - "apps/**/lib/**"
@@ -15,7 +15,7 @@ on:
       - main
       - "codex/**"
     paths:
-      - "specs/**"
+      - ".spec/**"
       - "guides/**"
       - "lib/**"
       - "apps/**/lib/**"

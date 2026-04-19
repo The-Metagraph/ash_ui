@@ -123,56 +123,72 @@ defmodule AshUI.Phase8IntegrationTest do
   end
 
   describe "Section 8.6.2 - Conformance coverage scenarios" do
-    test "8.6.2.1 - all REQ entries in contracts have explicit traceability rows in the matrix" do
-      contract_reqs =
-        "specs/contracts/*_contract.md"
+    test "8.6.2.1 - authored .spec subjects declare ids, requirements, and verification blocks" do
+      spec_files =
+        project_path(".spec/specs/*.spec.md")
         |> Path.wildcard()
-        |> Enum.flat_map(&extract_ids(&1, ~r/REQ-[A-Z]+-[0-9]+[A-Z]*/))
-        |> MapSet.new()
+        |> Enum.sort()
 
-      matrix = File.read!(project_path("specs/conformance/spec_conformance_matrix.md"))
+      assert length(spec_files) >= 6
 
-      Enum.each(contract_reqs, fn req ->
-        assert String.contains?(matrix, req)
-        assert Regex.match?(~r/\|\s*#{Regex.escape(req)}\s*\|.*(\bSCN-| \- \|)/, matrix)
+      Enum.each(spec_files, fn path ->
+        content = File.read!(path)
+
+        assert content =~ "```spec-meta", path
+        assert Regex.match?(~r/^id:\s+[a-z0-9._-]+$/m, content), path
+        assert content =~ "```spec-requirements", path
+        assert content =~ "```spec-verification", path
       end)
     end
 
-    test "8.6.2.2 - the traceability matrix is complete against the scenario catalog" do
-      matrix_scns =
-        extract_table_ids(project_path("specs/conformance/spec_conformance_matrix.md"))
-        |> MapSet.new()
+    test "8.6.2.2 - decisions preserve active and superseded architecture history" do
+      decision_files =
+        project_path(".spec/decisions/*.md")
+        |> Path.wildcard()
+        |> Enum.reject(&(Path.basename(&1) == "README.md"))
+        |> Enum.sort()
 
-      catalog_scns =
-        extract_heading_ids(project_path("specs/conformance/scenario_catalog.md"))
-        |> MapSet.new()
+      assert length(decision_files) >= 4
 
-      assert MapSet.subset?(matrix_scns, catalog_scns)
+      Enum.each(decision_files, fn path ->
+        content = File.read!(path)
+
+        assert Regex.match?(~r/^id:\s+ashui\.decision\.[a-z0-9._-]+$/m, content), path
+        assert Regex.match?(~r/^status:\s+(accepted|superseded)$/m, content), path
+        assert Regex.match?(~r/^date:\s+\d{4}-\d{2}-\d{2}$/m, content), path
+        assert content =~ "affects:", path
+      end)
+
+      superseded =
+        File.read!(project_path(".spec/decisions/ashui.decision.unified_ui_dsl_authority.md"))
+
+      current =
+        File.read!(project_path(".spec/decisions/ashui.decision.element_resource_authority.md"))
+
+      assert superseded =~ "status: superseded"
+      assert superseded =~ "superseded_by: ashui.decision.element_resource_authority"
+      assert current =~ "AshUI.Resource.DSL.Element"
+      assert current =~ "Screen.unified_dsl"
     end
 
-    test "8.6.2.3 - scenario test traceability is complete and targets conformance-tagged files" do
-      traceability_scns =
-        extract_table_ids(project_path("specs/conformance/scenario_test_matrix.md"))
-        |> MapSet.new()
+    @tag timeout: 120_000
+    test "8.6.2.3 - governance validation generates .spec state for subjects and decisions" do
+      {output, status} = AshUI.TestShell.run_spec_validate(root_dir())
 
-      catalog_scns =
-        extract_heading_ids(project_path("specs/conformance/scenario_catalog.md"))
-        |> MapSet.new()
+      assert status == 0, output
+      assert output =~ "Specs governance validation passed."
 
-      assert MapSet.equal?(traceability_scns, catalog_scns)
+      state =
+        project_path(".spec/state.json")
+        |> File.read!()
+        |> Jason.decode!()
 
-      traceability = File.read!(project_path("specs/conformance/scenario_test_matrix.md"))
+      subjects = get_in(state, ["index", "subjects"]) || []
+      decisions = get_in(state, ["decisions", "items"]) || []
 
-      test_files =
-        Regex.scan(~r/test\/ash_ui\/[A-Za-z0-9_\/\.]+\.exs/, traceability)
-        |> List.flatten()
-        |> Enum.uniq()
-
-      Enum.each(test_files, fn file ->
-        absolute_path = project_path(file)
-        assert File.exists?(absolute_path)
-        assert File.read!(absolute_path) =~ "@moduletag :conformance"
-      end)
+      assert state["summary"]["subjects"] >= 6
+      assert length(subjects) >= 6
+      assert length(decisions) >= 4
     end
 
     test "8.6.2.4 - conformance-tagged tests are present and targeted by the harness" do
@@ -183,11 +199,14 @@ defmodule AshUI.Phase8IntegrationTest do
       harness = File.read!(project_path("scripts/run_conformance.sh"))
 
       assert length(conformance_files) > 0
+      assert Enum.any?(conformance_files, &String.ends_with?(&1, "conformance_traceability_test.exs"))
       assert String.contains?(harness, "mix test --only conformance")
     end
 
-    test "8.6.2.5 - conformance report can be generated" do
+    @tag timeout: 120_000
+    test "8.6.2.5 - conformance report can be generated from the .spec workspace" do
       report_dir = temp_dir("conformance-report")
+      _ = run_shell!("./scripts/validate_specs_governance.sh")
 
       output =
         run_shell!(
@@ -198,7 +217,16 @@ defmodule AshUI.Phase8IntegrationTest do
       assert String.contains?(output, "Conformance report written")
       assert File.exists?(Path.join(report_dir, "report.md"))
       assert File.exists?(Path.join(report_dir, "report.json"))
-      assert File.read!(Path.join(report_dir, "report.md")) =~ "Scenario Test Matrix"
+
+      report_md = File.read!(Path.join(report_dir, "report.md"))
+      report_json = Jason.decode!(File.read!(Path.join(report_dir, "report.json")))
+
+      assert report_md =~ "Authored .spec subjects"
+      assert report_md =~ "Generated .spec/state.json present"
+      assert report_md =~ "Spec Workspace"
+      assert report_json["state_present"]
+      assert report_json["authored_spec_subjects"] >= 6
+      assert report_json["authored_spec_decisions"] >= 4
     end
   end
 
@@ -345,29 +373,6 @@ defmodule AshUI.Phase8IntegrationTest do
     }
   end
 
-  defp extract_ids(path, regex) do
-    path
-    |> File.read!()
-    |> then(&Regex.scan(regex, &1))
-    |> List.flatten()
-  end
-
-  defp extract_heading_ids(path) do
-    path
-    |> File.read!()
-    |> then(&Regex.scan(~r/^####\s+(SCN-[0-9A-Z]+):/m, &1, capture: :all_but_first))
-    |> List.flatten()
-    |> Enum.uniq()
-  end
-
-  defp extract_table_ids(path) do
-    path
-    |> File.read!()
-    |> then(&Regex.scan(~r/^\|\s*(SCN-[0-9A-Z]+)\s*\|/m, &1, capture: :all_but_first))
-    |> List.flatten()
-    |> Enum.uniq()
-  end
-
   defp project_path(path) do
     Path.expand(path, root_dir())
   end
@@ -396,7 +401,13 @@ defmodule AshUI.Phase8IntegrationTest do
       |> Map.merge(extra_env)
       |> Enum.to_list()
 
-    {output, status} = System.cmd("bash", ["-lc", command], cd: root_dir(), env: env)
+    {output, status} =
+      AshUI.TestShell.run(command,
+        cd: root_dir(),
+        env: env,
+        stderr_to_stdout: true
+      )
+
     assert status == 0, output
     output
   end

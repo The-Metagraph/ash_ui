@@ -62,13 +62,11 @@ flowchart LR
 
 ```
 ash_ui/
-├── specs/
-│   ├── contracts/          # REQ-* requirements
-│   ├── adr/               # ADR-XXXX decisions
-│   ├── resources/         # Component specs
-│   ├── compilation/       # Compiler specs
-│   ├── rendering/         # Renderer specs
-│   └── conformance/       # SCN-* scenarios
+├── .spec/
+│   ├── specs/            # Current-truth subjects
+│   ├── decisions/        # ADR-style durable decisions
+│   ├── README.md         # Workspace contract
+│   └── state.json        # Generated validation state
 ├── rfcs/                  # RFC-XXXX proposals
 ├── guides/                # UG-*/DG-* documentation
 └── scripts/               # Validation scripts
@@ -117,21 +115,21 @@ ash_ui/
 
 ### Contracts
 
-- **New**: All files in `specs/contracts/`
-- **New**: `specs/conformance/spec_conformance_matrix.md`
+- **New**: authored current-truth subjects in `.spec/specs/*.spec.md`
+- **New**: `.spec/specs/governance.spec.md`
 
 ### ADRs
 
-- **New**: `specs/adr/ADR-0001-control-plane-authority.md`
+- **New**: `.spec/decisions/*.md`
 
 ## Spec Creation Plan
 
 | Spec | Type | Status | Priority |
 |---|---|---|---|
-| specs/topology.md | Architecture | Active | P0 |
-| specs/contracts/*.md | Contract | Active | P0 |
-| specs/adr/ADR-0001.md | Decision Record | Active | P0 |
-| specs/conformance/scenario_catalog.md | Conformance | Active | P0 |
+| .spec/README.md | Workspace | Active | P0 |
+| .spec/specs/*.spec.md | Current Truth Subject | Active | P0 |
+| .spec/decisions/*.md | Decision Record | Active | P0 |
+| guides/conformance/*.md | Conformance | Active | P0 |
 | rfcs/*.md | Process | Active | P0 |
 | guides/contracts/*.md | Meta-documentation | Active | P0 |
 

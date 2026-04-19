@@ -37,5 +37,5 @@ User guides for application developers building with Ash UI.
 ## Related Documentation
 
 - [Developer Guides](../developer/) - Framework development guides
-- [Specifications](../../specs/) - Technical specifications
+- [.spec Workspace](../../.spec/README.md) - Current technical truth
 - [RFCs](../../rfcs/) - Design proposals

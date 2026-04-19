@@ -320,4 +320,4 @@ active_bindings = Domain.read!(AshUI.Resources.Binding, filter: [screen_id: scre
 - [UG-0001: Getting Started](./UG-0001-getting-started.md)
 - [UG-0003: Data Binding](./UG-0003-data-binding.md)
 - [UG-0004: Authorization](./UG-0004-authorization.md)
-- [resource_contract.md](../../specs/contracts/resource_contract.md)
+- [resource_authoring.spec.md](../../.spec/specs/resource_authoring.spec.md)

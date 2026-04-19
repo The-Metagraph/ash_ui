@@ -5,8 +5,6 @@ ROOT="${GUIDES_GOVERNANCE_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || p
 cd "$ROOT"
 
 failures=0
-KNOWN_REQS="$(rg --no-filename -o 'REQ-[A-Z]+-[0-9A-Z]+' specs rfcs 2>/dev/null | sort -u || true)"
-KNOWN_SCNS="$(rg --no-filename -o 'SCN-[0-9A-Z]+' specs/conformance/scenario_catalog.md 2>/dev/null | sort -u || true)"
 
 fail() {
   echo "FAIL: $1"
@@ -118,20 +116,6 @@ while IFS= read -r guide; do
       fail "guide requires a diagram but has no mermaid block: $guide_name"
     fi
   fi
-
-  while IFS= read -r req; do
-    [[ -z "$req" ]] && continue
-    if ! grep -Fxq "$req" <<<"$KNOWN_REQS"; then
-      fail "guide references unknown requirement $req: $guide_name"
-    fi
-  done < <(grep -Eo 'REQ-[A-Z]+-[0-9A-Z]+' <<<"$front_matter" | sort -u || true)
-
-  while IFS= read -r scn; do
-    [[ -z "$scn" ]] && continue
-    if ! grep -Fxq "$scn" <<<"$KNOWN_SCNS"; then
-      fail "guide references unknown scenario $scn: $guide_name"
-    fi
-  done < <(grep -Eo 'SCN-[0-9A-Z]+' <<<"$front_matter" | sort -u || true)
 
   guide_id="$(grep -E '^id: ' <<<"$front_matter" | head -n1 | sed 's/^id: //')"
 

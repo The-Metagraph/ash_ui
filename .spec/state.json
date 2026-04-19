@@ -1,0 +1,1540 @@
+{
+  "decisions": {
+    "items": [
+      {
+        "affects": [
+          "ashui.architecture",
+          "ashui.runtime_authorization",
+          "ashui.rendering",
+          "ashui.governance"
+        ],
+        "date": "2026-04-19",
+        "file": ".spec/decisions/ashui.decision.control_plane_authority.md",
+        "id": "ashui.decision.control_plane_authority",
+        "status": "accepted",
+        "title": "Control Plane Authority"
+      },
+      {
+        "affects": [
+          "ashui.package",
+          "ashui.architecture",
+          "ashui.resource_authoring",
+          "ashui.runtime_authorization",
+          "ashui.rendering",
+          "ashui.governance"
+        ],
+        "date": "2026-04-19",
+        "file": ".spec/decisions/ashui.decision.element_resource_authority.md",
+        "id": "ashui.decision.element_resource_authority",
+        "status": "accepted",
+        "title": "Element Resource Authority And Relationship-Driven Composition"
+      },
+      {
+        "affects": [
+          "ashui.rendering",
+          "ashui.governance"
+        ],
+        "date": "2026-04-19",
+        "file": ".spec/decisions/ashui.decision.elm_ui_package_rename.md",
+        "id": "ashui.decision.elm_ui_package_rename",
+        "status": "accepted",
+        "title": "Elm UI Package Rename"
+      },
+      {
+        "affects": [
+          "ashui.package",
+          "ashui.resource_authoring",
+          "ashui.runtime_authorization"
+        ],
+        "date": "2026-04-19",
+        "file": ".spec/decisions/ashui.decision.pluggable_ui_storage.md",
+        "id": "ashui.decision.pluggable_ui_storage",
+        "status": "accepted",
+        "title": "Pluggable UI Storage"
+      },
+      {
+        "affects": [
+          "ashui.architecture",
+          "ashui.resource_authoring",
+          "ashui.runtime_authorization"
+        ],
+        "date": "2026-04-19",
+        "file": ".spec/decisions/ashui.decision.unified_ui_dsl_authority.md",
+        "id": "ashui.decision.unified_ui_dsl_authority",
+        "status": "superseded",
+        "superseded_by": "ashui.decision.element_resource_authority",
+        "title": "Unified UI DSL Top-Level Authority"
+      }
+    ]
+  },
+  "findings": [],
+  "index": {
+    "exceptions": [],
+    "requirements": [
+      {
+        "file": ".spec/specs/architecture.spec.md",
+        "id": "ashui.architecture.control_planes",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Ash UI shall preserve explicit framework, compilation, runtime, rendering, and governance boundaries rather than collapsing ownership into one module or one persisted document model.",
+        "subject_id": "ashui.architecture"
+      },
+      {
+        "file": ".spec/specs/architecture.spec.md",
+        "id": "ashui.architecture.current_truth_over_detour",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Current architecture docs and governance shall treat the earlier screen-document-first direction as superseded historical context rather than as the active model.",
+        "subject_id": "ashui.architecture"
+      },
+      {
+        "file": ".spec/specs/architecture.spec.md",
+        "id": "ashui.architecture.inline_screen_glue",
+        "priority": "should",
+        "stability": "stable",
+        "statement": "Screen-level inline fragments may exist for glue and layout scaffolding, but they shall remain subordinate to relationship-driven element composition.",
+        "subject_id": "ashui.architecture"
+      },
+      {
+        "file": ".spec/specs/architecture.spec.md",
+        "id": "ashui.architecture.relationship_graph",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Screen compilation shall traverse the screen and element relationship graph as a first-class input rather than treating relationships as a secondary projection of a monolithic screen document.",
+        "subject_id": "ashui.architecture"
+      },
+      {
+        "file": ".spec/specs/governance.spec.md",
+        "id": "ashui.governance.release_and_conformance_reporting",
+        "priority": "should",
+        "stability": "evolving",
+        "statement": "Release and conformance automation shall report against the current .spec workspace rather than the removed specs/ matrices.",
+        "subject_id": "ashui.governance"
+      },
+      {
+        "file": ".spec/specs/governance.spec.md",
+        "id": "ashui.governance.resource_first_public_surface",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Public docs and examples shall present resource-first authoring as the default model and confine historical document-first references to explicitly approved historical materials.",
+        "subject_id": "ashui.governance"
+      },
+      {
+        "file": ".spec/specs/governance.spec.md",
+        "id": "ashui.governance.specled_workspace",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "The repository shall keep current architectural truth in .spec/specs/*.spec.md and durable ADRs in .spec/decisions/*.md instead of the removed top-level specs/ tree.",
+        "subject_id": "ashui.governance"
+      },
+      {
+        "file": ".spec/specs/governance.spec.md",
+        "id": "ashui.governance.validation_entrypoint",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Repository governance validation shall use Spec Led tooling to validate the .spec workspace and write .spec/state.json.",
+        "subject_id": "ashui.governance"
+      },
+      {
+        "file": ".spec/specs/package.spec.md",
+        "id": "ashui.package.example_compile_surface",
+        "priority": "should",
+        "stability": "stable",
+        "statement": "Development and test compilation shall include the shipped basic dashboard example so example regressions are caught during ordinary local work.",
+        "subject_id": "ashui.package"
+      },
+      {
+        "file": ".spec/specs/package.spec.md",
+        "id": "ashui.package.identity_and_boot",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "The root Mix project shall publish app :ash_ui, start AshUI.Application, and expose package-level helpers through the AshUI module.",
+        "subject_id": "ashui.package"
+      },
+      {
+        "file": ".spec/specs/package.spec.md",
+        "id": "ashui.package.optional_renderer_boundary",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "live_ui, elm_ui, and desktop_ui shall remain optional path dependencies of the root package boundary rather than mandatory runtime prerequisites.",
+        "subject_id": "ashui.package"
+      },
+      {
+        "file": ".spec/specs/package.spec.md",
+        "id": "ashui.package.specled_tooling",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Development and test environments shall include Spec Led tooling so the repository can validate the .spec workspace locally and in CI.",
+        "subject_id": "ashui.package"
+      },
+      {
+        "file": ".spec/specs/rendering.spec.md",
+        "id": "ashui.rendering.adapter_selection",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Ash UI shall expose renderer adapters and registry logic for live_ui, elm_ui, and desktop_ui without making renderer packages own authoring or compilation responsibilities.",
+        "subject_id": "ashui.rendering"
+      },
+      {
+        "file": ".spec/specs/rendering.spec.md",
+        "id": "ashui.rendering.canonical_conversion",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Ash UI shall convert valid AshUI.Compilation.IUR structs into canonical unified_iur-compatible maps and validate the result before renderer consumption.",
+        "subject_id": "ashui.rendering"
+      },
+      {
+        "file": ".spec/specs/rendering.spec.md",
+        "id": "ashui.rendering.elm_naming",
+        "priority": "should",
+        "stability": "stable",
+        "statement": "The public Elm-backed renderer naming in Ash UI shall use elm_ui, ElmUI, and the :elm renderer vocabulary rather than historical web_ui naming as the preferred current model.",
+        "subject_id": "ashui.rendering"
+      },
+      {
+        "file": ".spec/specs/rendering.spec.md",
+        "id": "ashui.rendering.optional_dependencies",
+        "priority": "should",
+        "stability": "stable",
+        "statement": "Renderer packages shall remain optional path dependencies at the root package boundary so Ash UI can compile without every renderer present at runtime.",
+        "subject_id": "ashui.rendering"
+      },
+      {
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "id": "ashui.resource_authoring.element_local_semantics",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Element resources shall declare their own ui_element, ui_bindings, and ui_actions semantics through AshUI.Resource.DSL.Element.",
+        "subject_id": "ashui.resource_authoring"
+      },
+      {
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "id": "ashui.resource_authoring.persistence_boundary",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "AshUI.Resource.Authority shall persist a screen record and resource-authority payload from authored screen modules without making the persisted snapshot the primary authoring boundary.",
+        "subject_id": "ashui.resource_authoring"
+      },
+      {
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "id": "ashui.resource_authoring.screen_composition",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Screen resources shall compose related element resources through Ash relationships plus ui_relationships, using inline_fragment only for limited glue.",
+        "subject_id": "ashui.resource_authoring"
+      },
+      {
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "id": "ashui.resource_authoring.storage_support",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Built-in Screen, Element, and Binding storage resources shall remain available as configurable support resources rather than as the sole public authoring API.",
+        "subject_id": "ashui.resource_authoring"
+      },
+      {
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "id": "ashui.runtime_authorization.binding_execution",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Runtime binding helpers shall support value reads, list reads, bidirectional updates, and action execution against Ash-side sources.",
+        "subject_id": "ashui.runtime_authorization"
+      },
+      {
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "id": "ashui.runtime_authorization.mount_flow",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "LiveView integration shall load the target screen, authorize access, compile canonical output, evaluate bindings, assign screen state, and wire update subscriptions during mount.",
+        "subject_id": "ashui.runtime_authorization"
+      },
+      {
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "id": "ashui.runtime_authorization.runtime_authorization",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "Runtime authorization shall gate screen mount, action execution, binding reads, and binding writes and shall return safe forbidden outcomes rather than silently proceeding.",
+        "subject_id": "ashui.runtime_authorization"
+      },
+      {
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "id": "ashui.runtime_authorization.telemetry",
+        "priority": "should",
+        "stability": "stable",
+        "statement": "Runtime mount, authorization, binding, and rendering flows shall emit telemetry events through the shared AshUI telemetry surface.",
+        "subject_id": "ashui.runtime_authorization"
+      },
+      {
+        "file": ".spec/specs/spec_system.spec.md",
+        "id": "spec.workspace.agent_prime_context",
+        "priority": "should",
+        "stability": "evolving",
+        "statement": "The repository shall include a .spec/AGENTS.md that tells agents to start a session with mix spec.prime before editing current truth.",
+        "subject_id": "spec.system"
+      },
+      {
+        "file": ".spec/specs/spec_system.spec.md",
+        "id": "spec.workspace.agents_present",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "The repository shall include a .spec/AGENTS.md that gives local operating guidance for agents working inside the .spec workspace.",
+        "subject_id": "spec.system"
+      },
+      {
+        "file": ".spec/specs/spec_system.spec.md",
+        "id": "spec.workspace.decisions_readme_present",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "The repository shall include a .spec/decisions/README.md that explains when durable ADRs belong in the workspace.",
+        "subject_id": "spec.system"
+      },
+      {
+        "file": ".spec/specs/spec_system.spec.md",
+        "id": "spec.workspace.readme_present",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "The repository shall include a .spec/README.md that explains purpose, layout, and workflow.",
+        "subject_id": "spec.system"
+      },
+      {
+        "file": ".spec/specs/spec_system.spec.md",
+        "id": "spec.workspace.state_generated",
+        "priority": "must",
+        "stability": "stable",
+        "statement": "When indexing and validation run, the workspace shall generate .spec/state.json containing indexed subjects, indexed decisions, and verification state.",
+        "subject_id": "spec.system"
+      }
+    ],
+    "scenarios": [
+      {
+        "covers": [
+          "ashui.architecture.control_planes",
+          "ashui.architecture.relationship_graph",
+          "ashui.architecture.inline_screen_glue"
+        ],
+        "file": ".spec/specs/architecture.spec.md",
+        "given": [
+          "a persisted screen record exists for a screen resource module",
+          "the screen composes related element resources through Ash relationships"
+        ],
+        "id": "ashui.architecture.screen_mount_flow",
+        "subject_id": "ashui.architecture",
+        "then": [
+          "the compiler traverses the resource graph",
+          "runtime state is assigned from canonical output",
+          "renderer adapters receive canonical data instead of a monolithic screen document"
+        ],
+        "when": [
+          "Ash UI mounts and compiles the screen"
+        ]
+      },
+      {
+        "covers": [
+          "ashui.package.identity_and_boot",
+          "ashui.package.example_compile_surface",
+          "ashui.package.optional_renderer_boundary",
+          "ashui.package.specled_tooling"
+        ],
+        "file": ".spec/specs/package.spec.md",
+        "given": [
+          "a developer checks out the repository",
+          "the root package dependencies are available"
+        ],
+        "id": "ashui.package.local_dev_boot",
+        "subject_id": "ashui.package",
+        "then": [
+          "AshUI.Application starts the runtime services",
+          "the shipped basic dashboard example is part of the compile surface",
+          "renderer packages remain optional",
+          "Spec Led tooling is available for workspace validation"
+        ],
+        "when": [
+          "the project compiles or boots in development or test"
+        ]
+      },
+      {
+        "covers": [
+          "ashui.resource_authoring.element_local_semantics",
+          "ashui.resource_authoring.screen_composition",
+          "ashui.resource_authoring.persistence_boundary"
+        ],
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "given": [
+          "a dashboard screen resource uses AshUI.Resource.DSL.Screen",
+          "related element resources use AshUI.Resource.DSL.Element"
+        ],
+        "id": "ashui.resource_authoring.example_dashboard",
+        "subject_id": "ashui.resource_authoring",
+        "then": [
+          "the resulting authority graph contains screen metadata, element payloads, and binding/action declarations derived from the authored resources"
+        ],
+        "when": [
+          "the example is persisted through AshUI.Resource.Authority"
+        ]
+      },
+      {
+        "covers": [
+          "ashui.runtime_authorization.mount_flow",
+          "ashui.runtime_authorization.runtime_authorization"
+        ],
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "given": [
+          "a current user is present in LiveView assigns",
+          "a persisted screen record exists and the actor is allowed to mount it"
+        ],
+        "id": "ashui.runtime_authorization.authorized_mount",
+        "subject_id": "ashui.runtime_authorization",
+        "then": [
+          "the screen is authorized, compiled, hydrated, and assigned to the socket"
+        ],
+        "when": [
+          "AshUI.LiveView.Integration.mount_ui_screen/3 is invoked"
+        ]
+      },
+      {
+        "covers": [
+          "ashui.runtime_authorization.binding_execution",
+          "ashui.runtime_authorization.runtime_authorization",
+          "ashui.runtime_authorization.telemetry"
+        ],
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "given": [
+          "a screen contains compiled bindings and actions"
+        ],
+        "id": "ashui.runtime_authorization.binding_action_flow",
+        "subject_id": "ashui.runtime_authorization",
+        "then": [
+          "binding helpers resolve source data, write back when allowed, and surface action results safely"
+        ],
+        "when": [
+          "a user changes a value or triggers an action event"
+        ]
+      }
+    ],
+    "subjects": [
+      {
+        "file": ".spec/specs/architecture.spec.md",
+        "id": "ashui.architecture",
+        "meta": {
+          "decisions": [
+            "ashui.decision.control_plane_authority",
+            "ashui.decision.unified_ui_dsl_authority",
+            "ashui.decision.element_resource_authority"
+          ],
+          "id": "ashui.architecture",
+          "kind": "architecture",
+          "status": "active",
+          "summary": "Control-plane architecture where the resource graph is authoritative, compilation traverses relationships, and renderers consume canonical output.",
+          "surface": [
+            "README.md",
+            "guides/developer/DG-0001-architecture-overview.md",
+            "lib/ash_ui/resource/authority.ex",
+            "lib/ash_ui/compiler.ex",
+            "lib/ash_ui/liveview/liveview_integration.ex"
+          ],
+          "verification_minimum_strength": null
+        },
+        "title": "Ash UI Architecture"
+      },
+      {
+        "file": ".spec/specs/governance.spec.md",
+        "id": "ashui.governance",
+        "meta": {
+          "decisions": [
+            "ashui.decision.control_plane_authority",
+            "ashui.decision.element_resource_authority"
+          ],
+          "id": "ashui.governance",
+          "kind": "policy",
+          "status": "active",
+          "summary": "Repository governance uses the .spec workspace, validates it through Spec Led tooling, and keeps public docs/examples aligned with the resource-first architecture.",
+          "surface": [
+            ".spec/README.md",
+            ".spec/specs/*.spec.md",
+            ".spec/decisions/*.md",
+            "scripts/validate_specs_governance.sh",
+            "scripts/validate_authoring_governance.sh",
+            "scripts/run_conformance.sh",
+            "scripts/generate_conformance_report.sh",
+            ".github/workflows/specs-governance.yml",
+            ".github/workflows/ci.yml",
+            "release/RELEASE_CHECKLIST.md"
+          ],
+          "verification_minimum_strength": null
+        },
+        "title": "Repository Governance"
+      },
+      {
+        "file": ".spec/specs/package.spec.md",
+        "id": "ashui.package",
+        "meta": {
+          "decisions": [
+            "ashui.decision.pluggable_ui_storage",
+            "ashui.decision.element_resource_authority",
+            "ashui.decision.elm_ui_package_rename"
+          ],
+          "id": "ashui.package",
+          "kind": "package",
+          "status": "active",
+          "summary": "The root Ash UI package publishes the ash_ui application, boots runtime services, includes the shipped example in dev/test compilation, keeps renderer dependencies optional, and carries Spec Led tooling for local governance.",
+          "surface": [
+            "mix.exs",
+            "lib/ash_ui.ex",
+            "lib/ash_ui/application.ex",
+            "README.md",
+            "examples/basic_dashboard/mix.exs"
+          ],
+          "verification_minimum_strength": null
+        },
+        "title": "Ash UI Package Boundary"
+      },
+      {
+        "file": ".spec/specs/rendering.spec.md",
+        "id": "ashui.rendering",
+        "meta": {
+          "decisions": [
+            "ashui.decision.control_plane_authority",
+            "ashui.decision.elm_ui_package_rename"
+          ],
+          "id": "ashui.rendering",
+          "kind": "module",
+          "status": "active",
+          "summary": "Ash UI adapts internal IUR to canonical unified_iur, validates compatibility, and delegates platform output to live_ui, elm_ui, and desktop_ui adapters.",
+          "surface": [
+            "lib/ash_ui/rendering/*.ex",
+            "packages/live_ui/lib/**/*.ex",
+            "packages/elm_ui/lib/**/*.ex",
+            "packages/desktop_ui/lib/**/*.ex",
+            "mix.exs",
+            "README.md"
+          ],
+          "verification_minimum_strength": null
+        },
+        "title": "Canonical Rendering Boundary"
+      },
+      {
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "id": "ashui.resource_authoring",
+        "meta": {
+          "decisions": [
+            "ashui.decision.pluggable_ui_storage",
+            "ashui.decision.element_resource_authority"
+          ],
+          "id": "ashui.resource_authoring",
+          "kind": "module",
+          "status": "active",
+          "summary": "Screen and element resources own UI authoring, bindings, actions, and relationship-driven composition while shipped storage resources remain configurable support.",
+          "surface": [
+            "lib/ash_ui/resource/dsl/*.ex",
+            "lib/ash_ui/resource/authority.ex",
+            "lib/ash_ui/resources/*.ex",
+            "examples/basic_dashboard/lib/*.ex",
+            "guides/user/UG-0001-getting-started.md",
+            "guides/user/UG-0002-resources.md"
+          ],
+          "verification_minimum_strength": null
+        },
+        "title": "Resource-First Authoring"
+      },
+      {
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "id": "ashui.runtime_authorization",
+        "meta": {
+          "decisions": [
+            "ashui.decision.control_plane_authority",
+            "ashui.decision.element_resource_authority"
+          ],
+          "id": "ashui.runtime_authorization",
+          "kind": "service",
+          "status": "active",
+          "summary": "LiveView integration loads screens, authorizes access, compiles canonical output, evaluates bindings, routes events, and emits runtime telemetry.",
+          "surface": [
+            "lib/ash_ui/liveview/*.ex",
+            "lib/ash_ui/runtime/*.ex",
+            "lib/ash_ui/authorization/*.ex",
+            "guides/user/UG-0003-data-binding.md",
+            "guides/user/UG-0004-authorization.md"
+          ],
+          "verification_minimum_strength": null
+        },
+        "title": "Runtime, Bindings, And Authorization"
+      },
+      {
+        "file": ".spec/specs/spec_system.spec.md",
+        "id": "spec.system",
+        "meta": {
+          "decisions": null,
+          "id": "spec.system",
+          "kind": "policy",
+          "status": "active",
+          "summary": "Canonical workspace contract for authored specs and generated Spec Led state.",
+          "surface": [
+            ".spec/README.md",
+            ".spec/AGENTS.md",
+            ".spec/decisions/README.md",
+            ".spec/specs/*.spec.md",
+            ".spec/decisions/*.md"
+          ],
+          "verification_minimum_strength": null
+        },
+        "title": "Spec System"
+      }
+    ],
+    "verifications": [
+      {
+        "covers": [
+          "ashui.architecture.control_planes",
+          "ashui.architecture.relationship_graph",
+          "ashui.architecture.inline_screen_glue",
+          "ashui.architecture.current_truth_over_detour",
+          "ashui.architecture.screen_mount_flow"
+        ],
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"control-plane|resource graph|relationship-driven|inline fragment|screen-document\" README.md guides/developer/DG-0001-architecture-overview.md"
+      },
+      {
+        "covers": [
+          "ashui.architecture.control_planes",
+          "ashui.architecture.relationship_graph",
+          "ashui.architecture.screen_mount_flow"
+        ],
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"relationship-driven|resource-authority|current screen/element resource graph\" lib/ash_ui/resource/authority.ex lib/ash_ui/compiler.ex lib/ash_ui/liveview/liveview_integration.ex"
+      },
+      {
+        "covers": [
+          "ashui.architecture.relationship_graph",
+          "ashui.architecture.screen_mount_flow"
+        ],
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.architecture",
+        "target": "mix test test/ash_ui/phase_14_integration_test.exs test/ash_ui/phase_15_integration_test.exs"
+      },
+      {
+        "covers": [
+          "ashui.governance.specled_workspace",
+          "ashui.governance.validation_entrypoint"
+        ],
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.governance",
+        "target": "rg -n \"\\.spec/|mix spec\\.validate|mix spec\\.check|state\\.json\" .spec scripts/validate_specs_governance.sh .github/workflows/specs-governance.yml .github/workflows/ci.yml"
+      },
+      {
+        "covers": [
+          "ashui.governance.resource_first_public_surface"
+        ],
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.governance",
+        "target": "rg -n \"AshUI\\.Resource\\.DSL\\.Screen|AshUI\\.Resource\\.DSL\\.Element|ui_relationships|ui_bindings|ui_actions\" README.md guides examples scripts/validate_authoring_governance.sh release/RELEASE_CHECKLIST.md"
+      },
+      {
+        "covers": [
+          "ashui.governance.release_and_conformance_reporting"
+        ],
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.governance",
+        "target": "rg -n \"\\.spec/README\\.md|\\.spec/specs|\\.spec/state\\.json|Conformance Report\" scripts/run_conformance.sh scripts/generate_conformance_report.sh release/RELEASE_CHECKLIST.md"
+      },
+      {
+        "covers": [
+          "ashui.governance.validation_entrypoint"
+        ],
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.governance",
+        "target": "bash ./scripts/validate_specs_governance.sh"
+      },
+      {
+        "covers": [
+          "ashui.package.identity_and_boot",
+          "ashui.package.local_dev_boot"
+        ],
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"app: :ash_ui|mod: \\\\{AshUI\\\\.Application|def application do|def domain do|def authoring do\" mix.exs lib/ash_ui.ex lib/ash_ui/application.ex"
+      },
+      {
+        "covers": [
+          "ashui.package.example_compile_surface",
+          "ashui.package.local_dev_boot"
+        ],
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"examples/basic_dashboard/lib|elixirc_paths\\\\(:dev\\\\)|elixirc_paths\\\\(:test\\\\)\" mix.exs examples/basic_dashboard/mix.exs README.md"
+      },
+      {
+        "covers": [
+          "ashui.package.optional_renderer_boundary",
+          "ashui.package.local_dev_boot"
+        ],
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"path: \\\"packages/live_ui\\\"|path: \\\"packages/elm_ui\\\"|path: \\\"packages/desktop_ui\\\"|optional: true\" mix.exs"
+      },
+      {
+        "covers": [
+          "ashui.package.specled_tooling",
+          "ashui.package.local_dev_boot"
+        ],
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"spec_led_ex|mix spec\\\\.validate|mix spec\\\\.check|\\\\.spec/README\\\\.md\" mix.exs README.md scripts/validate_specs_governance.sh .github/workflows/specs-governance.yml"
+      },
+      {
+        "covers": [
+          "ashui.rendering.canonical_conversion"
+        ],
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"to_canonical|UnifiedIUR.validate|compatible\\\\?|convert_success|convert_error\" lib/ash_ui/rendering/iur_adapter.ex"
+      },
+      {
+        "covers": [
+          "ashui.rendering.adapter_selection"
+        ],
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"LiveUIAdapter|ElmUIAdapter|DesktopUIAdapter|Registry|Selector\" lib/ash_ui/rendering README.md"
+      },
+      {
+        "covers": [
+          "ashui.rendering.elm_naming"
+        ],
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"elm_ui|ElmUI|:elm|Elm-backed\" README.md lib/ash_ui/rendering packages/elm_ui"
+      },
+      {
+        "covers": [
+          "ashui.rendering.optional_dependencies"
+        ],
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"optional: true|path: \\\"packages/live_ui\\\"|path: \\\"packages/elm_ui\\\"|path: \\\"packages/desktop_ui\\\"\" mix.exs"
+      },
+      {
+        "covers": [
+          "ashui.rendering.canonical_conversion",
+          "ashui.rendering.adapter_selection"
+        ],
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.rendering",
+        "target": "mix test test/ash_ui/rendering/phase_7_integration_test.exs test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs"
+      },
+      {
+        "covers": [
+          "ashui.resource_authoring.element_local_semantics",
+          "ashui.resource_authoring.screen_composition",
+          "ashui.resource_authoring.example_dashboard"
+        ],
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"use AshUI.Resource.DSL.Element|ui_bindings|ui_actions|use AshUI.Resource.DSL.Screen|ui_relationships\" examples/basic_dashboard/lib test/support/resource_authority_modules.ex guides/user/UG-0001-getting-started.md guides/user/UG-0002-resources.md"
+      },
+      {
+        "covers": [
+          "ashui.resource_authoring.persistence_boundary"
+        ],
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"persists screen records|storage snapshot|not the primary source of truth|Screen.unified_dsl\" lib/ash_ui/resource/authority.ex README.md guides/user/UG-0002-resources.md"
+      },
+      {
+        "covers": [
+          "ashui.resource_authoring.storage_support"
+        ],
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"AshUI.Resources.Screen|AshUI.Resources.Element|AshUI.Resources.Binding|default shipped\" README.md guides/user/UG-0001-getting-started.md guides/user/UG-0002-resources.md lib/ash_ui/config.ex"
+      },
+      {
+        "covers": [
+          "ashui.resource_authoring.element_local_semantics",
+          "ashui.resource_authoring.screen_composition",
+          "ashui.resource_authoring.persistence_boundary",
+          "ashui.resource_authoring.example_dashboard"
+        ],
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.resource_authoring",
+        "target": "mix test test/ash_ui/phase_13_integration_test.exs test/ash_ui/examples/basic_dashboard_test.exs"
+      },
+      {
+        "covers": [
+          "ashui.runtime_authorization.mount_flow",
+          "ashui.runtime_authorization.telemetry",
+          "ashui.runtime_authorization.authorized_mount"
+        ],
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"mount_ui_screen|authorize_screen|evaluate_bindings|sync_binding_subscriptions|Telemetry\" lib/ash_ui/liveview/liveview_integration.ex lib/ash_ui/liveview/update_integration.ex lib/ash_ui/liveview/event_handler.ex"
+      },
+      {
+        "covers": [
+          "ashui.runtime_authorization.runtime_authorization",
+          "ashui.runtime_authorization.authorized_mount",
+          "ashui.runtime_authorization.binding_action_flow"
+        ],
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"check_mount_authorization|check_action_authorization|check_read_access|check_write_access|cache_policy_check\" lib/ash_ui/authorization/runtime.ex guides/user/UG-0004-authorization.md"
+      },
+      {
+        "covers": [
+          "ashui.runtime_authorization.binding_execution",
+          "ashui.runtime_authorization.binding_action_flow"
+        ],
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"BindingEvaluator|BidirectionalBinding|ActionBinding|ListBinding|handle_value_change|handle_action_event\" lib/ash_ui/runtime lib/ash_ui/liveview guides/user/UG-0003-data-binding.md"
+      },
+      {
+        "covers": [
+          "ashui.runtime_authorization.mount_flow",
+          "ashui.runtime_authorization.binding_execution",
+          "ashui.runtime_authorization.runtime_authorization",
+          "ashui.runtime_authorization.telemetry",
+          "ashui.runtime_authorization.authorized_mount",
+          "ashui.runtime_authorization.binding_action_flow"
+        ],
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "mix test test/ash_ui/liveview/phase_4_integration_test.exs test/ash_ui/runtime/action_binding_test.exs test/ash_ui/authorization/phase_5_integration_test.exs test/ash_ui/telemetry_test.exs"
+      },
+      {
+        "covers": [
+          "spec.workspace.readme_present"
+        ],
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "source_file",
+        "subject_id": "spec.system",
+        "target": ".spec/README.md"
+      },
+      {
+        "covers": [
+          "spec.workspace.agents_present",
+          "spec.workspace.agent_prime_context"
+        ],
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "source_file",
+        "subject_id": "spec.system",
+        "target": ".spec/AGENTS.md"
+      },
+      {
+        "covers": [
+          "spec.workspace.decisions_readme_present"
+        ],
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "source_file",
+        "subject_id": "spec.system",
+        "target": ".spec/decisions/README.md"
+      },
+      {
+        "covers": [
+          "spec.workspace.state_generated"
+        ],
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "command",
+        "subject_id": "spec.system",
+        "target": "mix spec.index"
+      },
+      {
+        "covers": [
+          "spec.workspace.state_generated"
+        ],
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "command",
+        "subject_id": "spec.system",
+        "target": "mix spec.validate"
+      }
+    ]
+  },
+  "specification_version": "1.0",
+  "summary": {
+    "decision_parse_errors": 0,
+    "decisions": 5,
+    "exceptions": 0,
+    "findings": 0,
+    "requirements": 29,
+    "scenarios": 5,
+    "subjects": 7,
+    "verifications": 29
+  },
+  "verification": {
+    "claims": [
+      {
+        "cover_id": "ashui.architecture.control_planes",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"control-plane|resource graph|relationship-driven|inline fragment|screen-document\" README.md guides/developer/DG-0001-architecture-overview.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.architecture.current_truth_over_detour",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"control-plane|resource graph|relationship-driven|inline fragment|screen-document\" README.md guides/developer/DG-0001-architecture-overview.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.architecture.inline_screen_glue",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"control-plane|resource graph|relationship-driven|inline fragment|screen-document\" README.md guides/developer/DG-0001-architecture-overview.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.architecture.relationship_graph",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"control-plane|resource graph|relationship-driven|inline fragment|screen-document\" README.md guides/developer/DG-0001-architecture-overview.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.architecture.screen_mount_flow",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"control-plane|resource graph|relationship-driven|inline fragment|screen-document\" README.md guides/developer/DG-0001-architecture-overview.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.architecture.control_planes",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"relationship-driven|resource-authority|current screen/element resource graph\" lib/ash_ui/resource/authority.ex lib/ash_ui/compiler.ex lib/ash_ui/liveview/liveview_integration.ex",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.architecture.relationship_graph",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"relationship-driven|resource-authority|current screen/element resource graph\" lib/ash_ui/resource/authority.ex lib/ash_ui/compiler.ex lib/ash_ui/liveview/liveview_integration.ex",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.architecture.screen_mount_flow",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "rg -n \"relationship-driven|resource-authority|current screen/element resource graph\" lib/ash_ui/resource/authority.ex lib/ash_ui/compiler.ex lib/ash_ui/liveview/liveview_integration.ex",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.architecture.relationship_graph",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "mix test test/ash_ui/phase_14_integration_test.exs test/ash_ui/phase_15_integration_test.exs",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.architecture.screen_mount_flow",
+        "file": ".spec/specs/architecture.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.architecture",
+        "target": "mix test test/ash_ui/phase_14_integration_test.exs test/ash_ui/phase_15_integration_test.exs",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.governance.specled_workspace",
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.governance",
+        "target": "rg -n \"\\.spec/|mix spec\\.validate|mix spec\\.check|state\\.json\" .spec scripts/validate_specs_governance.sh .github/workflows/specs-governance.yml .github/workflows/ci.yml",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.governance.validation_entrypoint",
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.governance",
+        "target": "rg -n \"\\.spec/|mix spec\\.validate|mix spec\\.check|state\\.json\" .spec scripts/validate_specs_governance.sh .github/workflows/specs-governance.yml .github/workflows/ci.yml",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.governance.resource_first_public_surface",
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.governance",
+        "target": "rg -n \"AshUI\\.Resource\\.DSL\\.Screen|AshUI\\.Resource\\.DSL\\.Element|ui_relationships|ui_bindings|ui_actions\" README.md guides examples scripts/validate_authoring_governance.sh release/RELEASE_CHECKLIST.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.governance.release_and_conformance_reporting",
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.governance",
+        "target": "rg -n \"\\.spec/README\\.md|\\.spec/specs|\\.spec/state\\.json|Conformance Report\" scripts/run_conformance.sh scripts/generate_conformance_report.sh release/RELEASE_CHECKLIST.md",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.governance.validation_entrypoint",
+        "file": ".spec/specs/governance.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.governance",
+        "target": "bash ./scripts/validate_specs_governance.sh",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.package.identity_and_boot",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"app: :ash_ui|mod: \\\\{AshUI\\\\.Application|def application do|def domain do|def authoring do\" mix.exs lib/ash_ui.ex lib/ash_ui/application.ex",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.package.local_dev_boot",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"app: :ash_ui|mod: \\\\{AshUI\\\\.Application|def application do|def domain do|def authoring do\" mix.exs lib/ash_ui.ex lib/ash_ui/application.ex",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.package.example_compile_surface",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"examples/basic_dashboard/lib|elixirc_paths\\\\(:dev\\\\)|elixirc_paths\\\\(:test\\\\)\" mix.exs examples/basic_dashboard/mix.exs README.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.package.local_dev_boot",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"examples/basic_dashboard/lib|elixirc_paths\\\\(:dev\\\\)|elixirc_paths\\\\(:test\\\\)\" mix.exs examples/basic_dashboard/mix.exs README.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.package.local_dev_boot",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"path: \\\"packages/live_ui\\\"|path: \\\"packages/elm_ui\\\"|path: \\\"packages/desktop_ui\\\"|optional: true\" mix.exs",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.package.optional_renderer_boundary",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"path: \\\"packages/live_ui\\\"|path: \\\"packages/elm_ui\\\"|path: \\\"packages/desktop_ui\\\"|optional: true\" mix.exs",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.package.local_dev_boot",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"spec_led_ex|mix spec\\\\.validate|mix spec\\\\.check|\\\\.spec/README\\\\.md\" mix.exs README.md scripts/validate_specs_governance.sh .github/workflows/specs-governance.yml",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.package.specled_tooling",
+        "file": ".spec/specs/package.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.package",
+        "target": "rg -n \"spec_led_ex|mix spec\\\\.validate|mix spec\\\\.check|\\\\.spec/README\\\\.md\" mix.exs README.md scripts/validate_specs_governance.sh .github/workflows/specs-governance.yml",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.rendering.canonical_conversion",
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"to_canonical|UnifiedIUR.validate|compatible\\\\?|convert_success|convert_error\" lib/ash_ui/rendering/iur_adapter.ex",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.rendering.adapter_selection",
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"LiveUIAdapter|ElmUIAdapter|DesktopUIAdapter|Registry|Selector\" lib/ash_ui/rendering README.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.rendering.elm_naming",
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"elm_ui|ElmUI|:elm|Elm-backed\" README.md lib/ash_ui/rendering packages/elm_ui",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.rendering.optional_dependencies",
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.rendering",
+        "target": "rg -n \"optional: true|path: \\\"packages/live_ui\\\"|path: \\\"packages/elm_ui\\\"|path: \\\"packages/desktop_ui\\\"\" mix.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.rendering.adapter_selection",
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.rendering",
+        "target": "mix test test/ash_ui/rendering/phase_7_integration_test.exs test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs",
+        "verification_index": 4
+      },
+      {
+        "cover_id": "ashui.rendering.canonical_conversion",
+        "file": ".spec/specs/rendering.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.rendering",
+        "target": "mix test test/ash_ui/rendering/phase_7_integration_test.exs test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs",
+        "verification_index": 4
+      },
+      {
+        "cover_id": "ashui.resource_authoring.element_local_semantics",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"use AshUI.Resource.DSL.Element|ui_bindings|ui_actions|use AshUI.Resource.DSL.Screen|ui_relationships\" examples/basic_dashboard/lib test/support/resource_authority_modules.ex guides/user/UG-0001-getting-started.md guides/user/UG-0002-resources.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.resource_authoring.example_dashboard",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"use AshUI.Resource.DSL.Element|ui_bindings|ui_actions|use AshUI.Resource.DSL.Screen|ui_relationships\" examples/basic_dashboard/lib test/support/resource_authority_modules.ex guides/user/UG-0001-getting-started.md guides/user/UG-0002-resources.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.resource_authoring.screen_composition",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"use AshUI.Resource.DSL.Element|ui_bindings|ui_actions|use AshUI.Resource.DSL.Screen|ui_relationships\" examples/basic_dashboard/lib test/support/resource_authority_modules.ex guides/user/UG-0001-getting-started.md guides/user/UG-0002-resources.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.resource_authoring.persistence_boundary",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"persists screen records|storage snapshot|not the primary source of truth|Screen.unified_dsl\" lib/ash_ui/resource/authority.ex README.md guides/user/UG-0002-resources.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.resource_authoring.storage_support",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "rg -n \"AshUI.Resources.Screen|AshUI.Resources.Element|AshUI.Resources.Binding|default shipped\" README.md guides/user/UG-0001-getting-started.md guides/user/UG-0002-resources.md lib/ash_ui/config.ex",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.resource_authoring.element_local_semantics",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "mix test test/ash_ui/phase_13_integration_test.exs test/ash_ui/examples/basic_dashboard_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.resource_authoring.example_dashboard",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "mix test test/ash_ui/phase_13_integration_test.exs test/ash_ui/examples/basic_dashboard_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.resource_authoring.persistence_boundary",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "mix test test/ash_ui/phase_13_integration_test.exs test/ash_ui/examples/basic_dashboard_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.resource_authoring.screen_composition",
+        "file": ".spec/specs/resource_authoring.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.resource_authoring",
+        "target": "mix test test/ash_ui/phase_13_integration_test.exs test/ash_ui/examples/basic_dashboard_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.authorized_mount",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"mount_ui_screen|authorize_screen|evaluate_bindings|sync_binding_subscriptions|Telemetry\" lib/ash_ui/liveview/liveview_integration.ex lib/ash_ui/liveview/update_integration.ex lib/ash_ui/liveview/event_handler.ex",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.mount_flow",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"mount_ui_screen|authorize_screen|evaluate_bindings|sync_binding_subscriptions|Telemetry\" lib/ash_ui/liveview/liveview_integration.ex lib/ash_ui/liveview/update_integration.ex lib/ash_ui/liveview/event_handler.ex",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.telemetry",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"mount_ui_screen|authorize_screen|evaluate_bindings|sync_binding_subscriptions|Telemetry\" lib/ash_ui/liveview/liveview_integration.ex lib/ash_ui/liveview/update_integration.ex lib/ash_ui/liveview/event_handler.ex",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.authorized_mount",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"check_mount_authorization|check_action_authorization|check_read_access|check_write_access|cache_policy_check\" lib/ash_ui/authorization/runtime.ex guides/user/UG-0004-authorization.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.binding_action_flow",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"check_mount_authorization|check_action_authorization|check_read_access|check_write_access|cache_policy_check\" lib/ash_ui/authorization/runtime.ex guides/user/UG-0004-authorization.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.runtime_authorization",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"check_mount_authorization|check_action_authorization|check_read_access|check_write_access|cache_policy_check\" lib/ash_ui/authorization/runtime.ex guides/user/UG-0004-authorization.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.binding_action_flow",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"BindingEvaluator|BidirectionalBinding|ActionBinding|ListBinding|handle_value_change|handle_action_event\" lib/ash_ui/runtime lib/ash_ui/liveview guides/user/UG-0003-data-binding.md",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.binding_execution",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "rg -n \"BindingEvaluator|BidirectionalBinding|ActionBinding|ListBinding|handle_value_change|handle_action_event\" lib/ash_ui/runtime lib/ash_ui/liveview guides/user/UG-0003-data-binding.md",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.authorized_mount",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "mix test test/ash_ui/liveview/phase_4_integration_test.exs test/ash_ui/runtime/action_binding_test.exs test/ash_ui/authorization/phase_5_integration_test.exs test/ash_ui/telemetry_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.binding_action_flow",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "mix test test/ash_ui/liveview/phase_4_integration_test.exs test/ash_ui/runtime/action_binding_test.exs test/ash_ui/authorization/phase_5_integration_test.exs test/ash_ui/telemetry_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.binding_execution",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "mix test test/ash_ui/liveview/phase_4_integration_test.exs test/ash_ui/runtime/action_binding_test.exs test/ash_ui/authorization/phase_5_integration_test.exs test/ash_ui/telemetry_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.mount_flow",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "mix test test/ash_ui/liveview/phase_4_integration_test.exs test/ash_ui/runtime/action_binding_test.exs test/ash_ui/authorization/phase_5_integration_test.exs test/ash_ui/telemetry_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.runtime_authorization",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "mix test test/ash_ui/liveview/phase_4_integration_test.exs test/ash_ui/runtime/action_binding_test.exs test/ash_ui/authorization/phase_5_integration_test.exs test/ash_ui/telemetry_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "ashui.runtime_authorization.telemetry",
+        "file": ".spec/specs/runtime_authorization.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "ashui.runtime_authorization",
+        "target": "mix test test/ash_ui/liveview/phase_4_integration_test.exs test/ash_ui/runtime/action_binding_test.exs test/ash_ui/authorization/phase_5_integration_test.exs test/ash_ui/telemetry_test.exs",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "spec.workspace.readme_present",
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "source_file",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "linked",
+        "subject_id": "spec.system",
+        "target": ".spec/README.md",
+        "verification_index": 0
+      },
+      {
+        "cover_id": "spec.workspace.agent_prime_context",
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "source_file",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "linked",
+        "subject_id": "spec.system",
+        "target": ".spec/AGENTS.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "spec.workspace.agents_present",
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "source_file",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "linked",
+        "subject_id": "spec.system",
+        "target": ".spec/AGENTS.md",
+        "verification_index": 1
+      },
+      {
+        "cover_id": "spec.workspace.decisions_readme_present",
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "source_file",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "linked",
+        "subject_id": "spec.system",
+        "target": ".spec/decisions/README.md",
+        "verification_index": 2
+      },
+      {
+        "cover_id": "spec.workspace.state_generated",
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "spec.system",
+        "target": "mix spec.index",
+        "verification_index": 3
+      },
+      {
+        "cover_id": "spec.workspace.state_generated",
+        "file": ".spec/specs/spec_system.spec.md",
+        "kind": "command",
+        "meets_minimum": true,
+        "required_strength": "claimed",
+        "strength": "claimed",
+        "subject_id": "spec.system",
+        "target": "mix spec.validate",
+        "verification_index": 4
+      }
+    ],
+    "cli_minimum_strength": null,
+    "default_minimum_strength": "claimed",
+    "strength_summary": {
+      "claimed": 54,
+      "executed": 0,
+      "linked": 4
+    },
+    "threshold_failures": 0
+  },
+  "workspace": {
+    "decision_count": 5,
+    "spec_count": 7
+  }
+}

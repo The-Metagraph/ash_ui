@@ -47,7 +47,7 @@ Scenarios in this catalog validate that guide documentation is accurate, complet
 
 **Steps**:
 1. Extract all links from a guide
-2. Check internal links to specs/guides
+2. Check internal links to `.spec` and guides
 3. Check external links to external resources
 
 **Expected Outcome**: All links resolve correctly.
@@ -90,4 +90,4 @@ Scenarios in this catalog validate that guide documentation is accurate, complet
 
 - [../contracts/guide_contract.md](../contracts/guide_contract.md)
 - [guide_conformance_matrix.md](guide_conformance_matrix.md)
-- [../../specs/conformance/scenario_catalog.md](../../specs/conformance/scenario_catalog.md)
+- [../../.spec/specs/governance.spec.md](../../.spec/specs/governance.spec.md)

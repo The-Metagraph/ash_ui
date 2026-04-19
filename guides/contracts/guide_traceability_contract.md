@@ -83,12 +83,12 @@ Guides are validated for:
 The `validate_guides_governance.sh` script checks:
 
 - Metadata YAML is valid
-- REQ-* references exist in contracts
-- SCN-* references exist in scenario catalog
+- Required metadata is present
+- Guide indexes remain aligned
 - Coverage meets minimum thresholds
 
 ## Related Documents
 
 - [guide_contract.md](guide_contract.md)
-- [../specs/conformance/spec_conformance_matrix.md](../specs/conformance/spec_conformance_matrix.md)
+- [../../.spec/specs/governance.spec.md](../../.spec/specs/governance.spec.md)
 - [../scripts/validate_guides_governance.sh](../scripts/validate_guides_governance.sh)

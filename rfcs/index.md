@@ -74,4 +74,4 @@ To submit a new RFC:
 
 - [README.md](README.md) - RFC system overview
 - [getting-started.md](getting-started.md) - How to create RFCs
-- [../specs/](../specs/) - Technical specifications
+- [../.spec/README.md](../.spec/README.md) - Technical specifications

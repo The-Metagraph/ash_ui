@@ -84,7 +84,7 @@ Documentation and governance changes should also run the shell validators:
 
 Use these when you touch:
 
-- `specs/`
+- `.spec/`
 - `rfcs/`
 - `guides/`
 
@@ -164,4 +164,4 @@ Before marking a release-related phase section complete, also confirm:
 - [DG-0002: Contributing](./DG-0002-contributing.md)
 - [DG-0004: Release Process](./DG-0004-release-process.md)
 - [UG-0003: Data Binding](../user/UG-0003-data-binding.md)
-- [spec_conformance_matrix.md](../../specs/conformance/spec_conformance_matrix.md)
+- [.spec Workspace](../../.spec/README.md)

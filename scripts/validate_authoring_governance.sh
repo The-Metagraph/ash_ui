@@ -17,7 +17,7 @@ is_allowed_reference_file() {
   case "$file" in
     CHANGELOG.md) return 0 ;;
     guides/user/UG-0005-migration-v0-to-v1.md) return 0 ;;
-    specs/adr/*) return 0 ;;
+    .spec/decisions/*) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -33,7 +33,7 @@ while IFS=: read -r file line _; do
   if ! is_allowed_reference_file "$file"; then
     fail "legacy authoring reference outside approved historical docs: ${file}:${line}"
   fi
-done < <(rg -n "$doc_pattern" README.md CHANGELOG.md guides examples specs/adr -g '*.md' -g '*.ex' 2>/dev/null || true)
+done < <(rg -n "$doc_pattern" README.md CHANGELOG.md guides examples .spec/decisions -g '*.md' -g '*.ex' 2>/dev/null || true)
 
 while IFS=: read -r file line _; do
   [[ -z "$file" ]] && continue

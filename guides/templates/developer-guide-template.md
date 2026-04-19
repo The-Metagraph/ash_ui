@@ -111,5 +111,5 @@ end
 ## See Also
 
 - [Related User Guide](../user/UG-XXXX.md)
-- [Related Specification](../../specs/contracts/some-contract.md)
-- [Related ADR](../../specs/adr/ADR-XXXX.md)
+- [Related Specification](../../.spec/specs/some-subject.spec.md)
+- [Related ADR](../../.spec/decisions/decision-id.md)

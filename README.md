@@ -252,7 +252,7 @@ The repository vendors minimal `unified_ui`, `unified_iur`, `live_ui`, `elm_ui`,
 - [User guides](/Users/Pascal/code/ash/ash_ui/guides/user/README.md)
 - [Developer guides](/Users/Pascal/code/ash/ash_ui/guides/developer/README.md)
 - [Guide index](/Users/Pascal/code/ash/ash_ui/guides/README.md)
-- [Specifications](/Users/Pascal/code/ash/ash_ui/specs/README.md)
+- [.spec Workspace](/mnt/c/dev/ui/ash_ui/.spec/README.md)
 - [RFCs](/Users/Pascal/code/ash/ash_ui/rfcs/README.md)
 
 Key starting points:

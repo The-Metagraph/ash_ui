@@ -15,6 +15,7 @@ Use this checklist before cutting an Ash UI release.
 - [ ] Code coverage meets or exceeds the release threshold of `70%`
 - [ ] `release/KNOWN_ISSUES.md` lists no critical bugs
 - [ ] Root README, guides, and release assets are current
+- [ ] `.spec/` validates cleanly and `.spec/state.json` reflects the current workspace
 - [ ] Public examples and guides still demonstrate screen and element resource authoring through `AshUI.Resource.DSL.*`; historical migration references remain confined to ADRs, changelog notes, and UG-0005
 - [ ] Telemetry dashboards are available and recent signals look healthy
 - [ ] `unified_ui` and `unified_iur` are present and loadable in the release artifact
@@ -33,6 +34,7 @@ Use this checklist before cutting an Ash UI release.
 - generated changelog draft from `./scripts/generate_changelog.sh`
 - current branch and commit SHA
 - release dry-run result from `.github/workflows/release.yml`
+- validated `.spec/state.json`
 - confirmation that required authoring/compiler packages (`unified_ui`, `unified_iur`) resolved successfully
 
 ## Cut Procedure

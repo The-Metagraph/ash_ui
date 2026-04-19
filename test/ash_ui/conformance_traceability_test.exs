@@ -4,78 +4,20 @@ defmodule AshUI.ConformanceTraceabilityTest do
   @moduletag :conformance
 
   @repo_root Path.expand("../..", __DIR__)
-  @catalog_path Path.join(@repo_root, "specs/conformance/scenario_catalog.md")
-  @matrix_path Path.join(@repo_root, "specs/conformance/spec_conformance_matrix.md")
-  @traceability_path Path.join(@repo_root, "specs/conformance/scenario_test_matrix.md")
+  @state_path Path.join(@repo_root, ".spec/state.json")
 
-  test "every catalog scenario has explicit test traceability" do
-    catalog_scenarios =
-      @catalog_path
-      |> File.read!()
-      |> extract_heading_ids()
-      |> MapSet.new()
+  test "spec workspace validates and writes generated state" do
+    {output, status} = AshUI.TestShell.run_spec_validate(@repo_root)
 
-    traceability_scenarios =
-      scenario_rows()
-      |> Map.keys()
-      |> MapSet.new()
+    assert status == 0, output
+    assert File.exists?(@state_path)
 
-    assert MapSet.equal?(catalog_scenarios, traceability_scenarios)
-  end
+    state = Jason.decode!(File.read!(@state_path))
+    subjects = get_in(state, ["index", "subjects"]) || []
+    decisions = get_in(state, ["decisions", "items"]) || []
 
-  test "every matrix scenario is backed by traced conformance tests" do
-    traced_scenarios = Map.keys(scenario_rows()) |> MapSet.new()
-
-    matrix_scenarios =
-      @matrix_path
-      |> File.read!()
-      |> extract_table_ids()
-      |> MapSet.new()
-
-    assert MapSet.subset?(matrix_scenarios, traced_scenarios)
-  end
-
-  test "every traced test file exists and is tagged for the conformance harness" do
-    Enum.each(scenario_rows(), fn {_scenario, files} ->
-      Enum.each(files, fn file ->
-        absolute = Path.expand(file, @repo_root)
-
-        assert File.exists?(absolute)
-        body = File.read!(absolute)
-        assert body =~ "@moduletag :conformance"
-      end)
-    end)
-  end
-
-  defp scenario_rows do
-    @traceability_path
-    |> File.read!()
-    |> String.split("\n")
-    |> Enum.reduce(%{}, fn line, acc ->
-      case Regex.run(~r/^\|\s*(SCN-[0-9A-Z]+)\s*\|\s*[^|]+\|\s*([^|]+?)\s*\|$/, line) do
-        [_, scenario, files] ->
-          parsed_files =
-            files
-            |> String.split(",", trim: true)
-            |> Enum.map(&String.trim/1)
-
-          Map.put(acc, scenario, parsed_files)
-
-        _ ->
-          acc
-      end
-    end)
-  end
-
-  defp extract_heading_ids(body) do
-    Regex.scan(~r/^####\s+(SCN-[0-9A-Z]+):/m, body, capture: :all_but_first)
-    |> List.flatten()
-    |> Enum.uniq()
-  end
-
-  defp extract_table_ids(body) do
-    Regex.scan(~r/^\|\s*(SCN-[0-9A-Z]+)\s*\|/m, body, capture: :all_but_first)
-    |> List.flatten()
-    |> Enum.uniq()
+    assert state["summary"]["subjects"] >= 6
+    assert length(subjects) >= 6
+    assert length(decisions) >= 4
   end
 end

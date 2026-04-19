@@ -37,6 +37,8 @@ defmodule AshUI.MixProject do
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:igniter, "~> 0.6", only: [:dev, :test]},
+      {:spec_led_ex,
+       git: "https://github.com/specleddev/specled_ex.git", only: [:dev, :test], runtime: false},
       {:jason, "~> 1.4"},
       {:postgrex, ">= 0.0.0"},
       {:ecto_sql, "~> 3.10"},

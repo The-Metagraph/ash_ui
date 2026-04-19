@@ -86,34 +86,55 @@ defmodule AshUI.Phase16IntegrationTest do
     assert output =~ "legacy authoring reference outside approved historical docs"
   end
 
-  test "16.4.1.4 - conformance traces to the restored architecture" do
-    catalog = File.read!(project_path("specs/conformance/scenario_catalog.md"))
-    matrix = File.read!(project_path("specs/conformance/spec_conformance_matrix.md"))
-    traceability = File.read!(project_path("specs/conformance/scenario_test_matrix.md"))
+  @tag timeout: 120_000
+  test "16.4.1.4 - governance and release assets trace to the restored architecture through .spec" do
+    {output, status} = AshUI.TestShell.run_spec_validate(root_dir())
+    state = Jason.decode!(File.read!(project_path(".spec/state.json")))
     checklist = File.read!(project_path("release/RELEASE_CHECKLIST.md"))
+    contributing = File.read!(project_path("guides/developer/DG-0002-contributing.md"))
+    package_spec = File.read!(project_path(".spec/specs/package.spec.md"))
+    governance = File.read!(project_path(".spec/specs/governance.spec.md"))
 
-    assert catalog =~ "#### SCN-050: Persisted Screen Authority Graph"
-    assert catalog =~ "#### SCN-052: Element-Resource-First Example Authoring"
-    assert catalog =~ "#### SCN-053: Relationship-Driven Composition Semantics"
+    subject_ids =
+      get_in(state, ["index", "subjects"])
+      |> Enum.map(& &1["id"])
+      |> MapSet.new()
 
-    assert matrix =~ "SCN-041, SCN-050, SCN-051, SCN-052"
-    assert matrix =~ "| REQ-COMP-004 | Resource Resolution | compilation/README.md | SCN-044, SCN-053 |"
+    decision_ids =
+      get_in(state, ["decisions", "items"])
+      |> Enum.map(& &1["id"])
+      |> MapSet.new()
 
-    assert matrix =~
-             "| REQ-SCREEN-003 | Element Composition | resources/ui_screen.md | SCN-005, SCN-053 |"
+    assert status == 0, output
+    assert output =~ "Specs governance validation passed."
+    assert state["summary"]["subjects"] >= 6
+    assert length(get_in(state, ["decisions", "items"]) || []) >= 4
 
-    assert traceability =~
-             "| SCN-052 | Element-Resource-First Example Authoring | test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_13_integration_test.exs, test/ash_ui/phase_16_integration_test.exs |"
+    assert MapSet.subset?(
+             MapSet.new([
+               "ashui.package",
+               "ashui.architecture",
+               "ashui.resource_authoring",
+               "ashui.runtime_authorization",
+               "ashui.rendering",
+               "ashui.governance"
+             ]),
+             subject_ids
+           )
 
-    assert traceability =~
-             "| SCN-053 | Relationship-Driven Composition Semantics | test/ash_ui/phase_14_integration_test.exs, test/ash_ui/examples/basic_dashboard_test.exs, test/ash_ui/phase_16_integration_test.exs |"
-
-    assert traceability =~
-             "| SCN-071 | Renderer Parity For Resource Screens | test/ash_ui/examples/basic_dashboard_adapter_runner_test.exs |"
+    assert "ashui.decision.element_resource_authority" in decision_ids
+    assert "ashui.decision.control_plane_authority" in decision_ids
 
     assert checklist =~ "screen and element resource authoring through `AshUI.Resource.DSL.*`"
     assert checklist =~ "Composition is expressed through Ash relationships plus `ui_relationships`"
     assert checklist =~ "`ui_bindings` and `ui_actions` stay local to the owning element resource"
+    assert checklist =~ ".spec/state.json"
+
+    assert contributing =~ ".spec/specs/"
+    assert package_spec =~ "id: ashui.package"
+    assert package_spec =~ "spec_led_ex"
+    assert governance =~ ".spec/specs/*.spec.md"
+    assert governance =~ "scripts/validate_specs_governance.sh"
   end
 
   defp project_path(path) do
@@ -133,7 +154,13 @@ defmodule AshUI.Phase16IntegrationTest do
       |> Map.merge(extra_env)
       |> Enum.to_list()
 
-    System.cmd("bash", ["-lc", command], cd: root_dir(), env: env, stderr_to_stdout: true)
+    AshUI.TestShell.run(command, cd: root_dir(), env: env, stderr_to_stdout: true)
+  end
+
+  defp run_shell!(command, extra_env \\ %{}) do
+    {output, status} = run_shell(command, extra_env)
+    assert status == 0, output
+    output
   end
 
   defp temp_dir(prefix) do

@@ -261,5 +261,5 @@ Dashboards under `priv/monitoring/dashboards/` consume the normalized telemetry 
 
 - [UG-0001: Getting Started](../user/UG-0001-getting-started.md)
 - [DG-0003: Testing Guide](./DG-0003-testing-guide.md)
-- [topology.md](../../specs/topology.md)
-- [ADR-0001-control-plane-authority.md](../../specs/adr/ADR-0001-control-plane-authority.md)
+- [.spec Workspace](../../.spec/README.md)
+- [ashui.decision.control_plane_authority.md](../../.spec/decisions/ashui.decision.control_plane_authority.md)

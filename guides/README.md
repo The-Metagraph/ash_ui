@@ -55,5 +55,5 @@ When creating new guides:
 
 ## Related Documentation
 
-- [../specs/](../specs/) - Technical specifications
+- [../.spec/README.md](../.spec/README.md) - Current technical truth
 - [../rfcs/](../rfcs/) - Design proposals

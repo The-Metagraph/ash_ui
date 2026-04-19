@@ -223,5 +223,5 @@ binding source.
 
 - [UG-0002: Working with Ash UI Resources](./UG-0002-resources.md)
 - [UG-0004: Authorization](./UG-0004-authorization.md)
-- [binding_contract.md](../../specs/contracts/binding_contract.md)
-- [observability_contract.md](../../specs/contracts/observability_contract.md)
+- [runtime_authorization.spec.md](../../.spec/specs/runtime_authorization.spec.md)
+- [governance.spec.md](../../.spec/specs/governance.spec.md)

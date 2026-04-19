@@ -157,4 +157,4 @@ The runtime blocked access to a binding or action.
 - [UG-0001: Getting Started](./UG-0001-getting-started.md)
 - [UG-0003: Data Binding](./UG-0003-data-binding.md)
 - [DG-0001: Architecture Overview](../developer/DG-0001-architecture-overview.md)
-- [authorization_contract.md](../../specs/contracts/authorization_contract.md)
+- [runtime_authorization.spec.md](../../.spec/specs/runtime_authorization.spec.md)

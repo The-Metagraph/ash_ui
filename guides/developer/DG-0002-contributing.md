@@ -24,14 +24,15 @@ Before reading this guide, you should:
 
 - Be able to run Elixir and Mix locally
 - Understand the architecture in [DG-0001](./DG-0001-architecture-overview.md)
-- Be familiar with the phase plans in `specs/planning/`
+- Be familiar with the relevant subjects in `.spec/specs/`
 
-## Start from the Specs
+## Start from Current Truth
 
-Ash UI is governed by specs, ADRs, RFCs, conformance scenarios, and guides. Before making a non-trivial change:
+Ash UI is governed by `.spec` subject files, durable ADRs, RFCs, guides, and
+tests. Before making a non-trivial change:
 
-- read the relevant contract under `specs/contracts/`
-- check the phase plan under `specs/planning/`
+- read the relevant subject under `.spec/specs/`
+- check `.spec/decisions/` for durable architectural rules
 - confirm whether an ADR or RFC already set the boundary
 
 In practice, code changes that alter behavior usually also need:
@@ -47,7 +48,7 @@ The usual contribution loop is:
 1. inspect the relevant modules and tests
 2. make the smallest coherent change
 3. run focused verification
-4. update related specs or guides
+4. update related `.spec` subjects or guides
 5. commit one logical section at a time
 
 Useful commands:
@@ -76,7 +77,8 @@ Follow the guide contract:
 
 ### Governance changes
 
-If you update plans, conformance, or release criteria, keep status documents aligned with what the code actually does.
+If you update governance, release criteria, or current-truth subjects, keep the
+workspace aligned with what the code actually does.
 
 ## Pull Request Shape
 
@@ -129,4 +131,4 @@ apps.
 - [DG-0001: Architecture Overview](./DG-0001-architecture-overview.md)
 - [DG-0003: Testing Guide](./DG-0003-testing-guide.md)
 - [DG-0004: Release Process](./DG-0004-release-process.md)
-- [phase-08-governance-gates-and-release-readiness.md](../../specs/planning/phase-08-governance-gates-and-release-readiness.md)
+- [.spec Workspace](../../.spec/README.md)

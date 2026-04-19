@@ -4,10 +4,6 @@ set -euo pipefail
 ROOT="${GOVERNANCE_ROOT:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 cd "$ROOT"
 
-MATRIX="specs/conformance/spec_conformance_matrix.md"
-SCENARIO_CATALOG="specs/conformance/scenario_catalog.md"
-SCENARIO_TEST_MATRIX="specs/conformance/scenario_test_matrix.md"
-
 failures=0
 
 fail() {
@@ -15,98 +11,64 @@ fail() {
   failures=1
 }
 
-if [[ ! -f "$MATRIX" ]]; then
-  echo "ERROR: missing conformance matrix: $MATRIX"
-  exit 1
-fi
+run_spec_validate() {
+  if command -v erl >/dev/null 2>&1 && command -v mix >/dev/null 2>&1; then
+    mix spec.validate --strict
+    return
+  fi
 
-if [[ ! -f "$SCENARIO_CATALOG" ]]; then
-  echo "ERROR: missing scenario catalog: $SCENARIO_CATALOG"
-  exit 1
-fi
+  if command -v cmd.exe >/dev/null 2>&1 && command -v wslpath >/dev/null 2>&1; then
+    local win_root
+    win_root="$(wslpath -w "$ROOT")"
+    cmd.exe /c "cd /d ${win_root} && mix.bat spec.validate --strict"
+    return
+  fi
 
-if [[ ! -f "$SCENARIO_TEST_MATRIX" ]]; then
-  echo "ERROR: missing scenario test matrix: $SCENARIO_TEST_MATRIX"
-  exit 1
-fi
+  return 127
+}
 
-KNOWN_REQS="$(rg --no-filename -o 'REQ-[A-Z]+-[0-9A-Z]+' specs rfcs guides 2>/dev/null | sort -u || true)"
-KNOWN_SCENARIOS="$(rg --no-filename -o 'SCN-[0-9A-Z]+' "$SCENARIO_CATALOG" | sort -u || true)"
-
-echo "Checking required contract files exist..."
-required_contracts=(
-  "specs/contracts/resource_contract.md"
-  "specs/contracts/screen_contract.md"
-  "specs/contracts/binding_contract.md"
-  "specs/contracts/compilation_contract.md"
-  "specs/contracts/rendering_contract.md"
-  "specs/contracts/authorization_contract.md"
-  "specs/contracts/observability_contract.md"
-  "specs/contracts/control_plane_ownership_matrix.md"
+echo "Checking .spec workspace files..."
+required_files=(
+  ".spec/README.md"
+  ".spec/AGENTS.md"
+  ".spec/decisions/README.md"
+  ".spec/specs/spec_system.spec.md"
+  ".spec/specs/package.spec.md"
 )
-for contract in "${required_contracts[@]}"; do
-  if [[ ! -f "$contract" ]]; then
-    fail "missing required contract: $contract"
+
+for file in "${required_files[@]}"; do
+  if [[ ! -f "$file" ]]; then
+    fail "missing required .spec file: $file"
   fi
 done
 
-echo "Checking ADR-0001 exists..."
-if [[ ! -f "specs/adr/ADR-0001-control-plane-authority.md" ]]; then
-  fail "missing ADR-0001"
+if [[ ! -d ".spec/specs" ]]; then
+  fail "missing .spec/specs directory"
 fi
 
-echo "Checking REQ entries in contracts..."
-for contract in specs/contracts/*.md; do
-  if ! rg -q 'REQ-[A-Z]+-[0-9]+' "$contract"; then
-    fail "contract may be missing REQ entries: $contract"
-  fi
-
-  if [[ "$contract" != "specs/contracts/control_plane_ownership_matrix.md" ]]; then
-    if ! rg -q '^## Traceability$' "$contract"; then
-      fail "contract missing Traceability section: $contract"
-    fi
-
-    if ! rg -q '^## Conformance$' "$contract"; then
-      fail "contract missing Conformance section: $contract"
-    fi
-  fi
-done
-
-echo "Checking topology.md..."
-if [[ ! -f "specs/topology.md" ]]; then
-  fail "missing topology.md"
+if [[ ! -d ".spec/decisions" ]]; then
+  fail "missing .spec/decisions directory"
 fi
 
-echo "Checking planning files..."
-for phase in specs/planning/phase-0{1,2,3,4,5,6,7,8}-*.md; do
-  if [[ ! -f "$phase" ]]; then
-    fail "missing planning phase file: $phase"
-  fi
-done
+subject_count="$(find .spec/specs -maxdepth 1 -type f -name '*.spec.md' | wc -l | tr -d ' ')"
+decision_count="$(find .spec/decisions -maxdepth 1 -type f -name '*.md' ! -name 'README.md' | wc -l | tr -d ' ')"
 
-echo "Checking matrix REQ references..."
-while IFS= read -r req; do
-  [[ -z "$req" ]] && continue
-  if ! grep -Fxq "$req" <<<"$KNOWN_REQS"; then
-    fail "matrix references unknown requirement: $req"
-  fi
-done < <(rg --no-filename -o 'REQ-[A-Z]+-[0-9A-Z]+' "$MATRIX" | sort -u || true)
+if [[ "$subject_count" -lt 5 ]]; then
+  fail "expected at least 5 authored subject specs in .spec/specs"
+fi
 
-echo "Checking matrix SCN references..."
-while IFS= read -r scn; do
-  [[ -z "$scn" ]] && continue
-  if ! grep -Fxq "$scn" <<<"$KNOWN_SCENARIOS"; then
-    fail "matrix references unknown scenario: $scn"
-  fi
-done < <(rg --no-filename -o 'SCN-[0-9A-Z]+' "$MATRIX" | sort -u || true)
+if [[ "$decision_count" -lt 4 ]]; then
+  fail "expected at least 4 authored decisions in .spec/decisions"
+fi
 
-echo "Checking scenario test matrix SCN references..."
-while IFS= read -r scn; do
-  [[ -z "$scn" ]] && continue
-  if ! grep -Fxq "$scn" <<<"$KNOWN_SCENARIOS"; then
-    fail "scenario test matrix references unknown scenario: $scn"
-  fi
-done < <(rg --no-filename -o 'SCN-[0-9A-Z]+' "$SCENARIO_TEST_MATRIX" | sort -u || true)
+echo "Checking Spec Led validation..."
+if ! run_spec_validate; then
+  fail "mix spec.validate --strict failed"
+fi
+
+if [[ ! -f ".spec/state.json" ]]; then
+  fail "missing generated state file: .spec/state.json"
+fi
 
 if [[ "$failures" -ne 0 ]]; then
   echo "Specs governance validation failed."

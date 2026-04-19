@@ -73,5 +73,5 @@ flowchart LR
 ## See Also
 
 - [Related Guide](../other-guide.md)
-- [Related Specification](../../specs/contracts/some-contract.md)
+- [Related Specification](../../.spec/specs/some-subject.spec.md)
 - [External Documentation](https://example.com)

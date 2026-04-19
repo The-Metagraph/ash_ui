@@ -9,21 +9,17 @@ mkdir -p "$REPORT_DIR"
 
 STATUS="${CONFORMANCE_STATUS:-unknown}"
 GENERATED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-REQ_COUNT="$(rg -c '^\| REQ-' specs/conformance/spec_conformance_matrix.md || echo 0)"
-SCN_MATRIX_COUNT="$(rg -o 'SCN-[0-9A-Z]+' specs/conformance/spec_conformance_matrix.md | sort -u | wc -l | tr -d ' ')"
-SCN_CATALOG_COUNT="$(rg -o 'SCN-[0-9A-Z]+' specs/conformance/scenario_catalog.md | sort -u | wc -l | tr -d ' ')"
-SCN_TRACE_COUNT="$(rg -c '^\| SCN-' specs/conformance/scenario_test_matrix.md || echo 0)"
+SUBJECT_COUNT="$(find .spec/specs -maxdepth 1 -type f -name '*.spec.md' 2>/dev/null | wc -l | tr -d ' ')"
+DECISION_COUNT="$(find .spec/decisions -maxdepth 1 -type f -name '*.md' ! -name 'README.md' 2>/dev/null | wc -l | tr -d ' ')"
+STATE_PRESENT="false"
+if [[ -f ".spec/state.json" ]]; then
+  STATE_PRESENT="true"
+fi
 CONFORMANCE_TEST_FILES="$(rg -l '@(module)?tag.*conformance' test || true)"
 if [[ -n "$CONFORMANCE_TEST_FILES" ]]; then
   TEST_FILE_COUNT="$(printf '%s\n' "$CONFORMANCE_TEST_FILES" | sed '/^$/d' | wc -l | tr -d ' ')"
 else
   TEST_FILE_COUNT="0"
-fi
-
-if [[ "$SCN_CATALOG_COUNT" -gt 0 ]]; then
-  SCN_TRACE_COVERAGE="$((SCN_TRACE_COUNT * 100 / SCN_CATALOG_COUNT))"
-else
-  SCN_TRACE_COVERAGE="0"
 fi
 
 cat > "$REPORT_DIR/report.md" <<EOF
@@ -33,18 +29,16 @@ cat > "$REPORT_DIR/report.md" <<EOF
 - Git branch: $(git branch --show-current)
 - Git revision: $(git rev-parse --short HEAD)
 - Overall status: $STATUS
-- Requirements in matrix: $REQ_COUNT
-- Scenarios referenced by matrix: $SCN_MATRIX_COUNT
-- Scenarios defined in catalog: $SCN_CATALOG_COUNT
-- Scenarios with explicit test mappings: $SCN_TRACE_COUNT
-- Scenario traceability coverage: $SCN_TRACE_COVERAGE%
+- Authored .spec subjects: $SUBJECT_COUNT
+- Authored .spec decisions: $DECISION_COUNT
+- Generated .spec/state.json present: $STATE_PRESENT
 - Conformance-tagged test files: $TEST_FILE_COUNT
 
 ## Inputs
 
-- [Spec Conformance Matrix](../../specs/conformance/spec_conformance_matrix.md)
-- [Scenario Catalog](../../specs/conformance/scenario_catalog.md)
-- [Scenario Test Matrix](../../specs/conformance/scenario_test_matrix.md)
+- [Spec Workspace](../../.spec/README.md)
+- [Authored Subjects](../../.spec/specs/)
+- [Authored Decisions](../../.spec/decisions/)
 
 ## Tagged Test Files
 
@@ -65,11 +59,9 @@ cat > "$REPORT_DIR/report.json" <<EOF
   "branch": "$(git branch --show-current)",
   "revision": "$(git rev-parse --short HEAD)",
   "status": "$STATUS",
-  "requirements_in_matrix": $REQ_COUNT,
-  "scenarios_in_matrix": $SCN_MATRIX_COUNT,
-  "scenarios_in_catalog": $SCN_CATALOG_COUNT,
-  "scenarios_with_test_mappings": $SCN_TRACE_COUNT,
-  "scenario_traceability_coverage": $SCN_TRACE_COVERAGE,
+  "authored_spec_subjects": $SUBJECT_COUNT,
+  "authored_spec_decisions": $DECISION_COUNT,
+  "state_present": $STATE_PRESENT,
   "conformance_test_files": $TEST_FILE_COUNT
 }
 EOF

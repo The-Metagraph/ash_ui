@@ -1,5 +1,7 @@
 # Ash UI
 
+<!-- covers: ash_ui.package.bootstrap_contract -->
+
 Ash UI is a resource-backed UI framework for Elixir built on Ash. Screen and
 element Ash resources that use `AshUI.Resource.DSL.*` are the authoritative
 authoring units. Their relationships define composition, element-local
@@ -217,7 +219,7 @@ more noise than clarity.
 
 Older pre-v1 payloads are no longer accepted at runtime. If you are migrating
 existing data, use the one-time migration flow documented in
-[UG-0005](./guides/user/UG-0005-migration-v0-to-v1.md) before persisting the
+[UG-0008](./guides/user/UG-0008-migration-from-older-ash-ui-models.md) before persisting the
 resource-authority payload.
 
 The default shipped storage backend is Postgres through `AshUI.Domain` and
@@ -249,17 +251,16 @@ The repository vendors minimal `unified_ui`, `unified_iur`, `live_ui`, `elm_ui`,
 
 ## Documentation
 
-- [User guides](/Users/Pascal/code/ash/ash_ui/guides/user/README.md)
-- [Developer guides](/Users/Pascal/code/ash/ash_ui/guides/developer/README.md)
-- [Guide index](/Users/Pascal/code/ash/ash_ui/guides/README.md)
-- [Specifications](/Users/Pascal/code/ash/ash_ui/specs/README.md)
-- [RFCs](/Users/Pascal/code/ash/ash_ui/rfcs/README.md)
+- [User guides](./guides/user/README.md)
+- [Developer guides](./guides/developer/README.md)
+- [Guide index](./guides/README.md)
+- [Specifications](./specs/README.md)
+- [RFCs](./rfcs/README.md)
 
 Key starting points:
 
-- [UG-0001: Getting Started](/Users/Pascal/code/ash/ash_ui/guides/user/UG-0001-getting-started.md)
-- [DG-0001: Architecture Overview](/Users/Pascal/code/ash/ash_ui/guides/developer/DG-0001-architecture-overview.md)
-- [Example: basic dashboard](/Users/Pascal/code/ash/ash_ui/examples/basic_dashboard/README.md)
+- [UG-0001: Getting Started with AshUI](./guides/user/UG-0001-getting-started.md)
+- [DG-0001: Architecture and Control Planes](./guides/developer/DG-0001-architecture-and-control-planes.md)
 
 ## Current Status
 

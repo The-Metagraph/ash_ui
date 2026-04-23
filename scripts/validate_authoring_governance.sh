@@ -16,7 +16,7 @@ is_allowed_reference_file() {
 
   case "$file" in
     CHANGELOG.md) return 0 ;;
-    guides/user/UG-0005-migration-v0-to-v1.md) return 0 ;;
+    guides/user/UG-0008-migration-from-older-ash-ui-models.md) return 0 ;;
     specs/adr/*) return 0 ;;
     *) return 1 ;;
   esac
@@ -56,52 +56,43 @@ require_match \
   'AshUI\.Resource\.DSL\.Screen' \
   'screen resource authoring guidance' \
   README.md \
-  guides/user/UG-0001-getting-started.md \
-  examples/basic_dashboard/README.md
+  guides/user/UG-0001-getting-started.md
 
 require_match \
   'AshUI\.Resource\.DSL\.Element' \
   'element resource authoring guidance' \
   README.md \
-  guides/user/UG-0001-getting-started.md \
-  examples/basic_dashboard/README.md
+  guides/user/UG-0001-getting-started.md
 
 require_match \
   'AshUI\.Resource\.Authority' \
   'resource authority persistence guidance' \
   README.md \
   guides/user/UG-0001-getting-started.md \
-  guides/user/UG-0002-resources.md \
-  examples/basic_dashboard/README.md
+  guides/user/UG-0002-authoring-screens-elements-and-relationships.md
 
 require_match \
   'ui_relationships' \
   'relationship-driven composition guidance' \
   README.md \
   guides/user/UG-0001-getting-started.md \
-  guides/user/UG-0002-resources.md \
-  examples/basic_dashboard/lib/basic_dashboard_screen.ex \
-  examples/basic_dashboard/README.md
+  guides/user/UG-0002-authoring-screens-elements-and-relationships.md
 
 require_match \
   'ui_bindings' \
   'element-local binding guidance' \
   README.md \
   guides/user/UG-0001-getting-started.md \
-  guides/user/UG-0002-resources.md \
-  guides/user/UG-0003-data-binding.md \
-  examples/basic_dashboard/lib/basic_dashboard_screen.ex \
-  examples/basic_dashboard/README.md
+  guides/user/UG-0002-authoring-screens-elements-and-relationships.md \
+  guides/user/UG-0004-bindings-actions-and-forms.md
 
 require_match \
   'ui_actions' \
   'element-local action guidance' \
   README.md \
   guides/user/UG-0001-getting-started.md \
-  guides/user/UG-0002-resources.md \
-  guides/user/UG-0003-data-binding.md \
-  examples/basic_dashboard/lib/basic_dashboard_screen.ex \
-  examples/basic_dashboard/README.md
+  guides/user/UG-0002-authoring-screens-elements-and-relationships.md \
+  guides/user/UG-0004-bindings-actions-and-forms.md
 
 if [[ "$failures" -ne 0 ]]; then
   echo "Authoring governance validation failed."

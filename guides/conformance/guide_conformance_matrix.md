@@ -6,15 +6,20 @@ This document tracks conformance of guides against specifications and scenarios.
 
 | Guide ID | Title | Requirements | Scenarios | Status | Last Reviewed |
 |---|---|---|---|---|---|
-| UG-0001 | Getting Started | REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001, REQ-RENDER-001 | SCN-004, SCN-021, SCN-041, SCN-061 | Active | 2026-03-20 |
-| UG-0002 | Working with Ash UI Resources | REQ-RES-001, REQ-RES-003, REQ-RES-004, REQ-RES-007 | SCN-001, SCN-003, SCN-004, SCN-005 | Active | 2026-03-20 |
-| UG-0003 | Data Binding in Ash UI | REQ-BIND-001, REQ-BIND-002, REQ-BIND-003, REQ-BIND-007, REQ-BIND-008, REQ-BIND-010 | SCN-006, SCN-007, SCN-009, SCN-010, SCN-021, SCN-101 | Active | 2026-03-20 |
-| UG-0004 | Authorization in Ash UI | REQ-AUTH-002, REQ-AUTH-003, REQ-AUTH-005, REQ-AUTH-007, REQ-AUTH-009, REQ-AUTH-012 | SCN-021, SCN-081, SCN-082, SCN-084, SCN-085, SCN-101 | Active | 2026-03-20 |
-| UG-0005 | Migration Guide from v0 to v1 | REQ-RES-001, REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-002 | SCN-004, SCN-041, SCN-061, SCN-081 | Active | 2026-03-20 |
-| DG-0001 | Architecture Overview | REQ-FRAMEWORK-001, REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-002, REQ-OBS-001 | SCN-041, SCN-061, SCN-081, SCN-101 | Active | 2026-03-20 |
-| DG-0002 | Contributing to Ash UI | REQ-FRAMEWORK-001, REQ-COMP-001, REQ-OBS-001 | SCN-041, SCN-061, SCN-101 | Active | 2026-03-20 |
-| DG-0003 | Testing Guide | REQ-COMP-001, REQ-BIND-010, REQ-RENDER-012, REQ-AUTH-012, REQ-OBS-001 | SCN-041, SCN-061, SCN-081, SCN-101 | Active | 2026-03-20 |
-| DG-0004 | Release Process | REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-012, REQ-OBS-001 | SCN-041, SCN-061, SCN-081, SCN-101 | Active | 2026-03-20 |
+| UG-0001 | Getting Started with AshUI | REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001, REQ-RENDER-001 | SCN-004, SCN-021, SCN-041, SCN-061 | Active | 2026-04-23 |
+| UG-0002 | Authoring Screens, Elements, and Relationships | REQ-RES-001, REQ-RES-003, REQ-RES-004, REQ-SCREEN-003 | SCN-001, SCN-003, SCN-004, SCN-005 | Active | 2026-04-23 |
+| UG-0003 | Widget Types, Properties, and Signals | REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002 | SCN-002, SCN-009, SCN-061, SCN-101 | Active | 2026-04-23 |
+| UG-0004 | Bindings, Actions, and Forms | REQ-BIND-001, REQ-BIND-002, REQ-BIND-003, REQ-BIND-007, REQ-BIND-008, REQ-BIND-010 | SCN-006, SCN-007, SCN-009, SCN-010, SCN-011, SCN-021 | Active | 2026-04-23 |
+| UG-0005 | LiveView Runtime and Rendering | REQ-SCREEN-002, REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002 | SCN-021, SCN-041, SCN-061, SCN-101 | Active | 2026-04-23 |
+| UG-0006 | Authorization and Runtime Safety | REQ-AUTH-002, REQ-AUTH-003, REQ-AUTH-005, REQ-AUTH-007, REQ-AUTH-009, REQ-AUTH-012 | SCN-021, SCN-081, SCN-082, SCN-084, SCN-085, SCN-101 | Active | 2026-04-23 |
+| UG-0007 | Data Surfaces and Composition Patterns | REQ-SCREEN-003, REQ-BIND-002, REQ-BIND-007, REQ-RENDER-002 | SCN-005, SCN-008, SCN-011, SCN-061 | Active | 2026-04-23 |
+| UG-0008 | Migration from Older AshUI Models | REQ-RES-001, REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-002 | SCN-004, SCN-041, SCN-061, SCN-081 | Active | 2026-04-23 |
+| DG-0001 | Architecture and Control Planes | REQ-FRAMEWORK-001, REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-002, REQ-OBS-001 | SCN-041, SCN-061, SCN-081, SCN-101 | Active | 2026-04-23 |
+| DG-0002 | Storage, Resource Authority, and Configuration | REQ-RES-001, REQ-RES-003, REQ-SCREEN-003, REQ-BIND-003 | SCN-001, SCN-003, SCN-004, SCN-005, SCN-010 | Active | 2026-04-23 |
+| DG-0003 | Compiler, Canonical IUR, and Renderers | REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002, REQ-BIND-002 | SCN-041, SCN-061, SCN-101 | Active | 2026-04-23 |
+| DG-0004 | Runtime, Bindings, and Authorization | REQ-SCREEN-002, REQ-BIND-007, REQ-BIND-010, REQ-AUTH-002, REQ-AUTH-005 | SCN-021, SCN-011, SCN-081, SCN-082, SCN-084 | Active | 2026-04-23 |
+| DG-0005 | Testing, Conformance, and Governance | REQ-COMP-001, REQ-BIND-010, REQ-RENDER-012, REQ-AUTH-012, REQ-OBS-001 | SCN-041, SCN-061, SCN-081, SCN-101 | Active | 2026-04-23 |
+| DG-0006 | Contribution and Release Workflow | REQ-FRAMEWORK-001, REQ-COMP-001, REQ-OBS-001 | SCN-041, SCN-061, SCN-101 | Active | 2026-04-23 |
 
 ## Status Definitions
 
@@ -32,70 +37,62 @@ This document tracks conformance of guides against specifications and scenarios.
 
 | Guide ID | Title | REQ Coverage | SCN Coverage | Status |
 |---|---|---|---|---|
-| UG-0001 | Getting Started | 4 | 4 | Active |
-| UG-0002 | Working with Ash UI Resources | 4 | 4 | Active |
-| UG-0003 | Data Binding in Ash UI | 6 | 6 | Active |
-| UG-0004 | Authorization in Ash UI | 6 | 6 | Active |
-| UG-0005 | Migration Guide from v0 to v1 | 4 | 4 | Active |
+| UG-0001 | Getting Started with AshUI | 4 | 4 | Active |
+| UG-0002 | Authoring Screens, Elements, and Relationships | 4 | 4 | Active |
+| UG-0003 | Widget Types, Properties, and Signals | 4 | 4 | Active |
+| UG-0004 | Bindings, Actions, and Forms | 6 | 6 | Active |
+| UG-0005 | LiveView Runtime and Rendering | 4 | 4 | Active |
+| UG-0006 | Authorization and Runtime Safety | 6 | 6 | Active |
+| UG-0007 | Data Surfaces and Composition Patterns | 4 | 4 | Active |
+| UG-0008 | Migration from Older AshUI Models | 4 | 4 | Active |
 
 ### Developer Guides (DG-*)
 
 | Guide ID | Title | REQ Coverage | SCN Coverage | Status |
 |---|---|---|---|---|
-| DG-0001 | Architecture Overview | 5 | 4 | Active |
-| DG-0002 | Contributing to Ash UI | 3 | 3 | Active |
-| DG-0003 | Testing Guide | 5 | 4 | Active |
-| DG-0004 | Release Process | 4 | 4 | Active |
+| DG-0001 | Architecture and Control Planes | 5 | 4 | Active |
+| DG-0002 | Storage, Resource Authority, and Configuration | 4 | 5 | Active |
+| DG-0003 | Compiler, Canonical IUR, and Renderers | 4 | 3 | Active |
+| DG-0004 | Runtime, Bindings, and Authorization | 5 | 5 | Active |
+| DG-0005 | Testing, Conformance, and Governance | 5 | 4 | Active |
+| DG-0006 | Contribution and Release Workflow | 3 | 3 | Active |
 
-## Coverage by Requirement Family
+## Key Coverage by Requirement Family
 
-### REQ-RES-*: Resource Contract
+### Resource and screen authoring
 
-| REQ | Guides | Status |
-|---|---|---|
-| REQ-RES-001 | UG-0001, UG-0002, UG-0005 | Covered |
-| REQ-RES-002 | UG-0002 | Partially Covered |
-| REQ-RES-003 | UG-0002 | Covered |
-| REQ-RES-004 | UG-0002 | Covered |
-| REQ-RES-005 | UG-0002 | Partially Covered |
-| REQ-RES-006 | UG-0004 | Covered |
-| REQ-RES-007 | UG-0002 | Covered |
-| REQ-RES-008 | - | Needs Guide |
+| Requirement family | Guides |
+|---|---|
+| REQ-RES-* | UG-0001, UG-0002, UG-0003, UG-0008 |
+| REQ-SCREEN-* | UG-0001, UG-0002, UG-0005, UG-0007 |
 
-### REQ-SCREEN-*: Screen Contract
+### Binding and interaction
 
-| REQ | Guides | Status |
-|---|---|---|
-| REQ-SCREEN-001 | UG-0001 | Covered |
-| REQ-SCREEN-002 | UG-0001, UG-0004 | Covered |
-| REQ-SCREEN-003 | UG-0002 | Covered |
-| REQ-SCREEN-004 | UG-0003 | Covered |
-| REQ-SCREEN-005 | UG-0001 | Covered |
-| REQ-SCREEN-006 | UG-0004 | Partially Covered |
-| REQ-SCREEN-007 | UG-0003 | Partially Covered |
-| REQ-SCREEN-008 | UG-0004 | Covered |
-| REQ-SCREEN-009 | UG-0001 | Partially Covered |
-| REQ-SCREEN-010 | UG-0001 | Partially Covered |
+| Requirement family | Guides |
+|---|---|
+| REQ-BIND-* | UG-0003, UG-0004, UG-0007 |
+
+### Runtime, rendering, authorization
+
+| Requirement family | Guides |
+|---|---|
+| REQ-COMP-* | UG-0001, UG-0005, UG-0008 |
+| REQ-RENDER-* | UG-0001, UG-0003, UG-0005, UG-0007, UG-0008 |
+| REQ-AUTH-* | UG-0006, UG-0008 |
 
 ## Needed Guides
 
 ### High Priority
 
-1. **DG-0005**: Compiler Internals (REQ-COMP-002 through REQ-COMP-010)
-2. **DG-0006**: Renderer Adapter Internals (REQ-RENDER-002 through REQ-RENDER-012)
-3. **UG-0006**: Forms and Validation (REQ-BIND-007, REQ-SCREEN-007)
+1. **DG-0007**: Extension Development
+2. **DG-0008**: Internal Caching and Performance
+3. **UG-0009**: Custom Widgets and Renderer Extension
 
 ### Medium Priority
 
-4. **UG-0007**: Lists and collections
-5. **DG-0007**: Extension development
-6. **UG-0008**: Performance and observability
-
-### Low Priority
-
-7. **UG-0009**: Advanced renderer integration
-8. **DG-0008**: Internal caching strategy
-9. **DG-0009**: Governance maintenance
+4. **UG-0010**: Performance and Observability
+5. **DG-0009**: Telemetry and Operational Diagnostics
+6. **UG-0010**: Performance and Observability
 
 ## Related Documents
 

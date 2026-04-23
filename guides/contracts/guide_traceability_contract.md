@@ -49,7 +49,7 @@ Each guide must be validated by at least one scenario.
 | Guide ID | Title | Requirements | Scenarios | Coverage |
 |---|---|---|---|---|
 | UG-0001 | Getting Started | REQ-RES-001, REQ-SCREEN-001 | SCN-001, SCN-004 | 100% |
-| DG-0001 | Architecture Overview | REQ-FRAMEWORK-* | SCN-101 | 100% |
+| DG-0001 | Architecture and Control Planes | REQ-FRAMEWORK-* | SCN-101 | 100% |
 
 ## Coverage Requirements
 

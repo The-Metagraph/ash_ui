@@ -22,7 +22,7 @@ Back to index: [README](./README.md)
 - directory names may preserve sibling-catalog parity while using canonical Ash
   UI widget types internally
 
-[ ] 18 Phase 18 - Foundational Content, Form, and Input Example Apps
+[x] 18 Phase 18 - Foundational Content, Form, and Input Example Apps
   Implement the baseline Ash UI example families that establish the common
   resource-first app shape across content, form scaffolding, and input-control
   examples.
@@ -72,15 +72,15 @@ Back to index: [README](./README.md)
       [x] 18.3.2.3 Subtask - Define how validation errors, disabled states, and transformed values appear inside the shared example shell.
       [x] 18.3.2.4 Subtask - Add tests that prove the input examples fail clearly when authoring/runtime assumptions are violated.
 
-  [ ] 18.4 Section - Phase 18 Integration Tests
+  [x] 18.4 Section - Phase 18 Integration Tests
     Validate the foundational content, form, and input examples through one
     shared Ash UI example path.
 
-    [ ] 18.4.1 Task - Foundational example-app integration scenarios
+    [x] 18.4.1 Task - Foundational example-app integration scenarios
     Verify the first example families behave like a coherent resource-first
     suite rather than disconnected demos.
 
-      [ ] 18.4.1.1 Subtask - Verify every Phase 18 app boots as an independent Mix project and mounts its seeded screen through LiveView.
-      [ ] 18.4.1.2 Subtask - Verify every app persists its screen through `AshUI.Resource.Authority` and compiles from the authoritative resource graph.
-      [ ] 18.4.1.3 Subtask - Verify the shared Ash HQ shell remains visually consistent across representative content, form, and input apps.
-      [ ] 18.4.1.4 Subtask - Verify representative binding and action flows work for text, selection, and boolean controls.
+      [x] 18.4.1.1 Subtask - Verify every Phase 18 app boots as an independent Mix project and mounts its seeded screen through LiveView.
+      [x] 18.4.1.2 Subtask - Verify every app persists its screen through `AshUI.Resource.Authority` and compiles from the authoritative resource graph.
+      [x] 18.4.1.3 Subtask - Verify the shared Ash HQ shell remains visually consistent across representative content, form, and input apps.
+      [x] 18.4.1.4 Subtask - Verify representative binding and action flows work for text, selection, and boolean controls.

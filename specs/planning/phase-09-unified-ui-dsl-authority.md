@@ -36,7 +36,7 @@ Back to index: [README](./README.md)
       [X] 9.1.2.3 Subtask - Remove spec language that implies Ash UI owns a parallel DSL
       [X] 9.1.2.4 Subtask - Align public guides and examples with the new ownership model
 
-  [ ] 9.2 Section - Authoring Surface Integration
+  [X] 9.2 Section - Authoring Surface Integration
     Introduce the upstream DSL as the supported way to define screens for persistence.
 
     [X] 9.2.1 Task - Add a persisted-screen authoring bridge

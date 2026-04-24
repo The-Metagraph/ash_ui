@@ -525,24 +525,6 @@ Each scenario includes:
 - Cached and uncached compiles remain equivalent
 - Incremental recompilation preserves valid output
 
-#### SCN-052: Element-Resource-First Example Authoring
-
-**Requirements**: REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001
-
-**Preconditions**:
-- The flagship example application is available
-- The example screen and element resource modules are defined
-
-**Steps**:
-1. Seed the flagship example through `AshUI.Resource.Authority`
-2. Inspect the persisted screen payload and authority graph
-3. Verify the graph references screen and element resource modules rather than a detached screen document
-
-**Expected Outcome**:
-- The example persists one screen root plus an authority graph of related element modules
-- The persisted payload preserves resource-module provenance
-- The example demonstrates the intended authoring model publicly
-
 #### SCN-053: Relationship-Driven Composition Semantics
 
 **Requirements**: REQ-RES-003, REQ-SCREEN-003, REQ-COMP-004
@@ -725,25 +707,6 @@ Each scenario includes:
 - CSS references are emitted
 - JavaScript references are emitted
 - Asset paths use the configured base URL
-
-#### SCN-071: Renderer Parity For Resource Screens
-
-**Requirements**: REQ-RENDER-001, REQ-RENDER-002, REQ-RENDER-003
-
-**Preconditions**:
-- A persisted resource-authority screen exists
-- `liveview` and `elm` renderers are available
-
-**Steps**:
-1. Compile one relationship-authored screen into canonical IUR
-2. Render that same canonical structure through `liveview`
-3. Render that same canonical structure through `elm`
-4. Verify both outputs preserve the composed resource content and semantic widget set
-
-**Expected Outcome**:
-- Both renderers consume the same canonical IUR
-- Shared resource-authored content appears in both outputs
-- Semantic widgets survive renderer parity checks
 
 ### Authorization Scenarios (SCN-081 to SCN-100)
 
@@ -1066,7 +1029,6 @@ Each scenario includes:
 | SCN-049 | Incremental Compilation | REQ-COMP-009 | Incremental Compiler |
 | SCN-050 | Persisted Screen Authority Graph | REQ-SCREEN-001, REQ-COMP-001 | Authoring Persistence |
 | SCN-051 | Relational Compiler Delegation | REQ-COMP-001, REQ-COMP-007 | Compiler |
-| SCN-052 | Element-Resource-First Example Authoring | REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001 | Example Authoring |
 | SCN-053 | Relationship-Driven Composition Semantics | REQ-RES-003, REQ-SCREEN-003, REQ-COMP-004 | Composition Graph |
 | SCN-061 | LiveView Rendering | REQ-RENDER-002 | LiveView Renderer |
 | SCN-062 | Elm-Backed Web Rendering | REQ-RENDER-003 | Web Renderer |
@@ -1078,7 +1040,6 @@ Each scenario includes:
 | SCN-068 | Renderer Selection | REQ-RENDER-001 | Renderer Registry |
 | SCN-069 | Renderer Fallback | REQ-RENDER-006 | Renderer Selector |
 | SCN-070 | Asset Management | REQ-RENDER-008 | Web Renderer |
-| SCN-071 | Renderer Parity For Resource Screens | REQ-RENDER-001, REQ-RENDER-002, REQ-RENDER-003 | Renderer Parity |
 | SCN-081 | Screen Mount Authorization | REQ-AUTH-002 | Authorization |
 | SCN-082 | Action Authorization | REQ-AUTH-003 | Authorization |
 | SCN-083 | Field-Level Authorization | REQ-AUTH-004 | Authorization |

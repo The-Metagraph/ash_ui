@@ -24,7 +24,7 @@ The active architectural baseline is defined by:
 13. [Phase 13 - Element Resource Authority](./phase-13-element-resource-authority.md): restore Ash resources plus the `AshUI` extension as the primary authoring units.
 14. [Phase 14 - Relational Screen Composition](./phase-14-relational-screen-composition.md): restore screen composition through Ash relationships while retaining optional inline DSL.
 15. [Phase 15 - Compiler And Runtime Graph Realignment](./phase-15-compiler-and-runtime-graph-realignment.md): rebuild compilation and hydration around the screen/element resource graph.
-16. [Phase 16 - Example, Guide, And Conformance Realignment](./phase-16-example-guide-and-conformance-realignment.md): move examples, docs, and governance back to the resource-first model.
+16. [Phase 16 - Example, Guide, And Conformance Realignment](./phase-16-example-guide-and-conformance-realignment.md): realign public docs, governance, and conformance after removing the checked-in flagship example.
 
 ## Shared Conventions
 - Numbering:
@@ -61,7 +61,11 @@ upstream top-level DSL authority over the Ash resource graph.
 supersedes that direction and reopens the architecture as a new remediation
 line in Phases 13-16.
 
-That remediation line is now complete on the current implementation branch:
-Phases 13-16 restore element-resource authority, relational composition,
-graph-derived compilation/runtime behavior, and public example/governance
-alignment.
+Phases 13-15 are complete on the current implementation branch and restore
+element-resource authority, relational composition, and graph-derived
+compilation/runtime behavior.
+
+Phase 16 is partially complete. The checked-in flagship example has been
+removed and the public example surface is now intentionally empty, but the
+remaining public-surface integration coverage and closeout tracking in that
+phase are still open.

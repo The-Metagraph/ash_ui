@@ -16,7 +16,7 @@ The matrix provides complete traceability from:
 
 | REQ | Description | Component Specs | Scenarios |
 |---|---|---|---|
-| REQ-RES-001 | Resource Definition | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-001, SCN-004, SCN-006, SCN-052 |
+| REQ-RES-001 | Resource Definition | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-001, SCN-004, SCN-006 |
 | REQ-RES-002 | Type Safety | resources/ui_element.md, resources/ui_binding.md | SCN-002 |
 | REQ-RES-003 | Relationship Definition | resources/ui_element.md, resources/ui_screen.md, resources/ui_binding.md | SCN-003, SCN-005, SCN-053 |
 | REQ-RES-004 | Action Definition | resources/ui_screen.md, resources/ui_binding.md | SCN-004, SCN-006 |
@@ -63,7 +63,7 @@ The matrix provides complete traceability from:
 
 | REQ | Description | Component Specs | Scenarios |
 |---|---|---|---|
-| REQ-COMP-001 | Compilation Pipeline | compilation/README.md, planning/phase-06-compiler-and-dsl-integration.md | SCN-041, SCN-050, SCN-051, SCN-052 |
+| REQ-COMP-001 | Compilation Pipeline | compilation/README.md, planning/phase-06-compiler-and-dsl-integration.md | SCN-041, SCN-050, SCN-051 |
 | REQ-COMP-002 | Schema Validation | compilation/README.md, planning/phase-06-compiler-and-dsl-integration.md | SCN-042 |
 | REQ-COMP-003 | IUR Schema | compilation/README.md | SCN-043 |
 | REQ-COMP-004 | Resource Resolution | compilation/README.md | SCN-044, SCN-053 |
@@ -80,9 +80,9 @@ The matrix provides complete traceability from:
 
 | REQ | Description | Component Specs | Scenarios |
 |---|---|---|---|
-| REQ-RENDER-001 | Renderer Contract | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-068, SCN-071 |
-| REQ-RENDER-002 | LiveView Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-061, SCN-071 |
-| REQ-RENDER-003 | Elm-Backed Web Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-062, SCN-071 |
+| REQ-RENDER-001 | Renderer Contract | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-068 |
+| REQ-RENDER-002 | LiveView Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-061 |
+| REQ-RENDER-003 | Elm-Backed Web Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-062 |
 | REQ-RENDER-003B | Desktop Rendering | rendering/README.md, planning/phase-07-renderer-package-integration.md | SCN-067 |
 | REQ-RENDER-004 | Component Rendering | rendering/README.md | SCN-063 |
 | REQ-RENDER-005 | Data Binding Rendering | rendering/README.md | SCN-064 |
@@ -100,7 +100,7 @@ The matrix provides complete traceability from:
 
 | REQ | Description | Component Specs | Scenarios |
 |---|---|---|---|
-| REQ-SCREEN-001 | Screen Definition | resources/ui_screen.md | SCN-004, SCN-050, SCN-052 |
+| REQ-SCREEN-001 | Screen Definition | resources/ui_screen.md | SCN-004, SCN-050 |
 | REQ-SCREEN-002 | Lifecycle Management | planning/phase-04-runtime-and-liveview-integration.md | SCN-021, SCN-022, SCN-023 |
 | REQ-SCREEN-003 | Element Composition | resources/ui_screen.md | SCN-005, SCN-053 |
 | REQ-SCREEN-004 | Data Binding | resources/ui_binding.md, planning/phase-04-runtime-and-liveview-integration.md | SCN-026 |
@@ -182,5 +182,5 @@ The matrix provides complete traceability from:
 - Coverage reflects explicit traceability from requirement -> scenario -> conformance-tagged test file
 - Rows marked with `-` indicate intentionally uncovered or still-undocumented areas
 - The scenario test matrix is enforced by `test/ash_ui/conformance_traceability_test.exs`
-- Phase 16 adds explicit traceability for element-resource authority, relationship-driven composition, and the shipped flagship example
+- Phase 16 adds explicit traceability for element-resource authority and relationship-driven composition
 - Coverage percentages should be updated whenever scenarios or conformance-tagged tests change

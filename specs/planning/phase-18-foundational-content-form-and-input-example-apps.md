@@ -27,18 +27,18 @@ Back to index: [README](./README.md)
   resource-first app shape across content, form scaffolding, and input-control
   examples.
 
-  [ ] 18.1 Section - Foundational Content Example Apps
+  [x] 18.1 Section - Foundational Content Example Apps
     Create the first wave of resource-first example apps around the lowest-risk
     content and structural widgets.
 
-    [ ] 18.1.1 Task - Implement baseline content and structural apps
+    [x] 18.1.1 Task - Implement baseline content and structural apps
     Add the foundational examples that define the suite's default review shell
     and minimal resource-authority flows.
 
-      [ ] 18.1.1.1 Subtask - Implement `text`, `button`, `label`, and `link` example apps with one screen resource and one or more related element resources each.
-      [ ] 18.1.1.2 Subtask - Implement `icon` and `image` example apps with Ash-HQ-styled presentation panels and honest renderer/runtime expectations.
-      [ ] 18.1.1.3 Subtask - Implement `separator`, `spacer`, `content`, and `box` example apps, preserving directory-name parity while using canonical Ash UI types such as `divider` where required.
-      [ ] 18.1.1.4 Subtask - Add tests that prove every foundational app mounts through the shared example shell, shared theme contract, and resource-authority persistence path.
+      [x] 18.1.1.1 Subtask - Implement `text`, `button`, `label`, and `link` example apps with one screen resource and one or more related element resources each.
+      [x] 18.1.1.2 Subtask - Implement `icon` and `image` example apps with Ash-HQ-styled presentation panels and honest renderer/runtime expectations.
+      [x] 18.1.1.3 Subtask - Implement `separator`, `spacer`, `content`, and `box` example apps, preserving directory-name parity while using canonical Ash UI types such as `divider` where required.
+      [x] 18.1.1.4 Subtask - Add tests that prove every foundational app mounts through the shared example shell, shared theme contract, and resource-authority persistence path.
 
   [ ] 18.2 Section - Form Scaffolding Example Apps
     Establish the form-building support examples that later input apps can rely

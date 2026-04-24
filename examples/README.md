@@ -4,11 +4,25 @@ This directory is reserved for runnable and copyable Ash UI examples.
 
 ## Status
 
-There are currently no checked-in example apps in this repository.
+The repository now includes the first checked-in standalone example apps from
+Phase 18 Section 18.1.
 
-Phase 17 Section 17.1 defines the example-suite contract that future example
-apps must follow. Until the first standalone apps land, the authoritative
-planning artifacts in this directory are:
+Current directories:
+
+- `examples/text`
+- `examples/button`
+- `examples/label`
+- `examples/link`
+- `examples/icon`
+- `examples/image`
+- `examples/separator`
+- `examples/spacer`
+- `examples/content`
+- `examples/box`
+
+Phase 17 Section 17.1 defines the example-suite contract that the checked-in
+apps and future example directories must follow. The shared planning artifacts
+and baseline references in this directory are:
 
 - `examples/catalog.tsv`: machine-readable crosswalk from the sibling
   `unified_ui` example suite into the planned Ash UI example suite
@@ -19,6 +33,7 @@ planning artifacts in this directory are:
 - `examples/ash_hq_theme_tokens.css`: copyable palette and shell token source
   for future app-local CSS
 - `specs/planning/phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md`
+- `specs/planning/phase-18-foundational-content-form-and-input-example-apps.md`
 - `.spec/specs/examples.spec.md`
 
 ## Shared Scaffold

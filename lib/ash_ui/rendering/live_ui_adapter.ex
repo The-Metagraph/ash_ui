@@ -45,9 +45,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     started_at = System.monotonic_time()
     metadata = render_metadata(canonical_iur, :live_ui)
     Telemetry.emit(:render, :start, %{count: 1}, metadata)
+    force_fallback? = Keyword.get(opts, :force_fallback, false)
 
     result =
-      if Code.ensure_loaded?(LiveUI.Renderer) do
+      if Code.ensure_loaded?(LiveUI.Renderer) and not force_fallback? do
         call_live_ui_renderer(canonical_iur, opts)
       else
         render_fallback(canonical_iur, opts)
@@ -360,6 +361,33 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "icon"} = iur, _opts) do
+    props = iur["props"] || %{}
+    name = text_prop(props, ["name", "icon", "value"], "spark")
+    label = text_prop(props, ["label", "text", "content"], name)
+
+    """
+    <span class="#{css_classes(["ash-icon", prop_class(iur)])}" role="img" aria-label="#{label}"#{style_attr(prop_style(iur))}>
+      <span class="ash-icon-glyph">#{icon_glyph(name)}</span>
+      <span class="ash-icon-label">#{label}</span>
+    </span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "image"} = iur, _opts) do
+    props = iur["props"] || %{}
+    src = text_prop(props, ["src", "url"], "")
+    alt = text_prop(props, ["alt", "label", "content"], "Image")
+    caption = text_prop(props, ["caption", "description"])
+
+    """
+    <figure class="#{css_classes(["ash-image", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <img src="#{src}" alt="#{alt}" loading="lazy" />
+      #{if caption, do: "<figcaption class=\"ash-image-caption\">#{caption}</figcaption>", else: ""}
+    </figure>
+    """
+  end
+
   defp generate_heex(%{"type" => "badge"} = iur, opts) do
     props = iur["props"] || %{}
     presentation = prop(props, "presentation", "default")
@@ -543,6 +571,18 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     """
     <div class="#{css_classes(["ash-spacer", prop_class(iur)])}"#{style_attr(merge_style(["height: #{size}px"], prop_style(iur)))}></div>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:link"} = iur, _opts) do
+    props = iur["props"] || %{}
+    href = text_prop(props, ["href", "to", "url"], "#")
+    label = text_prop(props, ["label", "text", "content"], href)
+    target = text_prop(props, "target")
+    rel = text_prop(props, "rel")
+
+    """
+    <a class="#{css_classes(["ash-link", prop_class(iur)])}" href="#{href}"#{attr("target", target)}#{attr("rel", rel)}#{style_attr(prop_style(iur))}>#{label}</a>
     """
   end
 
@@ -754,6 +794,19 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp normalize_item(item), do: %{"value" => item}
+
+  defp icon_glyph(nil), do: "•"
+
+  defp icon_glyph(name) do
+    case to_string(name) do
+      "sparkles" -> "✦"
+      "star" -> "★"
+      "check" -> "✓"
+      "alert" -> "!"
+      "image" -> "▣"
+      other -> other |> String.first() |> Kernel.||("•") |> String.upcase()
+    end
+  end
 
   defp dom_id(nil), do: nil
   defp dom_id(value) when is_atom(value), do: Atom.to_string(value)

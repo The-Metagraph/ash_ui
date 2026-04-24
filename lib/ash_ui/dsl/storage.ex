@@ -113,6 +113,7 @@ defmodule AshUI.DSL.Storage do
       "info_list",
       "form_field",
       "text",
+      "label",
       "button",
       "input",
       "textarea",

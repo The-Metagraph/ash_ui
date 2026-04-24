@@ -34,27 +34,27 @@ Back to index: [README](./README.md)
   directory as a resource-first mirror of the sibling `unified_ui` example
   catalog.
 
-  [ ] 17.1 Section - Catalog Crosswalk and Capability Mapping
+  [x] 17.1 Section - Catalog Crosswalk and Capability Mapping
     Map the `unified_ui` example catalog onto Ash UI's current authoring and
     runtime boundaries before example implementation begins.
 
-    [ ] 17.1.1 Task - Define the Ash UI example catalog contract
+    [x] 17.1.1 Task - Define the Ash UI example catalog contract
     Establish the authoritative app list, naming continuity, and widget-type
     normalization rules for the mirrored suite.
 
-      [ ] 17.1.1.1 Subtask - Import all current example identifiers and family groupings from the sibling `unified_ui` example catalog.
-      [ ] 17.1.1.2 Subtask - Define the canonical Ash UI type mapping for normalized names such as `separator`, `text_input`, `radio_group`, and `toggle`.
-      [ ] 17.1.1.3 Subtask - Classify `numeric_input`, `date_input`, `time_input`, and `file_input` as stable directory names backed by specialized `input` authoring where appropriate.
-      [ ] 17.1.1.4 Subtask - Identify which catalog entries require new public Ash UI widget vocabulary, richer fallback rendering, or temporary `custom:*` surfaces before their example apps can ship honestly.
+      [x] 17.1.1.1 Subtask - Import all current example identifiers and family groupings from the sibling `unified_ui` example catalog.
+      [x] 17.1.1.2 Subtask - Define the canonical Ash UI type mapping for normalized names such as `separator`, `text_input`, `radio_group`, and `toggle`.
+      [x] 17.1.1.3 Subtask - Classify `numeric_input`, `date_input`, `time_input`, and `file_input` as stable directory names backed by specialized `input` authoring where appropriate.
+      [x] 17.1.1.4 Subtask - Identify which catalog entries require new public Ash UI widget vocabulary, richer fallback rendering, or temporary `custom:*` surfaces before their example apps can ship honestly.
 
-    [ ] 17.1.2 Task - Define parity and rollout rules
+    [x] 17.1.2 Task - Define parity and rollout rules
     Decide what "same example set" means operationally for Ash UI rather than
     treating catalog parity as only a directory-copy exercise.
 
-      [ ] 17.1.2.1 Subtask - Define required parity across app names, primary interaction stories, and public review surfaces.
-      [ ] 17.1.2.2 Subtask - Separate the catalog into low-risk, medium-risk, and high-complexity implementation families for rollout planning.
-      [ ] 17.1.2.3 Subtask - Define the maintained runtime target for all apps, with LiveView mandatory and other renderer previews explicitly optional.
-      [ ] 17.1.2.4 Subtask - Define an unsupported-surface policy so example apps do not overstate widget support beyond maintained Ash UI authoring/runtime boundaries.
+      [x] 17.1.2.1 Subtask - Define required parity across app names, primary interaction stories, and public review surfaces.
+      [x] 17.1.2.2 Subtask - Separate the catalog into low-risk, medium-risk, and high-complexity implementation families for rollout planning.
+      [x] 17.1.2.3 Subtask - Define the maintained runtime target for all apps, with LiveView mandatory and other renderer previews explicitly optional.
+      [x] 17.1.2.4 Subtask - Define an unsupported-surface policy so example apps do not overstate widget support beyond maintained Ash UI authoring/runtime boundaries.
 
   [ ] 17.2 Section - Resource-Authority Example App Template
     Define the reusable app-level shape that every mirrored example must follow.

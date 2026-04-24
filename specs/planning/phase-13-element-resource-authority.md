@@ -17,7 +17,7 @@ Back to index: [README](./README.md)
 - no backward compatibility is required for monolithic screen-document
   authority
 
-[ ] 13 Phase 13 - Element Resource Authority
+[x] 13 Phase 13 - Element Resource Authority
   Restore Ash resources plus the `AshUI` extension as the primary UI authoring
   surface and remove document-first authority from element definition flows.
 

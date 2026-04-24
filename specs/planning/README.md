@@ -24,7 +24,13 @@ The active architectural baseline is defined by:
 13. [Phase 13 - Element Resource Authority](./phase-13-element-resource-authority.md): restore Ash resources plus the `AshUI` extension as the primary authoring units.
 14. [Phase 14 - Relational Screen Composition](./phase-14-relational-screen-composition.md): restore screen composition through Ash relationships while retaining optional inline DSL.
 15. [Phase 15 - Compiler And Runtime Graph Realignment](./phase-15-compiler-and-runtime-graph-realignment.md): rebuild compilation and hydration around the screen/element resource graph.
-16. [Phase 16 - Example, Guide, And Conformance Realignment](./phase-16-example-guide-and-conformance-realignment.md): move examples, docs, and governance back to the resource-first model.
+16. [Phase 16 - Example, Guide, And Conformance Realignment](./phase-16-example-guide-and-conformance-realignment.md): realign public docs, governance, and conformance after removing the checked-in flagship example.
+17. [Phase 17 - Ash UI Example Suite Scaffold, Catalog Crosswalk, and Ash HQ Theme Baseline](./phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md): define the mirrored example-suite catalog, the resource-authority app template, and the shared Ash HQ-inspired theme baseline.
+18. [Phase 18 - Foundational Content, Form, and Input Example Apps](./phase-18-foundational-content-form-and-input-example-apps.md): implement the baseline Ash UI examples for foundational content, form scaffolding, and input controls through resource-first screen and element modules.
+19. [Phase 19 - Layout, Navigation, and Display Example Apps](./phase-19-layout-navigation-and-display-example-apps.md): implement the layout, navigation, and display-system examples together with any public widget-vocabulary expansions they require.
+20. [Phase 20 - Overlay, Data, Feedback, Chart, and Operational Example Apps](./phase-20-overlay-data-feedback-chart-and-operational-example-apps.md): implement the higher-complexity overlay, data-surface, feedback, chart, and operational examples.
+21. [Phase 21 - Example Suite Tooling, Catalog, and Validation Workflow](./phase-21-example-suite-tooling-catalog-and-validation-workflow.md): implement suite discovery, launcher, validation, and governance workflows for the Ash UI example catalog.
+22. [Phase 22 - Documentation, Governance, and Full Suite Integration](./phase-22-documentation-governance-and-full-suite-integration.md): finish the public docs, release gates, and full-suite integration coverage for the Ash UI example suite.
 
 ## Shared Conventions
 - Numbering:
@@ -61,7 +67,16 @@ upstream top-level DSL authority over the Ash resource graph.
 supersedes that direction and reopens the architecture as a new remediation
 line in Phases 13-16.
 
-That remediation line is now complete on the current implementation branch:
-Phases 13-16 restore element-resource authority, relational composition,
-graph-derived compilation/runtime behavior, and public example/governance
-alignment.
+Phases 13-15 are complete on the current implementation branch and restore
+element-resource authority, relational composition, and graph-derived
+compilation/runtime behavior.
+
+Phase 16 is partially complete. The checked-in flagship example has been
+removed and the public example surface is now intentionally empty, but the
+remaining public-surface integration coverage and closeout tracking in that
+phase are still open.
+
+Phases 17-22 describe the proposed next line after that reset: rebuild a full
+`examples/` suite that mirrors the sibling `unified_ui` catalog through Ash UI
+resource-authority screens and element resources, using the current
+`ash-hq.org` visual language as the shared style baseline.

@@ -14,7 +14,7 @@ Back to index: [README](./README.md)
 - canonical `unified_iur` remains the renderer boundary
 - Ash UI may still maintain an internal runtime shape, but it must be derived from upstream compiler output
 
-[ ] 11 Phase 11 - Upstream Compiler Delegation
+[X] 11 Phase 11 - Upstream Compiler Delegation
   Delegate DSL parsing and compilation to upstream `unified_ui` while preserving Ash UI bindings, runtime hydration, and canonical conversion.
 
   [X] 11.1 Section - Compiler Handoff

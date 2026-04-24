@@ -1,74 +1,137 @@
 # Examples
 
-This directory contains runnable and copyable Ash UI examples.
+This directory is reserved for runnable and copyable Ash UI examples.
 
-## Prerequisites
+## Status
 
-From an example directory:
+There are currently no checked-in example apps in this repository.
 
-```bash
-mix deps.get
-```
+Phase 17 Section 17.1 defines the example-suite contract that future example
+apps must follow. Until the first standalone apps land, the authoritative
+planning artifacts in this directory are:
 
-Standalone example apps can then be started directly from their own directory.
+- `examples/catalog.tsv`: machine-readable crosswalk from the sibling
+  `unified_ui` example suite into the planned Ash UI example suite
+- `examples/scaffold_contract.md`: required per-app resource-authority app
+  shape, host modules, review surfaces, and bootstrap conventions
+- `examples/ash_hq_theme_baseline.md`: shared visual baseline derived from the
+  current `ash-hq.org` site
+- `examples/ash_hq_theme_tokens.css`: copyable palette and shell token source
+  for future app-local CSS
+- `specs/planning/phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md`
+- `.spec/specs/examples.spec.md`
 
-## Available Examples
+## Shared Scaffold
 
-### `basic_dashboard`
+Phase 17 Section 17.2 defines the reusable example-app scaffold used by every
+future directory under `examples/<name>/`.
 
-`basic_dashboard` is the reference dashboard example. It now ships as a
-standalone Phoenix app, seeds ETS-backed demo data, and renders a persisted
-screen authority graph backed by screen and element resource modules through
-Ash UI adapters.
+The maintained baseline is:
 
-The dashboard screen itself is modeled as one screen resource plus related
-element resources using `AshUI.Resource.DSL.*`, then persisted through
-`AshUI.Resource.Authority`, so the example demonstrates the current intended
-resource-first authoring boundary directly.
+- one standalone Mix project per example directory
+- one authored screen resource plus related element resources per example
+- app-local UI storage and runtime domains
+- one LiveView host route at `/`
+- one reviewer-visible `Meaningful Interaction Story` surface
+- one reviewer-visible `Canonical Signal Preview` surface
+- one app-local seed module that persists the screen through
+  `AshUI.Resource.Authority.create/2`
 
-Example files:
+See [Resource-Authority Example App Scaffold](./scaffold_contract.md) for the
+full module, route, DOM-id, and reset/reseed contract.
 
-- `examples/basic_dashboard/README.md`
-- `examples/basic_dashboard/lib/basic_dashboard.ex`
-- `examples/basic_dashboard/lib/basic_dashboard_screen.ex`
-- `examples/basic_dashboard/lib/basic_dashboard_data.ex`
-- `examples/basic_dashboard/lib/basic_dashboard_live.ex`
-- `examples/basic_dashboard/lib/basic_dashboard_storage.ex`
+## Shared Theme
 
-Run the standalone app:
+Phase 17 Section 17.3 defines the shared Ash HQ visual contract for the
+example suite.
 
-- `mix setup`: installs dependencies for the example app
-- `mix phx.server`: starts the dashboard at `http://localhost:4100`
+The maintained baseline uses:
 
-Adapter options:
+- `slate-950` page shells and translucent slate glass panels
+- warm orange-to-red accent ramps derived from the current Ash HQ homepage
+- rounded pill CTAs with restrained warm glow
+- gradient-plus-grid backdrops and code-surface motifs
+- host-app CSS tokens plus semantic style hooks instead of ad hoc inline styles
 
-- `liveview`: prints HEEx output compiled from the persisted screen authority graph
-- `elm`: prints or writes the Elm-backed web shell for that same graph
-- `desktop`: prints desktop instruction JSON
+Use [Ash HQ Theme Baseline](./ash_hq_theme_baseline.md) for the normative
+design contract and [ash_hq_theme_tokens.css](./ash_hq_theme_tokens.css) as the
+copyable token source that future standalone apps should vendor locally.
 
-Current parity coverage:
+## Planned Suite Contract
 
-- `liveview` and `elm` are covered for the full dashboard screen
-- `desktop` remains a work in progress
-- `terminal_ui` is not yet implemented in this repo
+The Ash UI suite will mirror the current sibling `unified_ui` example catalog
+by directory name while rebuilding each app through Ash UI resource-authority
+screens and related element resources.
 
-Commands:
+The current Phase 17 parity rules are:
 
-```bash
-cd examples/basic_dashboard
-mix setup
-mix phx.server
+- Preserve the current sibling example directory identifiers exactly.
+- Preserve the imported family grouping and interaction metadata as the starting
+  review contract.
+- Keep one primary subject per example directory even when supporting shell
+  elements or helper controls are needed.
+- Require one reviewer-visible `Meaningful Interaction Story` surface per app.
+- Require one reviewer-visible `Canonical Signal Preview` surface per app.
+- Require app-local seed helpers that persist the mounted screen through
+  `AshUI.Resource.Authority`.
+- Treat `liveview` as the maintained runtime target for all apps.
+- Treat any renderer previews beyond `liveview` as optional and non-blocking.
+- Call out unsupported or partial widget/runtime surfaces explicitly in the
+  catalog and app-local docs instead of implying support.
 
-mix ash_ui.example.basic_dashboard --renderer liveview
-mix ash_ui.example.basic_dashboard --renderer elm
-mix ash_ui.example.basic_dashboard --renderer elm --output /tmp/basic_dashboard.html
-mix ash_ui.example.basic_dashboard --renderer desktop
-mix ash_ui.example.basic_dashboard --renderer desktop --pretty
-mix ash_ui.example.basic_dashboard --renderer elm --strict-external
-```
+## Rollout Buckets
 
-Notes:
+| Ash UI Phase | Families | Rollout intent |
+|---|---|---|
+| `18` | `content`, `forms`, `input`, plus `box` and `content` | Stand up the baseline suite shape through the lowest-risk examples first. |
+| `19` | `layout`, `navigation`, `display` | Expand the public example surface around relationship-driven structure and higher-order layout constructs. |
+| `20` | `overlay`, `data`, `feedback`, `operational` | Land the highest-complexity examples that depend on richer runtime data, layered flows, or custom/example-only widget surfaces. |
 
-- The task configures the example's ETS-backed UI storage automatically.
-- `--strict-external` fails instead of using adapter fallback.
-- `--output PATH` writes the rendered output to a file.
+## Catalog Field Meanings
+
+`examples/catalog.tsv` uses these planning-specific columns in addition to the
+imported sibling metadata:
+
+- `ash_ui_phase`: planned Ash UI rollout phase for the example directory
+- `ash_ui_canonical_subject`: canonical Ash UI widget type, custom type, or
+  screen/composition subject the example is expected to use
+- `ash_ui_authoring_path`: the expected implementation path
+- `support_gap`: the main capability gap or normalization rule that still
+  matters before the example can ship honestly
+- `complexity_tier`: current rollout-risk bucket
+- `maintained_runtime`: the runtime target the suite commits to maintain
+- `preview_policy`: whether non-LiveView previews are mandatory or optional
+
+### `ash_ui_authoring_path`
+
+- `native_widget`: current public Ash UI type with no naming translation
+- `normalized_widget`: stable example directory name with a different canonical
+  Ash UI type
+- `specialized_input`: stable example directory name implemented through the
+  canonical `input` type with specialized props and host/runtime handling
+- `promote_fallback_widget`: fallback renderer/runtime understands the concept
+  today, but public authoring validation does not yet admit it
+- `composed_native_screen`: the example should be treated as a named review
+  pattern built from a screen plus related native widgets rather than one
+  standalone widget type
+- `custom_widget`: the example currently needs an explicit `custom:*` surface or
+  a future public widget admission
+
+### `support_gap`
+
+- `none`: current public authoring and fallback runtime are good enough for the
+  first example implementation
+- `normalized_name`: the directory name is preserved, but the canonical Ash UI
+  type differs
+- `specialized_input_runtime`: the directory name is preserved, but the example
+  depends on specialized `input` props or host/runtime handling
+- `public_type_admission`: current fallback behavior exists, but public
+  authoring validation must admit the type
+- `richer_fallback_rendering`: the public type exists, but the current fallback
+  renderer is too generic for an honest example
+- `composition_shell`: the example is best treated as a named composition
+  pattern rather than one first-class widget type
+- `custom_surface_until_admitted`: the example needs an explicit custom surface
+  until a stable public widget contract exists
+- `seeded_runtime_complexity`: the example can be built from native widgets but
+  needs richer seeded runtime state or operational storytelling

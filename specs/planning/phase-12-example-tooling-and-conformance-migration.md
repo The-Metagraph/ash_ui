@@ -3,9 +3,9 @@
 Back to index: [README](./README.md)
 
 ## Relevant Shared APIs / Interfaces
-- `examples/basic_dashboard`
+- `examples/`
 - `AshUI.DSL.Builder`
-- `mix ash_ui.example.basic_dashboard`
+- example tooling and adapter tasks
 - conformance and governance scripts
 
 ## Relevant Assumptions / Defaults
@@ -23,7 +23,7 @@ Back to index: [README](./README.md)
     [x] 12.1.1 Task - Convert the dashboard example
     Ensure the main example no longer demonstrates builder-first authoring.
 
-      [x] 12.1.1.1 Subtask - Rewrite `basic_dashboard` screen authoring through upstream `unified_ui`
+      [x] 12.1.1.1 Subtask - Rewrite the flagship example screen authoring through upstream `unified_ui`
       [x] 12.1.1.2 Subtask - Preserve ETS-backed example data and storage flows
       [x] 12.1.1.3 Subtask - Preserve `liveview` and `elm` adapter parity coverage
       [x] 12.1.1.4 Subtask - Keep the standalone example app runnable from its own directory

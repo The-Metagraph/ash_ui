@@ -25,8 +25,8 @@ defmodule AshUI.MixProject do
     ]
   end
 
-  defp elixirc_paths(:dev), do: ["lib", "dev", "examples/basic_dashboard/lib"]
-  defp elixirc_paths(:test), do: ["lib", "test/support", "examples/basic_dashboard/lib"]
+  defp elixirc_paths(:dev), do: ["lib", "dev"]
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
   defp deps do
@@ -72,8 +72,7 @@ defmodule AshUI.MixProject do
   defp coverage_ignore_modules do
     [
       ~r/^Inspect\./,
-      ~r/^AshUI\.Test\./,
-      ~r/^BasicDashboardExample(?:\.|$)/
+      ~r/^AshUI\.Test\./
     ]
   end
 end

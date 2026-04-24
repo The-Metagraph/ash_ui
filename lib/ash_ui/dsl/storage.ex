@@ -112,6 +112,7 @@ defmodule AshUI.DSL.Storage do
       "key_value",
       "info_list",
       "form_field",
+      "form_builder",
       "text",
       "label",
       "button",

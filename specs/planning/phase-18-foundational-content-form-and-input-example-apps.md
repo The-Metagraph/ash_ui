@@ -40,17 +40,17 @@ Back to index: [README](./README.md)
       [x] 18.1.1.3 Subtask - Implement `separator`, `spacer`, `content`, and `box` example apps, preserving directory-name parity while using canonical Ash UI types such as `divider` where required.
       [x] 18.1.1.4 Subtask - Add tests that prove every foundational app mounts through the shared example shell, shared theme contract, and resource-authority persistence path.
 
-  [ ] 18.2 Section - Form Scaffolding Example Apps
+  [x] 18.2 Section - Form Scaffolding Example Apps
     Establish the form-building support examples that later input apps can rely
     on without collapsing multiple concepts into one directory.
 
-    [ ] 18.2.1 Task - Implement form scaffold apps
+    [x] 18.2.1 Task - Implement form scaffold apps
     Add the examples for form-oriented structure rather than individual inputs.
 
-      [ ] 18.2.1.1 Subtask - Implement `form_builder`, `field_group`, and `field` example apps.
-      [ ] 18.2.1.2 Subtask - Define the allowed supporting screen shell and helper elements for form-oriented examples so the primary subject remains clear.
-      [ ] 18.2.1.3 Subtask - Demonstrate element-local bindings and actions on form-oriented resources where they materially clarify the widget story.
-      [ ] 18.2.1.4 Subtask - Add tests that prove each form-scaffold app still preserves the shared Ash HQ shell and resource-first authoring contract.
+      [x] 18.2.1.1 Subtask - Implement `form_builder`, `field_group`, and `field` example apps.
+      [x] 18.2.1.2 Subtask - Define the allowed supporting screen shell and helper elements for form-oriented examples so the primary subject remains clear.
+      [x] 18.2.1.3 Subtask - Demonstrate element-local bindings and actions on form-oriented resources where they materially clarify the widget story.
+      [x] 18.2.1.4 Subtask - Add tests that prove each form-scaffold app still preserves the shared Ash HQ shell and resource-first authoring contract.
 
   [ ] 18.3 Section - Input Control Example Apps
     Implement the baseline interactive control catalog around Ash UI's binding

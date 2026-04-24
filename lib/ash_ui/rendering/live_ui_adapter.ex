@@ -474,8 +474,18 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp generate_heex(%{"type" => "form_builder"} = iur, opts) do
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "event")
+
+    submit_attrs =
+      if binding do
+        ~s( phx-submit="#{event_name(event_prefix, :action)}"#{attr("phx-value-action_id", binding["id"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", binding_signal(binding, "submit"))})
+      else
+        ""
+      end
+
     """
-    <form class="#{css_classes(["ash-form-builder", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+    <form class="#{css_classes(["ash-form-builder", prop_class(iur)])}"#{style_attr(prop_style(iur))}#{submit_attrs}>
       #{generate_children(iur["children"], opts)}
     </form>
     """
@@ -483,10 +493,14 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp generate_heex(%{"type" => "form_field"} = iur, opts) do
     props = iur["props"] || %{}
+    label = text_prop(props, ["label", "title"])
+    help = text_prop(props, ["help", "description"])
 
     """
     <div class="#{css_classes(["ash-form-field", prop_class(iur)])}"#{attr("data-field-name", dom_id(prop(props, "name")))}#{style_attr(prop_style(iur))}>
+      #{if label, do: "<label class=\"ash-form-field-label\">#{label}</label>", else: ""}
       #{generate_children(iur["children"], opts)}
+      #{if help, do: "<p class=\"ash-form-field-help\">#{help}</p>", else: ""}
     </div>
     """
   end
@@ -495,16 +509,24 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     label = Map.get(iur["props"] || %{}, "label", "Button")
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
     variant = Map.get(iur["props"] || %{}, "variant", "primary")
+    button_type = Map.get(iur["props"] || %{}, "type", "button")
     binding = find_binding(opts, iur["id"], "event")
 
-    click_event = event_name(event_prefix, :action)
-    action_attr = attr("phx-value-action_id", binding && binding["id"])
-    element_attr = attr("phx-value-element_id", iur["id"])
-    signal_attr = attr("phx-value-signal", binding_signal(binding, "click"))
     class_name = css_classes(["ash-button", "ash-button-#{variant}", prop_class(iur)])
 
+    event_attrs =
+      if binding && button_type != "submit" do
+        click_event = event_name(event_prefix, :action)
+        action_attr = attr("phx-value-action_id", binding["id"])
+        element_attr = attr("phx-value-element_id", iur["id"])
+        signal_attr = attr("phx-value-signal", binding_signal(binding, "click"))
+        ~s( phx-click="#{click_event}"#{action_attr}#{element_attr}#{signal_attr})
+      else
+        ""
+      end
+
     """
-    <button type="button" class="#{class_name}"#{style_attr(prop_style(iur))} phx-click="#{click_event}"#{action_attr}#{element_attr}#{signal_attr}>#{label}</button>
+    <button type="#{button_type}" class="#{class_name}"#{style_attr(prop_style(iur))}#{event_attrs}>#{label}</button>
     """
   end
 
@@ -583,6 +605,21 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     """
     <a class="#{css_classes(["ash-link", prop_class(iur)])}" href="#{href}"#{attr("target", target)}#{attr("rel", rel)}#{style_attr(prop_style(iur))}>#{label}</a>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:field_group"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"])
+    description = text_prop(props, ["description", "help"])
+
+    """
+    <section class="#{css_classes(["ash-field-group", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{if title, do: "<header class=\"ash-field-group-header\"><h2 class=\"ash-field-group-title\">#{title}</h2>#{if description, do: "<p class=\"ash-field-group-description\">#{description}</p>", else: ""}</header>", else: ""}
+      <div class="ash-field-group-body">
+        #{generate_children(iur["children"], opts)}
+      </div>
+    </section>
     """
   end
 

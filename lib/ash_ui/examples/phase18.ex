@@ -21,6 +21,7 @@ defmodule AshUI.Examples.Phase18 do
           preview_title: String.t() | nil,
           subject_binding: map() | nil,
           subject_action: map() | nil,
+          subject_children: [map()],
           support_notice: String.t() | nil,
           notes: String.t() | nil
         }
@@ -318,12 +319,266 @@ defmodule AshUI.Examples.Phase18 do
     }
   ]
 
+  @form_scaffolding_definitions [
+    %{
+      directory: "form_builder",
+      section: :form_scaffolding,
+      family: :forms,
+      title: "Form Builder Example",
+      subject_type: :form_builder,
+      subject_props: %{
+        class: "ashui-example-form"
+      },
+      story_text:
+        "Meaningful Interaction Story: edit the nested display-name field and submit the form to confirm the authored form shell owns the review surface while the write and submit flow stay local to the resource graph.",
+      signal_text:
+        "Canonical Signal Preview: nested input change -> ExampleState.display_value; form submit -> ExampleState.submitted_value and ExampleState.status.",
+      seed_state: %{
+        id: "state-form_builder",
+        current_value: "Ada Example",
+        display_value: "Ada Example",
+        submitted_value: "Not submitted",
+        status: "Awaiting form submission"
+      },
+      preview_field: :submitted_value,
+      preview_title: "Last submitted value",
+      subject_binding: nil,
+      subject_action: %{
+        id: :submit_profile,
+        signal: :submit,
+        params: %{
+          submitted_value: %{"from" => "binding", "key" => "display_name"},
+          status: %{"from" => "static", "value" => "Form submitted through form_builder"}
+        },
+        metadata: %{intent: "submit_profile", owner: "form_builder"}
+      },
+      subject_children: [
+        %{
+          key: :display_name_field,
+          type: :form_field,
+          props: %{
+            name: "display_name",
+            label: "Display name",
+            help: "Bound locally and submitted through the form builder.",
+            class: "ashui-example-form-field"
+          },
+          position: 0,
+          children: [
+            %{
+              key: :display_name_input,
+              type: :input,
+              props: %{
+                name: "display_name",
+                type: "text",
+                value: "Ada Example",
+                placeholder: "Ada Example",
+                class: "ashui-example-input"
+              },
+              position: 0,
+              bindings: [
+                %{
+                  id: :display_name_input,
+                  source: %{
+                    resource: "ExampleState",
+                    field: :display_value,
+                    id: "state-form_builder"
+                  },
+                  target: "display_name",
+                  binding_type: :value,
+                  transform: %{},
+                  metadata: %{owner: "input", owner_signal: "change"}
+                }
+              ],
+              children: []
+            }
+          ]
+        },
+        %{
+          key: :submit_button,
+          type: :button,
+          props: %{
+            label: "Save profile",
+            type: "submit",
+            variant: "primary",
+            class: "ashui-example-primary-cta"
+          },
+          position: 10,
+          children: []
+        }
+      ],
+      support_notice:
+        "The example uses `form_builder` as the public subject and keeps submit handling local to the authored form resource.",
+      notes: "Promotes form_builder from fallback-only rendering into the public example suite."
+    },
+    %{
+      directory: "field",
+      section: :form_scaffolding,
+      family: :forms,
+      title: "Field Example",
+      subject_type: :form_field,
+      subject_props: %{
+        name: "display_name",
+        label: "Display name",
+        help: "Field structure stays local to the resource graph.",
+        class: "ashui-example-form-field"
+      },
+      story_text:
+        "Meaningful Interaction Story: review the field wrapper and edit the nested input to confirm the field keeps label and help context while the write remains owned by the input element.",
+      signal_text:
+        "Canonical Signal Preview: nested input change -> ExampleState.display_value -> preview stat, while `field` stays normalized to the canonical `form_field` widget.",
+      seed_state: %{
+        id: "state-field",
+        display_value: "Ada Example",
+        status: "Normalized from `field` into `form_field`."
+      },
+      preview_field: :display_value,
+      preview_title: "Current field value",
+      subject_binding: nil,
+      subject_action: nil,
+      subject_children: [
+        %{
+          key: :display_name_input,
+          type: :input,
+          props: %{
+            name: "display_name",
+            type: "text",
+            value: "Ada Example",
+            placeholder: "Ada Example",
+            class: "ashui-example-input"
+          },
+          position: 0,
+          bindings: [
+            %{
+              id: :field_input,
+              source: %{resource: "ExampleState", field: :display_value, id: "state-field"},
+              target: "display_name",
+              binding_type: :value,
+              transform: %{},
+              metadata: %{owner: "input", owner_signal: "change"}
+            }
+          ],
+          children: []
+        }
+      ],
+      support_notice:
+        "The sibling `field` directory is intentionally authored through the canonical `form_field` widget.",
+      notes: "Preserves sibling naming while using the public form_field widget."
+    },
+    %{
+      directory: "field_group",
+      section: :form_scaffolding,
+      family: :forms,
+      title: "Field Group Example",
+      subject_type: :"custom:field_group",
+      subject_props: %{
+        title: "Profile fields",
+        description: "A grouped review subject can still compile from native form resources.",
+        class: "ashui-example-field-group"
+      },
+      story_text:
+        "Meaningful Interaction Story: edit either grouped field and confirm the example stays explicit that `field_group` is a composed review subject built from nested `form_field` resources.",
+      signal_text:
+        "Canonical Signal Preview: grouped child inputs change -> ExampleState.display_value and ExampleState.notes while the outer subject remains `custom:field_group`.",
+      seed_state: %{
+        id: "state-field_group",
+        display_value: "Ada Example",
+        notes: "Two related fields stay grouped in one review subject.",
+        status: "Composed native form structure inside a custom field-group shell."
+      },
+      preview_field: :notes,
+      preview_title: "Grouped note",
+      subject_binding: nil,
+      subject_action: nil,
+      subject_children: [
+        %{
+          key: :display_name_field,
+          type: :form_field,
+          props: %{
+            name: "display_name",
+            label: "Display name",
+            help: "Primary grouped field.",
+            class: "ashui-example-form-field"
+          },
+          position: 0,
+          children: [
+            %{
+              key: :display_name_input,
+              type: :input,
+              props: %{
+                name: "display_name",
+                type: "text",
+                value: "Ada Example",
+                placeholder: "Ada Example",
+                class: "ashui-example-input"
+              },
+              position: 0,
+              bindings: [
+                %{
+                  id: :group_display_name_input,
+                  source: %{
+                    resource: "ExampleState",
+                    field: :display_value,
+                    id: "state-field_group"
+                  },
+                  target: "display_name",
+                  binding_type: :value,
+                  transform: %{},
+                  metadata: %{owner: "input", owner_signal: "change"}
+                }
+              ],
+              children: []
+            }
+          ]
+        },
+        %{
+          key: :notes_field,
+          type: :form_field,
+          props: %{
+            name: "notes",
+            label: "Notes",
+            help: "Secondary grouped field.",
+            class: "ashui-example-form-field"
+          },
+          position: 10,
+          children: [
+            %{
+              key: :notes_input,
+              type: :input,
+              props: %{
+                name: "notes",
+                type: "text",
+                value: "Two related fields stay grouped in one review subject.",
+                placeholder: "Add a note",
+                class: "ashui-example-input"
+              },
+              position: 0,
+              bindings: [
+                %{
+                  id: :group_notes_input,
+                  source: %{resource: "ExampleState", field: :notes, id: "state-field_group"},
+                  target: "notes",
+                  binding_type: :value,
+                  transform: %{},
+                  metadata: %{owner: "input", owner_signal: "change"}
+                }
+              ],
+              children: []
+            }
+          ]
+        }
+      ],
+      support_notice:
+        "`field_group` is intentionally implemented as `custom:field_group` plus nested `form_field` resources until a first-class public grouping contract exists.",
+      notes: "Uses a composed native screen pattern behind a custom review surface."
+    }
+  ]
+
   @doc """
   Returns every currently authored Phase 18 definition.
   """
   @spec definitions() :: [definition()]
   def definitions do
-    @foundational_definitions
+    @foundational_definitions ++ @form_scaffolding_definitions
   end
 
   @doc """

@@ -4,21 +4,24 @@ This directory is reserved for runnable and copyable Ash UI examples.
 
 ## Status
 
-The repository now includes the first checked-in standalone example apps from
-Phase 18 Section 18.1.
+The repository now includes checked-in standalone example apps from Phase 18
+Sections 18.1 and 18.2.
 
 Current directories:
 
+- `examples/box`
 - `examples/text`
 - `examples/button`
-- `examples/label`
-- `examples/link`
+- `examples/content`
+- `examples/field`
+- `examples/field_group`
+- `examples/form_builder`
 - `examples/icon`
 - `examples/image`
+- `examples/label`
+- `examples/link`
 - `examples/separator`
 - `examples/spacer`
-- `examples/content`
-- `examples/box`
 
 Phase 17 Section 17.1 defines the example-suite contract that the checked-in
 apps and future example directories must follow. The shared planning artifacts
@@ -54,6 +57,15 @@ The maintained baseline is:
 
 See [Resource-Authority Example App Scaffold](./scaffold_contract.md) for the
 full module, route, DOM-id, and reset/reseed contract.
+
+Current form-oriented helper rules established by Phase 18 Section 18.2:
+
+- `form_builder` may own nested `form_field` and submit-button children.
+- `field` may normalize into `form_field` with a nested input child.
+- `field_group` may use `custom:field_group` as the review subject while
+  composing nested `form_field` and input children underneath it.
+- Supporting helper elements must stay subordinate to one clear primary subject
+  per directory.
 
 ## Shared Theme
 

@@ -236,6 +236,69 @@ defmodule Phase18ExampleGenerator do
       overflow: hidden;
     }
 
+    .ash-form-builder,
+    .ash-field-group {
+      display: grid;
+      gap: 1rem;
+    }
+
+    .ash-field-group {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 1.2rem;
+      padding: 1rem;
+    }
+
+    .ash-field-group-title {
+      color: var(--ashui-example-copy-strong);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .ash-field-group-description {
+      color: var(--ashui-example-copy-muted);
+      font-size: 0.92rem;
+      margin: 0.35rem 0 0;
+    }
+
+    .ash-form-field {
+      display: grid;
+      gap: 0.55rem;
+    }
+
+    .ash-form-field-label,
+    .ash-label {
+      color: var(--ashui-example-copy-strong);
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .ash-form-field-help {
+      color: var(--ashui-example-copy-muted);
+      font-size: 0.88rem;
+      margin: 0;
+    }
+
+    .ash-input {
+      background: rgba(7, 14, 26, 0.74);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 0.95rem;
+      color: var(--ashui-example-copy-strong);
+      min-height: 3rem;
+      padding: 0.85rem 0.95rem;
+      width: 100%;
+    }
+
+    .ash-input::placeholder {
+      color: rgba(224, 229, 237, 0.48);
+    }
+
+    .ash-input:focus-visible {
+      border-color: rgba(255, 122, 61, 0.66);
+      box-shadow: 0 0 0 0.18rem rgba(255, 122, 61, 0.15);
+      outline: none;
+    }
+
     .ashui-example-box {
       min-height: 12rem;
     }
@@ -262,6 +325,28 @@ defmodule Phase18ExampleGenerator do
       end
 
     support_relationship? = definition.support_notice not in [nil, ""]
+    subject_children = Map.get(definition, :subject_children, [])
+
+    authoring_resource_lines =
+      render_authoring_resource_lines(
+        root_module,
+        definition.directory,
+        support_relationship?,
+        subject_children
+      )
+      |> indent_block(12)
+
+    subject_relationships =
+      render_node_relationships(root_module, definition.directory, subject_children)
+      |> indent_block(10)
+
+    subject_ui_relationships =
+      render_node_ui_relationships(subject_children)
+      |> indent_block(10)
+
+    subject_child_modules =
+      render_node_modules(root_module, definition.directory, subject_children)
+      |> indent_block(8)
 
     EEx.eval_string(
       ~S'''
@@ -696,13 +781,7 @@ defmodule Phase18ExampleGenerator do
           use Ash.Domain, validate_config_inclusion?: false
 
           resources do
-            resource(<%= screen_module %>)
-            resource(<%= root_module %>.Examples.<%= Macro.camelize(definition.directory) %>DemoPanelElement)
-            resource(<%= root_module %>.Examples.<%= Macro.camelize(definition.directory) %>SubjectElement)
-            resource(<%= root_module %>.Examples.<%= Macro.camelize(definition.directory) %>PreviewElement)
-            resource(<%= root_module %>.Examples.<%= Macro.camelize(definition.directory) %>StoryTextElement)
-            resource(<%= root_module %>.Examples.<%= Macro.camelize(definition.directory) %>SignalTextElement)
-            <%= if support_relationship? do %>resource(<%= root_module %>.Examples.<%= Macro.camelize(definition.directory) %>SupportNoticeElement)<% end %>
+            <%= "\n" <> authoring_resource_lines %>
           end
         end
 
@@ -786,6 +865,8 @@ defmodule Phase18ExampleGenerator do
         defmodule Examples.<%= Macro.camelize(definition.directory) %>SubjectElement do
           use <%= root_module %>.ExampleElementBase
 
+          <%= if subject_relationships != "", do: "\n" <> subject_relationships %>
+          <%= if subject_ui_relationships != "", do: "\n" <> subject_ui_relationships %>
           ui_element do
             type <%= inspect(definition.subject_type) %>
             props <%= inspect(definition.subject_props, pretty: true) %>
@@ -816,6 +897,8 @@ defmodule Phase18ExampleGenerator do
           end
           <% end %>
         end
+
+        <%= if subject_child_modules != "", do: "\n" <> subject_child_modules %>
 
         defmodule Examples.<%= Macro.camelize(definition.directory) %>PreviewElement do
           use <%= root_module %>.ExampleElementBase
@@ -1068,14 +1151,259 @@ defmodule Phase18ExampleGenerator do
         current_user: current_user,
         screen_name: screen_name,
         preview_value: preview_value,
-        support_relationship?: support_relationship?
+        support_relationship?: support_relationship?,
+        authoring_resource_lines: authoring_resource_lines,
+        subject_relationships: subject_relationships,
+        subject_ui_relationships: subject_ui_relationships,
+        subject_child_modules: subject_child_modules
       ],
       trim: true
     )
   end
 
+  defp render_authoring_resource_lines(
+         root_module,
+         directory,
+         support_relationship?,
+         subject_children
+       ) do
+    directory_camel = Macro.camelize(directory)
+
+    base_resources = [
+      "resource(#{screen_module_name(root_module, directory)})",
+      "resource(#{root_module}.Examples.#{directory_camel}DemoPanelElement)",
+      "resource(#{root_module}.Examples.#{directory_camel}SubjectElement)",
+      "resource(#{root_module}.Examples.#{directory_camel}PreviewElement)",
+      "resource(#{root_module}.Examples.#{directory_camel}StoryTextElement)",
+      "resource(#{root_module}.Examples.#{directory_camel}SignalTextElement)"
+    ]
+
+    support_resources =
+      if support_relationship? do
+        ["resource(#{root_module}.Examples.#{directory_camel}SupportNoticeElement)"]
+      else
+        []
+      end
+
+    child_resources =
+      subject_children
+      |> flatten_nodes()
+      |> Enum.map(fn node ->
+        "resource(#{node_module_name(root_module, directory, node)})"
+      end)
+
+    Enum.join(base_resources ++ support_resources ++ child_resources, "\n")
+  end
+
+  defp render_node_relationships(_root_module, _directory, []), do: ""
+
+  defp render_node_relationships(root_module, directory, nodes) do
+    body =
+      nodes
+      |> Enum.map(fn node ->
+        """
+        has_many #{inspect(child_relationship_name(node))}, #{node_module_name(root_module, directory, node)} do
+          destination_attribute(:parent_id)
+        end
+        """
+        |> String.trim()
+      end)
+      |> Enum.join("\n\n")
+
+    """
+    relationships do
+    #{indent_block(body, 2)}
+    end
+    """
+    |> String.trim()
+  end
+
+  defp render_node_ui_relationships([]), do: ""
+
+  defp render_node_ui_relationships(nodes) do
+    body =
+      nodes
+      |> Enum.map(fn node ->
+        """
+        relationship #{inspect(child_relationship_name(node))} do
+          kind #{inspect(Map.get(node, :kind, :child))}
+          slot #{inspect(Map.get(node, :slot, :body))}
+          placement #{inspect(Map.get(node, :placement, :append))}
+          order #{Map.get(node, :position, 0)}
+        end
+        """
+        |> String.trim()
+      end)
+      |> Enum.join("\n\n")
+
+    """
+    ui_relationships do
+    #{indent_block(body, 2)}
+    end
+    """
+    |> String.trim()
+  end
+
+  defp render_node_modules(_root_module, _directory, []), do: ""
+
+  defp render_node_modules(root_module, directory, nodes) do
+    nodes
+    |> Enum.map(&render_node_module(root_module, directory, &1))
+    |> Enum.concat(Enum.flat_map(nodes, &render_child_modules(root_module, directory, &1)))
+    |> Enum.join("\n\n")
+  end
+
+  defp render_child_modules(root_module, directory, node) do
+    node
+    |> Map.get(:children, [])
+    |> Enum.map(&render_node_module(root_module, directory, &1))
+    |> Enum.concat(
+      Enum.flat_map(
+        Map.get(node, :children, []),
+        &render_child_modules(root_module, directory, &1)
+      )
+    )
+  end
+
+  defp render_node_module(root_module, directory, node) do
+    relationships =
+      render_node_relationships(root_module, directory, Map.get(node, :children, []))
+
+    ui_relationships = render_node_ui_relationships(Map.get(node, :children, []))
+    bindings_block = render_bindings_block(Map.get(node, :bindings, []))
+    actions_block = render_actions_block(Map.get(node, :actions, []))
+    variants = Map.get(node, :variants, [])
+
+    variants_line =
+      if variants == [] do
+        nil
+      else
+        "  variants #{inspect(variants, pretty: true)}"
+      end
+
+    metadata = %{
+      id: node_id(node),
+      section: Map.get(node, :section, "demo"),
+      slot: Atom.to_string(Map.get(node, :slot, :body)),
+      position: Map.get(node, :position, 0)
+    }
+
+    [
+      "defmodule Examples.#{Macro.camelize(directory)}#{node_module_suffix(node)} do",
+      "  use #{root_module}.ExampleElementBase",
+      relationships,
+      ui_relationships,
+      "  ui_element do",
+      "    type #{inspect(Map.fetch!(node, :type))}",
+      "    props #{inspect(Map.get(node, :props, %{}), pretty: true)}",
+      variants_line,
+      "    metadata #{inspect(metadata, pretty: true)}",
+      "  end",
+      bindings_block,
+      actions_block,
+      "end"
+    ]
+    |> Enum.reject(&(&1 in [nil, ""]))
+    |> Enum.join("\n\n")
+  end
+
+  defp render_bindings_block([]), do: ""
+
+  defp render_bindings_block(bindings) do
+    body =
+      bindings
+      |> Enum.map(fn binding ->
+        """
+        binding #{inspect(Map.fetch!(binding, :id))} do
+          source #{inspect(Map.fetch!(binding, :source), pretty: true)}
+          target #{inspect(Map.fetch!(binding, :target))}
+          binding_type #{inspect(Map.get(binding, :binding_type, :value))}
+          transform #{inspect(Map.get(binding, :transform, %{}), pretty: true)}
+          metadata #{inspect(Map.get(binding, :metadata, %{}), pretty: true)}
+        end
+        """
+        |> String.trim()
+      end)
+      |> Enum.join("\n\n")
+
+    """
+    ui_bindings do
+    #{indent_block(body, 2)}
+    end
+    """
+    |> String.trim()
+  end
+
+  defp render_actions_block([]), do: ""
+
+  defp render_actions_block(actions) do
+    body =
+      actions
+      |> Enum.map(fn action ->
+        """
+        action #{inspect(Map.fetch!(action, :id))} do
+          signal #{inspect(Map.fetch!(action, :signal))}
+          source #{inspect(Map.fetch!(action, :source), pretty: true)}
+          target #{inspect(Map.get(action, :target, "submit"))}
+          transform #{inspect(Map.get(action, :transform, %{}), pretty: true)}
+          metadata #{inspect(Map.get(action, :metadata, %{}), pretty: true)}
+        end
+        """
+        |> String.trim()
+      end)
+      |> Enum.join("\n\n")
+
+    """
+    ui_actions do
+    #{indent_block(body, 2)}
+    end
+    """
+    |> String.trim()
+  end
+
+  defp flatten_nodes(nodes) when is_list(nodes) do
+    Enum.flat_map(nodes, fn node ->
+      [node | flatten_nodes(Map.get(node, :children, []))]
+    end)
+  end
+
+  defp child_relationship_name(node) do
+    String.to_atom("#{Map.fetch!(node, :key)}_elements")
+  end
+
+  defp node_module_name(root_module, directory, node) do
+    "#{root_module}.Examples.#{Macro.camelize(directory)}#{node_module_suffix(node)}"
+  end
+
+  defp screen_module_name(root_module, directory) do
+    "#{root_module}.Examples.#{Macro.camelize(directory)}Screen"
+  end
+
+  defp node_module_suffix(node) do
+    "#{Macro.camelize(to_string(Map.fetch!(node, :key)))}Element"
+  end
+
+  defp node_id(node) do
+    Map.get(node, :id) || String.replace(to_string(Map.fetch!(node, :key)), "_", "-")
+  end
+
+  defp indent_block("", _count), do: ""
+
+  defp indent_block(block, count) when is_binary(block) do
+    indent = String.duplicate(" ", count)
+
+    block
+    |> String.trim_trailing()
+    |> String.split("\n")
+    |> Enum.map_join("\n", &(indent <> &1))
+  end
+
   defp try_it_text(%{subject_action: %{signal: :click}}),
     do: "Click the primary subject and watch the persisted preview surface update."
+
+  defp try_it_text(%{subject_action: %{signal: :submit}}),
+    do:
+      "Edit the nested form field, submit the form, and confirm the preview surface captures the persisted result."
 
   defp try_it_text(%{subject_binding: %{target: "content"}}),
     do:

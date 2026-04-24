@@ -16,6 +16,8 @@ surface:
   - examples/README.md
   - examples/catalog.tsv
   - examples/scaffold_contract.md
+  - examples/ash_hq_theme_baseline.md
+  - examples/ash_hq_theme_tokens.css
   - specs/planning/phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md
 ```
 
@@ -46,6 +48,14 @@ surface:
   statement: Every example application shall expose app-local seed helpers that create representative runtime fixtures, persist the authored screen through `AshUI.Resource.Authority`, and provide a repeatable reset or reseed path for tests and local review workflows.
   priority: must
   stability: stable
+- id: ash_ui.examples.ash_hq_theme_baseline
+  statement: The example suite shall preserve one Ash-HQ-derived baseline of dark slate shells, warm orange-red accent ramps, glass panels, rounded pill actions, and gridded gradient backdrops, with each standalone app vendoring that baseline locally instead of relying on an `examples/shared` dependency.
+  priority: must
+  stability: stable
+- id: ash_ui.examples.authoring_facing_style_api
+  statement: Example applications shall keep palette tokens and shell treatments in host-app CSS while exposing semantic example-shell, panel, story, signal-preview, and CTA style hooks through stable class names or variants rather than ad hoc inline styling.
+  priority: must
+  stability: stable
 ```
 
 ## Verification
@@ -68,4 +78,14 @@ surface:
     - ash_ui.examples.host_app_mount_contract
     - ash_ui.examples.review_surface_contract
     - ash_ui.examples.seed_and_reset_contract
+- kind: source_file
+  target: examples/ash_hq_theme_baseline.md
+  covers:
+    - ash_ui.examples.ash_hq_theme_baseline
+    - ash_ui.examples.authoring_facing_style_api
+- kind: source_file
+  target: examples/ash_hq_theme_tokens.css
+  covers:
+    - ash_ui.examples.ash_hq_theme_baseline
+    - ash_ui.examples.authoring_facing_style_api
 ```

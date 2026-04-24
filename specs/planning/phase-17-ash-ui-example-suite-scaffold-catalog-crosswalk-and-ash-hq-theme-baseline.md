@@ -76,26 +76,26 @@ Back to index: [README](./README.md)
       [x] 17.2.2.3 Subtask - Define how representative runtime actors, authorization context, and list/action data fixtures are created per app.
       [x] 17.2.2.4 Subtask - Define the reset/reseed path used by tests and local review workflows.
 
-  [ ] 17.3 Section - Ash HQ Theme and Shell Baseline
+  [x] 17.3 Section - Ash HQ Theme and Shell Baseline
     Turn the current `ash-hq.org` visual language into a reusable suite
     baseline rather than re-styling every example ad hoc.
 
-    [ ] 17.3.1 Task - Define the shared theme tokens and shell contract
+    [x] 17.3.1 Task - Define the shared theme tokens and shell contract
     Provide one Ash-HQ-derived presentation baseline for every example app.
 
-      [ ] 17.3.1.1 Subtask - Define suite palette tokens for dark slate backgrounds, white/slate copy, and warm red/orange accent ramps derived from the current Ash HQ site.
-      [ ] 17.3.1.2 Subtask - Define suite shell treatments for gradient/grid backdrops, frosted panels, rounded containers, and code-surface motifs.
-      [ ] 17.3.1.3 Subtask - Define suite button, panel, form, and status style profiles that example apps can reuse without duplicating CSS decisions.
-      [ ] 17.3.1.4 Subtask - Define accessibility, responsive, and contrast requirements so the Ash HQ visual language remains usable in example-app review flows.
+      [x] 17.3.1.1 Subtask - Define suite palette tokens for dark slate backgrounds, white/slate copy, and warm red/orange accent ramps derived from the current Ash HQ site.
+      [x] 17.3.1.2 Subtask - Define suite shell treatments for gradient/grid backdrops, frosted panels, rounded containers, and code-surface motifs.
+      [x] 17.3.1.3 Subtask - Define suite button, panel, form, and status style profiles that example apps can reuse without duplicating CSS decisions.
+      [x] 17.3.1.4 Subtask - Define accessibility, responsive, and contrast requirements so the Ash HQ visual language remains usable in example-app review flows.
 
-    [ ] 17.3.2 Task - Define the authoring-facing style API
+    [x] 17.3.2 Task - Define the authoring-facing style API
     Make the theme contract usable from Ash UI resource props and not only from
     Phoenix host templates.
 
-      [ ] 17.3.2.1 Subtask - Define which style tokens live in host-app CSS versus `ui_element` props like `class`, `inline_style`, and semantic variants.
-      [ ] 17.3.2.2 Subtask - Define when examples should prefer semantic widget variants over raw inline CSS.
-      [ ] 17.3.2.3 Subtask - Define how example apps keep the suite shell visually shared while allowing per-widget emphasis where needed.
-      [ ] 17.3.2.4 Subtask - Add validation or review guidance that catches divergence from the shared Ash HQ style baseline.
+      [x] 17.3.2.1 Subtask - Define which style tokens live in host-app CSS versus `ui_element` props like `class`, `inline_style`, and semantic variants.
+      [x] 17.3.2.2 Subtask - Define when examples should prefer semantic widget variants over raw inline CSS.
+      [x] 17.3.2.3 Subtask - Define how example apps keep the suite shell visually shared while allowing per-widget emphasis where needed.
+      [x] 17.3.2.4 Subtask - Add validation or review guidance that catches divergence from the shared Ash HQ style baseline.
 
   [ ] 17.4 Section - Phase 17 Integration Tests
     Validate the suite scaffold, catalog crosswalk, and theme baseline before

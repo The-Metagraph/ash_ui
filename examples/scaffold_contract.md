@@ -48,6 +48,10 @@ examples/<directory_name>/
 The exact helper element set can expand per app, but the storage, runtime,
 screen, host, and review-surface responsibilities above are required.
 
+The app-local `assets/css/app.css` should vendor the shared Ash HQ baseline
+from [ash_hq_theme_tokens.css](/home/ducky/code/unified/ash_ui/examples/ash_hq_theme_tokens.css:1)
+instead of inventing a new shell for each example.
+
 ## Required Resource-Authority Modules
 
 Every app must provide these authored module roles:

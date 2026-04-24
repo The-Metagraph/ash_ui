@@ -14,6 +14,10 @@ planning artifacts in this directory are:
   `unified_ui` example suite into the planned Ash UI example suite
 - `examples/scaffold_contract.md`: required per-app resource-authority app
   shape, host modules, review surfaces, and bootstrap conventions
+- `examples/ash_hq_theme_baseline.md`: shared visual baseline derived from the
+  current `ash-hq.org` site
+- `examples/ash_hq_theme_tokens.css`: copyable palette and shell token source
+  for future app-local CSS
 - `specs/planning/phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md`
 - `.spec/specs/examples.spec.md`
 
@@ -35,6 +39,23 @@ The maintained baseline is:
 
 See [Resource-Authority Example App Scaffold](./scaffold_contract.md) for the
 full module, route, DOM-id, and reset/reseed contract.
+
+## Shared Theme
+
+Phase 17 Section 17.3 defines the shared Ash HQ visual contract for the
+example suite.
+
+The maintained baseline uses:
+
+- `slate-950` page shells and translucent slate glass panels
+- warm orange-to-red accent ramps derived from the current Ash HQ homepage
+- rounded pill CTAs with restrained warm glow
+- gradient-plus-grid backdrops and code-surface motifs
+- host-app CSS tokens plus semantic style hooks instead of ad hoc inline styles
+
+Use [Ash HQ Theme Baseline](./ash_hq_theme_baseline.md) for the normative
+design contract and [ash_hq_theme_tokens.css](./ash_hq_theme_tokens.css) as the
+copyable token source that future standalone apps should vendor locally.
 
 ## Planned Suite Contract
 

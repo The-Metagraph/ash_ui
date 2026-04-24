@@ -550,11 +550,59 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp generate_heex(%{"type" => "checkbox"} = iur, opts) do
     name = Map.get(iur["props"] || %{}, "name", "checkbox")
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
-    checked = if Map.get(iur["props"] || %{}, "checked"), do: " checked", else: ""
+    checked? = !!Map.get(iur["props"] || %{}, "checked")
+    checked = if checked?, do: " checked", else: ""
     binding = find_binding(opts, iur["id"], "bidirectional")
+    next_value = if checked?, do: "false", else: "true"
 
     """
-    <input type="checkbox" class="#{css_classes(["ash-checkbox", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))}#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
+    <input type="checkbox" class="#{css_classes(["ash-checkbox", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))}#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", next_value)} />
+    """
+  end
+
+  defp generate_heex(%{"type" => "radio"} = iur, opts) do
+    props = iur["props"] || %{}
+    name = Map.get(props, "name", "radio")
+    options = Map.get(props, "options", [])
+    selected_value = Map.get(props, "value")
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "bidirectional")
+
+    options_html =
+      Enum.map_join(options, fn option ->
+        {label, option_value} = normalize_choice(option)
+
+        checked =
+          if to_string(option_value) == to_string(selected_value), do: " checked", else: ""
+
+        """
+        <label class="ash-radio-option">
+          <input type="radio" name="#{name}" value="#{option_value}"#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", option_value)} />
+          <span class="ash-radio-option-label">#{label}</span>
+        </label>
+        """
+      end)
+
+    """
+    <fieldset class="#{css_classes(["ash-radio-group", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{options_html}
+    </fieldset>
+    """
+  end
+
+  defp generate_heex(%{"type" => "switch"} = iur, opts) do
+    props = iur["props"] || %{}
+    checked? = !!Map.get(props, "checked")
+    label = text_prop(props, ["label", "text", "content"], "Toggle")
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "bidirectional")
+    next_value = if checked?, do: "false", else: "true"
+
+    """
+    <button type="button" role="switch" aria-checked="#{checked?}" class="#{css_classes(["ash-switch", checked? && "is-on", prop_class(iur)])}"#{style_attr(prop_style(iur))} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", next_value)}>
+      <span class="ash-switch-track"><span class="ash-switch-thumb"></span></span>
+      <span class="ash-switch-label">#{label}</span>
+    </button>
     """
   end
 
@@ -567,7 +615,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     options_html =
       Enum.map_join(options, fn option ->
-        {label, option_value} = if is_binary(option), do: {option, option}, else: option
+        {label, option_value} = normalize_choice(option)
 
         selected =
           if to_string(option_value) == to_string(selected_value), do: " selected", else: ""
@@ -605,6 +653,30 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     """
     <a class="#{css_classes(["ash-link", prop_class(iur)])}" href="#{href}"#{attr("target", target)}#{attr("rel", rel)}#{style_attr(prop_style(iur))}>#{label}</a>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:pick_list"} = iur, opts) do
+    props = iur["props"] || %{}
+    options = Map.get(props, "options", [])
+    selected_value = Map.get(props, "value")
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "bidirectional")
+
+    options_html =
+      Enum.map_join(options, fn option ->
+        {label, option_value} = normalize_choice(option)
+        selected? = to_string(option_value) == to_string(selected_value)
+
+        """
+        <button type="button" class="#{css_classes(["ash-pick-list-option", selected? && "is-selected"])}" phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", option_value)}>#{label}</button>
+        """
+      end)
+
+    """
+    <div class="#{css_classes(["ash-pick-list", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{options_html}
+    </div>
     """
   end
 
@@ -770,9 +842,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     type = Map.get(props, "type", "text")
     binding = find_binding(opts, iur["id"], "bidirectional")
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    value_attr = if type == "file", do: "", else: attr("value", value)
 
     """
-    <input type="#{type}" class="#{css_classes(["ash-#{css_base}", prop_class(iur)])}" name="#{name}" value="#{value}" placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
+    <input type="#{type}" class="#{css_classes(["ash-#{css_base}", prop_class(iur)])}" name="#{name}"#{value_attr} placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
     """
   end
 
@@ -814,15 +887,23 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp text_prop(props, keys, default \\ nil)
 
   defp text_prop(props, keys, default) when is_list(keys) do
-    Enum.find_value(keys, default, fn key ->
+    Enum.reduce_while(keys, default, fn key, _acc ->
       case prop(props, key) do
-        value when value in [nil, "", []] -> false
-        value -> to_string(value)
+        value when value in [nil, "", []] -> {:cont, default}
+        value -> {:halt, to_string(value)}
       end
     end)
   end
 
   defp text_prop(props, key, default), do: text_prop(props, [key], default)
+
+  defp normalize_choice(option) when is_map(option) do
+    {text_prop(option, ["label", "title", "value"], ""), prop(option, "value")}
+  end
+
+  defp normalize_choice({label, value}), do: {label, value}
+  defp normalize_choice(option) when is_binary(option), do: {option, option}
+  defp normalize_choice(option), do: {to_string(option), option}
 
   defp normalize_item(item) when is_map(item), do: item
 

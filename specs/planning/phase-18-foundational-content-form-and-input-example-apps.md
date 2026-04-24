@@ -52,25 +52,25 @@ Back to index: [README](./README.md)
       [x] 18.2.1.3 Subtask - Demonstrate element-local bindings and actions on form-oriented resources where they materially clarify the widget story.
       [x] 18.2.1.4 Subtask - Add tests that prove each form-scaffold app still preserves the shared Ash HQ shell and resource-first authoring contract.
 
-  [ ] 18.3 Section - Input Control Example Apps
+  [x] 18.3 Section - Input Control Example Apps
     Implement the baseline interactive control catalog around Ash UI's binding
     and action semantics.
 
-    [ ] 18.3.1 Task - Implement text, selection, and boolean input apps
+    [x] 18.3.1 Task - Implement text, selection, and boolean input apps
     Add the examples that sit at the center of the baseline input surface.
 
-      [ ] 18.3.1.1 Subtask - Implement `text_input`, `numeric_input`, `date_input`, `time_input`, and `file_input` example apps, mapping them to the supported Ash UI input boundary or extending that boundary where necessary.
-      [ ] 18.3.1.2 Subtask - Implement `checkbox`, `radio_group`, `select`, `pick_list`, and `toggle` example apps, preserving directory-name parity while using canonical Ash UI types such as `radio` and `switch`.
-      [ ] 18.3.1.3 Subtask - Ensure every input app demonstrates at least one meaningful write or selection flow through element-local bindings or actions.
-      [ ] 18.3.1.4 Subtask - Add tests that prove every input app exposes the primary control clearly and preserves its supported signal semantics.
+      [x] 18.3.1.1 Subtask - Implement `text_input`, `numeric_input`, `date_input`, `time_input`, and `file_input` example apps, mapping them to the supported Ash UI input boundary or extending that boundary where necessary.
+      [x] 18.3.1.2 Subtask - Implement `checkbox`, `radio_group`, `select`, `pick_list`, and `toggle` example apps, preserving directory-name parity while using canonical Ash UI types such as `radio` and `switch`.
+      [x] 18.3.1.3 Subtask - Ensure every input app demonstrates at least one meaningful write or selection flow through element-local bindings or actions.
+      [x] 18.3.1.4 Subtask - Add tests that prove every input app exposes the primary control clearly and preserves its supported signal semantics.
 
-    [ ] 18.3.2 Task - Align validation and runtime expectations for input apps
+    [x] 18.3.2 Task - Align validation and runtime expectations for input apps
     Keep the example surface honest about what Ash UI actually supports today.
 
-      [ ] 18.3.2.1 Subtask - Define how input examples surface unsupported or partial capabilities without pretending they are production-ready.
-      [ ] 18.3.2.2 Subtask - Define how file-input examples behave when upload/runtime support is narrower than the directory name suggests.
-      [ ] 18.3.2.3 Subtask - Define how validation errors, disabled states, and transformed values appear inside the shared example shell.
-      [ ] 18.3.2.4 Subtask - Add tests that prove the input examples fail clearly when authoring/runtime assumptions are violated.
+      [x] 18.3.2.1 Subtask - Define how input examples surface unsupported or partial capabilities without pretending they are production-ready.
+      [x] 18.3.2.2 Subtask - Define how file-input examples behave when upload/runtime support is narrower than the directory name suggests.
+      [x] 18.3.2.3 Subtask - Define how validation errors, disabled states, and transformed values appear inside the shared example shell.
+      [x] 18.3.2.4 Subtask - Add tests that prove the input examples fail clearly when authoring/runtime assumptions are violated.
 
   [ ] 18.4 Section - Phase 18 Integration Tests
     Validate the foundational content, form, and input examples through one

@@ -573,12 +573,359 @@ defmodule AshUI.Examples.Phase18 do
     }
   ]
 
+  @input_definitions [
+    %{
+      directory: "text_input",
+      section: :inputs,
+      family: :input,
+      title: "Text Input Example",
+      subject_type: :input,
+      subject_props: %{
+        name: "headline",
+        type: "text",
+        value: "Ada Example",
+        placeholder: "Type a label",
+        class: "ashui-example-input"
+      },
+      story_text:
+        "Meaningful Interaction Story: edit the canonical input control and confirm the preview stat updates through an element-local value binding without bypassing the shared shell.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.display_value -> input.value and preview stat.",
+      seed_state: %{
+        id: "state-text_input",
+        display_value: "Ada Example",
+        status: "Directory parity preserved through canonical input authoring."
+      },
+      preview_field: :display_value,
+      preview_title: "Current text",
+      subject_binding: %{
+        id: :text_input_value,
+        field: :display_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice: nil,
+      notes: "Preserves the sibling directory name through the canonical input widget."
+    },
+    %{
+      directory: "numeric_input",
+      section: :inputs,
+      family: :input,
+      title: "Numeric Input Example",
+      subject_type: :input,
+      subject_props: %{
+        name: "quantity",
+        type: "number",
+        value: "42",
+        placeholder: "Enter a number",
+        class: "ashui-example-input"
+      },
+      story_text:
+        "Meaningful Interaction Story: change the numeric value and confirm the preview stat reflects the stored example-state value without pretending Ash UI is doing hidden coercion.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.current_value -> specialized numeric input props and preview stat.",
+      seed_state: %{
+        id: "state-numeric_input",
+        current_value: "42",
+        status: "Numeric values stay explicit in the preview stat."
+      },
+      preview_field: :current_value,
+      preview_title: "Current number",
+      subject_binding: %{
+        id: :numeric_input_value,
+        field: :current_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice:
+        "The example keeps numeric values string-backed in example state so any future coercion or validation work stays explicit.",
+      notes: "Uses the canonical input widget with numeric props."
+    },
+    %{
+      directory: "date_input",
+      section: :inputs,
+      family: :input,
+      title: "Date Input Example",
+      subject_type: :input,
+      subject_props: %{
+        name: "launch_date",
+        type: "date",
+        value: "2026-04-24",
+        class: "ashui-example-input"
+      },
+      story_text:
+        "Meaningful Interaction Story: choose a date and confirm the preview stat reflects the authored input state inside the shared form-oriented shell.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.current_value -> specialized date input props and preview stat.",
+      seed_state: %{
+        id: "state-date_input",
+        current_value: "2026-04-24",
+        status: "Date-specific props are authored through canonical input."
+      },
+      preview_field: :current_value,
+      preview_title: "Selected date",
+      subject_binding: %{
+        id: :date_input_value,
+        field: :current_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice: nil,
+      notes: "Uses the canonical input widget with date props."
+    },
+    %{
+      directory: "time_input",
+      section: :inputs,
+      family: :input,
+      title: "Time Input Example",
+      subject_type: :input,
+      subject_props: %{
+        name: "start_time",
+        type: "time",
+        value: "09:30",
+        class: "ashui-example-input"
+      },
+      story_text:
+        "Meaningful Interaction Story: adjust the time control and confirm the preview stat stays in sync through the resource-owned binding path.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.current_value -> specialized time input props and preview stat.",
+      seed_state: %{
+        id: "state-time_input",
+        current_value: "09:30",
+        status: "Time-specific props are authored through canonical input."
+      },
+      preview_field: :current_value,
+      preview_title: "Selected time",
+      subject_binding: %{
+        id: :time_input_value,
+        field: :current_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice: nil,
+      notes: "Uses the canonical input widget with time props."
+    },
+    %{
+      directory: "file_input",
+      section: :inputs,
+      family: :input,
+      title: "File Input Example",
+      subject_type: :input,
+      subject_props: %{
+        name: "attachment",
+        type: "file",
+        class: "ashui-example-input"
+      },
+      story_text:
+        "Meaningful Interaction Story: choose a representative filename and confirm the preview stat records the selection while the support note stays explicit that upload transport is not implemented here.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.submitted_value -> reviewer-visible selected filename only; no binary upload lifecycle is implied.",
+      seed_state: %{
+        id: "state-file_input",
+        submitted_value: "No file selected",
+        status: "File selection is narrowed to filename echo only."
+      },
+      preview_field: :submitted_value,
+      preview_title: "Selected filename",
+      subject_binding: %{
+        id: :file_input_value,
+        field: :submitted_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice:
+        "Upload transport is not implemented in this example suite yet; the file-input example only echoes the selected filename through the resource-authority path.",
+      notes: "Uses the canonical input widget with a narrowed file-input contract."
+    },
+    %{
+      directory: "checkbox",
+      section: :inputs,
+      family: :input,
+      title: "Checkbox Example",
+      subject_type: :checkbox,
+      subject_props: %{
+        name: "receive_updates",
+        checked: true,
+        class: "ashui-example-checkbox"
+      },
+      story_text:
+        "Meaningful Interaction Story: toggle the checkbox and confirm the preview stat tracks the boolean state through an element-local binding.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.checked -> checkbox.checked and preview stat.",
+      seed_state: %{
+        id: "state-checkbox",
+        checked: true,
+        status: "Checkbox uses the current public widget surface directly."
+      },
+      preview_field: :checked,
+      preview_title: "Checked state",
+      subject_binding: %{
+        id: :checkbox_value,
+        field: :checked,
+        target: "checked",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice: nil,
+      notes: "Uses the current public checkbox widget directly."
+    },
+    %{
+      directory: "radio_group",
+      section: :inputs,
+      family: :input,
+      title: "Radio Group Example",
+      subject_type: :radio,
+      subject_props: %{
+        name: "plan",
+        value: "pro",
+        options: [{"Starter", "starter"}, {"Pro", "pro"}, {"Enterprise", "enterprise"}],
+        class: "ashui-example-radio-group"
+      },
+      story_text:
+        "Meaningful Interaction Story: pick a radio option and confirm the normalized `radio` subject preserves the directory story while the preview stat reflects the selected value.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.selected_value -> canonical radio-group markup and preview stat.",
+      seed_state: %{
+        id: "state-radio_group",
+        selected_value: "pro",
+        status: "Directory parity preserved through canonical radio authoring."
+      },
+      preview_field: :selected_value,
+      preview_title: "Selected plan",
+      subject_binding: %{
+        id: :radio_group_value,
+        field: :selected_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice:
+        "The sibling `radio_group` directory is authored through the canonical `radio` type, with dedicated group markup in the fallback renderer.",
+      notes: "Preserves the sibling directory name while using the canonical radio widget."
+    },
+    %{
+      directory: "select",
+      section: :inputs,
+      family: :input,
+      title: "Select Example",
+      subject_type: :select,
+      subject_props: %{
+        name: "theme",
+        value: "ember",
+        options: [{"Ember", "ember"}, {"Slate", "slate"}, {"Mist", "mist"}],
+        class: "ashui-example-select"
+      },
+      story_text:
+        "Meaningful Interaction Story: change the selected option and confirm the preview stat tracks the current selection through the shared example shell.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.selected_value -> select.value and preview stat.",
+      seed_state: %{
+        id: "state-select",
+        selected_value: "ember",
+        status: "Select uses the current public widget surface directly."
+      },
+      preview_field: :selected_value,
+      preview_title: "Selected option",
+      subject_binding: %{
+        id: :select_value,
+        field: :selected_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice: nil,
+      notes: "Uses the current public select widget directly."
+    },
+    %{
+      directory: "pick_list",
+      section: :inputs,
+      family: :input,
+      title: "Pick List Example",
+      subject_type: :"custom:pick_list",
+      subject_props: %{
+        name: "role",
+        value: "ops",
+        options: [{"Operations", "ops"}, {"Finance", "finance"}, {"Support", "support"}],
+        class: "ashui-example-pick-list"
+      },
+      story_text:
+        "Meaningful Interaction Story: choose one promoted pick-list option and confirm the custom surface stays explicit about the current single-selection runtime boundary.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.selected_value -> custom pick-list surface and preview stat.",
+      seed_state: %{
+        id: "state-pick_list",
+        selected_value: "ops",
+        status: "Pick-list semantics are currently narrowed to one promoted selection."
+      },
+      preview_field: :selected_value,
+      preview_title: "Promoted pick",
+      subject_binding: %{
+        id: :pick_list_value,
+        field: :selected_value,
+        target: "value",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice:
+        "The example uses `custom:pick_list` and currently narrows the runtime to one promoted selection until a first-class multi-pick widget is admitted publicly.",
+      notes: "Uses an explicit custom surface until a public pick-list contract exists."
+    },
+    %{
+      directory: "toggle",
+      section: :inputs,
+      family: :input,
+      title: "Toggle Example",
+      subject_type: :switch,
+      subject_props: %{
+        label: "Enable pager alerts",
+        checked: false,
+        class: "ashui-example-toggle"
+      },
+      story_text:
+        "Meaningful Interaction Story: flip the toggle and confirm the preview stat reflects the normalized `switch` state without claiming a separate public toggle widget.",
+      signal_text:
+        "Canonical Signal Preview: change -> ExampleState.enabled -> canonical switch state and preview stat.",
+      seed_state: %{
+        id: "state-toggle",
+        enabled: false,
+        status: "Directory parity preserved through canonical switch authoring."
+      },
+      preview_field: :enabled,
+      preview_title: "Enabled state",
+      subject_binding: %{
+        id: :toggle_value,
+        field: :enabled,
+        target: "checked",
+        transform: %{}
+      },
+      subject_action: nil,
+      subject_children: [],
+      support_notice:
+        "The sibling `toggle` directory is authored through the canonical `switch` widget, and its current state is surfaced through the preview stat rather than a fake device chrome.",
+      notes: "Preserves the sibling directory name while using the canonical switch widget."
+    }
+  ]
+
   @doc """
   Returns every currently authored Phase 18 definition.
   """
   @spec definitions() :: [definition()]
   def definitions do
-    @foundational_definitions ++ @form_scaffolding_definitions
+    @foundational_definitions ++ @form_scaffolding_definitions ++ @input_definitions
   end
 
   @doc """

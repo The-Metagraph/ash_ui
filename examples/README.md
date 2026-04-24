@@ -5,13 +5,14 @@ This directory is reserved for runnable and copyable Ash UI examples.
 ## Status
 
 The repository now includes checked-in standalone example apps from Phase 18
-Sections 18.1 and 18.2.
+Sections 18.1, 18.2, and 18.3.
 
 Current directories:
 
 - `examples/box`
 - `examples/text`
 - `examples/button`
+- `examples/checkbox`
 - `examples/content`
 - `examples/field`
 - `examples/field_group`
@@ -20,8 +21,17 @@ Current directories:
 - `examples/image`
 - `examples/label`
 - `examples/link`
+- `examples/date_input`
+- `examples/file_input`
+- `examples/numeric_input`
+- `examples/pick_list`
+- `examples/radio_group`
 - `examples/separator`
 - `examples/spacer`
+- `examples/select`
+- `examples/text_input`
+- `examples/time_input`
+- `examples/toggle`
 
 Phase 17 Section 17.1 defines the example-suite contract that the checked-in
 apps and future example directories must follow. The shared planning artifacts
@@ -66,6 +76,24 @@ Current form-oriented helper rules established by Phase 18 Section 18.2:
   composing nested `form_field` and input children underneath it.
 - Supporting helper elements must stay subordinate to one clear primary subject
   per directory.
+
+Current input-control rules established by Phase 18 Section 18.3:
+
+- `text_input`, `numeric_input`, `date_input`, `time_input`, and `file_input`
+  are authored through the canonical `input` widget with specialized props.
+- `checkbox` and `select` use the current public widget surface directly.
+- `radio_group` preserves sibling naming while authoring through the canonical
+  `radio` widget.
+- `toggle` preserves sibling naming while authoring through the canonical
+  `switch` widget.
+- `pick_list` remains an explicit `custom:pick_list` surface until a stable
+  public multi-pick contract is admitted.
+- Preview stats are the reviewer-visible transformed value surface for input
+  examples, including boolean values and narrowed filename echoes.
+- Partial or normalized surfaces must render a support notice instead of
+  implying broader runtime support than Ash UI currently provides.
+- Invalid binding/runtime assumptions must surface a visible error flash through
+  the shared shell rather than silently no-op.
 
 ## Shared Theme
 

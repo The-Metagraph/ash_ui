@@ -299,6 +299,99 @@ defmodule Phase18ExampleGenerator do
       outline: none;
     }
 
+    .ash-checkbox {
+      accent-color: var(--ashui-example-accent);
+      block-size: 1.15rem;
+      inline-size: 1.15rem;
+    }
+
+    .ash-select {
+      background: rgba(7, 14, 26, 0.74);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 0.95rem;
+      color: var(--ashui-example-copy-strong);
+      min-height: 3rem;
+      padding: 0.75rem 0.95rem;
+      width: 100%;
+    }
+
+    .ash-radio-group {
+      border: 0;
+      display: grid;
+      gap: 0.7rem;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ash-radio-option {
+      align-items: center;
+      display: inline-flex;
+      gap: 0.65rem;
+    }
+
+    .ash-switch {
+      align-items: center;
+      background: transparent;
+      border: 0;
+      color: var(--ashui-example-copy-strong);
+      cursor: pointer;
+      display: inline-flex;
+      gap: 0.85rem;
+      padding: 0;
+    }
+
+    .ash-switch-track {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 999px;
+      display: inline-flex;
+      height: 1.75rem;
+      padding: 0.18rem;
+      transition: background 180ms ease;
+      width: 3.2rem;
+    }
+
+    .ash-switch-thumb {
+      background: linear-gradient(135deg, #fff0df 0%, #ff9c61 100%);
+      border-radius: 999px;
+      box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.25);
+      display: block;
+      height: 1.2rem;
+      transform: translateX(0);
+      transition: transform 180ms ease;
+      width: 1.2rem;
+    }
+
+    .ash-switch.is-on .ash-switch-track {
+      background: rgba(255, 122, 61, 0.3);
+    }
+
+    .ash-switch.is-on .ash-switch-thumb {
+      transform: translateX(1.35rem);
+    }
+
+    .ash-pick-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+    }
+
+    .ash-pick-list-option {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 999px;
+      color: var(--ashui-example-copy-strong);
+      cursor: pointer;
+      padding: 0.7rem 1rem;
+    }
+
+    .ash-pick-list-option.is-selected {
+      background: rgba(255, 122, 61, 0.15);
+      border-color: rgba(255, 122, 61, 0.55);
+      box-shadow: 0 0.8rem 2rem rgba(255, 122, 61, 0.12);
+    }
+
     .ashui-example-box {
       min-height: 12rem;
     }

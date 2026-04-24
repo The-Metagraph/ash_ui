@@ -103,7 +103,7 @@ defmodule AshUI.LiveView.IURHydration do
   end
 
   defp binding_value(binding_state) do
-    Map.get(binding_state, :value) || Map.get(binding_state, "value")
+    Map.get_lazy(binding_state, :value, fn -> Map.get(binding_state, "value") end)
   end
 
   defp binding_type(binding_state) do

@@ -56,25 +56,25 @@ Back to index: [README](./README.md)
       [x] 17.1.2.3 Subtask - Define the maintained runtime target for all apps, with LiveView mandatory and other renderer previews explicitly optional.
       [x] 17.1.2.4 Subtask - Define an unsupported-surface policy so example apps do not overstate widget support beyond maintained Ash UI authoring/runtime boundaries.
 
-  [ ] 17.2 Section - Resource-Authority Example App Template
+  [x] 17.2 Section - Resource-Authority Example App Template
     Define the reusable app-level shape that every mirrored example must follow.
 
-    [ ] 17.2.1 Task - Define the per-app resource-first scaffold
+    [x] 17.2.1 Task - Define the per-app resource-first scaffold
     Make every example app look like a small but complete Ash UI application.
 
-      [ ] 17.2.1.1 Subtask - Define the required screen resource, element resource, relationship, and binding/action module set for one example app.
-      [ ] 17.2.1.2 Subtask - Define the required host-app modules for UI storage, runtime domain, endpoint, router, and LiveView mounting.
-      [ ] 17.2.1.3 Subtask - Define one shared "Meaningful Interaction Story" review surface and one shared "Canonical Signal Preview" surface for all apps.
-      [ ] 17.2.1.4 Subtask - Define route, seed-data, naming, and DOM-id conventions so every app is discoverable and comparable across the suite.
+      [x] 17.2.1.1 Subtask - Define the required screen resource, element resource, relationship, and binding/action module set for one example app.
+      [x] 17.2.1.2 Subtask - Define the required host-app modules for UI storage, runtime domain, endpoint, router, and LiveView mounting.
+      [x] 17.2.1.3 Subtask - Define one shared "Meaningful Interaction Story" review surface and one shared "Canonical Signal Preview" surface for all apps.
+      [x] 17.2.1.4 Subtask - Define route, seed-data, naming, and DOM-id conventions so every app is discoverable and comparable across the suite.
 
-    [ ] 17.2.2 Task - Define suite bootstrap and seed conventions
+    [x] 17.2.2 Task - Define suite bootstrap and seed conventions
     Keep example apps repeatable without forcing maintainers to hand-assemble
     storage or runtime state for each app.
 
-      [ ] 17.2.2.1 Subtask - Define the default storage strategy for example apps, including when ETS-backed UI storage is sufficient and when repo-backed fixtures are required.
-      [ ] 17.2.2.2 Subtask - Define app-local seed helpers that create persisted screens through `AshUI.Resource.Authority`.
-      [ ] 17.2.2.3 Subtask - Define how representative runtime actors, authorization context, and list/action data fixtures are created per app.
-      [ ] 17.2.2.4 Subtask - Define the reset/reseed path used by tests and local review workflows.
+      [x] 17.2.2.1 Subtask - Define the default storage strategy for example apps, including when ETS-backed UI storage is sufficient and when repo-backed fixtures are required.
+      [x] 17.2.2.2 Subtask - Define app-local seed helpers that create persisted screens through `AshUI.Resource.Authority`.
+      [x] 17.2.2.3 Subtask - Define how representative runtime actors, authorization context, and list/action data fixtures are created per app.
+      [x] 17.2.2.4 Subtask - Define the reset/reseed path used by tests and local review workflows.
 
   [ ] 17.3 Section - Ash HQ Theme and Shell Baseline
     Turn the current `ash-hq.org` visual language into a reusable suite

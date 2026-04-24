@@ -12,7 +12,29 @@ planning artifacts in this directory are:
 
 - `examples/catalog.tsv`: machine-readable crosswalk from the sibling
   `unified_ui` example suite into the planned Ash UI example suite
+- `examples/scaffold_contract.md`: required per-app resource-authority app
+  shape, host modules, review surfaces, and bootstrap conventions
 - `specs/planning/phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md`
+- `.spec/specs/examples.spec.md`
+
+## Shared Scaffold
+
+Phase 17 Section 17.2 defines the reusable example-app scaffold used by every
+future directory under `examples/<name>/`.
+
+The maintained baseline is:
+
+- one standalone Mix project per example directory
+- one authored screen resource plus related element resources per example
+- app-local UI storage and runtime domains
+- one LiveView host route at `/`
+- one reviewer-visible `Meaningful Interaction Story` surface
+- one reviewer-visible `Canonical Signal Preview` surface
+- one app-local seed module that persists the screen through
+  `AshUI.Resource.Authority.create/2`
+
+See [Resource-Authority Example App Scaffold](./scaffold_contract.md) for the
+full module, route, DOM-id, and reset/reseed contract.
 
 ## Planned Suite Contract
 
@@ -29,6 +51,8 @@ The current Phase 17 parity rules are:
   elements or helper controls are needed.
 - Require one reviewer-visible `Meaningful Interaction Story` surface per app.
 - Require one reviewer-visible `Canonical Signal Preview` surface per app.
+- Require app-local seed helpers that persist the mounted screen through
+  `AshUI.Resource.Authority`.
 - Treat `liveview` as the maintained runtime target for all apps.
 - Treat any renderer previews beyond `liveview` as optional and non-blocking.
 - Call out unsupported or partial widget/runtime surfaces explicitly in the

@@ -18,6 +18,9 @@ surface:
   - examples/scaffold_contract.md
   - examples/ash_hq_theme_baseline.md
   - examples/ash_hq_theme_tokens.css
+  - lib/ash_ui/examples/contract.ex
+  - test/support/example_suite_modules.ex
+  - test/ash_ui/phase_17_integration_test.exs
   - specs/planning/phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md
 ```
 
@@ -86,6 +89,17 @@ surface:
 - kind: source_file
   target: examples/ash_hq_theme_tokens.css
   covers:
+    - ash_ui.examples.ash_hq_theme_baseline
+    - ash_ui.examples.authoring_facing_style_api
+- kind: command
+  target: mix test test/ash_ui/phase_17_integration_test.exs
+  execute: true
+  covers:
+    - ash_ui.examples.catalog_parity_contract
+    - ash_ui.examples.resource_authority_scaffold
+    - ash_ui.examples.host_app_mount_contract
+    - ash_ui.examples.review_surface_contract
+    - ash_ui.examples.seed_and_reset_contract
     - ash_ui.examples.ash_hq_theme_baseline
     - ash_ui.examples.authoring_facing_style_api
 ```

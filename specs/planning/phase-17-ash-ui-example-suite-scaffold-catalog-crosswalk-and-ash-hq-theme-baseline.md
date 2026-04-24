@@ -29,7 +29,7 @@ Back to index: [README](./README.md)
   `separator -> divider`, `text_input -> input`, `radio_group -> radio`, and
   `toggle -> switch`
 
-[ ] 17 Phase 17 - Ash UI Example Suite Scaffold, Catalog Crosswalk, and Ash HQ Theme Baseline
+[x] 17 Phase 17 - Ash UI Example Suite Scaffold, Catalog Crosswalk, and Ash HQ Theme Baseline
   Define the suite-wide contract for rebuilding the Ash UI `examples/`
   directory as a resource-first mirror of the sibling `unified_ui` example
   catalog.
@@ -97,15 +97,15 @@ Back to index: [README](./README.md)
       [x] 17.3.2.3 Subtask - Define how example apps keep the suite shell visually shared while allowing per-widget emphasis where needed.
       [x] 17.3.2.4 Subtask - Add validation or review guidance that catches divergence from the shared Ash HQ style baseline.
 
-  [ ] 17.4 Section - Phase 17 Integration Tests
+  [x] 17.4 Section - Phase 17 Integration Tests
     Validate the suite scaffold, catalog crosswalk, and theme baseline before
     app families start landing.
 
-    [ ] 17.4.1 Task - Scaffold and style baseline scenarios
+    [x] 17.4.1 Task - Scaffold and style baseline scenarios
     Prove that the suite foundation is coherent enough to scale across the full
     mirrored catalog.
 
-      [ ] 17.4.1.1 Subtask - Verify the catalog crosswalk covers every sibling `unified_ui` example entry exactly once.
-      [ ] 17.4.1.2 Subtask - Verify a generated or scaffolded example app can persist a resource-authority screen and mount it through LiveView.
-      [ ] 17.4.1.3 Subtask - Verify the shared Ash HQ theme shell renders correctly on desktop and mobile breakpoints.
-      [ ] 17.4.1.4 Subtask - Verify the suite contract rejects example names, widget mappings, or style baselines that drift from the catalog scaffold.
+      [x] 17.4.1.1 Subtask - Verify the catalog crosswalk covers every sibling `unified_ui` example entry exactly once.
+      [x] 17.4.1.2 Subtask - Verify a generated or scaffolded example app can persist a resource-authority screen and mount it through LiveView.
+      [x] 17.4.1.3 Subtask - Verify the shared Ash HQ theme shell renders correctly on desktop and mobile breakpoints.
+      [x] 17.4.1.4 Subtask - Verify the suite contract rejects example names, widget mappings, or style baselines that drift from the catalog scaffold.

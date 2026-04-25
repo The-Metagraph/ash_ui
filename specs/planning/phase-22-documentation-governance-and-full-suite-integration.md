@@ -25,17 +25,17 @@ Back to index: [README](./README.md)
   Finish the public documentation, governance, release gates, and end-to-end
   integration coverage for the mirrored Ash UI example suite.
 
-  [ ] 22.1 Section - Public Documentation Surface
+  [x] 22.1 Section - Public Documentation Surface
     Make the example suite visible and understandable from the repo's public
     docs and guides.
 
-    [ ] 22.1.1 Task - Update README and guides for the example suite
+    [x] 22.1.1 Task - Update README and guides for the example suite
     Teach the resource-first example strategy explicitly.
 
-      [ ] 22.1.1.1 Subtask - Update the root `README.md` to describe the Ash UI example-suite contract and where it differs from the sibling `unified_ui` suite.
-      [ ] 22.1.1.2 Subtask - Update user guides to point readers at representative example apps for major widget families.
-      [ ] 22.1.1.3 Subtask - Update developer guides to document how new example apps should be authored, themed, validated, and reviewed.
-      [ ] 22.1.1.4 Subtask - Add migration and contribution notes that explain the stable catalog-name parity and canonical-type normalization rules.
+      [x] 22.1.1.1 Subtask - Update the root `README.md` to describe the Ash UI example-suite contract and where it differs from the sibling `unified_ui` suite.
+      [x] 22.1.1.2 Subtask - Update user guides to point readers at representative example apps for major widget families.
+      [x] 22.1.1.3 Subtask - Update developer guides to document how new example apps should be authored, themed, validated, and reviewed.
+      [x] 22.1.1.4 Subtask - Add migration and contribution notes that explain the stable catalog-name parity and canonical-type normalization rules.
 
   [ ] 22.2 Section - Governance and Release Readiness
     Add the final gates that keep the suite maintainable after it lands.

@@ -6,8 +6,8 @@ title: Widget Types, Properties, and Signals
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-23
-next_review: 2026-10-23
+last_reviewed: 2026-04-25
+next_review: 2026-10-25
 related_reqs: [REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002]
 related_scns: [SCN-002, SCN-009, SCN-061, SCN-101]
 related_guides: [UG-0002, UG-0004, UG-0005, UG-0007, DG-0001]
@@ -153,6 +153,25 @@ Two important edge cases:
 - The fallback LiveView adapter understands `label` and `form_builder`, but they are not part of the current validated public `ui_element type` vocabulary.
 - `props[:variant]` on `button` is renderer-read today, while `variants [...]` on `ui_element` is better treated as semantic tagging for downstream tooling.
 
+### Representative Example Directories
+
+The checked-in example suite is organized by sibling `unified_ui/examples`
+directory name, not only by canonical Ash UI type. Use these directories when
+you want to inspect the maintained behavior for each major family:
+
+| Family | Representative directories | What they demonstrate |
+|---|---|---|
+| foundational content | `text`, `button`, `label`, `icon`, `image`, `link` | exact public widgets plus honest custom handling where link semantics are still explicit |
+| forms and inputs | `form_builder`, `field`, `field_group`, `text_input`, `select`, `radio_group`, `toggle` | normalized input naming, composed form shells, and element-local actions/bindings |
+| layout and navigation | `row`, `column`, `grid`, `menu`, `tabs`, `command_palette` | relationship-first composition with exact and custom navigation shells |
+| display and inspection | `viewport`, `scroll_bar`, `split_pane`, `canvas` | example-only display shells that keep state changes on nested public widgets |
+| overlays and data surfaces | `dialog`, `alert_dialog`, `table`, `tree_view`, `markdown_viewer`, `log_viewer` | composed review shells, explicit custom boundaries, and seeded screen persistence |
+| feedback and operational surfaces | `status`, `progress`, `sparkline`, `bar_chart`, `cluster_dashboard` | normalized status treatment, custom chart shells, and runtime-rich operational review stories |
+
+If a directory name differs from the canonical Ash UI type, treat the example
+directory as the review handle and the canonical type as the runtime authoring
+target.
+
 ### Example-Suite Custom Surfaces
 
 The checked-in example suite now relies on a small set of explicitly rendered
@@ -201,6 +220,7 @@ stable built-in authoring types for general application work.
 
 ## See Also
 
+- [examples/README.md](../../examples/README.md)
 - [UG-0002: Authoring Screens, Elements, and Relationships](./UG-0002-authoring-screens-elements-and-relationships.md)
 - [UG-0004: Bindings, Actions, and Forms](./UG-0004-bindings-actions-and-forms.md)
 - [UG-0005: LiveView Runtime and Rendering](./UG-0005-liveview-runtime-and-rendering.md)

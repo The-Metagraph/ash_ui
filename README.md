@@ -22,6 +22,8 @@ and runtime orchestration.
 - LiveView mount, event, and update integration helpers
 - runtime authorization policies and checks
 - normalized telemetry events, in-memory metrics, and dashboard definitions
+- a checked-in `examples/` suite that mirrors the sibling `unified_ui/examples`
+  catalog through standalone Ash UI apps
 
 ## Architecture at a Glance
 
@@ -45,6 +47,35 @@ flowchart LR
     Canonical --> Renderers
     Canonical --> Runtime
 ```
+
+## Example Suite
+
+Ash UI now ships a maintained example suite under [examples/README.md](./examples/README.md).
+It mirrors the sibling `unified_ui/examples` directory names so reviews can stay
+catalog-stable across packages, but every checked-in Ash UI example is rebuilt
+through screen and element resources plus `AshUI.Resource.Authority`.
+
+That means the suite is intentionally not a one-for-one copy of upstream
+authoring semantics:
+
+- directory parity is stable, even when the canonical Ash UI subject is normalized
+- canonical type normalization currently includes `text_input -> input`,
+  `radio_group -> radio`, `toggle -> switch`, and `separator -> divider`
+- some directories remain explicit `custom:*` or composed review surfaces until
+  Ash UI exposes a stable public widget contract for them
+
+From the repo root, maintainers can work the suite through:
+
+- `mix ash_ui.examples.list`
+- `mix ash_ui.examples.preview <directory>`
+- `mix ash_ui.examples.start <directory> --dry-run`
+- `mix ash_ui.examples.validate`
+- `mix ash_ui.examples.report`
+
+The shared visual contract for every checked-in app is defined in
+[examples/ash_hq_theme_baseline.md](./examples/ash_hq_theme_baseline.md). Each
+app vendors that Ash HQ-derived shell locally instead of depending on a shared
+runtime package.
 
 ## Quick Start
 

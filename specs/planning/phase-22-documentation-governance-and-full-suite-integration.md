@@ -49,18 +49,18 @@ Back to index: [README](./README.md)
       [x] 22.2.1.3 Subtask - Add governance checks that reject style drift from the shared Ash HQ example shell without an explicit approved update.
       [x] 22.2.1.4 Subtask - Define the maintenance policy for future widget additions so the Ash UI suite stays in sync with the sibling `unified_ui` catalog over time.
 
-  [ ] 22.3 Section - Conformance and Traceability
+  [x] 22.3 Section - Conformance and Traceability
     Keep the example suite connected to the repo's broader proof and review
     system.
 
-    [ ] 22.3.1 Task - Extend traceability for the example suite
+    [x] 22.3.1 Task - Extend traceability for the example suite
     Ensure the example rollout is represented in conformance and planning
     surfaces rather than only in prose.
 
-      [ ] 22.3.1.1 Subtask - Add or update conformance scenarios that cover the mirrored example-suite contract and representative resource-authority example flows.
-      [ ] 22.3.1.2 Subtask - Update scenario-test traceability so maintained example-suite tests remain discoverable.
-      [ ] 22.3.1.3 Subtask - Add traceability for the shared Ash HQ theme shell and shared review surfaces where they become normative.
-      [ ] 22.3.1.4 Subtask - Add tests that prove the example-suite traceability docs stay synchronized with the actual maintained examples.
+      [x] 22.3.1.1 Subtask - Add or update conformance scenarios that cover the mirrored example-suite contract and representative resource-authority example flows.
+      [x] 22.3.1.2 Subtask - Update scenario-test traceability so maintained example-suite tests remain discoverable.
+      [x] 22.3.1.3 Subtask - Add traceability for the shared Ash HQ theme shell and shared review surfaces where they become normative.
+      [x] 22.3.1.4 Subtask - Add tests that prove the example-suite traceability docs stay synchronized with the actual maintained examples.
 
   [ ] 22.4 Section - Phase 22 Integration Tests
     Validate the complete Ash UI example suite through representative category

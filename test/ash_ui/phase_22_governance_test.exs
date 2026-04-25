@@ -5,6 +5,7 @@ defmodule AshUI.Phase22GovernanceTest do
 
   @moduletag :integration
   @moduletag :examples
+  @moduletag :conformance
 
   describe "Section 22.2 - Governance and Release Readiness" do
     test "22.2.1.2 - directory-tree validation rejects stale or partially removed example apps" do

@@ -473,6 +473,116 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "list"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "List")
+    description = text_prop(props, ["description", "help"])
+    empty_text = text_prop(props, "empty_text", "No items available.")
+    items = collection_items(props)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    items_html =
+      case items do
+        [] ->
+          ~s(<li class="ash-list-empty">#{empty_text}</li>)
+
+        collection ->
+          Enum.map_join(collection, &render_list_item/1)
+      end
+
+    """
+    <section class="#{css_classes(["ash-list", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-list-header">
+        <h2 class="ash-list-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-list-description\">#{description}</p>", else: ""}
+      </header>
+      <ul class="ash-list-items">
+        #{items_html}
+      </ul>
+      <div class="ash-list-body">
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-list-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-list-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "table"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Table")
+    description = text_prop(props, ["description", "help"])
+    empty_text = text_prop(props, "empty_text", "No rows available.")
+    columns = table_columns(props)
+    rows = collection_items(props)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    header_html = Enum.map_join(columns, &render_table_header/1)
+
+    rows_html =
+      case rows do
+        [] ->
+          """
+          <tr class="ash-table-empty-row">
+            <td class="ash-table-empty" colspan="#{max(length(columns), 1)}">#{empty_text}</td>
+          </tr>
+          """
+
+        collection ->
+          Enum.map_join(collection, &render_table_row(&1, columns))
+      end
+
+    """
+    <section class="#{css_classes(["ash-table-surface", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-table-header">
+        <h2 class="ash-table-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-table-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-table-wrapper">
+        <table class="ash-table">
+          <thead>
+            <tr>#{header_html}</tr>
+          </thead>
+          <tbody>
+            #{rows_html}
+          </tbody>
+        </table>
+      </div>
+      <div class="ash-table-body">
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-table-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-table-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(%{"type" => "form_builder"} = iur, opts) do
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
     binding = find_binding(opts, iur["id"], "event")
@@ -1116,6 +1226,118 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "custom:tree_view"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Tree view")
+    description = text_prop(props, ["description", "help"])
+    model = tree_nodes(props)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-tree-view", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-tree-view-header">
+        <h2 class="ash-tree-view-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-tree-view-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-tree-view-body">
+        <ul class="ash-tree-view-list">
+          #{render_tree_nodes(model)}
+        </ul>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-tree-view-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-tree-view-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:markdown_viewer"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Markdown viewer")
+    description = text_prop(props, ["description", "help"])
+    content = text_prop(props, "content", "")
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-markdown-viewer", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-markdown-viewer-header">
+        <h2 class="ash-markdown-viewer-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-markdown-viewer-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-markdown-viewer-body">
+        #{render_markdown_content(content)}
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-markdown-viewer-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-markdown-viewer-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:log_viewer"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Log viewer")
+    description = text_prop(props, ["description", "help"])
+    entries = log_entries(props)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-log-viewer", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-log-viewer-header">
+        <h2 class="ash-log-viewer-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-log-viewer-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-log-viewer-body">
+        <div class="ash-log-viewer-lines">
+          #{Enum.map_join(entries, &render_log_entry/1)}
+        </div>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-log-viewer-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-log-viewer-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -1305,8 +1527,6 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     ArgumentError -> Map.get(props, key, default)
   end
 
-  defp truthy_prop(props, key), do: truthy_prop(props, key, false)
-
   defp truthy_prop(props, key, default) do
     case prop(props, key, default) do
       value when value in [true, "true", "open", "visible", 1, "1", "yes"] -> true
@@ -1342,6 +1562,165 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp normalize_item(item), do: %{"value" => item}
+
+  defp collection_items(props) do
+    items = prop(props, "items")
+    collection = prop(props, "collection")
+    entries = prop(props, "entries")
+
+    cond do
+      is_list(items) -> items
+      is_map(collection) -> prop(collection, "items", [])
+      is_list(entries) -> entries
+      true -> []
+    end
+  end
+
+  defp table_columns(props) do
+    case prop(props, "columns", []) do
+      columns when is_list(columns) and columns != [] ->
+        columns
+
+      _other ->
+        collection_items(props)
+        |> List.first()
+        |> normalize_item()
+        |> Map.keys()
+        |> Enum.sort()
+        |> Enum.map(&%{"key" => &1, "label" => Macro.camelize(&1)})
+    end
+  end
+
+  defp render_list_item(item) do
+    item = normalize_item(item)
+    title = text_prop(item, ["title", "label", "name", "value"], "Item")
+    summary = text_prop(item, ["summary", "description", "message"])
+    meta = text_prop(item, ["meta", "status"])
+
+    """
+    <li class="ash-list-item">
+      <div class="ash-list-item-main">
+        <p class="ash-list-item-title">#{title}</p>
+        #{if summary, do: "<p class=\"ash-list-item-summary\">#{summary}</p>", else: ""}
+      </div>
+      #{if meta, do: "<span class=\"ash-list-item-meta\">#{meta}</span>", else: ""}
+    </li>
+    """
+  end
+
+  defp render_table_header(column) do
+    column = normalize_item(column)
+    label = text_prop(column, ["label", "title", "key"], "")
+    "<th>#{label}</th>"
+  end
+
+  defp render_table_row(item, columns) do
+    item = normalize_item(item)
+
+    cells =
+      columns
+      |> Enum.map_join(fn column ->
+        column = normalize_item(column)
+        key = text_prop(column, "key", "")
+        value = table_cell_value(item, key)
+        "<td>#{value}</td>"
+      end)
+
+    "<tr>#{cells}</tr>"
+  end
+
+  defp table_cell_value(item, key) when is_binary(key) do
+    value =
+      Map.get(item, key) ||
+        try do
+          Map.get(item, String.to_existing_atom(key))
+        rescue
+          ArgumentError -> nil
+        end
+
+    case value do
+      nil -> ""
+      value -> to_string(value)
+    end
+  end
+
+  defp tree_nodes(props) do
+    case prop(props, "model", []) do
+      nodes when is_list(nodes) -> nodes
+      %{} = node -> [node]
+      _other -> []
+    end
+  end
+
+  defp render_tree_nodes([]) do
+    ~s(<li class="ash-tree-view-empty">No nodes loaded.</li>)
+  end
+
+  defp render_tree_nodes(nodes) when is_list(nodes) do
+    Enum.map_join(nodes, fn node ->
+      node = normalize_item(node)
+      label = text_prop(node, ["label", "title", "name", "value"], "Node")
+      meta = text_prop(node, ["meta", "status"])
+      children = Map.get(node, "children") || Map.get(node, :children) || []
+
+      """
+      <li class="ash-tree-view-node">
+        <div class="ash-tree-view-node-row">
+          <span class="ash-tree-view-node-label">#{label}</span>
+          #{if meta, do: "<span class=\"ash-tree-view-node-meta\">#{meta}</span>", else: ""}
+        </div>
+        #{if children != [], do: "<ul class=\"ash-tree-view-children\">#{render_tree_nodes(children)}</ul>", else: ""}
+      </li>
+      """
+    end)
+  end
+
+  defp render_markdown_content(markdown) when markdown in [nil, ""] do
+    ~s(<p class="ash-markdown-viewer-empty">No markdown content loaded.</p>)
+  end
+
+  defp render_markdown_content(markdown) do
+    markdown
+    |> String.split("\n", trim: false)
+    |> Enum.reject(&(&1 == ""))
+    |> Enum.map_join(fn line ->
+      cond do
+        String.starts_with?(line, "## ") ->
+          "<h3>#{String.trim_leading(line, "## ")}</h3>"
+
+        String.starts_with?(line, "# ") ->
+          "<h2>#{String.trim_leading(line, "# ")}</h2>"
+
+        String.starts_with?(line, "- ") ->
+          "<p class=\"ash-markdown-viewer-bullet\">• #{String.trim_leading(line, "- ")}</p>"
+
+        true ->
+          "<p>#{line}</p>"
+      end
+    end)
+  end
+
+  defp log_entries(props) do
+    case prop(props, "entries", []) do
+      entries when is_list(entries) -> entries
+      _other -> []
+    end
+  end
+
+  defp render_log_entry(entry) do
+    entry = normalize_item(entry)
+    timestamp = text_prop(entry, ["timestamp", "time"], "--:--:--")
+    level = text_prop(entry, "level", "INFO")
+    message = text_prop(entry, ["message", "summary", "value"], "")
+
+    """
+    <article class="ash-log-viewer-entry">
+      <span class="ash-log-viewer-time">#{timestamp}</span>
+      <span class="ash-log-viewer-level">#{level}</span>
+      <span class="ash-log-viewer-message">#{message}</span>
+    </article>
+    """
+  end
 
   defp slot_children(iur, slot) do
     desired = to_string(slot)

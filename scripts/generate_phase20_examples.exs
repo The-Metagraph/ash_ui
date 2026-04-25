@@ -424,6 +424,191 @@ defmodule Phase20ExampleGenerator do
       line-height: 1.6;
     }
 
+    .ash-list,
+    .ash-table-surface,
+    .ash-tree-view,
+    .ash-markdown-viewer,
+    .ash-log-viewer {
+      background: rgba(7, 14, 26, 0.72);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 1.35rem;
+      box-shadow: var(--ashui-example-panel-shadow);
+      display: grid;
+      gap: 1rem;
+      overflow: hidden;
+      padding: 1rem;
+    }
+
+    .ash-list-header,
+    .ash-table-header,
+    .ash-tree-view-header,
+    .ash-markdown-viewer-header,
+    .ash-log-viewer-header {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .ash-list-title,
+    .ash-table-title,
+    .ash-tree-view-title,
+    .ash-markdown-viewer-title,
+    .ash-log-viewer-title {
+      color: var(--ashui-example-copy-strong);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .ash-list-description,
+    .ash-table-description,
+    .ash-tree-view-description,
+    .ash-markdown-viewer-description,
+    .ash-log-viewer-description {
+      color: var(--ashui-example-copy-muted);
+      font-size: 0.92rem;
+      margin: 0;
+    }
+
+    .ash-list-items,
+    .ash-tree-view-list,
+    .ash-tree-view-children {
+      display: grid;
+      gap: 0.8rem;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .ash-list-item,
+    .ash-tree-view-node,
+    .ash-log-viewer-entry {
+      align-items: start;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 1rem;
+      display: grid;
+      gap: 0.55rem;
+      padding: 0.95rem 1rem;
+    }
+
+    .ash-list-item {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .ash-list-item-title,
+    .ash-tree-view-node-label {
+      color: var(--ashui-example-copy-strong);
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .ash-list-item-summary,
+    .ash-list-empty,
+    .ash-table-empty,
+    .ash-markdown-viewer-empty,
+    .ash-log-viewer-message {
+      color: var(--ashui-example-copy-muted);
+      margin: 0;
+    }
+
+    .ash-list-item-meta,
+    .ash-tree-view-node-meta,
+    .ash-log-viewer-time,
+    .ash-log-viewer-level {
+      color: var(--ashui-example-accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .ash-list-actions,
+    .ash-table-actions,
+    .ash-tree-view-actions,
+    .ash-markdown-viewer-actions,
+    .ash-log-viewer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .ash-list-footer,
+    .ash-table-footer,
+    .ash-tree-view-footer,
+    .ash-markdown-viewer-footer,
+    .ash-log-viewer-footer {
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .ash-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .ash-table {
+      border-collapse: collapse;
+      inline-size: 100%;
+    }
+
+    .ash-table th,
+    .ash-table td {
+      border-bottom: 1px solid var(--ashui-example-border-soft);
+      padding: 0.85rem 0.95rem;
+      text-align: left;
+    }
+
+    .ash-table th {
+      color: var(--ashui-example-copy-strong);
+      font-size: 0.82rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .ash-table td {
+      color: var(--ashui-example-copy-muted);
+    }
+
+    .ash-tree-view-body,
+    .ash-markdown-viewer-body,
+    .ash-log-viewer-body {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .ash-tree-view-node-row {
+      align-items: center;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: space-between;
+    }
+
+    .ash-tree-view-children {
+      margin-top: 0.35rem;
+      padding-left: 1rem;
+    }
+
+    .ash-markdown-viewer-body h2,
+    .ash-markdown-viewer-body h3,
+    .ash-markdown-viewer-body p {
+      margin: 0;
+    }
+
+    .ash-markdown-viewer-body h2,
+    .ash-markdown-viewer-body h3 {
+      color: var(--ashui-example-copy-strong);
+    }
+
+    .ash-markdown-viewer-body p,
+    .ash-markdown-viewer-bullet {
+      color: var(--ashui-example-copy-muted);
+      line-height: 1.7;
+    }
+
+    .ash-log-viewer-lines {
+      display: grid;
+      gap: 0.75rem;
+    }
+
     .ash-menu,
     .ash-tabs,
     .ash-command-palette,
@@ -850,7 +1035,12 @@ defmodule Phase20ExampleGenerator do
               selected_value: "primary",
               checked: false,
               enabled: false,
-              notes: ""
+              notes: "",
+              items: [],
+              secondary_items: [],
+              metric: %{},
+              payload: %{},
+              series: []
             },
             <%= Phase20ExampleGenerator.pretty_literal(definition.seed_state) %>
           )
@@ -975,6 +1165,11 @@ defmodule Phase20ExampleGenerator do
             attribute :checked, :boolean, default: false
             attribute :enabled, :boolean, default: false
             attribute :notes, :string, default: ""
+            attribute :items, {:array, :map}, default: []
+            attribute :secondary_items, {:array, :map}, default: []
+            attribute :metric, :map, default: %{}
+            attribute :payload, :map, default: %{}
+            attribute :series, {:array, :map}, default: []
           end
 
           actions do
@@ -982,12 +1177,12 @@ defmodule Phase20ExampleGenerator do
 
             create :create do
               primary?(true)
-              accept([:id, :current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes])
+              accept([:id, :current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes, :items, :secondary_items, :metric, :payload, :series])
             end
 
             update :update do
               primary?(true)
-              accept([:current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes])
+              accept([:current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes, :items, :secondary_items, :metric, :payload, :series])
             end
           end
         end
@@ -1328,7 +1523,7 @@ defmodule Phase20ExampleGenerator do
             binding <%= Phase20ExampleGenerator.literal(definition.subject_binding.id) %> do
               source %{resource: "ExampleState", field: <%= Phase20ExampleGenerator.literal(definition.subject_binding.field) %>, id: "state-<%= definition.directory %>"}
               target <%= Phase20ExampleGenerator.literal(definition.subject_binding.target) %>
-              binding_type :value
+              binding_type <%= Phase20ExampleGenerator.literal(Map.get(definition.subject_binding, :binding_type, :value)) %>
               transform <%= Phase20ExampleGenerator.pretty_literal(definition.subject_binding.transform) %>
               metadata %{owner: "subject", owner_signal: "change"}
             end
@@ -1885,6 +2080,22 @@ defmodule Phase20ExampleGenerator do
 
   defp try_it_text(%{directory: "toast"}) do
     "Trigger the nested toast buttons and confirm the message copy and preview surface update through persisted runtime fields."
+  end
+
+  defp try_it_text(%{directory: directory}) when directory in ["list", "table"] do
+    "Switch the active dataset with the nested controls and confirm the collection surface refreshes through persisted bound data."
+  end
+
+  defp try_it_text(%{directory: "tree_view"}) do
+    "Swap the focused hierarchy and confirm the rendered tree redraws from bound runtime data instead of a static outline."
+  end
+
+  defp try_it_text(%{directory: "markdown_viewer"}) do
+    "Switch the active document and confirm the viewer updates from persisted markdown content."
+  end
+
+  defp try_it_text(%{directory: "log_viewer"}) do
+    "Swap the active stream and confirm the visible log rows refresh through persisted runtime entries."
   end
 
   defp try_it_text(%{directory: directory}) when directory in ["row", "column", "grid"] do

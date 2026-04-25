@@ -342,7 +342,9 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
                 "id" => "#{type}-nav",
                 "props" => %{"label" => "Overview"},
                 "children" => [],
-                "metadata" => %{"slot" => if(type == "custom:command_palette", do: "search", else: "nav")}
+                "metadata" => %{
+                  "slot" => if(type == "custom:command_palette", do: "search", else: "nav")
+                }
               },
               %{
                 "type" => "text",
@@ -518,6 +520,120 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
           else
             assert heex =~ "Acknowledge"
           end
+        end
+      )
+    end
+
+    test "generates dedicated data-surface markup for advanced collection and document examples" do
+      Enum.each(
+        [
+          {"list", "ash-list", "ash-list-items", "Urgent approvals"},
+          {"table", "ash-table-surface", "ash-table-wrapper", "API gateway"},
+          {"custom:tree_view", "ash-tree-view", "ash-tree-view-list", "Runtime graph"},
+          {
+            "custom:markdown_viewer",
+            "ash-markdown-viewer",
+            "ash-markdown-viewer-body",
+            "Incident Guide"
+          },
+          {
+            "custom:log_viewer",
+            "ash-log-viewer",
+            "ash-log-viewer-lines",
+            "Ash UI screen mounted with 5 element bindings."
+          }
+        ],
+        fn {type, wrapper_class, section_class, expected_copy} ->
+          props =
+            case type do
+              "list" ->
+                %{
+                  "title" => "Queue",
+                  "description" => "Collection view",
+                  "items" => [
+                    %{
+                      "title" => "Urgent approvals",
+                      "summary" => "4 records",
+                      "meta" => "SLA 15m"
+                    }
+                  ]
+                }
+
+              "table" ->
+                %{
+                  "title" => "Table",
+                  "description" => "Tabular collection",
+                  "columns" => [
+                    %{"key" => "service", "label" => "Service"},
+                    %{"key" => "status", "label" => "Status"}
+                  ],
+                  "items" => [%{"service" => "API gateway", "status" => "Ready"}]
+                }
+
+              "custom:tree_view" ->
+                %{
+                  "title" => "Tree",
+                  "description" => "Hierarchy",
+                  "model" => [
+                    %{
+                      "label" => "Runtime graph",
+                      "meta" => "Primary",
+                      "children" => [%{"label" => "Binding runtime", "meta" => "Healthy"}]
+                    }
+                  ]
+                }
+
+              "custom:markdown_viewer" ->
+                %{
+                  "title" => "Markdown",
+                  "description" => "Document surface",
+                  "content" => "# Incident Guide\n\n- Confirm scope"
+                }
+
+              "custom:log_viewer" ->
+                %{
+                  "title" => "Logs",
+                  "description" => "Stream view",
+                  "entries" => [
+                    %{
+                      "timestamp" => "12:04:19",
+                      "level" => "INFO",
+                      "message" => "Ash UI screen mounted with 5 element bindings."
+                    }
+                  ]
+                }
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => props,
+            "children" => [
+              %{
+                "type" => "button",
+                "id" => "#{type}-action",
+                "props" => %{"label" => "Refresh"},
+                "children" => [],
+                "metadata" => %{"slot" => "actions"}
+              },
+              %{
+                "type" => "text",
+                "id" => "#{type}-footer",
+                "props" => %{"content" => "Bound runtime state"},
+                "children" => [],
+                "metadata" => %{"slot" => "footer"}
+              }
+            ],
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ expected_copy
+          assert heex =~ "Refresh"
+          assert heex =~ "Bound runtime state"
         end
       )
     end

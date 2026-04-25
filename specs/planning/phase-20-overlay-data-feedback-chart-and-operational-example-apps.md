@@ -39,18 +39,18 @@ Back to index: [README](./README.md)
       [x] 20.1.1.3 Subtask - Define the action, binding, and state-handling semantics that drive those examples through resource-local declarations.
       [x] 20.1.1.4 Subtask - Add tests that prove layered examples mount, transition, and recover without breaking the shared shell.
 
-  [ ] 20.2 Section - Data-Surface Example Apps
+  [x] 20.2 Section - Data-Surface Example Apps
     Add the examples whose main value is browsing, inspecting, or reading
     structured data.
 
-    [ ] 20.2.1 Task - Implement data-view apps
+    [x] 20.2.1 Task - Implement data-view apps
     Build the examples that make Ash UI list, table, tree, and document-style
     surfaces reviewable.
 
-      [ ] 20.2.1.1 Subtask - Implement `list` and `table` example apps using list bindings and representative seeded data.
-      [ ] 20.2.1.2 Subtask - Implement `tree_view`, `markdown_viewer`, and `log_viewer` example apps with clear data-loading stories.
-      [ ] 20.2.1.3 Subtask - Define the canonical interaction story for passive data surfaces so each app still demonstrates meaningful reviewer-visible behavior.
-      [ ] 20.2.1.4 Subtask - Add tests that prove representative data surfaces refresh correctly when bound data changes.
+      [x] 20.2.1.1 Subtask - Implement `list` and `table` example apps using list bindings and representative seeded data.
+      [x] 20.2.1.2 Subtask - Implement `tree_view`, `markdown_viewer`, and `log_viewer` example apps with clear data-loading stories.
+      [x] 20.2.1.3 Subtask - Define the canonical interaction story for passive data surfaces so each app still demonstrates meaningful reviewer-visible behavior.
+      [x] 20.2.1.4 Subtask - Add tests that prove representative data surfaces refresh correctly when bound data changes.
 
   [ ] 20.3 Section - Feedback and Chart Example Apps
     Add the examples that visualize status, progress, and lightweight metrics.

@@ -27,6 +27,39 @@ defmodule AshUI.Examples.Suite do
     "runtime_notes"
   ]
   @shared_shell_label "Ash HQ example shell"
+  @required_project_files [
+    {:mix_exs, "mix.exs"},
+    {:readme, "README.md"},
+    {:config, "config/config.exs"},
+    {:theme_css, "assets/css/app.css"}
+  ]
+  @required_source_markers [
+    {:resource_authority_create, "Authority.create("},
+    {:screen_dsl, "use AshUI.Resource.DSL.Screen"},
+    {:element_dsl, "use AshUI.Resource.DSL.Element"}
+  ]
+  @required_theme_markers [
+    {:theme_shell, ".ashui-example-shell"},
+    {:theme_panel, ".ashui-example-panel"},
+    {:theme_gradient, "--ashui-example-primary-gradient"}
+  ]
+  @required_review_markers [
+    {:story_surface, "Meaningful Interaction Story:"},
+    {:signal_preview, "Canonical Signal Preview:"}
+  ]
+  @banned_governance_markers [
+    {:builder_first, "AshUI.DSL.Builder"},
+    {:legacy_document, "AshUI.Authoring.Document"},
+    {:legacy_builder, "AshUI.Authoring.LegacyBuilder"},
+    {:legacy_screen, "AshUI.Authoring.Screen"},
+    {:legacy_migrator, "AshUI.Authoring.Migrator"},
+    {:legacy_unified_ui, "UnifiedUi.Dsl"},
+    {:legacy_authored_screen, "AuthoredScreen"},
+    {:screen_document, "screen_document"},
+    {:document_first, "document-first"},
+    {:builder_first_text, "builder-first"},
+    {:inline_fragment, "inline_fragment"}
+  ]
 
   @type catalog_entry :: %{
           required(:directory) => String.t(),
@@ -131,7 +164,15 @@ defmodule AshUI.Examples.Suite do
   """
   @spec project_path(String.t()) :: String.t()
   def project_path(directory) when is_binary(directory) do
-    Path.expand("../../../examples/#{directory}", __DIR__)
+    Path.join(examples_root(), directory)
+  end
+
+  @doc """
+  Returns the absolute root path for the checked-in example projects.
+  """
+  @spec examples_root() :: String.t()
+  def examples_root do
+    Path.expand("../../../examples", __DIR__)
   end
 
   @doc """
@@ -216,6 +257,201 @@ defmodule AshUI.Examples.Suite do
       seed: spec.seed,
       runtime: spec.runtime
     }
+  end
+
+  @doc """
+  Validates that catalog entries resolve to checked-in example projects and expected app metadata.
+  """
+  @spec validate_catalog_projects(keyword()) :: :ok | {:error, term()}
+  def validate_catalog_projects(opts \\ []) do
+    issues =
+      opts
+      |> validation_entries()
+      |> Enum.flat_map(fn entry ->
+        directory_path = project_path(entry.directory, opts)
+        source_path = source_path(entry.directory, opts)
+        readme_path = Path.join(directory_path, "README.md")
+        mix_path = Path.join(directory_path, "mix.exs")
+
+        missing_files =
+          Enum.flat_map(@required_project_files, fn {kind, relative_path} ->
+            path = Path.join(directory_path, relative_path)
+
+            if File.exists?(path) do
+              []
+            else
+              [%{directory: entry.directory, kind: kind, path: path}]
+            end
+          end)
+
+        metadata_issues =
+          []
+          |> maybe_add_issue(readme_matches_title?(readme_path, entry.title), %{
+            directory: entry.directory,
+            kind: :readme_title_mismatch,
+            path: readme_path
+          })
+          |> maybe_add_issue(mix_supports_launcher?(mix_path), %{
+            directory: entry.directory,
+            kind: :missing_example_start_alias,
+            path: mix_path
+          })
+          |> maybe_add_issue(File.exists?(source_path), %{
+            directory: entry.directory,
+            kind: :missing_source,
+            path: source_path
+          })
+
+        missing_files ++ metadata_issues
+      end)
+
+    if issues == [] do
+      :ok
+    else
+      {:error, {:example_project_drift, issues}}
+    end
+  end
+
+  @doc """
+  Validates that each example app keeps resource-authority screen persistence and resource DSL usage.
+  """
+  @spec validate_resource_authority_continuity(keyword()) :: :ok | {:error, term()}
+  def validate_resource_authority_continuity(opts \\ []) do
+    issues =
+      opts
+      |> validation_entries()
+      |> Enum.flat_map(fn entry ->
+        source_path = source_path(entry.directory, opts)
+
+        case File.read(source_path) do
+          {:ok, body} ->
+            Enum.flat_map(@required_source_markers, fn {kind, marker} ->
+              if String.contains?(body, marker) do
+                []
+              else
+                [%{directory: entry.directory, kind: kind, path: source_path, marker: marker}]
+              end
+            end)
+
+          {:error, reason} ->
+            [
+              %{
+                directory: entry.directory,
+                kind: :missing_source,
+                path: source_path,
+                reason: reason
+              }
+            ]
+        end
+      end)
+
+    if issues == [] do
+      :ok
+    else
+      {:error, {:resource_authority_drift, issues}}
+    end
+  end
+
+  @doc """
+  Validates that each example app uses the shared theme contract and review-surface copy.
+  """
+  @spec validate_theme_review_contract(keyword()) :: :ok | {:error, term()}
+  def validate_theme_review_contract(opts \\ []) do
+    issues =
+      opts
+      |> validation_entries()
+      |> Enum.flat_map(fn entry ->
+        css_path = theme_css_path(entry.directory, opts)
+        readme_path = readme_path(entry.directory, opts)
+        source_path = source_path(entry.directory, opts)
+
+        theme_issues = contains_markers(css_path, @required_theme_markers, entry.directory)
+        readme_issues = contains_markers(readme_path, @required_review_markers, entry.directory)
+        source_issues = contains_markers(source_path, @required_review_markers, entry.directory)
+
+        def_theme_issue =
+          if File.exists?(source_path) and
+               String.contains?(File.read!(source_path), "def theme_css") do
+            []
+          else
+            [%{directory: entry.directory, kind: :missing_theme_css_helper, path: source_path}]
+          end
+
+        theme_issues ++ readme_issues ++ source_issues ++ def_theme_issue
+      end)
+
+    if issues == [] do
+      :ok
+    else
+      {:error, {:theme_review_drift, issues}}
+    end
+  end
+
+  @doc """
+  Validates that example sources reject superseded authoring or stale shortcut markers.
+  """
+  @spec validate_governance(keyword()) :: :ok | {:error, term()}
+  def validate_governance(opts \\ []) do
+    issues =
+      opts
+      |> validation_entries()
+      |> Enum.flat_map(fn entry ->
+        paths = [source_path(entry.directory, opts), readme_path(entry.directory, opts)]
+
+        Enum.flat_map(paths, fn path ->
+          case File.read(path) do
+            {:ok, body} ->
+              Enum.flat_map(@banned_governance_markers, fn {kind, marker} ->
+                if String.contains?(body, marker) do
+                  [%{directory: entry.directory, kind: kind, path: path, marker: marker}]
+                else
+                  []
+                end
+              end)
+
+            {:error, reason} ->
+              [
+                %{
+                  directory: entry.directory,
+                  kind: :missing_governance_surface,
+                  path: path,
+                  reason: reason
+                }
+              ]
+          end
+        end)
+      end)
+
+    if issues == [] do
+      :ok
+    else
+      {:error, {:example_governance_violations, issues}}
+    end
+  end
+
+  @doc """
+  Runs the maintained Phase 21 example-suite validations together.
+  """
+  @spec validate_suite(keyword()) :: :ok | {:error, term()}
+  def validate_suite(opts \\ []) do
+    results = [
+      {:catalog_projects, validate_catalog_projects(opts)},
+      {:resource_authority, validate_resource_authority_continuity(opts)},
+      {:theme_review, validate_theme_review_contract(opts)},
+      {:governance, validate_governance(opts)}
+    ]
+
+    failures =
+      Enum.flat_map(results, fn
+        {_name, :ok} -> []
+        {name, {:error, reason}} -> [%{check: name, reason: reason}]
+      end)
+
+    if failures == [] do
+      :ok
+    else
+      {:error, {:suite_validation_failed, failures}}
+    end
   end
 
   @doc """
@@ -312,6 +548,59 @@ defmodule AshUI.Examples.Suite do
   defp parity_kind("specialized_input"), do: "normalized"
   defp parity_kind("composed_native_screen"), do: "composed"
   defp parity_kind("custom_widget"), do: "custom"
+
+  defp validation_entries(opts) do
+    Keyword.get(opts, :entries, catalog_entries())
+  end
+
+  defp project_path(directory, opts) do
+    Path.join(Keyword.get(opts, :examples_root, examples_root()), directory)
+  end
+
+  defp source_path(directory, opts) do
+    Path.join(project_path(directory, opts), "lib/ash_ui_examples/#{directory}.ex")
+  end
+
+  defp readme_path(directory, opts) do
+    Path.join(project_path(directory, opts), "README.md")
+  end
+
+  defp theme_css_path(directory, opts) do
+    Path.join(project_path(directory, opts), "assets/css/app.css")
+  end
+
+  defp readme_matches_title?(path, title) do
+    case File.read(path) do
+      {:ok, body} -> String.contains?(body, title)
+      {:error, _reason} -> false
+    end
+  end
+
+  defp mix_supports_launcher?(path) do
+    case File.read(path) do
+      {:ok, body} -> String.contains?(body, "\"example.start\": [\"phx.server\"]")
+      {:error, _reason} -> false
+    end
+  end
+
+  defp contains_markers(path, markers, directory) do
+    case File.read(path) do
+      {:ok, body} ->
+        Enum.flat_map(markers, fn {kind, marker} ->
+          if String.contains?(body, marker) do
+            []
+          else
+            [%{directory: directory, kind: kind, path: path, marker: marker}]
+          end
+        end)
+
+      {:error, reason} ->
+        [%{directory: directory, kind: :missing_surface, path: path, reason: reason}]
+    end
+  end
+
+  defp maybe_add_issue(issues, true, _issue), do: issues
+  defp maybe_add_issue(issues, false, issue), do: [issue | issues]
 
   defp actor_profiles(%{phase: phase}) when phase >= 20 do
     ["admin", "operator", "read_only"]

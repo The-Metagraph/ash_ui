@@ -40,6 +40,9 @@ visual contract.
 - `mix ash_ui.examples.start <directory> [--actor <profile>] [--seed <profile>] [--runtime liveview]`
   starts the selected app through the root workflow when you want to review it
   live.
+- `mix ash_ui.examples.validate`
+  runs the checked-in suite validation and governance checks from the root
+  project.
 
 ## Suite Index
 

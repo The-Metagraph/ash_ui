@@ -46,17 +46,17 @@ Back to index: [README](./README.md)
       [x] 21.2.1.3 Subtask - Add preview surfaces that foreground the shared Ash HQ shell, the primary interaction story, and the canonical signal preview consistently.
       [x] 21.2.1.4 Subtask - Add tests that prove maintainers can discover and launch representative apps from multiple families through one workflow.
 
-  [ ] 21.3 Section - Validation and Governance Checks
+  [x] 21.3 Section - Validation and Governance Checks
     Prevent the suite from drifting away from the architecture it is supposed to
     teach.
 
-    [ ] 21.3.1 Task - Implement suite validation checks
+    [x] 21.3.1 Task - Implement suite validation checks
     Ensure the mirrored catalog remains complete, honest, and resource-first.
 
-      [ ] 21.3.1.1 Subtask - Implement validation that every catalog entry has a corresponding example-app directory and expected app metadata.
-      [ ] 21.3.1.2 Subtask - Implement validation that every example app persists screens through `AshUI.Resource.Authority` and uses `AshUI.Resource.DSL.*` instead of superseded authoring paths.
-      [ ] 21.3.1.3 Subtask - Implement validation that every example app uses the shared Ash HQ theme contract and shared review surfaces.
-      [ ] 21.3.1.4 Subtask - Add governance checks that reject builder-first, monolithic screen-document-first, or stale example-only runtime shortcuts in the suite.
+      [x] 21.3.1.1 Subtask - Implement validation that every catalog entry has a corresponding example-app directory and expected app metadata.
+      [x] 21.3.1.2 Subtask - Implement validation that every example app persists screens through `AshUI.Resource.Authority` and uses `AshUI.Resource.DSL.*` instead of superseded authoring paths.
+      [x] 21.3.1.3 Subtask - Implement validation that every example app uses the shared Ash HQ theme contract and shared review surfaces.
+      [x] 21.3.1.4 Subtask - Add governance checks that reject builder-first, monolithic screen-document-first, or stale example-only runtime shortcuts in the suite.
 
   [ ] 21.4 Section - Review Metadata and Reporting
     Make the suite useful during package review, not only during app-level

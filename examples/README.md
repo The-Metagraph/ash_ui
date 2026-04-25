@@ -116,3 +116,17 @@ visual contract.
   interaction story, and one canonical signal preview
 - unsupported or partial surfaces stay called out explicitly in metadata and
   app-local docs rather than implied silently
+
+## Maintenance Policy
+
+- sibling `unified_ui/examples` directory names remain the stable review handles
+  for the Ash UI suite
+- if a sibling directory is added, Ash UI should add the mirrored directory or
+  record the temporary gap explicitly in planning and release notes
+- if a sibling directory is removed or renamed, Ash UI should update
+  `examples/catalog.tsv`, the checked-in directory tree, metadata snapshots,
+  and traceability together in one coherent change
+- canonical subject normalization stays explicit in docs and metadata; do not
+  silently replace stable directory names with normalized Ash UI type names
+- shared Ash HQ shell updates are only valid when the baseline doc, baseline
+  CSS, and representative app-local shell hooks are updated together

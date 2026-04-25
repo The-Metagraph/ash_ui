@@ -388,6 +388,46 @@ defmodule AshUI.Examples.Suite do
   end
 
   @doc """
+  Validates that the checked-in example directory tree matches the maintained catalog.
+  """
+  @spec validate_directory_tree_alignment(keyword()) :: :ok | {:error, term()}
+  def validate_directory_tree_alignment(opts \\ []) do
+    root = Keyword.get(opts, :examples_root, examples_root())
+
+    with {:ok, entries} <- File.ls(root) do
+      actual_directories =
+        entries
+        |> Enum.filter(&File.dir?(Path.join(root, &1)))
+        |> Enum.sort()
+
+      expected_directories =
+        opts
+        |> validation_entries()
+        |> Enum.map(& &1.directory)
+        |> Enum.sort()
+
+      missing = expected_directories -- actual_directories
+      extra = actual_directories -- expected_directories
+
+      if missing == [] and extra == [] do
+        :ok
+      else
+        {:error,
+         {:example_directory_drift,
+          %{
+            root: root,
+            expected_directories: expected_directories,
+            actual_directories: actual_directories,
+            missing: missing,
+            extra: extra
+          }}}
+      end
+    else
+      {:error, reason} -> {:error, {:missing_examples_root, root, reason}}
+    end
+  end
+
+  @doc """
   Validates that each example app keeps resource-authority screen persistence and resource DSL usage.
   """
   @spec validate_resource_authority_continuity(keyword()) :: :ok | {:error, term()}
@@ -425,6 +465,14 @@ defmodule AshUI.Examples.Suite do
     else
       {:error, {:resource_authority_drift, issues}}
     end
+  end
+
+  @doc """
+  Validates that the shared Ash HQ theme baseline assets remain aligned and present.
+  """
+  @spec validate_theme_baseline_alignment() :: :ok | {:error, term()}
+  def validate_theme_baseline_alignment do
+    Contract.validate_theme_baseline()
   end
 
   @doc """
@@ -510,10 +558,15 @@ defmodule AshUI.Examples.Suite do
   @spec validate_suite(keyword()) :: :ok | {:error, term()}
   def validate_suite(opts \\ []) do
     results = [
+      {:directory_tree, validate_directory_tree_alignment(opts)},
       {:catalog_projects, validate_catalog_projects(opts)},
       {:resource_authority, validate_resource_authority_continuity(opts)},
+      {:theme_baseline, validate_theme_baseline_alignment()},
       {:theme_review, validate_theme_review_contract(opts)},
-      {:governance, validate_governance(opts)}
+      {:governance, validate_governance(opts)},
+      {:catalog_metadata, validate_catalog_metadata_snapshot()},
+      {:readme_index, validate_readme_index()},
+      {:review_metadata_alignment, validate_review_metadata_alignment()}
     ]
 
     failures =
@@ -607,9 +660,13 @@ defmodule AshUI.Examples.Suite do
       phases: frequency_map(entries, &Integer.to_string(&1.phase)),
       families: frequency_map(entries, & &1.family),
       parity_kinds: frequency_map(entries, & &1.parity_kind),
+      directory_tree_alignment: validation_status(validate_directory_tree_alignment()),
       catalog_completeness: validation_status(validate_catalog_projects()),
       resource_authority_continuity: validation_status(validate_resource_authority_continuity()),
+      theme_baseline_alignment: validation_status(validate_theme_baseline_alignment()),
       theme_contract_continuity: validation_status(validate_theme_review_contract()),
+      catalog_metadata_alignment: validation_status(validate_catalog_metadata_snapshot()),
+      readme_index_alignment: validation_status(validate_readme_index()),
       review_metadata_alignment: validation_status(validate_review_metadata_alignment()),
       custom_surface_examples:
         entries
@@ -635,9 +692,13 @@ defmodule AshUI.Examples.Suite do
       "Phases: #{format_frequency_map(report.phases)}",
       "Families: #{format_frequency_map(report.families)}",
       "Parity kinds: #{format_frequency_map(report.parity_kinds)}",
+      "Directory-tree alignment: #{report.directory_tree_alignment}",
       "Catalog completeness: #{report.catalog_completeness}",
       "Resource-authority continuity: #{report.resource_authority_continuity}",
+      "Theme-baseline alignment: #{report.theme_baseline_alignment}",
       "Theme-contract continuity: #{report.theme_contract_continuity}",
+      "Catalog-metadata alignment: #{report.catalog_metadata_alignment}",
+      "README-index alignment: #{report.readme_index_alignment}",
       "Review-metadata alignment: #{report.review_metadata_alignment}",
       "Custom surfaces: #{Enum.join(report.custom_surface_examples, ", ")}",
       "Partial support: #{Enum.join(report.partial_support_examples, ", ")}"

@@ -114,6 +114,24 @@ if [[ "${RELEASE_RUN_GOVERNANCE:-true}" == "true" ]]; then
   fi
 fi
 
+if [[ "${RELEASE_RUN_EXAMPLE_SUITE:-true}" == "true" ]]; then
+  echo "Running example-suite validation..."
+  ./scripts/validate_example_suite.sh || fail "example suite validation failed"
+else
+  note "example suite validation skipped"
+fi
+
+if [[ "${RELEASE_RUN_EXAMPLE_SMOKE:-false}" == "true" ]]; then
+  if [[ -f "test/ash_ui/phase_22_integration_test.exs" ]]; then
+    echo "Running example-suite smoke coverage..."
+    mix test test/ash_ui/phase_22_integration_test.exs || fail "example suite smoke coverage failed"
+  else
+    note "example smoke validation requested but test/ash_ui/phase_22_integration_test.exs is not present yet"
+  fi
+else
+  note "example smoke validation skipped (set RELEASE_RUN_EXAMPLE_SMOKE=true to enforce)"
+fi
+
 if [[ "${RELEASE_RUN_CONFORMANCE:-false}" == "true" ]]; then
   echo "Running conformance harness..."
   CONFORMANCE_PREPARE_ENV=false ./scripts/run_conformance.sh || fail "conformance run failed"

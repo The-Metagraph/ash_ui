@@ -37,17 +37,17 @@ Back to index: [README](./README.md)
       [x] 22.1.1.3 Subtask - Update developer guides to document how new example apps should be authored, themed, validated, and reviewed.
       [x] 22.1.1.4 Subtask - Add migration and contribution notes that explain the stable catalog-name parity and canonical-type normalization rules.
 
-  [ ] 22.2 Section - Governance and Release Readiness
+  [x] 22.2 Section - Governance and Release Readiness
     Add the final gates that keep the suite maintainable after it lands.
 
-    [ ] 22.2.1 Task - Update release and governance workflows
+    [x] 22.2.1 Task - Update release and governance workflows
     Make the example suite part of normal package quality checks rather than
     optional follow-up work.
 
-      [ ] 22.2.1.1 Subtask - Update release-readiness checklists to include example catalog completeness, launcher health, and representative app smoke coverage.
-      [ ] 22.2.1.2 Subtask - Add governance checks that reject stale or partially removed example directories and stale root-index references.
-      [ ] 22.2.1.3 Subtask - Add governance checks that reject style drift from the shared Ash HQ example shell without an explicit approved update.
-      [ ] 22.2.1.4 Subtask - Define the maintenance policy for future widget additions so the Ash UI suite stays in sync with the sibling `unified_ui` catalog over time.
+      [x] 22.2.1.1 Subtask - Update release-readiness checklists to include example catalog completeness, launcher health, and representative app smoke coverage.
+      [x] 22.2.1.2 Subtask - Add governance checks that reject stale or partially removed example directories and stale root-index references.
+      [x] 22.2.1.3 Subtask - Add governance checks that reject style drift from the shared Ash HQ example shell without an explicit approved update.
+      [x] 22.2.1.4 Subtask - Define the maintenance policy for future widget additions so the Ash UI suite stays in sync with the sibling `unified_ui` catalog over time.
 
   [ ] 22.3 Section - Conformance and Traceability
     Keep the example suite connected to the repo's broader proof and review

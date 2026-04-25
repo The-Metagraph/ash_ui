@@ -12,20 +12,26 @@ Use this checklist before cutting an Ash UI release.
   - `guides-governance.yml`
   - `rfc-governance.yml`
   - `release.yml` dry run
+- [ ] Example-suite root validation passes via `./scripts/validate_example_suite.sh`
+- [ ] Example-suite directory tree, root index, catalog metadata, and review metadata are synchronized
+- [ ] Representative example-suite smoke coverage passes for the current release candidate
 - [ ] Code coverage meets or exceeds the release threshold of `70%`
 - [ ] `release/KNOWN_ISSUES.md` lists no critical bugs
 - [ ] Root README, guides, and release assets are current
-- [ ] Public examples and guides still demonstrate screen and element resource authoring through `AshUI.Resource.DSL.*`; historical migration references remain confined to ADRs, changelog notes, and UG-0005
+- [ ] Public examples and guides still demonstrate screen and element resource authoring through `AshUI.Resource.DSL.*`; historical migration references remain confined to ADRs, changelog notes, and UG-0008
+- [ ] Shared Ash HQ example-shell baseline remains aligned across `examples/ash_hq_theme_baseline.md`, `examples/ash_hq_theme_tokens.css`, and app-local shell hooks
 - [ ] Telemetry dashboards are available and recent signals look healthy
 - [ ] `unified_ui` and `unified_iur` are present and loadable in the release artifact
 
 ## Authoring Review Checks
 
 - [ ] Public examples start from screen and element resources, not detached screen documents
+- [ ] Example directory names stay aligned with the sibling `unified_ui/examples` catalog unless an explicit tracked exception exists
 - [ ] Composition is expressed through Ash relationships plus `ui_relationships`
 - [ ] `ui_bindings` and `ui_actions` stay local to the owning element resource unless there is a real screen-wide concern
 - [ ] `inline_fragment` usage is limited to shell chrome or small layout glue
-- [ ] Historical detour language remains confined to ADRs, changelog notes, and [UG-0005](../guides/user/UG-0005-migration-v0-to-v1.md)
+- [ ] Historical detour language remains confined to ADRs, changelog notes, and [UG-0008](../guides/user/UG-0008-migration-from-older-ash-ui-models.md)
+- [ ] Theme-shell updates are coordinated across the baseline doc, baseline CSS, and representative app review surfaces
 
 ## Release Inputs
 
@@ -34,6 +40,7 @@ Use this checklist before cutting an Ash UI release.
 - current branch and commit SHA
 - release dry-run result from `.github/workflows/release.yml`
 - confirmation that required authoring/compiler packages (`unified_ui`, `unified_iur`) resolved successfully
+- current example-suite report from `mix ash_ui.examples.report`
 
 ## Cut Procedure
 
@@ -54,6 +61,8 @@ The readiness script prepares dependencies and the test database before running 
 
 For full release gating in CI, the release workflow runs the script with heavy checks enabled:
 
+- example-suite validation
+- representative example-suite smoke coverage
 - conformance
 - coverage threshold
 - rollback validation
@@ -69,6 +78,7 @@ Run:
 Review the generated draft and merge the important items into `CHANGELOG.md`.
 
 Confirm any breaking API rename notes are present before tagging the release. Release notes must also call out any hard architectural cuts, including the removal of detached screen-document-first authoring in favor of screen and element resource authority.
+When relevant, release notes must also call out new example directories, canonical-type normalizations, or explicit custom-surface exceptions.
 
 ### 4. Dry-run the release workflow
 

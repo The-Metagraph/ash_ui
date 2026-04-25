@@ -465,7 +465,337 @@ defmodule AshUI.Examples.Phase19 do
     ]
   end
 
-  defp display_system_definitions, do: []
+  defp display_system_definitions do
+    [
+      %{
+        directory: "viewport",
+        section: :display_systems,
+        family: :display,
+        title: "Viewport Example",
+        subject_type: :"custom:viewport",
+        subject_props: %{
+          title: "Operations viewport",
+          description:
+            "Nested public buttons in the aside move viewport focus while the larger shell stays explicit.",
+          class: "ashui-example-viewport-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: change the focused lane from the viewport aside and confirm the larger display surface updates through nested public controls rather than a monolithic screen authority fragment.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.selected_value -> viewport body copy, footer status, and preview stat.",
+        seed_state: %{
+          id: "state-viewport",
+          selected_value: "queue lane",
+          status: "Viewport focus stays local to nested public controls."
+        },
+        preview_field: :selected_value,
+        preview_title: "Focused lane",
+        subject_binding: nil,
+        subject_action: nil,
+        subject_children: [
+          slot_text(
+            :body,
+            :viewport_focus_copy,
+            "queue lane",
+            "ashui-example-surface-copy",
+            0,
+            field: :selected_value,
+            state_id: "state-viewport"
+          ),
+          slot_card(
+            :body,
+            :viewport_support_panel,
+            "Viewport support panel",
+            "The body keeps the current lane visible while adjacent controls stay in related child resources.",
+            10
+          ),
+          display_button(
+            :focus_queue_lane,
+            :queue_viewport_button,
+            "Queue lane",
+            "queue lane",
+            "state-viewport",
+            "Queue lane focused in the viewport.",
+            :aside,
+            0
+          ),
+          display_button(
+            :focus_timeline_lane,
+            :timeline_viewport_button,
+            "Timeline lane",
+            "timeline lane",
+            "state-viewport",
+            "Timeline lane focused in the viewport.",
+            :aside,
+            10
+          ),
+          display_button(
+            :focus_handoff_lane,
+            :handoff_viewport_button,
+            "Handoff lane",
+            "handoff lane",
+            "state-viewport",
+            "Handoff lane focused in the viewport.",
+            :aside,
+            20
+          ),
+          slot_text(
+            :footer,
+            :viewport_status,
+            "Viewport focus stays local to nested public controls.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-viewport"
+          )
+        ],
+        support_notice:
+          "The `viewport` example remains an explicit `custom:viewport` surface; the focus controls live on related child resources in the aside.",
+        notes: "Uses a dedicated example-only custom shell with bound body and footer text."
+      },
+      %{
+        directory: "scroll_bar",
+        section: :display_systems,
+        family: :display,
+        title: "Scroll Bar Example",
+        subject_type: :"custom:scroll_bar",
+        subject_props: %{
+          title: "Lane scroll",
+          description:
+            "Nested public buttons shift the focused lane while the outer custom shell owns the larger scroll-track surface only.",
+          thumb_label: "queue lane",
+          class: "ashui-example-scroll-bar-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: change the scroll focus through nested public buttons and confirm the thumb label plus status copy update without turning `scroll_bar` into an admitted public widget.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.selected_value -> thumb label binding, body copy, and preview stat.",
+        seed_state: %{
+          id: "state-scroll_bar",
+          selected_value: "queue lane",
+          status: "Scroll focus stays local to nested public controls."
+        },
+        preview_field: :selected_value,
+        preview_title: "Thumb focus",
+        subject_binding: %{
+          id: :scroll_thumb_focus,
+          field: :selected_value,
+          target: "thumb_label",
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          slot_text(
+            :body,
+            :scroll_focus_copy,
+            "queue lane",
+            "ashui-example-surface-copy",
+            0,
+            field: :selected_value,
+            state_id: "state-scroll_bar"
+          ),
+          display_button(
+            :focus_queue_thumb,
+            :queue_scroll_button,
+            "Queue lane",
+            "queue lane",
+            "state-scroll_bar",
+            "Queue lane aligned with the scroll thumb.",
+            :body,
+            10
+          ),
+          display_button(
+            :focus_escalations_thumb,
+            :escalations_scroll_button,
+            "Escalations lane",
+            "escalations lane",
+            "state-scroll_bar",
+            "Escalations lane aligned with the scroll thumb.",
+            :body,
+            20
+          ),
+          display_button(
+            :focus_handoff_thumb,
+            :handoff_scroll_button,
+            "Handoff lane",
+            "handoff lane",
+            "state-scroll_bar",
+            "Handoff lane aligned with the scroll thumb.",
+            :body,
+            30
+          ),
+          slot_text(
+            :footer,
+            :scroll_status,
+            "Scroll focus stays local to nested public controls.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-scroll_bar"
+          )
+        ],
+        support_notice:
+          "The `scroll_bar` example keeps focus changes on nested public buttons while the thumb itself is driven through a subject-level binding.",
+        notes: "Uses an explicit custom shell with a bound thumb label."
+      },
+      %{
+        directory: "split_pane",
+        section: :display_systems,
+        family: :display,
+        title: "Split Pane Example",
+        subject_type: :"custom:split_pane",
+        subject_props: %{
+          title: "Review split pane",
+          description:
+            "Primary and secondary panes stay in related child resources while footer actions switch the emphasized pane.",
+          class: "ashui-example-split-pane-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: move emphasis between split panes and confirm the active pane copy changes through nested public actions instead of screen-local imperative layout code.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.selected_value -> secondary pane copy, status text, and preview stat.",
+        seed_state: %{
+          id: "state-split_pane",
+          selected_value: "details pane",
+          status: "Split-pane emphasis stays local to nested public controls."
+        },
+        preview_field: :selected_value,
+        preview_title: "Active pane",
+        subject_binding: nil,
+        subject_action: nil,
+        subject_children: [
+          slot_card(
+            :primary,
+            :primary_review_panel,
+            "Primary review panel",
+            "The primary pane keeps the durable operational context visible at all times.",
+            0
+          ),
+          slot_text(
+            :secondary,
+            :secondary_focus_copy,
+            "details pane",
+            "ashui-example-surface-copy",
+            0,
+            field: :selected_value,
+            state_id: "state-split_pane"
+          ),
+          slot_text(
+            :secondary,
+            :split_status,
+            "Split-pane emphasis stays local to nested public controls.",
+            "ashui-example-surface-meta",
+            10,
+            field: :status,
+            state_id: "state-split_pane"
+          ),
+          display_button(
+            :select_details_pane,
+            :details_pane_button,
+            "Details pane",
+            "details pane",
+            "state-split_pane",
+            "Details pane moved into focus.",
+            :actions,
+            0,
+            "ashui-example-command-button"
+          ),
+          display_button(
+            :select_handoff_pane,
+            :handoff_pane_button,
+            "Handoff pane",
+            "handoff pane",
+            "state-split_pane",
+            "Handoff pane moved into focus.",
+            :actions,
+            10,
+            "ashui-example-command-button"
+          )
+        ],
+        support_notice:
+          "The `split_pane` example keeps pane emphasis and action ownership on related child resources instead of collapsing the whole layout into one screen fragment.",
+        notes: "Uses explicit primary, secondary, and actions slots."
+      },
+      %{
+        directory: "canvas",
+        section: :display_systems,
+        family: :display,
+        title: "Canvas Example",
+        subject_type: :"custom:canvas",
+        subject_props: %{
+          title: "Response canvas",
+          description:
+            "Toolbar controls and legend copy stay in related child resources while the board remains an explicit custom display surface.",
+          class: "ashui-example-canvas-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the active layer from the toolbar and confirm the board plus legend update through nested public controls while the canvas shell remains explicit.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.selected_value -> canvas board copy, legend status, and preview stat.",
+        seed_state: %{
+          id: "state-canvas",
+          selected_value: "incident map",
+          status: "Canvas layer selection stays local to nested public controls."
+        },
+        preview_field: :selected_value,
+        preview_title: "Active layer",
+        subject_binding: nil,
+        subject_action: nil,
+        subject_children: [
+          display_button(
+            :select_incident_map_layer,
+            :incident_map_button,
+            "Incident map",
+            "incident map",
+            "state-canvas",
+            "Incident map layer selected on the canvas.",
+            :toolbar,
+            0,
+            "ashui-example-command-button"
+          ),
+          display_button(
+            :select_handoff_path_layer,
+            :handoff_path_button,
+            "Handoff path",
+            "handoff path",
+            "state-canvas",
+            "Handoff path layer selected on the canvas.",
+            :toolbar,
+            10,
+            "ashui-example-command-button"
+          ),
+          slot_text(
+            :body,
+            :canvas_active_layer,
+            "incident map",
+            "ashui-example-surface-copy",
+            0,
+            field: :selected_value,
+            state_id: "state-canvas"
+          ),
+          slot_text(
+            :body,
+            :canvas_board_copy,
+            "The board stays intentionally sparse so the authored layer relationship remains readable.",
+            "ashui-example-surface-meta",
+            10
+          ),
+          slot_text(
+            :legend,
+            :canvas_status,
+            "Canvas layer selection stays local to nested public controls.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-canvas"
+          )
+        ],
+        support_notice:
+          "The `canvas` example keeps toolbar controls and legend updates on related child resources while the board remains an explicit `custom:canvas` surface.",
+        notes: "Uses explicit toolbar, body, and legend slots."
+      }
+    ]
+  end
 
   defp layout_card(key, title, detail, position) do
     %{
@@ -490,6 +820,11 @@ defmodule AshUI.Examples.Phase19 do
         }
       ]
     }
+  end
+
+  defp slot_card(slot, key, title, detail, position) do
+    layout_card(key, title, detail, position)
+    |> Map.put(:slot, slot)
   end
 
   defp nav_button(key, label, selected_value, state_id, status_copy) do
@@ -558,6 +893,78 @@ defmodule AshUI.Examples.Phase19 do
       ],
       children: []
     }
+  end
+
+  defp display_button(
+         action_id,
+         key,
+         label,
+         selected_value,
+         state_id,
+         status_copy,
+         slot,
+         position,
+         class \\ "ashui-example-nav-button"
+       ) do
+    %{
+      key: key,
+      type: :button,
+      props: %{
+        label: label,
+        variant: "secondary",
+        class: class
+      },
+      slot: slot,
+      position: position,
+      actions: [
+        %{
+          id: action_id,
+          signal: :click,
+          source: %{resource: "ExampleState", action: "update", id: state_id},
+          target: "submit",
+          transform: %{
+            params: %{
+              selected_value: %{"from" => "static", "value" => selected_value},
+              status: %{"from" => "static", "value" => status_copy}
+            }
+          },
+          metadata: %{intent: "select_display_surface", success_message: "Selection updated"}
+        }
+      ],
+      children: []
+    }
+  end
+
+  defp slot_text(slot, key, content, class, position, opts \\ []) do
+    text = %{
+      key: key,
+      type: :text,
+      props: %{content: content, class: class},
+      slot: slot,
+      position: position,
+      children: []
+    }
+
+    case Keyword.fetch(opts, :field) do
+      {:ok, field} ->
+        state_id = Keyword.fetch!(opts, :state_id)
+        target = Keyword.get(opts, :target, "content")
+        metadata = Keyword.get(opts, :metadata, %{owner: Atom.to_string(slot)})
+
+        Map.put(text, :bindings, [
+          %{
+            id: :"#{key}_binding",
+            source: %{resource: "ExampleState", field: field, id: state_id},
+            target: target,
+            binding_type: :value,
+            transform: %{},
+            metadata: metadata
+          }
+        ])
+
+      :error ->
+        text
+    end
   end
 
   defp action_id_for_command(:triage_command_button), do: :run_triage_command

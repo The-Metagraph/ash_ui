@@ -53,18 +53,18 @@ Back to index: [README](./README.md)
       [x] 19.2.1.3 Subtask - Use screen-local glue only where necessary, keeping the core structure in related element resources.
       [x] 19.2.1.4 Subtask - Add tests that prove representative layout and navigation apps compile and render in the declared relationship order.
 
-  [ ] 19.3 Section - Display-System Example Apps
+  [x] 19.3 Section - Display-System Example Apps
     Build the examples that demonstrate larger viewports and multi-pane or
     drawing-oriented surfaces.
 
-    [ ] 19.3.1 Task - Implement display-system apps
+    [x] 19.3.1 Task - Implement display-system apps
     Add the apps whose primary subject is a larger rendering surface or spatial
     viewport construct.
 
-      [ ] 19.3.1.1 Subtask - Implement `viewport` and `scroll_bar` example apps.
-      [ ] 19.3.1.2 Subtask - Implement `split_pane` and `canvas` example apps.
-      [ ] 19.3.1.3 Subtask - Define how those examples expose their primary interaction story through resource-local bindings, actions, or layout state.
-      [ ] 19.3.1.4 Subtask - Add tests that prove representative display apps preserve the Ash HQ shell without hiding the primary display construct.
+      [x] 19.3.1.1 Subtask - Implement `viewport` and `scroll_bar` example apps.
+      [x] 19.3.1.2 Subtask - Implement `split_pane` and `canvas` example apps.
+      [x] 19.3.1.3 Subtask - Define how those examples expose their primary interaction story through resource-local bindings, actions, or layout state.
+      [x] 19.3.1.4 Subtask - Add tests that prove representative display apps preserve the Ash HQ shell without hiding the primary display construct.
 
   [ ] 19.4 Section - Relationship-Driven Composition Proof
     Make this phase the place where multi-resource composition becomes visibly

@@ -1763,6 +1763,14 @@ defmodule Phase19ExampleGenerator do
     "Change the query, trigger a command button, and confirm the last-command preview updates through nested public controls."
   end
 
+  defp try_it_text(%{directory: directory}) when directory in ["viewport", "scroll_bar"] do
+    "Use the nested focus controls and confirm the larger display shell updates without moving state ownership onto the outer custom surface."
+  end
+
+  defp try_it_text(%{directory: directory}) when directory in ["split_pane", "canvas"] do
+    "Trigger the nested action controls and confirm the active pane or layer updates while the larger display surface remains an explicit custom shell."
+  end
+
   defp try_it_text(_definition),
     do: "Review the focused subject panel together with the story and signal surfaces."
 end

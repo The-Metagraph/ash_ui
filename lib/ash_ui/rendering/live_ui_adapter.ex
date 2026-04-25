@@ -1338,6 +1338,301 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "custom:status"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Status")
+    description = text_prop(props, ["description", "help"])
+    model = metric_model(props)
+    label = text_prop(model, "label", "Unknown")
+    tone = text_prop(model, "tone", "neutral")
+    detail = text_prop(model, ["detail", "description"])
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-status-surface", "ash-status-tone-#{tone}", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-status-header">
+        <h2 class="ash-status-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-status-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-status-body">
+        <p class="ash-status-pill">#{label}</p>
+        #{if detail, do: "<p class=\"ash-status-detail\">#{detail}</p>", else: ""}
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-status-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-status-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:progress"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Progress")
+    description = text_prop(props, ["description", "help"])
+    model = metric_model(props)
+    label = text_prop(model, "label", "Progress")
+    detail = text_prop(model, ["detail", "description"])
+    value = numeric_value(model, "value", 0)
+    total = max(numeric_value(model, "total", 100), 1)
+    percent = percentage(value, total)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-progress-surface", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-progress-header">
+        <h2 class="ash-progress-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-progress-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-progress-body">
+        <div class="ash-progress-summary">
+          <span class="ash-progress-label">#{label}</span>
+          <span class="ash-progress-value">#{percent}%</span>
+        </div>
+        <div class="ash-progress-track" aria-hidden="true">
+          <span class="ash-progress-fill" style="width: #{percent}%"></span>
+        </div>
+        #{if detail, do: "<p class=\"ash-progress-detail\">#{detail}</p>", else: ""}
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-progress-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-progress-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:gauge"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Gauge")
+    description = text_prop(props, ["description", "help"])
+    model = metric_model(props)
+    label = text_prop(model, "label", "Gauge")
+    detail = text_prop(model, ["detail", "description"])
+    value = numeric_value(model, "value", 0)
+    max_value = max(numeric_value(model, "max", 100), 1)
+    percent = percentage(value, max_value)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-gauge-surface", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-gauge-header">
+        <h2 class="ash-gauge-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-gauge-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-gauge-body">
+        <div class="ash-gauge-meter">
+          <div class="ash-gauge-arc">
+            <span class="ash-gauge-fill" style="height: #{percent}%"></span>
+          </div>
+          <div class="ash-gauge-summary">
+            <span class="ash-gauge-label">#{label}</span>
+            <span class="ash-gauge-value">#{percent}%</span>
+          </div>
+        </div>
+        #{if detail, do: "<p class=\"ash-gauge-detail\">#{detail}</p>", else: ""}
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-gauge-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-gauge-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:inline_feedback"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Inline feedback")
+    description = text_prop(props, ["description", "help"])
+    model = metric_model(props)
+    tone = text_prop(model, "tone", "neutral")
+    feedback_title = text_prop(model, "title", title)
+    detail = text_prop(model, ["detail", "description"])
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-inline-feedback", "ash-inline-feedback-#{tone}", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-inline-feedback-header">
+        <h2 class="ash-inline-feedback-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-inline-feedback-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-inline-feedback-body">
+        <p class="ash-inline-feedback-badge">#{feedback_title}</p>
+        #{if detail, do: "<p class=\"ash-inline-feedback-detail\">#{detail}</p>", else: ""}
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-inline-feedback-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-inline-feedback-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:sparkline"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Sparkline")
+    description = text_prop(props, ["description", "help"])
+    series = series_points(props)
+    max_value = series_max(series)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-sparkline-surface", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-sparkline-header">
+        <h2 class="ash-sparkline-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-sparkline-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-sparkline-body">
+        <div class="ash-sparkline-chart">
+          #{Enum.map_join(series, &render_spark_point(&1, max_value))}
+        </div>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-sparkline-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-sparkline-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:bar_chart"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Bar chart")
+    description = text_prop(props, ["description", "help"])
+    series = series_points(props)
+    max_value = series_max(series)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-bar-chart", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-bar-chart-header">
+        <h2 class="ash-bar-chart-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-bar-chart-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-bar-chart-body">
+        <div class="ash-bar-chart-bars">
+          #{Enum.map_join(series, &render_bar_chart_column(&1, max_value))}
+        </div>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-bar-chart-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-bar-chart-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:line_chart"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Line chart")
+    description = text_prop(props, ["description", "help"])
+    series = series_points(props)
+    max_value = series_max(series)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-line-chart", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-line-chart-header">
+        <h2 class="ash-line-chart-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-line-chart-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-line-chart-body">
+        <div class="ash-line-chart-grid">
+          #{Enum.map_join(series, &render_line_chart_point(&1, max_value))}
+        </div>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-line-chart-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-line-chart-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -1720,6 +2015,109 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       <span class="ash-log-viewer-message">#{message}</span>
     </article>
     """
+  end
+
+  defp metric_model(props) do
+    case prop(props, "model", %{}) do
+      %{} = model -> model
+      _other -> %{}
+    end
+  end
+
+  defp numeric_value(model, key, default) do
+    case prop(model, key, default) do
+      value when is_integer(value) ->
+        value
+
+      value when is_float(value) ->
+        round(value)
+
+      value when is_binary(value) ->
+        case Integer.parse(value) do
+          {parsed, _rest} -> parsed
+          :error -> default
+        end
+
+      _other ->
+        default
+    end
+  end
+
+  defp percentage(value, total) when is_integer(value) and is_integer(total) and total > 0 do
+    value
+    |> Kernel./(total)
+    |> Kernel.*(100)
+    |> round()
+    |> min(100)
+    |> max(0)
+  end
+
+  defp series_points(props) do
+    case prop(props, "series", []) do
+      series when is_list(series) -> series
+      _other -> []
+    end
+  end
+
+  defp series_max(series) do
+    series
+    |> Enum.map(&numeric_value(normalize_item(&1), "value", 0))
+    |> Enum.max(fn -> 1 end)
+    |> max(1)
+  end
+
+  defp render_spark_point(point, max_value) do
+    point = normalize_item(point)
+    label = text_prop(point, "label", "")
+    value = numeric_value(point, "value", 0)
+    height = chart_height(value, max_value)
+
+    """
+    <span class="ash-sparkline-point" title="#{label}: #{value}">
+      <span class="ash-sparkline-bar" style="height: #{height}%"></span>
+      <span class="ash-sparkline-label">#{label}</span>
+    </span>
+    """
+  end
+
+  defp render_bar_chart_column(point, max_value) do
+    point = normalize_item(point)
+    label = text_prop(point, "label", "")
+    value = numeric_value(point, "value", 0)
+    height = chart_height(value, max_value)
+
+    """
+    <article class="ash-bar-chart-column">
+      <span class="ash-bar-chart-value">#{value}</span>
+      <span class="ash-bar-chart-bar" style="height: #{height}%"></span>
+      <span class="ash-bar-chart-label">#{label}</span>
+    </article>
+    """
+  end
+
+  defp render_line_chart_point(point, max_value) do
+    point = normalize_item(point)
+    label = text_prop(point, "label", "")
+    value = numeric_value(point, "value", 0)
+    height = chart_height(value, max_value)
+
+    """
+    <article class="ash-line-chart-point">
+      <span class="ash-line-chart-marker" style="bottom: #{height}%"></span>
+      <span class="ash-line-chart-stem" style="height: #{height}%"></span>
+      <span class="ash-line-chart-value">#{value}</span>
+      <span class="ash-line-chart-label">#{label}</span>
+    </article>
+    """
+  end
+
+  defp chart_height(value, max_value) when max_value > 0 do
+    value
+    |> Kernel./(max_value)
+    |> Kernel.*(100)
+    |> round()
+    |> min(100)
+    |> max(8)
   end
 
   defp slot_children(iur, slot) do

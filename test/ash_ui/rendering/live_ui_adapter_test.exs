@@ -637,6 +637,136 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
         end
       )
     end
+
+    test "generates dedicated feedback and chart markup for advanced signal examples" do
+      Enum.each(
+        [
+          {"custom:status", "ash-status-surface", "ash-status-pill", "Healthy"},
+          {"custom:progress", "ash-progress-surface", "ash-progress-track", "42%"},
+          {"custom:gauge", "ash-gauge-surface", "ash-gauge-meter", "63%"},
+          {
+            "custom:inline_feedback",
+            "ash-inline-feedback",
+            "ash-inline-feedback-badge",
+            "Rollback ready"
+          },
+          {"custom:sparkline", "ash-sparkline-surface", "ash-sparkline-chart", "00m"},
+          {"custom:bar_chart", "ash-bar-chart", "ash-bar-chart-bars", "us-east"},
+          {"custom:line_chart", "ash-line-chart", "ash-line-chart-grid", "Mon"}
+        ],
+        fn {type, wrapper_class, section_class, expected_copy} ->
+          props =
+            case type do
+              "custom:status" ->
+                %{
+                  "title" => "Status",
+                  "description" => "Signal surface",
+                  "model" => %{
+                    "label" => "Healthy",
+                    "tone" => "success",
+                    "detail" => "All queues nominal."
+                  }
+                }
+
+              "custom:progress" ->
+                %{
+                  "title" => "Progress",
+                  "description" => "Rollout surface",
+                  "model" => %{
+                    "label" => "Canary",
+                    "value" => 42,
+                    "total" => 100,
+                    "detail" => "42 percent live."
+                  }
+                }
+
+              "custom:gauge" ->
+                %{
+                  "title" => "Gauge",
+                  "description" => "Capacity surface",
+                  "model" => %{
+                    "label" => "CPU",
+                    "value" => 63,
+                    "max" => 100,
+                    "detail" => "Within budget."
+                  }
+                }
+
+              "custom:inline_feedback" ->
+                %{
+                  "title" => "Feedback",
+                  "description" => "Advisory",
+                  "model" => %{
+                    "tone" => "success",
+                    "title" => "Rollback ready",
+                    "detail" => "Recovery checklist is prepared."
+                  }
+                }
+
+              "custom:sparkline" ->
+                %{
+                  "title" => "Sparkline",
+                  "description" => "Trend",
+                  "series" => [
+                    %{"label" => "00m", "value" => 18},
+                    %{"label" => "05m", "value" => 22}
+                  ]
+                }
+
+              "custom:bar_chart" ->
+                %{
+                  "title" => "Bars",
+                  "description" => "Comparison",
+                  "series" => [
+                    %{"label" => "us-east", "value" => 84},
+                    %{"label" => "us-west", "value" => 63}
+                  ]
+                }
+
+              "custom:line_chart" ->
+                %{
+                  "title" => "Trend line",
+                  "description" => "Trend",
+                  "series" => [
+                    %{"label" => "Mon", "value" => 7},
+                    %{"label" => "Tue", "value" => 9}
+                  ]
+                }
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => props,
+            "children" => [
+              %{
+                "type" => "button",
+                "id" => "#{type}-action",
+                "props" => %{"label" => "Switch"},
+                "children" => [],
+                "metadata" => %{"slot" => "actions"}
+              },
+              %{
+                "type" => "text",
+                "id" => "#{type}-footer",
+                "props" => %{"content" => "Metric bound from runtime"},
+                "children" => [],
+                "metadata" => %{"slot" => "footer"}
+              }
+            ],
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ expected_copy
+          assert heex =~ "Switch"
+          assert heex =~ "Metric bound from runtime"
+        end
+      )
+    end
   end
 
   describe "Section 7.2.1 - Event Binding Configuration" do

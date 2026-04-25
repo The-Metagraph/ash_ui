@@ -974,6 +974,612 @@ defmodule AshUI.Examples.Phase20 do
     ]
   end
 
+  defp feedback_chart_definitions do
+    [
+      %{
+        directory: "status",
+        section: :feedback_charts,
+        family: :feedback_chart,
+        title: "Status Example",
+        subject_type: :"custom:status",
+        subject_props: %{
+          title: "System readiness",
+          description: "A compact signal surface for current operational health.",
+          class: "ashui-example-status-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the operational health state and confirm the status surface updates its visible tone and detail from persisted runtime data.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.metric -> bound status model plus preview state.",
+        seed_state: %{
+          id: "state-status",
+          current_value: "watching",
+          status: "Status surface mounted with the watching signal.",
+          metric: %{
+            "label" => "Watching",
+            "tone" => "warning",
+            "detail" => "Escalation depth is elevated but still within response targets."
+          }
+        },
+        preview_field: :current_value,
+        preview_title: "Current signal",
+        subject_binding: %{
+          id: :status_metric,
+          field: :metric,
+          target: "model",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_healthy_status_button,
+            "Healthy",
+            "state-status",
+            %{
+              current_value: "healthy",
+              status: "Status surface switched to the healthy signal.",
+              metric: %{
+                "label" => "Healthy",
+                "tone" => "success",
+                "detail" => "All review queues are within their normal operating range."
+              }
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_risk_status_button,
+            "Risk",
+            "state-status",
+            %{
+              current_value: "risk",
+              status: "Status surface switched to the risk signal.",
+              metric: %{
+                "label" => "Risk",
+                "tone" => "danger",
+                "detail" => "Retry volume crossed the operator threshold for intervention."
+              }
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :status_footer,
+            "Status surface mounted with the watching signal.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-status"
+          )
+        ],
+        support_notice:
+          "The `status` example remains an explicit custom shell so tone and badge semantics stay example-scoped rather than silently widening the public widget surface.",
+        notes: "Binds one status model map into a renderer-backed signal surface."
+      },
+      %{
+        directory: "progress",
+        section: :feedback_charts,
+        family: :feedback_chart,
+        title: "Progress Example",
+        subject_type: :"custom:progress",
+        subject_props: %{
+          title: "Rollout progress",
+          description: "A progress surface fed by persisted rollout metrics.",
+          class: "ashui-example-progress-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the rollout phase and confirm the progress surface updates both its completion amount and explanatory detail.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.metric -> bound progress model plus preview value.",
+        seed_state: %{
+          id: "state-progress",
+          current_value: "42%",
+          status: "Progress surface mounted with the canary rollout.",
+          metric: %{
+            "label" => "Canary rollout",
+            "value" => 42,
+            "total" => 100,
+            "detail" => "42 percent of the planned canary traffic is live."
+          }
+        },
+        preview_field: :current_value,
+        preview_title: "Completion",
+        subject_binding: %{
+          id: :progress_metric,
+          field: :metric,
+          target: "model",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_canary_progress_button,
+            "Canary phase",
+            "state-progress",
+            %{
+              current_value: "42%",
+              status: "Progress surface mounted with the canary rollout.",
+              metric: %{
+                "label" => "Canary rollout",
+                "value" => 42,
+                "total" => 100,
+                "detail" => "42 percent of the planned canary traffic is live."
+              }
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_full_progress_button,
+            "Full rollout",
+            "state-progress",
+            %{
+              current_value: "100%",
+              status: "Progress surface switched to the completed rollout.",
+              metric: %{
+                "label" => "Full rollout",
+                "value" => 100,
+                "total" => 100,
+                "detail" => "All target regions are live and the rollout is complete."
+              }
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :progress_footer,
+            "Progress surface mounted with the canary rollout.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-progress"
+          )
+        ],
+        support_notice:
+          "The `progress` example uses a renderer-backed custom shell so completion visuals stay honest without implying a public maintained progress widget.",
+        notes: "Binds one rollout metric map into the progress shell."
+      },
+      %{
+        directory: "gauge",
+        section: :feedback_charts,
+        family: :feedback_chart,
+        title: "Gauge Example",
+        subject_type: :"custom:gauge",
+        subject_props: %{
+          title: "Capacity gauge",
+          description: "A compact capacity surface that reads one bounded metric model.",
+          class: "ashui-example-gauge-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the live capacity snapshot and confirm the gauge surface updates both its visible fill amount and its supporting detail.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.metric -> bound gauge model plus preview state.",
+        seed_state: %{
+          id: "state-gauge",
+          current_value: "63%",
+          status: "Gauge surface mounted with the normal capacity snapshot.",
+          metric: %{
+            "label" => "CPU saturation",
+            "value" => 63,
+            "max" => 100,
+            "detail" => "Current saturation is within the operating budget."
+          }
+        },
+        preview_field: :current_value,
+        preview_title: "Capacity",
+        subject_binding: %{
+          id: :gauge_metric,
+          field: :metric,
+          target: "model",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_nominal_gauge_button,
+            "Nominal",
+            "state-gauge",
+            %{
+              current_value: "63%",
+              status: "Gauge surface mounted with the normal capacity snapshot.",
+              metric: %{
+                "label" => "CPU saturation",
+                "value" => 63,
+                "max" => 100,
+                "detail" => "Current saturation is within the operating budget."
+              }
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_elevated_gauge_button,
+            "Elevated",
+            "state-gauge",
+            %{
+              current_value: "87%",
+              status: "Gauge surface switched to the elevated capacity snapshot.",
+              metric: %{
+                "label" => "CPU saturation",
+                "value" => 87,
+                "max" => 100,
+                "detail" => "Capacity is approaching the point where intervention is required."
+              }
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :gauge_footer,
+            "Gauge surface mounted with the normal capacity snapshot.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-gauge"
+          )
+        ],
+        support_notice:
+          "The `gauge` example stays a custom shell because its radial/threshold presentation is renderer-backed rather than part of the maintained public widget set.",
+        notes: "Binds a bounded metric map into a gauge-style visual."
+      },
+      %{
+        directory: "inline_feedback",
+        section: :feedback_charts,
+        family: :feedback_chart,
+        title: "Inline Feedback Example",
+        subject_type: :"custom:inline_feedback",
+        subject_props: %{
+          title: "Recovery note",
+          description: "A compact inline advisory surface for operator-visible guidance.",
+          class: "ashui-example-inline-feedback-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the advisory message and confirm the inline feedback surface updates its visible tone and message from persisted runtime data.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.metric -> bound feedback model plus preview tone.",
+        seed_state: %{
+          id: "state-inline_feedback",
+          current_value: "success",
+          status: "Inline feedback mounted with the recovery-ready note.",
+          metric: %{
+            "tone" => "success",
+            "title" => "Rollback ready",
+            "detail" => "The recovery checklist is complete and ready if the rollout degrades."
+          }
+        },
+        preview_field: :current_value,
+        preview_title: "Tone",
+        subject_binding: %{
+          id: :inline_feedback_metric,
+          field: :metric,
+          target: "model",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_success_feedback_button,
+            "Recovery ready",
+            "state-inline_feedback",
+            %{
+              current_value: "success",
+              status: "Inline feedback mounted with the recovery-ready note.",
+              metric: %{
+                "tone" => "success",
+                "title" => "Rollback ready",
+                "detail" =>
+                  "The recovery checklist is complete and ready if the rollout degrades."
+              }
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_warning_feedback_button,
+            "Review risk",
+            "state-inline_feedback",
+            %{
+              current_value: "warning",
+              status: "Inline feedback switched to the review-risk note.",
+              metric: %{
+                "tone" => "warning",
+                "title" => "Review risk",
+                "detail" =>
+                  "The current release should stay under review until retries return to baseline."
+              }
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :inline_feedback_footer,
+            "Inline feedback mounted with the recovery-ready note.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-inline_feedback"
+          )
+        ],
+        support_notice:
+          "The `inline_feedback` example uses a custom surface to keep tone-box styling and semantics example-scoped.",
+        notes: "Binds one advisory model map into the feedback shell."
+      },
+      %{
+        directory: "sparkline",
+        section: :feedback_charts,
+        family: :feedback_chart,
+        title: "Sparkline Example",
+        subject_type: :"custom:sparkline",
+        subject_props: %{
+          title: "Latency sparkline",
+          description: "A compact trend surface for quick directional review.",
+          class: "ashui-example-sparkline-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the active mini-series and confirm the sparkline redraws its trend points from persisted runtime data.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.series -> bound sparkline points plus preview series label.",
+        seed_state: %{
+          id: "state-sparkline",
+          current_value: "queue latency",
+          status: "Sparkline mounted with the queue-latency trend.",
+          series: [
+            %{"label" => "00m", "value" => 18},
+            %{"label" => "05m", "value" => 22},
+            %{"label" => "10m", "value" => 19},
+            %{"label" => "15m", "value" => 24},
+            %{"label" => "20m", "value" => 21}
+          ]
+        },
+        preview_field: :current_value,
+        preview_title: "Series",
+        subject_binding: %{
+          id: :sparkline_series,
+          field: :series,
+          target: "series",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_latency_sparkline_button,
+            "Queue latency",
+            "state-sparkline",
+            %{
+              current_value: "queue latency",
+              status: "Sparkline mounted with the queue-latency trend.",
+              series: [
+                %{"label" => "00m", "value" => 18},
+                %{"label" => "05m", "value" => 22},
+                %{"label" => "10m", "value" => 19},
+                %{"label" => "15m", "value" => 24},
+                %{"label" => "20m", "value" => 21}
+              ]
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_backlog_sparkline_button,
+            "Worker backlog",
+            "state-sparkline",
+            %{
+              current_value: "worker backlog",
+              status: "Sparkline switched to the worker-backlog trend.",
+              series: [
+                %{"label" => "00m", "value" => 8},
+                %{"label" => "05m", "value" => 10},
+                %{"label" => "10m", "value" => 13},
+                %{"label" => "15m", "value" => 12},
+                %{"label" => "20m", "value" => 15}
+              ]
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :sparkline_footer,
+            "Sparkline mounted with the queue-latency trend.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-sparkline"
+          )
+        ],
+        support_notice:
+          "The `sparkline` example uses a renderer-backed custom shell because lightweight chart glyphs are not a maintained public fallback surface.",
+        notes: "Binds one short point series into the sparkline shell."
+      },
+      %{
+        directory: "bar_chart",
+        section: :feedback_charts,
+        family: :feedback_chart,
+        title: "Bar Chart Example",
+        subject_type: :"custom:bar_chart",
+        subject_props: %{
+          title: "Volume bars",
+          description: "A categorical comparison surface driven by persisted runtime series.",
+          class: "ashui-example-bar-chart-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the active categorical series and confirm the bar chart redraws its bars from persisted runtime data.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.series -> bound bar series plus preview label.",
+        seed_state: %{
+          id: "state-bar_chart",
+          current_value: "region volume",
+          status: "Bar chart mounted with the regional volume series.",
+          series: [
+            %{"label" => "us-east", "value" => 84},
+            %{"label" => "us-west", "value" => 63},
+            %{"label" => "eu-central", "value" => 58}
+          ]
+        },
+        preview_field: :current_value,
+        preview_title: "Series",
+        subject_binding: %{
+          id: :bar_chart_series,
+          field: :series,
+          target: "series",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_region_bar_chart_button,
+            "Region volume",
+            "state-bar_chart",
+            %{
+              current_value: "region volume",
+              status: "Bar chart mounted with the regional volume series.",
+              series: [
+                %{"label" => "us-east", "value" => 84},
+                %{"label" => "us-west", "value" => 63},
+                %{"label" => "eu-central", "value" => 58}
+              ]
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_service_bar_chart_button,
+            "Service mix",
+            "state-bar_chart",
+            %{
+              current_value: "service mix",
+              status: "Bar chart switched to the service-mix series.",
+              series: [
+                %{"label" => "gateway", "value" => 72},
+                %{"label" => "workers", "value" => 91},
+                %{"label" => "billing", "value" => 44}
+              ]
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :bar_chart_footer,
+            "Bar chart mounted with the regional volume series.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-bar_chart"
+          )
+        ],
+        support_notice:
+          "The `bar_chart` example uses an explicit custom surface because categorical chart rendering is a renderer-backed extension, not a maintained public widget.",
+        notes: "Binds one categorical point series into the bar-chart shell."
+      },
+      %{
+        directory: "line_chart",
+        section: :feedback_charts,
+        family: :feedback_chart,
+        title: "Line Chart Example",
+        subject_type: :"custom:line_chart",
+        subject_props: %{
+          title: "Trend line",
+          description: "A longer-running trend surface for directional review.",
+          class: "ashui-example-line-chart-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the active trend series and confirm the line-chart surface redraws its points from persisted runtime data.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.series -> bound line series plus preview label.",
+        seed_state: %{
+          id: "state-line_chart",
+          current_value: "error trend",
+          status: "Line chart mounted with the error-trend series.",
+          series: [
+            %{"label" => "Mon", "value" => 7},
+            %{"label" => "Tue", "value" => 9},
+            %{"label" => "Wed", "value" => 6},
+            %{"label" => "Thu", "value" => 8},
+            %{"label" => "Fri", "value" => 5}
+          ]
+        },
+        preview_field: :current_value,
+        preview_title: "Series",
+        subject_binding: %{
+          id: :line_chart_series,
+          field: :series,
+          target: "series",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_error_line_chart_button,
+            "Error trend",
+            "state-line_chart",
+            %{
+              current_value: "error trend",
+              status: "Line chart mounted with the error-trend series.",
+              series: [
+                %{"label" => "Mon", "value" => 7},
+                %{"label" => "Tue", "value" => 9},
+                %{"label" => "Wed", "value" => 6},
+                %{"label" => "Thu", "value" => 8},
+                %{"label" => "Fri", "value" => 5}
+              ]
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_recovery_line_chart_button,
+            "Recovery trend",
+            "state-line_chart",
+            %{
+              current_value: "recovery trend",
+              status: "Line chart switched to the recovery-trend series.",
+              series: [
+                %{"label" => "Mon", "value" => 42},
+                %{"label" => "Tue", "value" => 55},
+                %{"label" => "Wed", "value" => 61},
+                %{"label" => "Thu", "value" => 73},
+                %{"label" => "Fri", "value" => 88}
+              ]
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :line_chart_footer,
+            "Line chart mounted with the error-trend series.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-line_chart"
+          )
+        ],
+        support_notice:
+          "The `line_chart` example stays a custom shell because trend-line rendering is intentionally renderer-backed and example-scoped.",
+        notes: "Binds one trend point series into the line-chart shell."
+      }
+    ]
+  end
+
   defp state_button(
          key,
          label,
@@ -1050,7 +1656,7 @@ defmodule AshUI.Examples.Phase20 do
   """
   @spec definitions() :: [definition()]
   def definitions do
-    overlay_definitions() ++ data_surface_definitions()
+    overlay_definitions() ++ data_surface_definitions() ++ feedback_chart_definitions()
   end
 
   @doc """

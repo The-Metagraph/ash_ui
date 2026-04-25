@@ -609,6 +609,258 @@ defmodule Phase20ExampleGenerator do
       gap: 0.75rem;
     }
 
+    .ash-status-surface,
+    .ash-progress-surface,
+    .ash-gauge-surface,
+    .ash-inline-feedback,
+    .ash-sparkline-surface,
+    .ash-bar-chart,
+    .ash-line-chart {
+      background: rgba(7, 14, 26, 0.72);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 1.35rem;
+      box-shadow: var(--ashui-example-panel-shadow);
+      display: grid;
+      gap: 1rem;
+      overflow: hidden;
+      padding: 1rem;
+    }
+
+    .ash-status-header,
+    .ash-progress-header,
+    .ash-gauge-header,
+    .ash-inline-feedback-header,
+    .ash-sparkline-header,
+    .ash-bar-chart-header,
+    .ash-line-chart-header {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .ash-status-title,
+    .ash-progress-title,
+    .ash-gauge-title,
+    .ash-inline-feedback-title,
+    .ash-sparkline-title,
+    .ash-bar-chart-title,
+    .ash-line-chart-title {
+      color: var(--ashui-example-copy-strong);
+      font-size: 1rem;
+      margin: 0;
+    }
+
+    .ash-status-description,
+    .ash-progress-description,
+    .ash-gauge-description,
+    .ash-inline-feedback-description,
+    .ash-sparkline-description,
+    .ash-bar-chart-description,
+    .ash-line-chart-description {
+      color: var(--ashui-example-copy-muted);
+      font-size: 0.92rem;
+      margin: 0;
+    }
+
+    .ash-status-body,
+    .ash-progress-body,
+    .ash-gauge-body,
+    .ash-inline-feedback-body,
+    .ash-sparkline-body,
+    .ash-bar-chart-body,
+    .ash-line-chart-body {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .ash-status-pill,
+    .ash-inline-feedback-badge {
+      align-items: center;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 999px;
+      display: inline-flex;
+      font-size: 0.82rem;
+      font-weight: 700;
+      justify-content: center;
+      letter-spacing: 0.08em;
+      max-width: fit-content;
+      padding: 0.55rem 0.85rem;
+      text-transform: uppercase;
+    }
+
+    .ash-status-tone-success .ash-status-pill,
+    .ash-inline-feedback-success .ash-inline-feedback-badge {
+      background: rgba(16, 185, 129, 0.16);
+      color: #9ff4d5;
+    }
+
+    .ash-status-tone-warning .ash-status-pill,
+    .ash-inline-feedback-warning .ash-inline-feedback-badge {
+      background: rgba(251, 191, 36, 0.16);
+      color: #fde68a;
+    }
+
+    .ash-status-tone-danger .ash-status-pill,
+    .ash-inline-feedback-danger .ash-inline-feedback-badge {
+      background: rgba(248, 113, 113, 0.16);
+      color: #fecaca;
+    }
+
+    .ash-status-detail,
+    .ash-progress-detail,
+    .ash-gauge-detail,
+    .ash-inline-feedback-detail {
+      color: var(--ashui-example-copy-muted);
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .ash-status-actions,
+    .ash-progress-actions,
+    .ash-gauge-actions,
+    .ash-inline-feedback-actions,
+    .ash-sparkline-actions,
+    .ash-bar-chart-actions,
+    .ash-line-chart-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .ash-status-footer,
+    .ash-progress-footer,
+    .ash-gauge-footer,
+    .ash-inline-feedback-footer,
+    .ash-sparkline-footer,
+    .ash-bar-chart-footer,
+    .ash-line-chart-footer {
+      display: grid;
+      gap: 0.6rem;
+    }
+
+    .ash-progress-summary,
+    .ash-gauge-summary {
+      align-items: baseline;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      justify-content: space-between;
+    }
+
+    .ash-progress-label,
+    .ash-gauge-label,
+    .ash-progress-value,
+    .ash-gauge-value {
+      color: var(--ashui-example-copy-strong);
+      font-weight: 700;
+    }
+
+    .ash-progress-track {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 999px;
+      height: 1rem;
+      overflow: hidden;
+    }
+
+    .ash-progress-fill {
+      background: linear-gradient(135deg, rgba(255, 184, 107, 0.95), rgba(255, 94, 58, 0.95));
+      border-radius: inherit;
+      display: block;
+      height: 100%;
+    }
+
+    .ash-gauge-meter {
+      align-items: center;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .ash-gauge-arc {
+      align-items: end;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 999px;
+      display: inline-flex;
+      height: 7rem;
+      justify-content: center;
+      overflow: hidden;
+      padding: 0.35rem;
+      width: 4rem;
+    }
+
+    .ash-gauge-fill {
+      background: linear-gradient(180deg, rgba(255, 184, 107, 0.95), rgba(255, 94, 58, 0.95));
+      border-radius: 999px;
+      display: block;
+      width: 100%;
+    }
+
+    .ash-sparkline-chart,
+    .ash-bar-chart-bars,
+    .ash-line-chart-grid {
+      align-items: end;
+      display: grid;
+      gap: 0.85rem;
+      grid-auto-columns: minmax(0, 1fr);
+      grid-auto-flow: column;
+      min-height: 12rem;
+    }
+
+    .ash-sparkline-point,
+    .ash-bar-chart-column,
+    .ash-line-chart-point {
+      align-items: center;
+      display: grid;
+      gap: 0.55rem;
+      justify-items: center;
+      position: relative;
+    }
+
+    .ash-sparkline-bar,
+    .ash-bar-chart-bar,
+    .ash-line-chart-stem {
+      background: linear-gradient(180deg, rgba(255, 184, 107, 0.95), rgba(255, 94, 58, 0.95));
+      border-radius: 999px 999px 0 0;
+      display: block;
+      min-height: 0.65rem;
+      width: 100%;
+    }
+
+    .ash-sparkline-bar {
+      max-width: 0.7rem;
+    }
+
+    .ash-bar-chart-bar {
+      max-width: 2.25rem;
+    }
+
+    .ash-line-chart-point {
+      min-height: 12rem;
+      padding-top: 1rem;
+    }
+
+    .ash-line-chart-marker {
+      background: #ffe2c5;
+      border: 2px solid rgba(255, 122, 61, 0.85);
+      border-radius: 999px;
+      box-shadow: 0 0 0 0.18rem rgba(255, 122, 61, 0.15);
+      display: block;
+      height: 0.85rem;
+      position: absolute;
+      width: 0.85rem;
+    }
+
+    .ash-sparkline-label,
+    .ash-bar-chart-label,
+    .ash-line-chart-label,
+    .ash-bar-chart-value,
+    .ash-line-chart-value {
+      color: var(--ashui-example-copy-muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
     .ash-menu,
     .ash-tabs,
     .ash-command-palette,
@@ -2096,6 +2348,16 @@ defmodule Phase20ExampleGenerator do
 
   defp try_it_text(%{directory: "log_viewer"}) do
     "Swap the active stream and confirm the visible log rows refresh through persisted runtime entries."
+  end
+
+  defp try_it_text(%{directory: directory})
+       when directory in ["status", "progress", "gauge", "inline_feedback"] do
+    "Switch the active feedback state and confirm the visible signal surface updates from persisted runtime metrics."
+  end
+
+  defp try_it_text(%{directory: directory})
+       when directory in ["sparkline", "bar_chart", "line_chart"] do
+    "Swap the active series and confirm the chart surface redraws from persisted runtime points."
   end
 
   defp try_it_text(%{directory: directory}) when directory in ["row", "column", "grid"] do

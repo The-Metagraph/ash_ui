@@ -177,6 +177,13 @@ The checked-in example suite now relies on a small set of explicitly rendered
 | `custom:tree_view` | Example-only hierarchical inspection shell | keep branch swaps and state changes on nested public child widgets |
 | `custom:markdown_viewer` | Example-only document-reading shell | keep document switching on nested public child widgets |
 | `custom:log_viewer` | Example-only log-reading shell | keep stream switching on nested public child widgets |
+| `custom:status` | Example-only status signal shell | keep state changes on nested public child widgets |
+| `custom:progress` | Example-only progress signal shell | keep state changes on nested public child widgets |
+| `custom:gauge` | Example-only capacity gauge shell | keep state changes on nested public child widgets |
+| `custom:inline_feedback` | Example-only inline advisory shell | keep state changes on nested public child widgets |
+| `custom:sparkline` | Example-only compact trend shell | keep series swaps on nested public child widgets |
+| `custom:bar_chart` | Example-only categorical chart shell | keep series swaps on nested public child widgets |
+| `custom:line_chart` | Example-only trend chart shell | keep series swaps on nested public child widgets |
 | `custom:toast` | Example-only transient notification shell | keep trigger actions on nested public child widgets |
 
 Treat those as explicit renderer extensions for the example suite, not as

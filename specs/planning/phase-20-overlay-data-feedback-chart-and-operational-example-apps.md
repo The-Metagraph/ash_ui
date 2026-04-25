@@ -52,17 +52,17 @@ Back to index: [README](./README.md)
       [x] 20.2.1.3 Subtask - Define the canonical interaction story for passive data surfaces so each app still demonstrates meaningful reviewer-visible behavior.
       [x] 20.2.1.4 Subtask - Add tests that prove representative data surfaces refresh correctly when bound data changes.
 
-  [ ] 20.3 Section - Feedback and Chart Example Apps
+  [x] 20.3 Section - Feedback and Chart Example Apps
     Add the examples that visualize status, progress, and lightweight metrics.
 
-    [ ] 20.3.1 Task - Implement feedback and chart apps
+    [x] 20.3.1 Task - Implement feedback and chart apps
     Build the examples that turn application state or metrics into visible UI
     feedback.
 
-      [ ] 20.3.1.1 Subtask - Implement `status`, `progress`, `gauge`, and `inline_feedback` example apps.
-      [ ] 20.3.1.2 Subtask - Implement `sparkline`, `bar_chart`, and `line_chart` example apps.
-      [ ] 20.3.1.3 Subtask - Define whether chart examples use maintained public widget types, explicit custom surfaces, or renderer-backed extensions.
-      [ ] 20.3.1.4 Subtask - Add tests that prove representative feedback and chart examples respond visibly to seeded or live-updated data.
+      [x] 20.3.1.1 Subtask - Implement `status`, `progress`, `gauge`, and `inline_feedback` example apps.
+      [x] 20.3.1.2 Subtask - Implement `sparkline`, `bar_chart`, and `line_chart` example apps.
+      [x] 20.3.1.3 Subtask - Define whether chart examples use maintained public widget types, explicit custom surfaces, or renderer-backed extensions.
+      [x] 20.3.1.4 Subtask - Add tests that prove representative feedback and chart examples respond visibly to seeded or live-updated data.
 
   [ ] 20.4 Section - Operational and Monitoring Example Apps
     Add the examples that simulate richer runtime systems and observer views.

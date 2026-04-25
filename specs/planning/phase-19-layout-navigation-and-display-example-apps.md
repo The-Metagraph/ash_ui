@@ -66,18 +66,18 @@ Back to index: [README](./README.md)
       [x] 19.3.1.3 Subtask - Define how those examples expose their primary interaction story through resource-local bindings, actions, or layout state.
       [x] 19.3.1.4 Subtask - Add tests that prove representative display apps preserve the Ash HQ shell without hiding the primary display construct.
 
-  [ ] 19.4 Section - Relationship-Driven Composition Proof
+  [x] 19.4 Section - Relationship-Driven Composition Proof
     Make this phase the place where multi-resource composition becomes visibly
     unavoidable in the example suite.
 
-    [ ] 19.4.1 Task - Emphasize relationship-first structure in complex layout apps
+    [x] 19.4.1 Task - Emphasize relationship-first structure in complex layout apps
     Ensure the examples showcase the architecture the package actually wants
     users to adopt.
 
-      [ ] 19.4.1.1 Subtask - Use nested element relationships as the default composition path for layout, navigation, and display apps.
-      [ ] 19.4.1.2 Subtask - Restrict inline screen fragments to shell glue, helper labels, or other low-noise cases.
-      [ ] 19.4.1.3 Subtask - Add review guidance that rejects monolithic screen-authority examples for these families.
-      [ ] 19.4.1.4 Subtask - Add tests that prove representative apps compile from related element graphs rather than one large inline tree.
+      [x] 19.4.1.1 Subtask - Use nested element relationships as the default composition path for layout, navigation, and display apps.
+      [x] 19.4.1.2 Subtask - Restrict inline screen fragments to shell glue, helper labels, or other low-noise cases.
+      [x] 19.4.1.3 Subtask - Add review guidance that rejects monolithic screen-authority examples for these families.
+      [x] 19.4.1.4 Subtask - Add tests that prove representative apps compile from related element graphs rather than one large inline tree.
 
   [ ] 19.5 Section - Phase 19 Integration Tests
     Validate the layout, navigation, and display examples through the shared Ash

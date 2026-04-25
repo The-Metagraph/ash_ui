@@ -72,6 +72,31 @@ apps should not ship detached serialized payloads, superseded helper-driven
 definitions, or monolithic inline trees that bypass the element relationship
 graph.
 
+## Relationship-First Review Guidance
+
+Layout, navigation, and display examples carry an additional review bar because
+their value is primarily structural.
+
+Reviewers should reject changes in those families when:
+
+- the screen resource grows a large `inline_fragment` or otherwise authors the
+  primary subject tree directly
+- the persisted screen roots stop at the review shell surfaces and start owning
+  the subject internals instead of delegating to related element resources
+- navigation, layout, or display controls move from related element resources
+  into one monolithic screen-level fragment
+- a custom example shell (`custom:*`) starts hiding the relationship graph that
+  should remain visible in persisted element resources
+
+The preferred shape is:
+
+- screen roots only for shell glue such as the demo panel, story panel, signal
+  preview, and low-noise support note surfaces
+- one subject element resource plus related child element resources for the
+  primary structure and companion controls
+- bindings and actions kept on the child resources that actually own the
+  interaction story
+
 The intended resource pattern matches the package's existing support fixtures:
 
 - app-local element base modules may follow the relationship-and-binding shape

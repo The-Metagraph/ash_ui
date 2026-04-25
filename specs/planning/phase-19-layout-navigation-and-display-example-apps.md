@@ -23,7 +23,7 @@ Back to index: [README](./README.md)
 - layout examples should favor maintained public Ash UI types such as `row`,
   `column`, and `grid` wherever possible
 
-[ ] 19 Phase 19 - Layout, Navigation, and Display Example Apps
+[x] 19 Phase 19 - Layout, Navigation, and Display Example Apps
   Implement the layout, navigation, and display-system example families,
   expanding Ash UI's public example-ready widget surface where necessary.
 
@@ -79,15 +79,15 @@ Back to index: [README](./README.md)
       [x] 19.4.1.3 Subtask - Add review guidance that rejects monolithic screen-authority examples for these families.
       [x] 19.4.1.4 Subtask - Add tests that prove representative apps compile from related element graphs rather than one large inline tree.
 
-  [ ] 19.5 Section - Phase 19 Integration Tests
+  [x] 19.5 Section - Phase 19 Integration Tests
     Validate the layout, navigation, and display examples through the shared Ash
     UI example-suite path.
 
-    [ ] 19.5.1 Task - Layout/navigation/display integration scenarios
+    [x] 19.5.1 Task - Layout/navigation/display integration scenarios
     Verify the phase delivers real structural examples and not only static
     visual shells.
 
-      [ ] 19.5.1.1 Subtask - Verify representative apps from each family boot independently and mount seeded screens through LiveView.
-      [ ] 19.5.1.2 Subtask - Verify newly admitted or custom widget surfaces validate and render through the intended path.
-      [ ] 19.5.1.3 Subtask - Verify relationship-driven composition remains visible in canonical output for representative apps.
-      [ ] 19.5.1.4 Subtask - Verify the Ash HQ shell remains intact around high-structure examples without obscuring their primary subject.
+      [x] 19.5.1.1 Subtask - Verify representative apps from each family boot independently and mount seeded screens through LiveView.
+      [x] 19.5.1.2 Subtask - Verify newly admitted or custom widget surfaces validate and render through the intended path.
+      [x] 19.5.1.3 Subtask - Verify relationship-driven composition remains visible in canonical output for representative apps.
+      [x] 19.5.1.4 Subtask - Verify the Ash HQ shell remains intact around high-structure examples without obscuring their primary subject.

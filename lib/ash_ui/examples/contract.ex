@@ -129,7 +129,7 @@ defmodule AshUI.Examples.Contract do
       ) do
     with {:ok, %{headers: headers, rows: rows}} <- load_catalog(catalog_path),
          :ok <- validate_catalog_headers(headers),
-         {:ok, sibling_dirs} <- sibling_directories(sibling_examples_path) do
+         {:ok, sibling_dirs} <- reference_example_directories(sibling_examples_path) do
       directories = Enum.map(rows, &Map.fetch!(&1, "directory"))
       duplicates = duplicate_values(directories)
       missing = sibling_dirs -- Enum.uniq(directories)
@@ -194,6 +194,19 @@ defmodule AshUI.Examples.Contract do
     end
   end
 
+  defp reference_example_directories(path) do
+    case sibling_directories(path) do
+      {:ok, directories} ->
+        {:ok, directories}
+
+      {:error, {:missing_sibling_examples, ^path, reason}} when reason in [:enoent, :enotdir] ->
+        snapshot_directories()
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   defp sibling_directories(path) do
     with {:ok, entries} <- File.ls(path) do
       directories =
@@ -204,6 +217,20 @@ defmodule AshUI.Examples.Contract do
       {:ok, directories}
     else
       {:error, reason} -> {:error, {:missing_sibling_examples, path, reason}}
+    end
+  end
+
+  defp snapshot_directories do
+    snapshot_path = Path.expand("../../../examples/unified_ui_example_directories.txt", __DIR__)
+
+    with {:ok, body} <- read_existing(snapshot_path) do
+      directories =
+        body
+        |> String.split("\n", trim: true)
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.sort()
+
+      {:ok, directories}
     end
   end
 

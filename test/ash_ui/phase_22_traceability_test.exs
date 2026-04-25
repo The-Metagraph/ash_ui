@@ -22,7 +22,8 @@ defmodule AshUI.Phase22TraceabilityTest do
         |> Enum.uniq()
         |> Enum.sort()
 
-      expected_phase_files = Enum.map(suite_phases, &"test/ash_ui/phase_#{&1}_integration_test.exs")
+      expected_phase_files =
+        Enum.map(suite_phases, &"test/ash_ui/phase_#{&1}_integration_test.exs")
 
       assert suite_phases == [18, 19, 20]
       assert catalog =~ "#### SCN-052: Example Suite Resource-Authority Flows"
@@ -40,6 +41,7 @@ defmodule AshUI.Phase22TraceabilityTest do
 
       assert scn_054 =~ "test/ash_ui/phase_17_integration_test.exs"
       assert scn_055 =~ "test/ash_ui/phase_22_governance_test.exs"
+      assert scn_055 =~ "test/ash_ui/phase_22_integration_test.exs"
     end
 
     test "22.3.1.3 - the spec matrix treats the shared theme shell and review surfaces as normative" do

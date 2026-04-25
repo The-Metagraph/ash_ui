@@ -62,14 +62,14 @@ Back to index: [README](./README.md)
       [x] 22.3.1.3 Subtask - Add traceability for the shared Ash HQ theme shell and shared review surfaces where they become normative.
       [x] 22.3.1.4 Subtask - Add tests that prove the example-suite traceability docs stay synchronized with the actual maintained examples.
 
-  [ ] 22.4 Section - Phase 22 Integration Tests
+  [x] 22.4 Section - Phase 22 Integration Tests
     Validate the complete Ash UI example suite through representative category
     coverage and suite-wide catalog checks.
 
-    [ ] 22.4.1 Task - Full-suite integration scenarios
+    [x] 22.4.1 Task - Full-suite integration scenarios
     Prove the suite behaves as one coherent reviewed product surface.
 
-      [ ] 22.4.1.1 Subtask - Verify representative apps from every major family boot as independent Mix projects and mount seeded screens successfully.
-      [ ] 22.4.1.2 Subtask - Verify representative apps from every family preserve the shared Ash HQ shell while foregrounding their primary subject and interaction story.
-      [ ] 22.4.1.3 Subtask - Verify the machine-readable catalog, root index, and actual directory tree remain synchronized across the full suite.
-      [ ] 22.4.1.4 Subtask - Verify release and governance workflows fail clearly when examples, docs, theme baselines, or traceability surfaces drift apart.
+      [x] 22.4.1.1 Subtask - Verify representative apps from every major family boot as independent Mix projects and mount seeded screens successfully.
+      [x] 22.4.1.2 Subtask - Verify representative apps from every family preserve the shared Ash HQ shell while foregrounding their primary subject and interaction story.
+      [x] 22.4.1.3 Subtask - Verify the machine-readable catalog, root index, and actual directory tree remain synchronized across the full suite.
+      [x] 22.4.1.4 Subtask - Verify release and governance workflows fail clearly when examples, docs, theme baselines, or traceability surfaces drift apart.

@@ -23,17 +23,17 @@ Back to index: [README](./README.md)
   Implement the discovery, launcher, validation, and governance workflows that
   turn the mirrored Ash UI example catalog into a maintainable review surface.
 
-  [ ] 21.1 Section - Root Suite Index and Catalog Discovery
+  [x] 21.1 Section - Root Suite Index and Catalog Discovery
     Provide one authoritative way to map the example suite quickly.
 
-    [ ] 21.1.1 Task - Implement the root example-suite index
+    [x] 21.1.1 Task - Implement the root example-suite index
     Make the root `examples/` directory readable as a product surface rather
     than only a filesystem tree.
 
-      [ ] 21.1.1.1 Subtask - Implement the root `examples/README.md` as the landing page for the mirrored Ash UI example suite.
-      [ ] 21.1.1.2 Subtask - Add machine-readable catalog metadata that maps example directory names to widget family, canonical Ash UI type, and runtime notes.
-      [ ] 21.1.1.3 Subtask - Add discovery metadata that records where catalog parity is exact versus normalized through canonical type mappings.
-      [ ] 21.1.1.4 Subtask - Add tests that prove the root index stays synchronized with the machine-readable example catalog.
+      [x] 21.1.1.1 Subtask - Implement the root `examples/README.md` as the landing page for the mirrored Ash UI example suite.
+      [x] 21.1.1.2 Subtask - Add machine-readable catalog metadata that maps example directory names to widget family, canonical Ash UI type, and runtime notes.
+      [x] 21.1.1.3 Subtask - Add discovery metadata that records where catalog parity is exact versus normalized through canonical type mappings.
+      [x] 21.1.1.4 Subtask - Add tests that prove the root index stays synchronized with the machine-readable example catalog.
 
   [ ] 21.2 Section - Independent App Run and Preview Tooling
     Give maintainers one repeatable path for launching and reviewing any app.

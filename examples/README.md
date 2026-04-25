@@ -1,192 +1,98 @@
-# Examples
+# Ash UI Example Suite
 
-This directory is reserved for runnable and copyable Ash UI examples.
+This directory now serves as the maintained landing page for the checked-in Ash
+UI example suite. The suite mirrors the current sibling `unified_ui/examples`
+catalog by directory name while rebuilding each example through
+resource-authority screens, related element resources, and the shared Ash HQ
+visual contract.
 
-## Status
+## Maintained Inputs
 
-The repository now includes checked-in standalone example apps from Phase 18
-Sections 18.1, 18.2, and 18.3.
+- `examples/catalog.tsv` remains the planning crosswalk imported from the
+  sibling suite.
+- `examples/catalog_metadata.json` is the maintained machine-readable suite
+  index for discovery, tooling, and review reporting.
+- `examples/scaffold_contract.md` defines the per-app resource-authority app
+  shape and review-surface contract.
+- `examples/ash_hq_theme_baseline.md` and `examples/ash_hq_theme_tokens.css`
+  define the shared Ash HQ shell and styling tokens every example app must use.
 
-Current directories:
+## Parity Labels
 
-- `examples/box`
-- `examples/text`
-- `examples/button`
-- `examples/checkbox`
-- `examples/content`
-- `examples/field`
-- `examples/field_group`
-- `examples/form_builder`
-- `examples/icon`
-- `examples/image`
-- `examples/label`
-- `examples/link`
-- `examples/date_input`
-- `examples/file_input`
-- `examples/numeric_input`
-- `examples/pick_list`
-- `examples/radio_group`
-- `examples/separator`
-- `examples/spacer`
-- `examples/select`
-- `examples/text_input`
-- `examples/time_input`
-- `examples/toggle`
+- `exact`: the example directory name and canonical Ash UI subject match.
+- `normalized`: the directory name is preserved, but the canonical Ash UI
+  subject differs.
+- `composed`: the example is a named review pattern built from a screen plus
+  related native widgets.
+- `custom`: the example still depends on an explicit `custom:*` shell until a
+  stable public widget contract exists.
 
-Phase 17 Section 17.1 defines the example-suite contract that the checked-in
-apps and future example directories must follow. The shared planning artifacts
-and baseline references in this directory are:
+## Suite Index
 
-- `examples/catalog.tsv`: machine-readable crosswalk from the sibling
-  `unified_ui` example suite into the planned Ash UI example suite
-- `examples/scaffold_contract.md`: required per-app resource-authority app
-  shape, host modules, review surfaces, and bootstrap conventions
-- `examples/ash_hq_theme_baseline.md`: shared visual baseline derived from the
-  current `ash-hq.org` site
-- `examples/ash_hq_theme_tokens.css`: copyable palette and shell token source
-  for future app-local CSS
-- `specs/planning/phase-17-ash-ui-example-suite-scaffold-catalog-crosswalk-and-ash-hq-theme-baseline.md`
-- `specs/planning/phase-18-foundational-content-form-and-input-example-apps.md`
-- `.spec/specs/examples.spec.md`
+<!-- ash_ui:example-suite-index:start -->
+| Directory | Title | Family | Phase | Canonical Subject | Parity | Runtime |
+|---|---|---|---|---|---|---|
+| `button` | Button Example | `content` | `18` | `button` | `exact` | `liveview` |
+| `text` | Text Example | `content` | `18` | `text` | `exact` | `liveview` |
+| `text_input` | Text Input Example | `input` | `18` | `input` | `normalized` | `liveview` |
+| `box` | Box Example | `layout` | `18` | `container` | `composed` | `liveview` |
+| `content` | Content Example | `layout` | `18` | `fragment` | `composed` | `liveview` |
+| `icon` | Icon Example | `content` | `18` | `icon` | `exact` | `liveview` |
+| `image` | Image Example | `content` | `18` | `image` | `exact` | `liveview` |
+| `label` | Label Example | `content` | `18` | `label` | `exact` | `liveview` |
+| `link` | Link Example | `content` | `18` | `custom:link` | `custom` | `liveview` |
+| `separator` | Separator Example | `content` | `18` | `divider` | `normalized` | `liveview` |
+| `spacer` | Spacer Example | `content` | `18` | `spacer` | `exact` | `liveview` |
+| `checkbox` | Checkbox Example | `input` | `18` | `checkbox` | `exact` | `liveview` |
+| `date_input` | Date Input Example | `input` | `18` | `input` | `normalized` | `liveview` |
+| `field` | Field Example | `forms` | `18` | `form_field` | `normalized` | `liveview` |
+| `field_group` | Field Group Example | `forms` | `18` | `custom:field_group` | `composed` | `liveview` |
+| `file_input` | File Input Example | `input` | `18` | `input` | `normalized` | `liveview` |
+| `form_builder` | Form Builder Example | `forms` | `18` | `form_builder` | `exact` | `liveview` |
+| `numeric_input` | Numeric Input Example | `input` | `18` | `input` | `normalized` | `liveview` |
+| `pick_list` | Pick List Example | `input` | `18` | `custom:pick_list` | `custom` | `liveview` |
+| `radio_group` | Radio Group Example | `input` | `18` | `radio` | `normalized` | `liveview` |
+| `select` | Select Example | `input` | `18` | `select` | `exact` | `liveview` |
+| `time_input` | Time Input Example | `input` | `18` | `input` | `normalized` | `liveview` |
+| `toggle` | Toggle Example | `input` | `18` | `switch` | `normalized` | `liveview` |
+| `row` | Row Example | `layout` | `19` | `row` | `exact` | `liveview` |
+| `column` | Column Example | `layout` | `19` | `column` | `exact` | `liveview` |
+| `grid` | Grid Example | `layout` | `19` | `grid` | `exact` | `liveview` |
+| `viewport` | Viewport Example | `display` | `19` | `custom:viewport` | `custom` | `liveview` |
+| `scroll_bar` | Scroll Bar Example | `display` | `19` | `custom:scroll_bar` | `custom` | `liveview` |
+| `split_pane` | Split Pane Example | `display` | `19` | `custom:split_pane` | `custom` | `liveview` |
+| `canvas` | Canvas Example | `display` | `19` | `custom:canvas` | `custom` | `liveview` |
+| `overlay` | Overlay Example | `overlay` | `20` | `custom:overlay` | `custom` | `liveview` |
+| `dialog` | Dialog Example | `overlay` | `20` | `custom:dialog` | `custom` | `liveview` |
+| `alert_dialog` | Alert Dialog Example | `overlay` | `20` | `custom:alert_dialog` | `custom` | `liveview` |
+| `context_menu` | Context Menu Example | `overlay` | `20` | `custom:context_menu` | `custom` | `liveview` |
+| `toast` | Toast Example | `overlay` | `20` | `custom:toast` | `custom` | `liveview` |
+| `stream_widget` | Stream Widget Example | `operational` | `20` | `screen` | `composed` | `liveview` |
+| `process_monitor` | Process Monitor Example | `operational` | `20` | `screen` | `composed` | `liveview` |
+| `supervision_tree_viewer` | Supervision Tree Viewer Example | `operational` | `20` | `screen` | `composed` | `liveview` |
+| `cluster_dashboard` | Cluster Dashboard Example | `operational` | `20` | `screen` | `composed` | `liveview` |
+| `menu` | Menu Example | `navigation` | `19` | `custom:menu` | `custom` | `liveview` |
+| `tabs` | Tabs Example | `navigation` | `19` | `custom:tabs` | `custom` | `liveview` |
+| `command_palette` | Command Palette Example | `navigation` | `19` | `custom:command_palette` | `custom` | `liveview` |
+| `list` | List Example | `data` | `20` | `list` | `exact` | `liveview` |
+| `table` | Table Example | `data` | `20` | `table` | `exact` | `liveview` |
+| `tree_view` | Tree View Example | `data` | `20` | `custom:tree_view` | `custom` | `liveview` |
+| `markdown_viewer` | Markdown Viewer Example | `data` | `20` | `custom:markdown_viewer` | `custom` | `liveview` |
+| `log_viewer` | Log Viewer Example | `data` | `20` | `custom:log_viewer` | `custom` | `liveview` |
+| `status` | Status Example | `feedback` | `20` | `badge` | `normalized` | `liveview` |
+| `progress` | Progress Example | `feedback` | `20` | `custom:progress` | `custom` | `liveview` |
+| `gauge` | Gauge Example | `feedback` | `20` | `custom:gauge` | `custom` | `liveview` |
+| `inline_feedback` | Inline Feedback Example | `feedback` | `20` | `custom:inline_feedback` | `composed` | `liveview` |
+| `sparkline` | Sparkline Example | `feedback` | `20` | `custom:sparkline` | `custom` | `liveview` |
+| `bar_chart` | Bar Chart Example | `feedback` | `20` | `custom:bar_chart` | `custom` | `liveview` |
+| `line_chart` | Line Chart Example | `feedback` | `20` | `custom:line_chart` | `custom` | `liveview` |
+<!-- ash_ui:example-suite-index:end -->
 
-## Shared Scaffold
+## Shared Contracts
 
-Phase 17 Section 17.2 defines the reusable example-app scaffold used by every
-future directory under `examples/<name>/`.
-
-The maintained baseline is:
-
-- one standalone Mix project per example directory
-- one authored screen resource plus related element resources per example
-- app-local UI storage and runtime domains
-- one LiveView host route at `/`
-- one reviewer-visible `Meaningful Interaction Story` surface
-- one reviewer-visible `Canonical Signal Preview` surface
-- one app-local seed module that persists the screen through
-  `AshUI.Resource.Authority.create/2`
-
-See [Resource-Authority Example App Scaffold](./scaffold_contract.md) for the
-full module, route, DOM-id, and reset/reseed contract.
-
-Current form-oriented helper rules established by Phase 18 Section 18.2:
-
-- `form_builder` may own nested `form_field` and submit-button children.
-- `field` may normalize into `form_field` with a nested input child.
-- `field_group` may use `custom:field_group` as the review subject while
-  composing nested `form_field` and input children underneath it.
-- Supporting helper elements must stay subordinate to one clear primary subject
-  per directory.
-
-Current input-control rules established by Phase 18 Section 18.3:
-
-- `text_input`, `numeric_input`, `date_input`, `time_input`, and `file_input`
-  are authored through the canonical `input` widget with specialized props.
-- `checkbox` and `select` use the current public widget surface directly.
-- `radio_group` preserves sibling naming while authoring through the canonical
-  `radio` widget.
-- `toggle` preserves sibling naming while authoring through the canonical
-  `switch` widget.
-- `pick_list` remains an explicit `custom:pick_list` surface until a stable
-  public multi-pick contract is admitted.
-- Preview stats are the reviewer-visible transformed value surface for input
-  examples, including boolean values and narrowed filename echoes.
-- Partial or normalized surfaces must render a support notice instead of
-  implying broader runtime support than Ash UI currently provides.
-- Invalid binding/runtime assumptions must surface a visible error flash through
-  the shared shell rather than silently no-op.
-
-## Shared Theme
-
-Phase 17 Section 17.3 defines the shared Ash HQ visual contract for the
-example suite.
-
-The maintained baseline uses:
-
-- `slate-950` page shells and translucent slate glass panels
-- warm orange-to-red accent ramps derived from the current Ash HQ homepage
-- rounded pill CTAs with restrained warm glow
-- gradient-plus-grid backdrops and code-surface motifs
-- host-app CSS tokens plus semantic style hooks instead of ad hoc inline styles
-
-Use [Ash HQ Theme Baseline](./ash_hq_theme_baseline.md) for the normative
-design contract and [ash_hq_theme_tokens.css](./ash_hq_theme_tokens.css) as the
-copyable token source that future standalone apps should vendor locally.
-
-## Planned Suite Contract
-
-The Ash UI suite will mirror the current sibling `unified_ui` example catalog
-by directory name while rebuilding each app through Ash UI resource-authority
-screens and related element resources.
-
-The current Phase 17 parity rules are:
-
-- Preserve the current sibling example directory identifiers exactly.
-- Preserve the imported family grouping and interaction metadata as the starting
-  review contract.
-- Keep one primary subject per example directory even when supporting shell
-  elements or helper controls are needed.
-- Require one reviewer-visible `Meaningful Interaction Story` surface per app.
-- Require one reviewer-visible `Canonical Signal Preview` surface per app.
-- Require app-local seed helpers that persist the mounted screen through
-  `AshUI.Resource.Authority`.
-- Treat `liveview` as the maintained runtime target for all apps.
-- Treat any renderer previews beyond `liveview` as optional and non-blocking.
-- Call out unsupported or partial widget/runtime surfaces explicitly in the
-  catalog and app-local docs instead of implying support.
-
-## Rollout Buckets
-
-| Ash UI Phase | Families | Rollout intent |
-|---|---|---|
-| `18` | `content`, `forms`, `input`, plus `box` and `content` | Stand up the baseline suite shape through the lowest-risk examples first. |
-| `19` | `layout`, `navigation`, `display` | Expand the public example surface around relationship-driven structure and higher-order layout constructs. |
-| `20` | `overlay`, `data`, `feedback`, `operational` | Land the highest-complexity examples that depend on richer runtime data, layered flows, or custom/example-only widget surfaces. |
-
-## Catalog Field Meanings
-
-`examples/catalog.tsv` uses these planning-specific columns in addition to the
-imported sibling metadata:
-
-- `ash_ui_phase`: planned Ash UI rollout phase for the example directory
-- `ash_ui_canonical_subject`: canonical Ash UI widget type, custom type, or
-  screen/composition subject the example is expected to use
-- `ash_ui_authoring_path`: the expected implementation path
-- `support_gap`: the main capability gap or normalization rule that still
-  matters before the example can ship honestly
-- `complexity_tier`: current rollout-risk bucket
-- `maintained_runtime`: the runtime target the suite commits to maintain
-- `preview_policy`: whether non-LiveView previews are mandatory or optional
-
-### `ash_ui_authoring_path`
-
-- `native_widget`: current public Ash UI type with no naming translation
-- `normalized_widget`: stable example directory name with a different canonical
-  Ash UI type
-- `specialized_input`: stable example directory name implemented through the
-  canonical `input` type with specialized props and host/runtime handling
-- `promote_fallback_widget`: fallback renderer/runtime understands the concept
-  today, but public authoring validation does not yet admit it
-- `composed_native_screen`: the example should be treated as a named review
-  pattern built from a screen plus related native widgets rather than one
-  standalone widget type
-- `custom_widget`: the example currently needs an explicit `custom:*` surface or
-  a future public widget admission
-
-### `support_gap`
-
-- `none`: current public authoring and fallback runtime are good enough for the
-  first example implementation
-- `normalized_name`: the directory name is preserved, but the canonical Ash UI
-  type differs
-- `specialized_input_runtime`: the directory name is preserved, but the example
-  depends on specialized `input` props or host/runtime handling
-- `public_type_admission`: current fallback behavior exists, but public
-  authoring validation must admit the type
-- `richer_fallback_rendering`: the public type exists, but the current fallback
-  renderer is too generic for an honest example
-- `composition_shell`: the example is best treated as a named composition
-  pattern rather than one first-class widget type
-- `custom_surface_until_admitted`: the example needs an explicit custom surface
-  until a stable public widget contract exists
-- `seeded_runtime_complexity`: the example can be built from native widgets but
-  needs richer seeded runtime state or operational storytelling
+- every checked-in directory remains one standalone Mix project
+- every example persists its screen through `AshUI.Resource.Authority`
+- every example foregrounds the shared Ash HQ shell, one meaningful
+  interaction story, and one canonical signal preview
+- unsupported or partial surfaces stay called out explicitly in metadata and
+  app-local docs rather than implied silently

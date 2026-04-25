@@ -767,6 +767,115 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
         end
       )
     end
+
+    test "generates dedicated operational markup for advanced monitoring examples" do
+      Enum.each(
+        [
+          {"custom:stream_widget", "ash-stream-widget", "ash-stream-widget-entries", "ingest"},
+          {
+            "custom:process_monitor",
+            "ash-process-monitor",
+            "ash-process-monitor-cards",
+            "scheduler"
+          },
+          {
+            "custom:supervision_tree_viewer",
+            "ash-supervision-tree-viewer",
+            "ash-supervision-tree-list",
+            "Worker supervisor"
+          },
+          {
+            "custom:cluster_dashboard",
+            "ash-cluster-dashboard",
+            "ash-cluster-dashboard-grid",
+            "Regional cluster stable"
+          }
+        ],
+        fn {type, wrapper_class, section_class, expected_copy} ->
+          props =
+            case type do
+              "custom:stream_widget" ->
+                %{
+                  "title" => "Stream",
+                  "description" => "Operational feed",
+                  "entries" => [
+                    %{
+                      "timestamp" => "13:04:12",
+                      "label" => "ingest",
+                      "message" => "Packet accepted."
+                    }
+                  ]
+                }
+
+              "custom:process_monitor" ->
+                %{
+                  "title" => "Process monitor",
+                  "description" => "Runtime snapshot",
+                  "model" => %{
+                    "summary" => "Schedulers and workers are healthy.",
+                    "processes" => [
+                      %{"name" => "scheduler", "state" => "running", "meta" => "0 restarts"}
+                    ]
+                  }
+                }
+
+              "custom:supervision_tree_viewer" ->
+                %{
+                  "title" => "Supervision tree",
+                  "description" => "Hierarchy",
+                  "model" => %{
+                    "label" => "Worker supervisor",
+                    "meta" => "Primary",
+                    "nodes" => [%{"label" => "queue_worker", "meta" => "running"}]
+                  }
+                }
+
+              "custom:cluster_dashboard" ->
+                %{
+                  "title" => "Cluster dashboard",
+                  "description" => "Regional overview",
+                  "model" => %{
+                    "headline" => "Regional cluster stable",
+                    "detail" => "All regions are inside budget.",
+                    "regions" => [%{"label" => "us-east", "status" => "Healthy", "load" => "63%"}],
+                    "alerts" => [%{"title" => "Billing lag", "message" => "Watching retries."}]
+                  }
+                }
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => props,
+            "children" => [
+              %{
+                "type" => "button",
+                "id" => "#{type}-action",
+                "props" => %{"label" => "Refresh"},
+                "children" => [],
+                "metadata" => %{"slot" => "actions"}
+              },
+              %{
+                "type" => "text",
+                "id" => "#{type}-footer",
+                "props" => %{"content" => "Operational snapshot bound from runtime"},
+                "children" => [],
+                "metadata" => %{"slot" => "footer"}
+              }
+            ],
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ expected_copy
+          assert heex =~ "Refresh"
+          assert heex =~ "Operational snapshot bound from runtime"
+        end
+      )
+    end
   end
 
   describe "Section 7.2.1 - Event Binding Configuration" do

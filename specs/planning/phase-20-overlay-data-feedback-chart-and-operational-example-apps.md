@@ -64,17 +64,17 @@ Back to index: [README](./README.md)
       [x] 20.3.1.3 Subtask - Define whether chart examples use maintained public widget types, explicit custom surfaces, or renderer-backed extensions.
       [x] 20.3.1.4 Subtask - Add tests that prove representative feedback and chart examples respond visibly to seeded or live-updated data.
 
-  [ ] 20.4 Section - Operational and Monitoring Example Apps
+  [x] 20.4 Section - Operational and Monitoring Example Apps
     Add the examples that simulate richer runtime systems and observer views.
 
-    [ ] 20.4.1 Task - Implement operational apps
+    [x] 20.4.1 Task - Implement operational apps
     Build the examples that showcase live-ish or system-level flows through Ash
     UI resource-authority screens.
 
-      [ ] 20.4.1.1 Subtask - Implement `stream_widget`, `process_monitor`, and `supervision_tree_viewer` example apps.
-      [ ] 20.4.1.2 Subtask - Implement the `cluster_dashboard` example app as the suite's flagship operational composition example.
-      [ ] 20.4.1.3 Subtask - Define how those apps use notifications, seeded refresh cycles, or simulated telemetry without introducing dishonest runtime claims.
-      [ ] 20.4.1.4 Subtask - Add tests that prove representative operational examples preserve state updates, list refresh, and action-driven control flows.
+      [x] 20.4.1.1 Subtask - Implement `stream_widget`, `process_monitor`, and `supervision_tree_viewer` example apps.
+      [x] 20.4.1.2 Subtask - Implement the `cluster_dashboard` example app as the suite's flagship operational composition example.
+      [x] 20.4.1.3 Subtask - Define how those apps use notifications, seeded refresh cycles, or simulated telemetry without introducing dishonest runtime claims.
+      [x] 20.4.1.4 Subtask - Add tests that prove representative operational examples preserve state updates, list refresh, and action-driven control flows.
 
   [ ] 20.5 Section - Runtime, Authorization, and Seed Realism
     Keep the complex example apps grounded in real Ash UI runtime behavior

@@ -184,6 +184,10 @@ The checked-in example suite now relies on a small set of explicitly rendered
 | `custom:sparkline` | Example-only compact trend shell | keep series swaps on nested public child widgets |
 | `custom:bar_chart` | Example-only categorical chart shell | keep series swaps on nested public child widgets |
 | `custom:line_chart` | Example-only trend chart shell | keep series swaps on nested public child widgets |
+| `custom:stream_widget` | Example-only operational feed shell | keep snapshot swaps on nested public child widgets |
+| `custom:process_monitor` | Example-only process state shell | keep snapshot swaps on nested public child widgets |
+| `custom:supervision_tree_viewer` | Example-only supervision hierarchy shell | keep snapshot swaps on nested public child widgets |
+| `custom:cluster_dashboard` | Example-only multi-region operational shell | keep snapshot swaps on nested public child widgets |
 | `custom:toast` | Example-only transient notification shell | keep trigger actions on nested public child widgets |
 
 Treat those as explicit renderer extensions for the example suite, not as

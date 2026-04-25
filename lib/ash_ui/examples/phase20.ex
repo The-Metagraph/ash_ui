@@ -1580,6 +1580,451 @@ defmodule AshUI.Examples.Phase20 do
     ]
   end
 
+  defp operational_definitions do
+    [
+      %{
+        directory: "stream_widget",
+        section: :operational_monitoring,
+        family: :operational,
+        title: "Stream Widget Example",
+        subject_type: :"custom:stream_widget",
+        subject_props: %{
+          title: "Activity stream",
+          description:
+            "A bounded operational feed that swaps between representative runtime streams.",
+          class: "ashui-example-stream-widget-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the active operational feed and confirm the stream surface redraws from persisted runtime entries instead of claiming an unimplemented live transport.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.items -> bound stream entries plus preview label.",
+        seed_state: %{
+          id: "state-stream_widget",
+          current_value: "ingest stream",
+          status: "Stream widget mounted with the ingest feed snapshot.",
+          items: [
+            %{
+              "timestamp" => "13:04:12",
+              "label" => "ingest",
+              "message" => "Batch handoff packet accepted for triage."
+            },
+            %{
+              "timestamp" => "13:04:27",
+              "label" => "ingest",
+              "message" => "Escalation queue hydration completed."
+            },
+            %{
+              "timestamp" => "13:04:39",
+              "label" => "ingest",
+              "message" => "Operator summary card published."
+            }
+          ]
+        },
+        preview_field: :current_value,
+        preview_title: "Active feed",
+        subject_binding: %{
+          id: :stream_entries,
+          field: :items,
+          target: "entries",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_ingest_stream_widget_button,
+            "Ingest feed",
+            "state-stream_widget",
+            %{
+              current_value: "ingest stream",
+              status: "Stream widget mounted with the ingest feed snapshot.",
+              items: [
+                %{
+                  "timestamp" => "13:04:12",
+                  "label" => "ingest",
+                  "message" => "Batch handoff packet accepted for triage."
+                },
+                %{
+                  "timestamp" => "13:04:27",
+                  "label" => "ingest",
+                  "message" => "Escalation queue hydration completed."
+                },
+                %{
+                  "timestamp" => "13:04:39",
+                  "label" => "ingest",
+                  "message" => "Operator summary card published."
+                }
+              ]
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_deploy_stream_widget_button,
+            "Deploy feed",
+            "state-stream_widget",
+            %{
+              current_value: "deploy stream",
+              status: "Stream widget switched to the deploy feed snapshot.",
+              items: [
+                %{
+                  "timestamp" => "13:12:01",
+                  "label" => "deploy",
+                  "message" => "Canary reached 25 percent of its target scope."
+                },
+                %{
+                  "timestamp" => "13:12:18",
+                  "label" => "deploy",
+                  "message" => "Regional readiness checks returned healthy."
+                },
+                %{
+                  "timestamp" => "13:12:32",
+                  "label" => "deploy",
+                  "message" => "Rollback plan archived with the release packet."
+                }
+              ]
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :stream_widget_footer,
+            "Stream widget mounted with the ingest feed snapshot.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-stream_widget"
+          )
+        ],
+        support_notice:
+          "The `stream_widget` example intentionally swaps persisted snapshots through nested controls; it does not claim a live subscription transport the package does not ship yet.",
+        notes: "Uses representative runtime feed snapshots with explicit operator controls."
+      },
+      %{
+        directory: "process_monitor",
+        section: :operational_monitoring,
+        family: :operational,
+        title: "Process Monitor Example",
+        subject_type: :"custom:process_monitor",
+        subject_props: %{
+          title: "Process monitor",
+          description: "A compact runtime process surface fed by one persisted model snapshot.",
+          class: "ashui-example-process-monitor-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the monitored process state and confirm the visible process cards update from persisted runtime data rather than decorative placeholders.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.payload -> bound process monitor model plus preview label.",
+        seed_state: %{
+          id: "state-process_monitor",
+          current_value: "steady state",
+          status: "Process monitor mounted with the steady-state snapshot.",
+          payload: %{
+            "summary" => "Schedulers and workers are healthy with no restart pressure.",
+            "processes" => [
+              %{"name" => "scheduler", "state" => "running", "meta" => "0 restarts"},
+              %{"name" => "queue_worker", "state" => "running", "meta" => "1 restart"},
+              %{"name" => "binding_refresher", "state" => "idle", "meta" => "0 restarts"}
+            ]
+          }
+        },
+        preview_field: :current_value,
+        preview_title: "Monitor mode",
+        subject_binding: %{
+          id: :process_monitor_model,
+          field: :payload,
+          target: "model",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_steady_process_monitor_button,
+            "Steady state",
+            "state-process_monitor",
+            %{
+              current_value: "steady state",
+              status: "Process monitor mounted with the steady-state snapshot.",
+              payload: %{
+                "summary" => "Schedulers and workers are healthy with no restart pressure.",
+                "processes" => [
+                  %{"name" => "scheduler", "state" => "running", "meta" => "0 restarts"},
+                  %{"name" => "queue_worker", "state" => "running", "meta" => "1 restart"},
+                  %{"name" => "binding_refresher", "state" => "idle", "meta" => "0 restarts"}
+                ]
+              }
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_pressure_process_monitor_button,
+            "Pressure state",
+            "state-process_monitor",
+            %{
+              current_value: "pressure state",
+              status: "Process monitor switched to the restart-pressure snapshot.",
+              payload: %{
+                "summary" => "Retry workers are degraded and the refresh lane is under pressure.",
+                "processes" => [
+                  %{"name" => "scheduler", "state" => "running", "meta" => "0 restarts"},
+                  %{"name" => "queue_worker", "state" => "degraded", "meta" => "4 restarts"},
+                  %{"name" => "binding_refresher", "state" => "running", "meta" => "2 restarts"}
+                ]
+              }
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :process_monitor_footer,
+            "Process monitor mounted with the steady-state snapshot.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-process_monitor"
+          )
+        ],
+        support_notice:
+          "The `process_monitor` example uses explicit runtime snapshots and nested controls instead of implying a hidden supervisor tap.",
+        notes: "Binds one process monitor model map into a renderer-backed operational shell."
+      },
+      %{
+        directory: "supervision_tree_viewer",
+        section: :operational_monitoring,
+        family: :operational,
+        title: "Supervision Tree Viewer Example",
+        subject_type: :"custom:supervision_tree_viewer",
+        subject_props: %{
+          title: "Supervision tree",
+          description:
+            "A hierarchical operational shell for supervisor and worker relationships.",
+          class: "ashui-example-supervision-tree-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the viewed supervision snapshot and confirm the tree structure updates from persisted runtime data instead of a fixed outline.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.payload -> bound supervision tree model plus preview label.",
+        seed_state: %{
+          id: "state-supervision_tree_viewer",
+          current_value: "worker supervision",
+          status: "Supervision tree viewer mounted with the worker supervision snapshot.",
+          payload: %{
+            "label" => "Worker supervisor",
+            "meta" => "Primary",
+            "nodes" => [
+              %{"label" => "queue_worker", "meta" => "running"},
+              %{
+                "label" => "retry_supervisor",
+                "meta" => "running",
+                "children" => [
+                  %{"label" => "retry_worker_a", "meta" => "running"},
+                  %{"label" => "retry_worker_b", "meta" => "running"}
+                ]
+              }
+            ]
+          }
+        },
+        preview_field: :current_value,
+        preview_title: "Snapshot",
+        subject_binding: %{
+          id: :supervision_tree_model,
+          field: :payload,
+          target: "model",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_worker_supervision_tree_button,
+            "Worker tree",
+            "state-supervision_tree_viewer",
+            %{
+              current_value: "worker supervision",
+              status: "Supervision tree viewer mounted with the worker supervision snapshot.",
+              payload: %{
+                "label" => "Worker supervisor",
+                "meta" => "Primary",
+                "nodes" => [
+                  %{"label" => "queue_worker", "meta" => "running"},
+                  %{
+                    "label" => "retry_supervisor",
+                    "meta" => "running",
+                    "children" => [
+                      %{"label" => "retry_worker_a", "meta" => "running"},
+                      %{"label" => "retry_worker_b", "meta" => "running"}
+                    ]
+                  }
+                ]
+              }
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_recovery_supervision_tree_button,
+            "Recovery tree",
+            "state-supervision_tree_viewer",
+            %{
+              current_value: "recovery supervision",
+              status: "Supervision tree viewer switched to the recovery supervision snapshot.",
+              payload: %{
+                "label" => "Recovery supervisor",
+                "meta" => "Failover",
+                "nodes" => [
+                  %{"label" => "rollback_worker", "meta" => "running"},
+                  %{
+                    "label" => "broadcast_supervisor",
+                    "meta" => "running",
+                    "children" => [
+                      %{"label" => "notify_slack", "meta" => "queued"},
+                      %{"label" => "notify_pager", "meta" => "running"}
+                    ]
+                  }
+                ]
+              }
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :supervision_tree_footer,
+            "Supervision tree viewer mounted with the worker supervision snapshot.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-supervision_tree_viewer"
+          )
+        ],
+        support_notice:
+          "The `supervision_tree_viewer` example remains a custom shell because operational supervision visuals are renderer-backed and example-scoped.",
+        notes: "Binds one supervision tree snapshot into a hierarchical shell."
+      },
+      %{
+        directory: "cluster_dashboard",
+        section: :operational_monitoring,
+        family: :operational,
+        title: "Cluster Dashboard Example",
+        subject_type: :"custom:cluster_dashboard",
+        subject_props: %{
+          title: "Cluster dashboard",
+          description: "The flagship operational composition example for multi-region review.",
+          class: "ashui-example-cluster-dashboard-shell"
+        },
+        story_text:
+          "Meaningful Interaction Story: switch the dashboard between stable and incident snapshots and confirm the headline, regional cards, and alert rail all update from persisted runtime data.",
+        signal_text:
+          "Canonical Signal Preview: nested button click -> ExampleState.payload -> bound dashboard model plus preview label.",
+        seed_state: %{
+          id: "state-cluster_dashboard",
+          current_value: "stable cluster",
+          status: "Cluster dashboard mounted with the stable multi-region snapshot.",
+          payload: %{
+            "headline" => "Regional cluster stable",
+            "detail" => "All regions are inside their latency and retry budgets.",
+            "regions" => [
+              %{"label" => "us-east", "status" => "Healthy", "load" => "63%"},
+              %{"label" => "us-west", "status" => "Healthy", "load" => "58%"},
+              %{"label" => "eu-central", "status" => "Watching", "load" => "61%"}
+            ],
+            "alerts" => [
+              %{"title" => "Billing lag", "message" => "Watching retriable writes."},
+              %{"title" => "Worker backlog", "message" => "Trending down after rebalance."}
+            ]
+          }
+        },
+        preview_field: :current_value,
+        preview_title: "Snapshot",
+        subject_binding: %{
+          id: :cluster_dashboard_model,
+          field: :payload,
+          target: "model",
+          binding_type: :value,
+          transform: %{}
+        },
+        subject_action: nil,
+        subject_children: [
+          state_button(
+            :load_stable_cluster_dashboard_button,
+            "Stable snapshot",
+            "state-cluster_dashboard",
+            %{
+              current_value: "stable cluster",
+              status: "Cluster dashboard mounted with the stable multi-region snapshot.",
+              payload: %{
+                "headline" => "Regional cluster stable",
+                "detail" => "All regions are inside their latency and retry budgets.",
+                "regions" => [
+                  %{"label" => "us-east", "status" => "Healthy", "load" => "63%"},
+                  %{"label" => "us-west", "status" => "Healthy", "load" => "58%"},
+                  %{"label" => "eu-central", "status" => "Watching", "load" => "61%"}
+                ],
+                "alerts" => [
+                  %{"title" => "Billing lag", "message" => "Watching retriable writes."},
+                  %{
+                    "title" => "Worker backlog",
+                    "message" => "Trending down after rebalance."
+                  }
+                ]
+              }
+            },
+            :actions,
+            0
+          ),
+          state_button(
+            :load_incident_cluster_dashboard_button,
+            "Incident snapshot",
+            "state-cluster_dashboard",
+            %{
+              current_value: "incident cluster",
+              status: "Cluster dashboard switched to the incident response snapshot.",
+              payload: %{
+                "headline" => "Regional cluster degraded",
+                "detail" =>
+                  "Two regions are above the retry threshold and operator response is active.",
+                "regions" => [
+                  %{"label" => "us-east", "status" => "Degraded", "load" => "87%"},
+                  %{"label" => "us-west", "status" => "Healthy", "load" => "59%"},
+                  %{"label" => "eu-central", "status" => "Degraded", "load" => "82%"}
+                ],
+                "alerts" => [
+                  %{"title" => "Gateway retries", "message" => "Crossed the paging threshold."},
+                  %{
+                    "title" => "Recovery broadcast",
+                    "message" => "Queued for operator acknowledgment."
+                  }
+                ]
+              }
+            },
+            :actions,
+            10,
+            "ashui-example-secondary-cta"
+          ),
+          slot_text(
+            :footer,
+            :cluster_dashboard_footer,
+            "Cluster dashboard mounted with the stable multi-region snapshot.",
+            "ashui-example-surface-meta",
+            0,
+            field: :status,
+            state_id: "state-cluster_dashboard"
+          )
+        ],
+        support_notice:
+          "The `cluster_dashboard` example is a composed custom shell that stays explicit about using representative snapshots and nested public controls rather than hidden runtime shortcuts.",
+        notes: "Binds one dashboard model map into the flagship operational shell."
+      }
+    ]
+  end
+
   defp state_button(
          key,
          label,
@@ -1656,7 +2101,10 @@ defmodule AshUI.Examples.Phase20 do
   """
   @spec definitions() :: [definition()]
   def definitions do
-    overlay_definitions() ++ data_surface_definitions() ++ feedback_chart_definitions()
+    overlay_definitions() ++
+      data_surface_definitions() ++
+      feedback_chart_definitions() ++
+      operational_definitions()
   end
 
   @doc """

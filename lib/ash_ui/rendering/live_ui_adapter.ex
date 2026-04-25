@@ -1633,6 +1633,181 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "custom:stream_widget"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Stream widget")
+    description = text_prop(props, ["description", "help"])
+    entries = log_entries(props)
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-stream-widget", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-stream-widget-header">
+        <h2 class="ash-stream-widget-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-stream-widget-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-stream-widget-body">
+        <div class="ash-stream-widget-entries">
+          #{Enum.map_join(entries, &render_stream_entry/1)}
+        </div>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-stream-widget-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-stream-widget-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:process_monitor"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Process monitor")
+    description = text_prop(props, ["description", "help"])
+    model = metric_model(props)
+    summary = text_prop(model, ["summary", "detail", "description"])
+    processes = model_entries(model, "processes")
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-process-monitor", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-process-monitor-header">
+        <h2 class="ash-process-monitor-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-process-monitor-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-process-monitor-body">
+        #{if summary, do: "<p class=\"ash-process-monitor-summary\">#{summary}</p>", else: ""}
+        <div class="ash-process-monitor-cards">
+          #{Enum.map_join(processes, &render_process_card/1)}
+        </div>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-process-monitor-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-process-monitor-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:supervision_tree_viewer"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Supervision tree viewer")
+    description = text_prop(props, ["description", "help"])
+    model = metric_model(props)
+    root_label = text_prop(model, "label", "Supervisor")
+    root_meta = text_prop(model, "meta")
+    nodes = model_entries(model, "nodes")
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-supervision-tree-viewer", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-supervision-tree-viewer-header">
+        <h2 class="ash-supervision-tree-viewer-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-supervision-tree-viewer-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-supervision-tree-viewer-body">
+        <div class="ash-supervision-tree-root">
+          <span class="ash-supervision-tree-root-label">#{root_label}</span>
+          #{if root_meta, do: "<span class=\"ash-supervision-tree-root-meta\">#{root_meta}</span>", else: ""}
+        </div>
+        <ul class="ash-supervision-tree-list">
+          #{render_supervision_nodes(nodes)}
+        </ul>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-supervision-tree-viewer-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-supervision-tree-viewer-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:cluster_dashboard"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Cluster dashboard")
+    description = text_prop(props, ["description", "help"])
+    model = metric_model(props)
+    headline = text_prop(model, "headline", "Cluster snapshot")
+    detail = text_prop(model, ["detail", "description"])
+    regions = model_entries(model, "regions")
+    alerts = model_entries(model, "alerts")
+    action_children = slot_children(iur, "actions")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if action_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-cluster-dashboard", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-cluster-dashboard-header">
+        <h2 class="ash-cluster-dashboard-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-cluster-dashboard-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-cluster-dashboard-body">
+        <article class="ash-cluster-dashboard-hero">
+          <h3 class="ash-cluster-dashboard-headline">#{headline}</h3>
+          #{if detail, do: "<p class=\"ash-cluster-dashboard-detail\">#{detail}</p>", else: ""}
+        </article>
+        <div class="ash-cluster-dashboard-grid">
+          <section class="ash-cluster-dashboard-regions">
+            #{Enum.map_join(regions, &render_region_card/1)}
+          </section>
+          <aside class="ash-cluster-dashboard-alerts">
+            #{Enum.map_join(alerts, &render_alert_card/1)}
+          </aside>
+        </div>
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-cluster-dashboard-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-cluster-dashboard-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -2118,6 +2293,94 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     |> round()
     |> min(100)
     |> max(8)
+  end
+
+  defp render_stream_entry(entry) do
+    entry = normalize_item(entry)
+    timestamp = text_prop(entry, ["timestamp", "time"], "--:--:--")
+    label = text_prop(entry, ["label", "level"], "feed")
+    message = text_prop(entry, ["message", "summary", "value"], "")
+
+    """
+    <article class="ash-stream-widget-entry">
+      <span class="ash-stream-widget-time">#{timestamp}</span>
+      <span class="ash-stream-widget-label">#{label}</span>
+      <p class="ash-stream-widget-message">#{message}</p>
+    </article>
+    """
+  end
+
+  defp model_entries(model, key) do
+    case prop(model, key, []) do
+      entries when is_list(entries) -> entries
+      _other -> []
+    end
+  end
+
+  defp render_process_card(process) do
+    process = normalize_item(process)
+    name = text_prop(process, ["name", "label", "title"], "process")
+    state = text_prop(process, ["state", "status"], "unknown")
+    meta = text_prop(process, "meta")
+
+    """
+    <article class="ash-process-monitor-card">
+      <span class="ash-process-monitor-name">#{name}</span>
+      <span class="ash-process-monitor-state">#{state}</span>
+      #{if meta, do: "<span class=\"ash-process-monitor-meta\">#{meta}</span>", else: ""}
+    </article>
+    """
+  end
+
+  defp render_supervision_nodes([]) do
+    ~s(<li class="ash-supervision-tree-empty">No supervised children loaded.</li>)
+  end
+
+  defp render_supervision_nodes(nodes) when is_list(nodes) do
+    Enum.map_join(nodes, fn node ->
+      node = normalize_item(node)
+      label = text_prop(node, ["label", "title", "name"], "node")
+      meta = text_prop(node, ["meta", "status"])
+      children = Map.get(node, "children") || Map.get(node, :children) || []
+
+      """
+      <li class="ash-supervision-tree-node">
+        <div class="ash-supervision-tree-node-row">
+          <span class="ash-supervision-tree-node-label">#{label}</span>
+          #{if meta, do: "<span class=\"ash-supervision-tree-node-meta\">#{meta}</span>", else: ""}
+        </div>
+        #{if children != [], do: "<ul class=\"ash-supervision-tree-children\">#{render_supervision_nodes(children)}</ul>", else: ""}
+      </li>
+      """
+    end)
+  end
+
+  defp render_region_card(region) do
+    region = normalize_item(region)
+    label = text_prop(region, ["label", "title"], "region")
+    status = text_prop(region, ["status", "state"], "unknown")
+    load = text_prop(region, "load")
+
+    """
+    <article class="ash-cluster-dashboard-region">
+      <span class="ash-cluster-dashboard-region-label">#{label}</span>
+      <span class="ash-cluster-dashboard-region-status">#{status}</span>
+      #{if load, do: "<span class=\"ash-cluster-dashboard-region-load\">#{load}</span>", else: ""}
+    </article>
+    """
+  end
+
+  defp render_alert_card(alert) do
+    alert = normalize_item(alert)
+    title = text_prop(alert, ["title", "label"], "Alert")
+    message = text_prop(alert, ["message", "summary", "value"], "")
+
+    """
+    <article class="ash-cluster-dashboard-alert">
+      <span class="ash-cluster-dashboard-alert-title">#{title}</span>
+      <p class="ash-cluster-dashboard-alert-message">#{message}</p>
+    </article>
+    """
   end
 
   defp slot_children(iur, slot) do

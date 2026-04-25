@@ -440,6 +440,87 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
         end
       )
     end
+
+    test "generates dedicated layered markup for example-facing overlay surfaces" do
+      Enum.each(
+        [
+          {"custom:overlay", "ash-overlay-surface", "ash-overlay-actions", "actions"},
+          {"custom:dialog", "ash-dialog-surface", "ash-dialog-actions", "actions"},
+          {
+            "custom:alert_dialog",
+            "ash-alert-dialog-surface",
+            "ash-alert-dialog-actions",
+            "actions"
+          },
+          {"custom:context_menu", "ash-context-menu", "ash-context-menu-items", "menu"},
+          {"custom:toast", "ash-toast", "ash-toast-actions", "actions"}
+        ],
+        fn {type, wrapper_class, section_class, slot} ->
+          children =
+            case type do
+              "custom:context_menu" ->
+                [
+                  %{
+                    "type" => "button",
+                    "id" => "#{type}-item",
+                    "props" => %{"label" => "Inspect"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "menu"}
+                  },
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-body",
+                    "props" => %{"content" => "Selected operation"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "body"}
+                  }
+                ]
+
+              _other ->
+                [
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-body",
+                    "props" => %{"content" => "Layered detail"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "body"}
+                  },
+                  %{
+                    "type" => "button",
+                    "id" => "#{type}-action",
+                    "props" => %{"label" => "Acknowledge"},
+                    "children" => [],
+                    "metadata" => %{"slot" => slot}
+                  }
+                ]
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => %{
+              "title" => "#{type} Demo",
+              "description" => "Layered example shell",
+              if(type == "custom:toast", do: "visible", else: "open") => true
+            },
+            "children" => children,
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ "Layered example shell"
+
+          if type == "custom:context_menu" do
+            assert heex =~ "Inspect"
+          else
+            assert heex =~ "Acknowledge"
+          end
+        end
+      )
+    end
   end
 
   describe "Section 7.2.1 - Event Binding Configuration" do

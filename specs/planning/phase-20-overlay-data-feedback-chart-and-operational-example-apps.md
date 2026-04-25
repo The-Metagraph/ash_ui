@@ -27,17 +27,17 @@ Back to index: [README](./README.md)
   Implement the higher-complexity example families that depend on richer data,
   layered rendering, live updates, or operational storytelling.
 
-  [ ] 20.1 Section - Overlay and Layered-Flow Example Apps
+  [x] 20.1 Section - Overlay and Layered-Flow Example Apps
     Add the examples that demonstrate layered, modal, and ephemeral UI flows.
 
-    [ ] 20.1.1 Task - Implement overlay and layered-flow apps
+    [x] 20.1.1 Task - Implement overlay and layered-flow apps
     Build the examples whose primary subject is rendered above or around the
     rest of the screen.
 
-      [ ] 20.1.1.1 Subtask - Implement `overlay`, `dialog`, and `alert_dialog` example apps.
-      [ ] 20.1.1.2 Subtask - Implement `context_menu` and `toast` example apps.
-      [ ] 20.1.1.3 Subtask - Define the action, binding, and state-handling semantics that drive those examples through resource-local declarations.
-      [ ] 20.1.1.4 Subtask - Add tests that prove layered examples mount, transition, and recover without breaking the shared shell.
+      [x] 20.1.1.1 Subtask - Implement `overlay`, `dialog`, and `alert_dialog` example apps.
+      [x] 20.1.1.2 Subtask - Implement `context_menu` and `toast` example apps.
+      [x] 20.1.1.3 Subtask - Define the action, binding, and state-handling semantics that drive those examples through resource-local declarations.
+      [x] 20.1.1.4 Subtask - Add tests that prove layered examples mount, transition, and recover without breaking the shared shell.
 
   [ ] 20.2 Section - Data-Surface Example Apps
     Add the examples whose main value is browsing, inspecting, or reading

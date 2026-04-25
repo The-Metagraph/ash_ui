@@ -170,6 +170,11 @@ The checked-in example suite now relies on a small set of explicitly rendered
 | `custom:scroll_bar` | Example-only scroll affordance shell | keep state changes on nested public child widgets |
 | `custom:split_pane` | Example-only two-pane layout shell | keep focus or mode changes on nested public child widgets |
 | `custom:canvas` | Example-only drawing/review shell | keep tool changes or writes on nested public child widgets |
+| `custom:overlay` | Example-only layered review shell | keep open or dismiss actions on nested public child widgets |
+| `custom:dialog` | Example-only modal confirmation shell | keep confirm or cancel actions on nested public child widgets |
+| `custom:alert_dialog` | Example-only high-severity modal shell | keep destructive or recovery actions on nested public child widgets |
+| `custom:context_menu` | Example-only contextual action menu shell | keep menu item actions on nested public child widgets |
+| `custom:toast` | Example-only transient notification shell | keep trigger actions on nested public child widgets |
 
 Treat those as explicit renderer extensions for the example suite, not as
 stable built-in authoring types for general application work.

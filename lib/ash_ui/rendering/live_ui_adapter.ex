@@ -935,6 +935,187 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "custom:overlay"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Overlay")
+    description = text_prop(props, ["description", "help"])
+    open? = truthy_prop(props, "open", false)
+    body_children = slot_children(iur, "body")
+    action_children = slot_children(iur, "actions")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if body_children == [] and action_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-overlay-surface", open? && "is-open", !open? && "is-closed", prop_class(iur)])}" data-state="#{if(open?, do: "open", else: "closed")}"#{style_attr(prop_style(iur))}>
+      <div class="ash-overlay-panel">
+        <header class="ash-overlay-header">
+          <h2 class="ash-overlay-title">#{title}</h2>
+          #{if description, do: "<p class=\"ash-overlay-description\">#{description}</p>", else: ""}
+        </header>
+        <div class="ash-overlay-body">
+          #{generate_children(body_children, opts)}
+        </div>
+        <footer class="ash-overlay-actions">
+          #{generate_children(action_children, opts)}
+        </footer>
+        <div class="ash-overlay-footer">
+          #{generate_children(footer_children, opts)}
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:dialog"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Dialog")
+    description = text_prop(props, ["description", "help"])
+    open? = truthy_prop(props, "open", true)
+    body_children = slot_children(iur, "body")
+    action_children = slot_children(iur, "actions")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if body_children == [] and action_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-dialog-surface", open? && "is-open", !open? && "is-closed", prop_class(iur)])}" data-state="#{if(open?, do: "open", else: "closed")}"#{style_attr(prop_style(iur))}>
+      <div class="ash-dialog-panel">
+        <header class="ash-dialog-header">
+          <h2 class="ash-dialog-title">#{title}</h2>
+          #{if description, do: "<p class=\"ash-dialog-description\">#{description}</p>", else: ""}
+        </header>
+        <div class="ash-dialog-body">
+          #{generate_children(body_children, opts)}
+        </div>
+        <footer class="ash-dialog-actions">
+          #{generate_children(action_children, opts)}
+        </footer>
+        <div class="ash-dialog-footer">
+          #{generate_children(footer_children, opts)}
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:alert_dialog"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Alert dialog")
+    description = text_prop(props, ["description", "help"])
+    open? = truthy_prop(props, "open", true)
+    body_children = slot_children(iur, "body")
+    action_children = slot_children(iur, "actions")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if body_children == [] and action_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-alert-dialog-surface", open? && "is-open", !open? && "is-closed", prop_class(iur)])}" data-state="#{if(open?, do: "open", else: "closed")}"#{style_attr(prop_style(iur))}>
+      <div class="ash-alert-dialog-panel">
+        <header class="ash-alert-dialog-header">
+          <h2 class="ash-alert-dialog-title">#{title}</h2>
+          #{if description, do: "<p class=\"ash-alert-dialog-description\">#{description}</p>", else: ""}
+        </header>
+        <div class="ash-alert-dialog-body">
+          #{generate_children(body_children, opts)}
+        </div>
+        <footer class="ash-alert-dialog-actions">
+          #{generate_children(action_children, opts)}
+        </footer>
+        <div class="ash-alert-dialog-footer">
+          #{generate_children(footer_children, opts)}
+        </div>
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:context_menu"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Context menu")
+    description = text_prop(props, ["description", "help"])
+    open? = truthy_prop(props, "open", true)
+    menu_children = slot_children(iur, "menu")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if menu_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-context-menu", open? && "is-open", !open? && "is-closed", prop_class(iur)])}" data-state="#{if(open?, do: "open", else: "closed")}"#{style_attr(prop_style(iur))}>
+      <header class="ash-context-menu-header">
+        <h2 class="ash-context-menu-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-context-menu-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-context-menu-items" role="menu">
+        #{generate_children(menu_children, opts)}
+      </div>
+      <div class="ash-context-menu-body">
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-context-menu-footer">
+        #{generate_children(footer_children, opts)}
+      </footer>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:toast"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Toast")
+    description = text_prop(props, ["description", "help"])
+    visible? = truthy_prop(props, "visible", true)
+    body_children = slot_children(iur, "body")
+    action_children = slot_children(iur, "actions")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if body_children == [] and action_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-toast", visible? && "is-visible", !visible? && "is-hidden", prop_class(iur)])}" data-state="#{if(visible?, do: "visible", else: "hidden")}"#{style_attr(prop_style(iur))}>
+      <header class="ash-toast-header">
+        <h2 class="ash-toast-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-toast-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-toast-body">
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-toast-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+      <div class="ash-toast-footer">
+        #{generate_children(footer_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -1122,6 +1303,15 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     Map.get(props, key, Map.get(props, String.to_atom(key), default))
   rescue
     ArgumentError -> Map.get(props, key, default)
+  end
+
+  defp truthy_prop(props, key), do: truthy_prop(props, key, false)
+
+  defp truthy_prop(props, key, default) do
+    case prop(props, key, default) do
+      value when value in [true, "true", "open", "visible", 1, "1", "yes"] -> true
+      _ -> false
+    end
   end
 
   defp text_prop(props, keys, default \\ nil)

@@ -10,6 +10,9 @@ defmodule Mix.Tasks.AshUi.Examples.Validate do
   @shortdoc "Validate the checked-in Ash UI example suite"
 
   @impl Mix.Task
+  @doc """
+  Runs the maintained Phase 21 example-suite validations from the root project.
+  """
   def run(_args) do
     case Suite.validate_suite() do
       :ok ->

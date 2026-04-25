@@ -12,6 +12,9 @@ defmodule Mix.Tasks.AshUi.Examples.Preview do
   @switches [actor: :string, seed: :string, runtime: :string]
 
   @impl Mix.Task
+  @doc """
+  Prints the maintained review surface for one checked-in example app.
+  """
   def run(args) do
     {opts, positional} = OptionParser.parse!(args, strict: @switches)
     directory = parse_directory!(positional)

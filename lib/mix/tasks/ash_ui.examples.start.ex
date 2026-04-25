@@ -16,6 +16,9 @@ defmodule Mix.Tasks.AshUi.Examples.Start do
   @switches [actor: :string, dry_run: :boolean, runtime: :string, seed: :string]
 
   @impl Mix.Task
+  @doc """
+  Launches one checked-in example app from the root project or prints the delegated command in dry-run mode.
+  """
   def run(args) do
     {opts, positional} = OptionParser.parse!(args, strict: @switches)
     directory = parse_directory!(positional)

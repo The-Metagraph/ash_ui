@@ -10,6 +10,9 @@ defmodule Mix.Tasks.AshUi.Examples.List do
   @shortdoc "List the maintained Ash UI example-suite entries"
 
   @impl Mix.Task
+  @doc """
+  Prints the maintained example-suite catalog from the root project.
+  """
   def run(_args) do
     Mix.shell().info("Ash UI Example Suite")
     Mix.shell().info("Directory | Family | Phase | Parity | Root launcher")

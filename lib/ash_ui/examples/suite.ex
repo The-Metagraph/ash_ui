@@ -26,6 +26,24 @@ defmodule AshUI.Examples.Suite do
     "preview_policy",
     "runtime_notes"
   ]
+  @review_snapshot_headers [
+    "directory",
+    "title",
+    "phase",
+    "family",
+    "canonical_subject",
+    "parity_kind",
+    "shared_theme",
+    "interaction_story_status",
+    "signal_preview_status",
+    "launcher",
+    "preview",
+    "actor_profiles",
+    "seed_profiles",
+    "runtime_modes",
+    "support_status",
+    "support_notice"
+  ]
   @shared_shell_label "Ash HQ example shell"
   @required_project_files [
     {:mix_exs, "mix.exs"},
@@ -96,6 +114,25 @@ defmodule AshUI.Examples.Suite do
           required(:dry_run_command) => String.t()
         }
 
+  @type review_entry :: %{
+          required(:directory) => String.t(),
+          required(:title) => String.t(),
+          required(:phase) => pos_integer(),
+          required(:family) => String.t(),
+          required(:canonical_subject) => String.t(),
+          required(:parity_kind) => String.t(),
+          required(:shared_theme) => boolean(),
+          required(:interaction_story_status) => String.t(),
+          required(:signal_preview_status) => String.t(),
+          required(:launcher) => String.t(),
+          required(:preview) => String.t(),
+          required(:actor_profiles) => [String.t()],
+          required(:seed_profiles) => [String.t()],
+          required(:runtime_modes) => [String.t()],
+          required(:support_status) => String.t(),
+          required(:support_notice) => String.t()
+        }
+
   @doc """
   Returns the checked-in JSON catalog snapshot path.
   """
@@ -110,6 +147,14 @@ defmodule AshUI.Examples.Suite do
   @spec readme_path() :: String.t()
   def readme_path do
     Path.expand("../../../examples/README.md", __DIR__)
+  end
+
+  @doc """
+  Returns the checked-in review metadata snapshot path.
+  """
+  @spec review_metadata_path() :: String.t()
+  def review_metadata_path do
+    Path.expand("../../../examples/review_metadata.json", __DIR__)
   end
 
   @doc """
@@ -257,6 +302,36 @@ defmodule AshUI.Examples.Suite do
       seed: spec.seed,
       runtime: spec.runtime
     }
+  end
+
+  @doc """
+  Returns the maintained per-app review metadata in catalog order.
+  """
+  @spec review_metadata_entries() :: [review_entry()]
+  def review_metadata_entries do
+    Enum.map(catalog_entries(), fn entry ->
+      definition = definition!(entry.directory)
+      spec = launch_spec(entry.directory)
+
+      %{
+        directory: entry.directory,
+        title: entry.title,
+        phase: entry.phase,
+        family: entry.family,
+        canonical_subject: entry.canonical_subject,
+        parity_kind: entry.parity_kind,
+        shared_theme: true,
+        interaction_story_status: review_status(definition.story_text),
+        signal_preview_status: review_status(definition.signal_text),
+        launcher: spec.launcher,
+        preview: spec.preview,
+        actor_profiles: spec.actor_profiles,
+        seed_profiles: spec.seed_profiles,
+        runtime_modes: spec.runtime_modes,
+        support_status: support_status(entry),
+        support_notice: definition.support_notice || entry.runtime_notes
+      }
+    end)
   end
 
   @doc """
@@ -455,6 +530,122 @@ defmodule AshUI.Examples.Suite do
   end
 
   @doc """
+  Returns the checked-in review metadata snapshot body.
+  """
+  @spec review_metadata_snapshot() :: String.t()
+  def review_metadata_snapshot do
+    Jason.encode!(review_metadata_entries(), pretty: true)
+  end
+
+  @doc """
+  Validates that the checked-in review metadata snapshot matches the generated data.
+  """
+  @spec validate_review_metadata_snapshot(String.t()) :: :ok | {:error, term()}
+  def validate_review_metadata_snapshot(path \\ review_metadata_path()) do
+    case File.read(path) do
+      {:ok, body} ->
+        current = Jason.decode!(body)
+        expected = Jason.decode!(review_metadata_snapshot())
+
+        if current == expected do
+          :ok
+        else
+          {:error,
+           {:review_metadata_drift,
+            %{
+              path: path,
+              expected_headers: @review_snapshot_headers,
+              expected: review_metadata_snapshot()
+            }}}
+        end
+
+      {:error, reason} ->
+        {:error, {:missing_review_metadata, path, reason}}
+    end
+  end
+
+  @doc """
+  Validates that the review metadata stays aligned with the suite catalog and root README index.
+  """
+  @spec validate_review_metadata_alignment(String.t(), String.t()) :: :ok | {:error, term()}
+  def validate_review_metadata_alignment(
+        readme_path \\ readme_path(),
+        review_path \\ review_metadata_path()
+      ) do
+    with :ok <- validate_readme_index(readme_path),
+         :ok <- validate_review_metadata_snapshot(review_path) do
+      readme = File.read!(readme_path)
+      review_entries = Jason.decode!(File.read!(review_path))
+      catalog_directories = directories()
+      review_directories = Enum.map(review_entries, &Map.fetch!(&1, "directory"))
+      readme_directories = extract_readme_directories(readme)
+
+      if review_directories == catalog_directories and review_directories == readme_directories do
+        :ok
+      else
+        {:error,
+         {:review_metadata_alignment_drift,
+          %{
+            catalog_directories: catalog_directories,
+            review_directories: review_directories,
+            readme_directories: readme_directories
+          }}}
+      end
+    end
+  end
+
+  @doc """
+  Returns the maintained suite report used by the Phase 21 review workflow.
+  """
+  @spec suite_report() :: map()
+  def suite_report do
+    entries = catalog_entries()
+    review_entries = review_metadata_entries()
+
+    %{
+      total_examples: length(entries),
+      phases: frequency_map(entries, &Integer.to_string(&1.phase)),
+      families: frequency_map(entries, & &1.family),
+      parity_kinds: frequency_map(entries, & &1.parity_kind),
+      catalog_completeness: validation_status(validate_catalog_projects()),
+      resource_authority_continuity: validation_status(validate_resource_authority_continuity()),
+      theme_contract_continuity: validation_status(validate_theme_review_contract()),
+      review_metadata_alignment: validation_status(validate_review_metadata_alignment()),
+      custom_surface_examples:
+        entries
+        |> Enum.filter(&String.starts_with?(&1.canonical_subject, "custom:"))
+        |> Enum.map(& &1.directory),
+      partial_support_examples:
+        review_entries
+        |> Enum.filter(&(&1.support_status != "full_support"))
+        |> Enum.map(& &1.directory)
+    }
+  end
+
+  @doc """
+  Renders the human-readable suite report used by the root mix task.
+  """
+  @spec render_suite_report() :: String.t()
+  def render_suite_report do
+    report = suite_report()
+
+    [
+      "Ash UI Example Suite Report",
+      "Total examples: #{report.total_examples}",
+      "Phases: #{format_frequency_map(report.phases)}",
+      "Families: #{format_frequency_map(report.families)}",
+      "Parity kinds: #{format_frequency_map(report.parity_kinds)}",
+      "Catalog completeness: #{report.catalog_completeness}",
+      "Resource-authority continuity: #{report.resource_authority_continuity}",
+      "Theme-contract continuity: #{report.theme_contract_continuity}",
+      "Review-metadata alignment: #{report.review_metadata_alignment}",
+      "Custom surfaces: #{Enum.join(report.custom_surface_examples, ", ")}",
+      "Partial support: #{Enum.join(report.partial_support_examples, ", ")}"
+    ]
+    |> Enum.join("\n")
+  end
+
+  @doc """
   Returns the checked-in catalog snapshot body.
   """
   @spec catalog_metadata_snapshot() :: String.t()
@@ -549,6 +740,18 @@ defmodule AshUI.Examples.Suite do
   defp parity_kind("composed_native_screen"), do: "composed"
   defp parity_kind("custom_widget"), do: "custom"
 
+  defp review_status(value) when is_binary(value) do
+    if String.trim(value) == "" do
+      "missing"
+    else
+      "present"
+    end
+  end
+
+  defp support_status(%{parity_kind: "custom"}), do: "custom_surface"
+  defp support_status(%{parity_kind: "exact", support_gap: "none"}), do: "full_support"
+  defp support_status(_entry), do: "partial_support"
+
   defp validation_entries(opts) do
     Keyword.get(opts, :entries, catalog_entries())
   end
@@ -601,6 +804,39 @@ defmodule AshUI.Examples.Suite do
 
   defp maybe_add_issue(issues, true, _issue), do: issues
   defp maybe_add_issue(issues, false, issue), do: [issue | issues]
+
+  defp extract_readme_directories(readme) do
+    case extract_readme_index(readme) do
+      {:ok, section} ->
+        section
+        |> String.split("\n", trim: true)
+        |> Enum.filter(&String.starts_with?(&1, "| `"))
+        |> Enum.map(fn row ->
+          [_, directory | _rest] = String.split(row, "`")
+          directory
+        end)
+
+      {:error, _reason} ->
+        []
+    end
+  end
+
+  defp frequency_map(entries, mapper) do
+    entries
+    |> Enum.map(mapper)
+    |> Enum.frequencies()
+    |> Enum.sort()
+    |> Map.new()
+  end
+
+  defp validation_status(:ok), do: "pass"
+  defp validation_status({:error, _reason}), do: "drift"
+
+  defp format_frequency_map(map) do
+    map
+    |> Enum.map(fn {key, count} -> "#{key}=#{count}" end)
+    |> Enum.join(", ")
+  end
 
   defp actor_profiles(%{phase: phase}) when phase >= 20 do
     ["admin", "operator", "read_only"]

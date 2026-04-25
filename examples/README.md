@@ -43,6 +43,9 @@ visual contract.
 - `mix ash_ui.examples.validate`
   runs the checked-in suite validation and governance checks from the root
   project.
+- `mix ash_ui.examples.report`
+  prints the maintained review summary, including catalog completeness and
+  explicit callouts for custom or partial-support surfaces.
 
 ## Suite Index
 

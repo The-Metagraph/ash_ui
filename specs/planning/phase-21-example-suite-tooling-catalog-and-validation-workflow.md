@@ -58,17 +58,17 @@ Back to index: [README](./README.md)
       [x] 21.3.1.3 Subtask - Implement validation that every example app uses the shared Ash HQ theme contract and shared review surfaces.
       [x] 21.3.1.4 Subtask - Add governance checks that reject builder-first, monolithic screen-document-first, or stale example-only runtime shortcuts in the suite.
 
-  [ ] 21.4 Section - Review Metadata and Reporting
+  [x] 21.4 Section - Review Metadata and Reporting
     Make the suite useful during package review, not only during app-level
     experimentation.
 
-    [ ] 21.4.1 Task - Implement review metadata and suite reporting
+    [x] 21.4.1 Task - Implement review metadata and suite reporting
     Give maintainers a clear way to assess catalog completeness and quality.
 
-      [ ] 21.4.1.1 Subtask - Implement per-app metadata for family, canonical type mapping, shared-theme usage, and interaction-story status.
-      [ ] 21.4.1.2 Subtask - Implement suite-level reporting for catalog completeness, resource-authority continuity, and theme-contract continuity.
-      [ ] 21.4.1.3 Subtask - Implement reporting that calls out apps relying on `custom:*` or partial runtime support explicitly.
-      [ ] 21.4.1.4 Subtask - Add tests that prove review metadata stays traceable to the suite catalog and root index.
+      [x] 21.4.1.1 Subtask - Implement per-app metadata for family, canonical type mapping, shared-theme usage, and interaction-story status.
+      [x] 21.4.1.2 Subtask - Implement suite-level reporting for catalog completeness, resource-authority continuity, and theme-contract continuity.
+      [x] 21.4.1.3 Subtask - Implement reporting that calls out apps relying on `custom:*` or partial runtime support explicitly.
+      [x] 21.4.1.4 Subtask - Add tests that prove review metadata stays traceable to the suite catalog and root index.
 
   [ ] 21.5 Section - Phase 21 Integration Tests
     Validate the suite discovery, launcher, and validation workflows through one

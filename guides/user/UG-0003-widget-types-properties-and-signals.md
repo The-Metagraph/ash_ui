@@ -63,8 +63,8 @@ These are the types currently accepted by `ui_element` validation.
 | `stat` | Metric card | `title`, `value`, `message` |
 | `key_value` | Definition row | `label` or `title`, `value`, `description` |
 | `info_list` | Simple list of labeled values | `items`, optional `ordered?` |
-| `list` | Collection surface | no widget-specific props are read by the fallback adapter |
-| `table` | Tabular collection surface | no widget-specific props are read by the fallback adapter |
+| `list` | Collection surface | `title`, `description`, `empty_text`, hydrated `items` |
+| `table` | Tabular collection surface | `title`, `description`, `empty_text`, `columns`, hydrated `items` |
 | `image` | Image/media slot | no widget-specific props are read by the fallback adapter |
 | `icon` | Icon slot | no widget-specific props are read by the fallback adapter |
 
@@ -120,8 +120,8 @@ If you declare a signal outside this matrix, authoring validation raises.
 | Widget type | Notes |
 |---|---|
 | `info_list` | Best current built-in collection display surface in the fallback adapter |
-| `list` | Collection-capable, but the fallback adapter renders a generic wrapper |
-| `table` | Collection-capable, but the fallback adapter renders a generic wrapper |
+| `list` | Collection-capable and now renders a dedicated fallback collection surface |
+| `table` | Collection-capable and now renders a dedicated fallback tabular surface |
 | `select` | Collection-capable for option loading |
 
 ### Widgets That Accept `binding_type :action`
@@ -170,6 +170,25 @@ The checked-in example suite now relies on a small set of explicitly rendered
 | `custom:scroll_bar` | Example-only scroll affordance shell | keep state changes on nested public child widgets |
 | `custom:split_pane` | Example-only two-pane layout shell | keep focus or mode changes on nested public child widgets |
 | `custom:canvas` | Example-only drawing/review shell | keep tool changes or writes on nested public child widgets |
+| `custom:overlay` | Example-only layered review shell | keep open or dismiss actions on nested public child widgets |
+| `custom:dialog` | Example-only modal confirmation shell | keep confirm or cancel actions on nested public child widgets |
+| `custom:alert_dialog` | Example-only high-severity modal shell | keep destructive or recovery actions on nested public child widgets |
+| `custom:context_menu` | Example-only contextual action menu shell | keep menu item actions on nested public child widgets |
+| `custom:tree_view` | Example-only hierarchical inspection shell | keep branch swaps and state changes on nested public child widgets |
+| `custom:markdown_viewer` | Example-only document-reading shell | keep document switching on nested public child widgets |
+| `custom:log_viewer` | Example-only log-reading shell | keep stream switching on nested public child widgets |
+| `custom:status` | Example-only status signal shell | keep state changes on nested public child widgets |
+| `custom:progress` | Example-only progress signal shell | keep state changes on nested public child widgets |
+| `custom:gauge` | Example-only capacity gauge shell | keep state changes on nested public child widgets |
+| `custom:inline_feedback` | Example-only inline advisory shell | keep state changes on nested public child widgets |
+| `custom:sparkline` | Example-only compact trend shell | keep series swaps on nested public child widgets |
+| `custom:bar_chart` | Example-only categorical chart shell | keep series swaps on nested public child widgets |
+| `custom:line_chart` | Example-only trend chart shell | keep series swaps on nested public child widgets |
+| `custom:stream_widget` | Example-only operational feed shell | keep snapshot swaps on nested public child widgets |
+| `custom:process_monitor` | Example-only process state shell | keep snapshot swaps on nested public child widgets |
+| `custom:supervision_tree_viewer` | Example-only supervision hierarchy shell | keep snapshot swaps on nested public child widgets |
+| `custom:cluster_dashboard` | Example-only multi-region operational shell | keep snapshot swaps on nested public child widgets |
+| `custom:toast` | Example-only transient notification shell | keep trigger actions on nested public child widgets |
 
 Treat those as explicit renderer extensions for the example suite, not as
 stable built-in authoring types for general application work.

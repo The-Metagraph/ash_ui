@@ -358,6 +358,7 @@ defmodule AshUI.Runtime.ActionBinding do
   end
 
   defp format_action_error(:unauthorized), do: [%{"message" => "Unauthorized"}]
+  defp format_action_error(%Ash.Error.Forbidden{}), do: [%{"message" => "Unauthorized"}]
   defp format_action_error(reason), do: [%{"message" => inspect(reason)}]
 
   defp get_binding_element_id(binding) do

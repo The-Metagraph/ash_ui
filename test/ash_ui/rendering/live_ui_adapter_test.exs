@@ -342,7 +342,9 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
                 "id" => "#{type}-nav",
                 "props" => %{"label" => "Overview"},
                 "children" => [],
-                "metadata" => %{"slot" => if(type == "custom:command_palette", do: "search", else: "nav")}
+                "metadata" => %{
+                  "slot" => if(type == "custom:command_palette", do: "search", else: "nav")
+                }
               },
               %{
                 "type" => "text",
@@ -437,6 +439,440 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
           assert heex =~ wrapper_class
           assert heex =~ section_class
           assert heex =~ "Dedicated example shell"
+        end
+      )
+    end
+
+    test "generates dedicated layered markup for example-facing overlay surfaces" do
+      Enum.each(
+        [
+          {"custom:overlay", "ash-overlay-surface", "ash-overlay-actions", "actions"},
+          {"custom:dialog", "ash-dialog-surface", "ash-dialog-actions", "actions"},
+          {
+            "custom:alert_dialog",
+            "ash-alert-dialog-surface",
+            "ash-alert-dialog-actions",
+            "actions"
+          },
+          {"custom:context_menu", "ash-context-menu", "ash-context-menu-items", "menu"},
+          {"custom:toast", "ash-toast", "ash-toast-actions", "actions"}
+        ],
+        fn {type, wrapper_class, section_class, slot} ->
+          children =
+            case type do
+              "custom:context_menu" ->
+                [
+                  %{
+                    "type" => "button",
+                    "id" => "#{type}-item",
+                    "props" => %{"label" => "Inspect"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "menu"}
+                  },
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-body",
+                    "props" => %{"content" => "Selected operation"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "body"}
+                  }
+                ]
+
+              _other ->
+                [
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-body",
+                    "props" => %{"content" => "Layered detail"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "body"}
+                  },
+                  %{
+                    "type" => "button",
+                    "id" => "#{type}-action",
+                    "props" => %{"label" => "Acknowledge"},
+                    "children" => [],
+                    "metadata" => %{"slot" => slot}
+                  }
+                ]
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => %{
+              "title" => "#{type} Demo",
+              "description" => "Layered example shell",
+              if(type == "custom:toast", do: "visible", else: "open") => true
+            },
+            "children" => children,
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ "Layered example shell"
+
+          if type == "custom:context_menu" do
+            assert heex =~ "Inspect"
+          else
+            assert heex =~ "Acknowledge"
+          end
+        end
+      )
+    end
+
+    test "generates dedicated data-surface markup for advanced collection and document examples" do
+      Enum.each(
+        [
+          {"list", "ash-list", "ash-list-items", "Urgent approvals"},
+          {"table", "ash-table-surface", "ash-table-wrapper", "API gateway"},
+          {"custom:tree_view", "ash-tree-view", "ash-tree-view-list", "Runtime graph"},
+          {
+            "custom:markdown_viewer",
+            "ash-markdown-viewer",
+            "ash-markdown-viewer-body",
+            "Incident Guide"
+          },
+          {
+            "custom:log_viewer",
+            "ash-log-viewer",
+            "ash-log-viewer-lines",
+            "Ash UI screen mounted with 5 element bindings."
+          }
+        ],
+        fn {type, wrapper_class, section_class, expected_copy} ->
+          props =
+            case type do
+              "list" ->
+                %{
+                  "title" => "Queue",
+                  "description" => "Collection view",
+                  "items" => [
+                    %{
+                      "title" => "Urgent approvals",
+                      "summary" => "4 records",
+                      "meta" => "SLA 15m"
+                    }
+                  ]
+                }
+
+              "table" ->
+                %{
+                  "title" => "Table",
+                  "description" => "Tabular collection",
+                  "columns" => [
+                    %{"key" => "service", "label" => "Service"},
+                    %{"key" => "status", "label" => "Status"}
+                  ],
+                  "items" => [%{"service" => "API gateway", "status" => "Ready"}]
+                }
+
+              "custom:tree_view" ->
+                %{
+                  "title" => "Tree",
+                  "description" => "Hierarchy",
+                  "model" => [
+                    %{
+                      "label" => "Runtime graph",
+                      "meta" => "Primary",
+                      "children" => [%{"label" => "Binding runtime", "meta" => "Healthy"}]
+                    }
+                  ]
+                }
+
+              "custom:markdown_viewer" ->
+                %{
+                  "title" => "Markdown",
+                  "description" => "Document surface",
+                  "content" => "# Incident Guide\n\n- Confirm scope"
+                }
+
+              "custom:log_viewer" ->
+                %{
+                  "title" => "Logs",
+                  "description" => "Stream view",
+                  "entries" => [
+                    %{
+                      "timestamp" => "12:04:19",
+                      "level" => "INFO",
+                      "message" => "Ash UI screen mounted with 5 element bindings."
+                    }
+                  ]
+                }
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => props,
+            "children" => [
+              %{
+                "type" => "button",
+                "id" => "#{type}-action",
+                "props" => %{"label" => "Refresh"},
+                "children" => [],
+                "metadata" => %{"slot" => "actions"}
+              },
+              %{
+                "type" => "text",
+                "id" => "#{type}-footer",
+                "props" => %{"content" => "Bound runtime state"},
+                "children" => [],
+                "metadata" => %{"slot" => "footer"}
+              }
+            ],
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ expected_copy
+          assert heex =~ "Refresh"
+          assert heex =~ "Bound runtime state"
+        end
+      )
+    end
+
+    test "generates dedicated feedback and chart markup for advanced signal examples" do
+      Enum.each(
+        [
+          {"custom:status", "ash-status-surface", "ash-status-pill", "Healthy"},
+          {"custom:progress", "ash-progress-surface", "ash-progress-track", "42%"},
+          {"custom:gauge", "ash-gauge-surface", "ash-gauge-meter", "63%"},
+          {
+            "custom:inline_feedback",
+            "ash-inline-feedback",
+            "ash-inline-feedback-badge",
+            "Rollback ready"
+          },
+          {"custom:sparkline", "ash-sparkline-surface", "ash-sparkline-chart", "00m"},
+          {"custom:bar_chart", "ash-bar-chart", "ash-bar-chart-bars", "us-east"},
+          {"custom:line_chart", "ash-line-chart", "ash-line-chart-grid", "Mon"}
+        ],
+        fn {type, wrapper_class, section_class, expected_copy} ->
+          props =
+            case type do
+              "custom:status" ->
+                %{
+                  "title" => "Status",
+                  "description" => "Signal surface",
+                  "model" => %{
+                    "label" => "Healthy",
+                    "tone" => "success",
+                    "detail" => "All queues nominal."
+                  }
+                }
+
+              "custom:progress" ->
+                %{
+                  "title" => "Progress",
+                  "description" => "Rollout surface",
+                  "model" => %{
+                    "label" => "Canary",
+                    "value" => 42,
+                    "total" => 100,
+                    "detail" => "42 percent live."
+                  }
+                }
+
+              "custom:gauge" ->
+                %{
+                  "title" => "Gauge",
+                  "description" => "Capacity surface",
+                  "model" => %{
+                    "label" => "CPU",
+                    "value" => 63,
+                    "max" => 100,
+                    "detail" => "Within budget."
+                  }
+                }
+
+              "custom:inline_feedback" ->
+                %{
+                  "title" => "Feedback",
+                  "description" => "Advisory",
+                  "model" => %{
+                    "tone" => "success",
+                    "title" => "Rollback ready",
+                    "detail" => "Recovery checklist is prepared."
+                  }
+                }
+
+              "custom:sparkline" ->
+                %{
+                  "title" => "Sparkline",
+                  "description" => "Trend",
+                  "series" => [
+                    %{"label" => "00m", "value" => 18},
+                    %{"label" => "05m", "value" => 22}
+                  ]
+                }
+
+              "custom:bar_chart" ->
+                %{
+                  "title" => "Bars",
+                  "description" => "Comparison",
+                  "series" => [
+                    %{"label" => "us-east", "value" => 84},
+                    %{"label" => "us-west", "value" => 63}
+                  ]
+                }
+
+              "custom:line_chart" ->
+                %{
+                  "title" => "Trend line",
+                  "description" => "Trend",
+                  "series" => [
+                    %{"label" => "Mon", "value" => 7},
+                    %{"label" => "Tue", "value" => 9}
+                  ]
+                }
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => props,
+            "children" => [
+              %{
+                "type" => "button",
+                "id" => "#{type}-action",
+                "props" => %{"label" => "Switch"},
+                "children" => [],
+                "metadata" => %{"slot" => "actions"}
+              },
+              %{
+                "type" => "text",
+                "id" => "#{type}-footer",
+                "props" => %{"content" => "Metric bound from runtime"},
+                "children" => [],
+                "metadata" => %{"slot" => "footer"}
+              }
+            ],
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ expected_copy
+          assert heex =~ "Switch"
+          assert heex =~ "Metric bound from runtime"
+        end
+      )
+    end
+
+    test "generates dedicated operational markup for advanced monitoring examples" do
+      Enum.each(
+        [
+          {"custom:stream_widget", "ash-stream-widget", "ash-stream-widget-entries", "ingest"},
+          {
+            "custom:process_monitor",
+            "ash-process-monitor",
+            "ash-process-monitor-cards",
+            "scheduler"
+          },
+          {
+            "custom:supervision_tree_viewer",
+            "ash-supervision-tree-viewer",
+            "ash-supervision-tree-list",
+            "Worker supervisor"
+          },
+          {
+            "custom:cluster_dashboard",
+            "ash-cluster-dashboard",
+            "ash-cluster-dashboard-grid",
+            "Regional cluster stable"
+          }
+        ],
+        fn {type, wrapper_class, section_class, expected_copy} ->
+          props =
+            case type do
+              "custom:stream_widget" ->
+                %{
+                  "title" => "Stream",
+                  "description" => "Operational feed",
+                  "entries" => [
+                    %{
+                      "timestamp" => "13:04:12",
+                      "label" => "ingest",
+                      "message" => "Packet accepted."
+                    }
+                  ]
+                }
+
+              "custom:process_monitor" ->
+                %{
+                  "title" => "Process monitor",
+                  "description" => "Runtime snapshot",
+                  "model" => %{
+                    "summary" => "Schedulers and workers are healthy.",
+                    "processes" => [
+                      %{"name" => "scheduler", "state" => "running", "meta" => "0 restarts"}
+                    ]
+                  }
+                }
+
+              "custom:supervision_tree_viewer" ->
+                %{
+                  "title" => "Supervision tree",
+                  "description" => "Hierarchy",
+                  "model" => %{
+                    "label" => "Worker supervisor",
+                    "meta" => "Primary",
+                    "nodes" => [%{"label" => "queue_worker", "meta" => "running"}]
+                  }
+                }
+
+              "custom:cluster_dashboard" ->
+                %{
+                  "title" => "Cluster dashboard",
+                  "description" => "Regional overview",
+                  "model" => %{
+                    "headline" => "Regional cluster stable",
+                    "detail" => "All regions are inside budget.",
+                    "regions" => [%{"label" => "us-east", "status" => "Healthy", "load" => "63%"}],
+                    "alerts" => [%{"title" => "Billing lag", "message" => "Watching retries."}]
+                  }
+                }
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => props,
+            "children" => [
+              %{
+                "type" => "button",
+                "id" => "#{type}-action",
+                "props" => %{"label" => "Refresh"},
+                "children" => [],
+                "metadata" => %{"slot" => "actions"}
+              },
+              %{
+                "type" => "text",
+                "id" => "#{type}-footer",
+                "props" => %{"content" => "Operational snapshot bound from runtime"},
+                "children" => [],
+                "metadata" => %{"slot" => "footer"}
+              }
+            ],
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ expected_copy
+          assert heex =~ "Refresh"
+          assert heex =~ "Operational snapshot bound from runtime"
         end
       )
     end

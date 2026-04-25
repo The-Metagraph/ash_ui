@@ -283,7 +283,7 @@ defmodule AshUI.Phase8IntegrationTest do
       assert String.contains?(output, "Guides governance validation passed.")
       assert File.exists?(project_path("README.md"))
       assert File.exists?(project_path("guides/user/UG-0001-getting-started.md"))
-      assert File.exists?(project_path("guides/developer/DG-0001-architecture-overview.md"))
+      assert File.exists?(project_path("guides/developer/DG-0001-architecture-and-control-planes.md"))
     end
 
     test "8.6.4.3 - telemetry is configured with canonical events and dashboards" do

@@ -6,8 +6,8 @@ title: Getting Started with AshUI
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-23
-next_review: 2026-10-23
+last_reviewed: 2026-04-25
+next_review: 2026-10-25
 related_reqs: [REQ-RES-001, REQ-SCREEN-001, REQ-COMP-001, REQ-RENDER-001]
 related_scns: [SCN-004, SCN-021, SCN-041, SCN-061]
 related_guides: [UG-0002, UG-0003, UG-0004, UG-0005, DG-0001]
@@ -84,6 +84,33 @@ mix deps.get
 If you use the shipped Postgres-backed defaults, also configure the default UI
 storage domain and repo. If you are prototyping or writing tests, ETS-backed
 authoring resources are a simpler place to start.
+
+## Review the Maintained Example Suite
+
+The checked-in example suite is now the fastest way to inspect current Ash UI
+authoring and fallback-renderer behavior without guessing which surfaces are
+stable.
+
+Start at [examples/README.md](../../examples/README.md), then use the root
+workflow:
+
+```bash
+mix ash_ui.examples.list
+mix ash_ui.examples.preview button
+mix ash_ui.examples.start dialog --dry-run
+```
+
+Representative directories by family:
+
+- foundational content: `text`, `button`, `label`, `icon`, `image`
+- forms and inputs: `form_builder`, `field_group`, `text_input`, `select`, `toggle`
+- layout, navigation, and display: `row`, `grid`, `menu`, `viewport`, `canvas`
+- overlays, data, feedback, and operations: `dialog`, `table`, `progress`, `cluster_dashboard`
+
+Use the example suite as the honest runtime surface. Directory names stay in
+parity with the sibling `unified_ui` catalog, but some Ash UI examples are
+normalized or explicitly `custom:*` where the current public widget vocabulary
+is narrower.
 
 ## Author a First Screen
 
@@ -265,9 +292,11 @@ After this first screen works:
 - Read [UG-0002](./UG-0002-authoring-screens-elements-and-relationships.md) for the full resource-local DSL.
 - Read [UG-0003](./UG-0003-widget-types-properties-and-signals.md) before designing a larger widget library.
 - Read [UG-0004](./UG-0004-bindings-actions-and-forms.md) when you need interactive screens.
+- Review [examples/README.md](../../examples/README.md) when you want a current, runnable example for a specific widget family.
 
 ## See Also
 
+- [examples/README.md](../../examples/README.md)
 - [UG-0002: Authoring Screens, Elements, and Relationships](./UG-0002-authoring-screens-elements-and-relationships.md)
 - [UG-0005: LiveView Runtime and Rendering](./UG-0005-liveview-runtime-and-rendering.md)
 - [DG-0001: Architecture and Control Planes](../developer/DG-0001-architecture-and-control-planes.md)

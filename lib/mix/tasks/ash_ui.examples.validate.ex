@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.AshUi.Examples.Validate do
   @moduledoc """
-  Runs the maintained Phase 21 example-suite validations from the root project.
+  Runs the maintained example-suite validations from the root project.
   """
 
   use Mix.Task
@@ -11,7 +11,7 @@ defmodule Mix.Tasks.AshUi.Examples.Validate do
 
   @impl Mix.Task
   @doc """
-  Runs the maintained Phase 21 example-suite validations from the root project.
+  Runs the maintained example-suite validations from the root project.
   """
   def run(_args) do
     case Suite.validate_suite() do

@@ -6,8 +6,8 @@ title: Migration from Older AshUI Models
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-23
-next_review: 2026-10-23
+last_reviewed: 2026-04-25
+next_review: 2026-10-25
 related_reqs: [REQ-RES-001, REQ-COMP-001, REQ-RENDER-001, REQ-AUTH-002]
 related_scns: [SCN-004, SCN-041, SCN-061, SCN-081]
 related_guides: [UG-0001, UG-0002, UG-0005, DG-0002, DG-0006]
@@ -108,6 +108,34 @@ Normalization still matters during migration:
 - `toggle` becomes `switch`
 - `separator` becomes `divider`
 
+Those same normalization rules now show up in the maintained example suite. The
+important distinction is:
+
+- keep the sibling directory name stable for review and migration parity
+- normalize the canonical Ash UI subject honestly in docs, metadata, and
+  authoring validation
+
+Examples:
+
+- the `text_input` directory is reviewed as `text_input`, but its canonical Ash UI type is `input`
+- the `radio_group` directory is reviewed as `radio_group`, but its canonical type is `radio`
+- the `toggle` directory is reviewed as `toggle`, but its canonical type is `switch`
+- the `separator` directory is reviewed as `separator`, but its canonical type is `divider`
+
+This keeps historical example references stable without teaching renamed
+compatibility aliases as if they were the primary authoring vocabulary.
+
+## Contribution Notes for Migrated Material
+
+If you are turning an older prototype or legacy example into a checked-in Ash UI
+example app, keep these rules together:
+
+- preserve the stable directory name when it matches the sibling `unified_ui` catalog
+- rewrite the actual screen and element resources to the current canonical Ash UI types
+- call out `custom:*` or composed review surfaces explicitly instead of pretending they are public built-ins
+- update the root example-suite docs and metadata so parity, normalization, and support status remain visible
+- avoid reintroducing builder-first terminology into example READMEs, guides, or launch tooling
+
 ## What Not to Do
 
 - Do not add new product work on top of `AshUI.DSL.Builder`.
@@ -125,6 +153,7 @@ You are done when:
 
 ## See Also
 
+- [examples/README.md](../../examples/README.md)
 - [UG-0001: Getting Started with AshUI](./UG-0001-getting-started.md)
 - [UG-0002: Authoring Screens, Elements, and Relationships](./UG-0002-authoring-screens-elements-and-relationships.md)
 - [DG-0002: Storage, Resource Authority, and Configuration](../developer/DG-0002-storage-resource-authority-and-configuration.md)

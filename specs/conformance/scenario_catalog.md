@@ -525,6 +525,25 @@ Each scenario includes:
 - Cached and uncached compiles remain equivalent
 - Incremental recompilation preserves valid output
 
+#### SCN-052: Example Suite Resource-Authority Flows
+
+**Requirements**: REQ-SCREEN-001, REQ-COMP-001
+
+**Preconditions**:
+- The maintained Phase 18-20 example apps are checked in
+- Representative example apps can seed and persist screens through `AshUI.Resource.Authority`
+
+**Steps**:
+1. Boot representative example apps from each maintained example phase
+2. Mount the seeded screen for each app through the normal LiveView integration path
+3. Read the stored screen back from UI storage
+4. Compile the stored screen and inspect the canonical metadata
+
+**Expected Outcome**:
+- Representative example apps boot as independent Mix projects
+- Each seeded screen mounts successfully from the persisted authority record
+- Compiled output preserves resource-authority provenance for the mounted screen
+
 #### SCN-053: Relationship-Driven Composition Semantics
 
 **Requirements**: REQ-RES-003, REQ-SCREEN-003, REQ-COMP-004
@@ -541,6 +560,44 @@ Each scenario includes:
 - Composition order matches the declared relationship semantics
 - Nested elements remain attached to the correct owner
 - Relationship-driven composition survives regeneration and compilation
+
+#### SCN-054: Shared Example Theme Shell and Review Surfaces
+
+**Requirements**: REQ-RENDER-002, REQ-RENDER-007, REQ-RENDER-008
+
+**Preconditions**:
+- The shared Ash HQ theme baseline assets are checked in
+- Representative example apps from the maintained suite can render review output
+
+**Steps**:
+1. Render representative examples from the maintained example phases
+2. Verify the shared shell classes, layout markers, and gradient tokens remain present
+3. Verify the `Meaningful Interaction Story` and `Canonical Signal Preview` surfaces remain visible
+4. Verify the example's primary subject still stays visible within the shared shell
+
+**Expected Outcome**:
+- The shared Ash HQ shell remains consistent across representative examples
+- Review surfaces stay present and readable
+- The example's primary subject remains foregrounded inside the shared shell
+
+#### SCN-055: Example Suite Governance Drift Detection
+
+**Requirements**: REQ-COMP-008, REQ-RENDER-008
+
+**Preconditions**:
+- The maintained example suite docs, release scripts, and validation helpers are checked in
+- A writable temporary example-suite copy is available for drift injection
+
+**Steps**:
+1. Introduce stale directory or partial project-removal drift in a temporary example root
+2. Introduce theme-shell drift in a temporary theme baseline asset
+3. Run the maintained example-suite governance and release checks against the drifted copy
+4. Inspect the returned failures and reported guidance
+
+**Expected Outcome**:
+- Directory drift is reported clearly
+- Theme-shell drift is rejected
+- Release and maintenance surfaces keep the example-suite validation workflow visible
 
 ### Rendering Scenarios (SCN-061 to SCN-080)
 
@@ -1029,7 +1086,10 @@ Each scenario includes:
 | SCN-049 | Incremental Compilation | REQ-COMP-009 | Incremental Compiler |
 | SCN-050 | Persisted Screen Authority Graph | REQ-SCREEN-001, REQ-COMP-001 | Authoring Persistence |
 | SCN-051 | Relational Compiler Delegation | REQ-COMP-001, REQ-COMP-007 | Compiler |
+| SCN-052 | Example Suite Resource-Authority Flows | REQ-SCREEN-001, REQ-COMP-001 | Example Suite Runtime |
 | SCN-053 | Relationship-Driven Composition Semantics | REQ-RES-003, REQ-SCREEN-003, REQ-COMP-004 | Composition Graph |
+| SCN-054 | Shared Example Theme Shell and Review Surfaces | REQ-RENDER-002, REQ-RENDER-007, REQ-RENDER-008 | Example Shell |
+| SCN-055 | Example Suite Governance Drift Detection | REQ-COMP-008, REQ-RENDER-008 | Example Governance |
 | SCN-061 | LiveView Rendering | REQ-RENDER-002 | LiveView Renderer |
 | SCN-062 | Elm-Backed Web Rendering | REQ-RENDER-003 | Web Renderer |
 | SCN-063 | Component Rendering | REQ-RENDER-004 | Renderer |

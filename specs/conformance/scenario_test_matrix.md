@@ -35,7 +35,10 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-049 | Incremental Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-050 | Persisted Screen Authority Graph | test/ash_ui/phase_13_integration_test.exs |
 | SCN-051 | Relational Compiler Delegation | test/ash_ui/compiler_test.exs, test/ash_ui/phase_11_integration_test.exs, test/ash_ui/phase_15_integration_test.exs |
+| SCN-052 | Example Suite Resource-Authority Flows | test/ash_ui/phase_18_integration_test.exs, test/ash_ui/phase_19_integration_test.exs, test/ash_ui/phase_20_integration_test.exs, test/ash_ui/phase_22_integration_test.exs |
 | SCN-053 | Relationship-Driven Composition Semantics | test/ash_ui/phase_14_integration_test.exs |
+| SCN-054 | Shared Example Theme Shell and Review Surfaces | test/ash_ui/phase_17_integration_test.exs, test/ash_ui/phase_18_integration_test.exs, test/ash_ui/phase_19_integration_test.exs, test/ash_ui/phase_20_integration_test.exs, test/ash_ui/phase_22_integration_test.exs |
+| SCN-055 | Example Suite Governance Drift Detection | test/ash_ui/phase_22_governance_test.exs, test/ash_ui/phase_22_integration_test.exs |
 | SCN-061 | LiveView Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-062 | Elm-Backed Web Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
 | SCN-063 | Component Rendering | test/ash_ui/rendering/phase_7_integration_test.exs |
@@ -70,3 +73,4 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 - Scenario-to-test mappings are enforced by `test/ash_ui/conformance_traceability_test.exs`.
 - The conformance report consumes this matrix to summarize executable scenario coverage.
 - Phase 16 realigns the matrix around element-resource authority and relationship-driven composition.
+- Phase 22 adds explicit example-suite runtime, theme-shell, and governance traceability.

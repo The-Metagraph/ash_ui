@@ -19,7 +19,7 @@ Back to index: [README](./README.md)
 - the example suite should remain honest about unsupported widgets and runtime
   limits rather than silently masking them
 
-[ ] 21 Phase 21 - Example Suite Tooling, Catalog, and Validation Workflow
+[x] 21 Phase 21 - Example Suite Tooling, Catalog, and Validation Workflow
   Implement the discovery, launcher, validation, and governance workflows that
   turn the mirrored Ash UI example catalog into a maintainable review surface.
 
@@ -70,14 +70,14 @@ Back to index: [README](./README.md)
       [x] 21.4.1.3 Subtask - Implement reporting that calls out apps relying on `custom:*` or partial runtime support explicitly.
       [x] 21.4.1.4 Subtask - Add tests that prove review metadata stays traceable to the suite catalog and root index.
 
-  [ ] 21.5 Section - Phase 21 Integration Tests
+  [x] 21.5 Section - Phase 21 Integration Tests
     Validate the suite discovery, launcher, and validation workflows through one
     maintainer path.
 
-    [ ] 21.5.1 Task - Tooling and validation integration scenarios
+    [x] 21.5.1 Task - Tooling and validation integration scenarios
     Verify the example suite behaves like one coherent maintainer surface.
 
-      [ ] 21.5.1.1 Subtask - Verify maintainers can discover, launch, and preview representative apps from multiple families through the maintained workflow.
-      [ ] 21.5.1.2 Subtask - Verify validation catches catalog drift, superseded authoring, and shared-theme divergence reliably.
-      [ ] 21.5.1.3 Subtask - Verify review metadata remains aligned with the machine-readable catalog and root index.
-      [ ] 21.5.1.4 Subtask - Verify unsupported-surface annotations stay visible instead of being silently dropped from suite reports.
+      [x] 21.5.1.1 Subtask - Verify maintainers can discover, launch, and preview representative apps from multiple families through the maintained workflow.
+      [x] 21.5.1.2 Subtask - Verify validation catches catalog drift, superseded authoring, and shared-theme divergence reliably.
+      [x] 21.5.1.3 Subtask - Verify review metadata remains aligned with the machine-readable catalog and root index.
+      [x] 21.5.1.4 Subtask - Verify unsupported-surface annotations stay visible instead of being silently dropped from suite reports.

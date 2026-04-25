@@ -23,7 +23,7 @@ Back to index: [README](./README.md)
 - operational examples should prefer representative simulated data over fake
   visual shells with no runtime meaning
 
-[ ] 20 Phase 20 - Overlay, Data, Feedback, Chart, and Operational Example Apps
+[x] 20 Phase 20 - Overlay, Data, Feedback, Chart, and Operational Example Apps
   Implement the higher-complexity example families that depend on richer data,
   layered rendering, live updates, or operational storytelling.
 
@@ -89,15 +89,15 @@ Back to index: [README](./README.md)
       [x] 20.5.1.3 Subtask - Define how operational examples surface failures, loading states, and recovery paths inside the shared shell.
       [x] 20.5.1.4 Subtask - Add tests that prove complex examples stay aligned with Ash UI runtime and authorization expectations.
 
-  [ ] 20.6 Section - Phase 20 Integration Tests
+  [x] 20.6 Section - Phase 20 Integration Tests
     Validate the advanced example families through one coherent Ash UI example
     workflow.
 
-    [ ] 20.6.1 Task - Advanced example-app integration scenarios
+    [x] 20.6.1 Task - Advanced example-app integration scenarios
     Verify the suite can support complex data and runtime stories without
     breaking the shared example contract.
 
-      [ ] 20.6.1.1 Subtask - Verify representative overlay, data, feedback, and operational apps boot as independent projects and mount seeded screens.
-      [ ] 20.6.1.2 Subtask - Verify representative apps demonstrate visible data refresh, action handling, or layered transitions through real Ash UI runtime paths.
-      [ ] 20.6.1.3 Subtask - Verify advanced examples preserve the Ash HQ shell while still foregrounding their primary subject.
-      [ ] 20.6.1.4 Subtask - Verify complex examples do not rely on superseded document-first authoring or ad hoc runtime shortcuts.
+      [x] 20.6.1.1 Subtask - Verify representative overlay, data, feedback, and operational apps boot as independent projects and mount seeded screens.
+      [x] 20.6.1.2 Subtask - Verify representative apps demonstrate visible data refresh, action handling, or layered transitions through real Ash UI runtime paths.
+      [x] 20.6.1.3 Subtask - Verify advanced examples preserve the Ash HQ shell while still foregrounding their primary subject.
+      [x] 20.6.1.4 Subtask - Verify complex examples do not rely on superseded document-first authoring or ad hoc runtime shortcuts.

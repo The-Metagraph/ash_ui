@@ -27,18 +27,18 @@ Back to index: [README](./README.md)
   Implement the layout, navigation, and display-system example families,
   expanding Ash UI's public example-ready widget surface where necessary.
 
-  [ ] 19.1 Section - Public Type Expansion for Navigation and Display
+  [x] 19.1 Section - Public Type Expansion for Navigation and Display
     Decide which higher-order surfaces become maintained Ash UI widget types and
     which remain explicit custom examples.
 
-    [ ] 19.1.1 Task - Define the navigation and display authoring boundary
+    [x] 19.1.1 Task - Define the navigation and display authoring boundary
     Resolve the capability gaps before example implementation hard-codes the
     wrong abstraction.
 
-      [ ] 19.1.1.1 Subtask - Define the supported authoring/runtime path for `menu`, `tabs`, and `command_palette`.
-      [ ] 19.1.1.2 Subtask - Define the supported authoring/runtime path for `viewport`, `scroll_bar`, `split_pane`, and `canvas`.
-      [ ] 19.1.1.3 Subtask - Decide which of those surfaces should become public Ash UI widget types versus explicit `custom:*` example-only constructs.
-      [ ] 19.1.1.4 Subtask - Add validation, renderer, and documentation requirements for every newly admitted example-facing widget type.
+      [x] 19.1.1.1 Subtask - Define the supported authoring/runtime path for `menu`, `tabs`, and `command_palette`.
+      [x] 19.1.1.2 Subtask - Define the supported authoring/runtime path for `viewport`, `scroll_bar`, `split_pane`, and `canvas`.
+      [x] 19.1.1.3 Subtask - Decide which of those surfaces should become public Ash UI widget types versus explicit `custom:*` example-only constructs.
+      [x] 19.1.1.4 Subtask - Add validation, renderer, and documentation requirements for every newly admitted example-facing widget type.
 
   [ ] 19.2 Section - Layout and Navigation Example Apps
     Build the example apps that primarily demonstrate composition structure and

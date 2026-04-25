@@ -695,6 +695,246 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "custom:menu"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Menu")
+    description = text_prop(props, ["description", "help"])
+    nav_children = slot_children(iur, "nav")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if nav_children == [] and body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <nav class="#{css_classes(["ash-menu", prop_class(iur)])}" aria-label="#{title}"#{style_attr(prop_style(iur))}>
+      <header class="ash-menu-header">
+        <h2 class="ash-menu-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-menu-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-menu-nav" role="list">
+        #{generate_children(nav_children, opts)}
+      </div>
+      <div class="ash-menu-body">
+        #{generate_children(body_children, opts)}
+      </div>
+      <footer class="ash-menu-footer">
+        #{generate_children(footer_children, opts)}
+      </footer>
+    </nav>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:tabs"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Tabs")
+    description = text_prop(props, ["description", "help"])
+    nav_children = slot_children(iur, "nav")
+    panel_children = slot_children(iur, "body")
+
+    panel_children =
+      if nav_children == [] and panel_children == [] do
+        iur["children"] || []
+      else
+        panel_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-tabs", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-tabs-header">
+        <h2 class="ash-tabs-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-tabs-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-tabs-nav" role="tablist" aria-label="#{title}">
+        #{generate_children(nav_children, opts)}
+      </div>
+      <div class="ash-tabs-panels">
+        #{generate_children(panel_children, opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:command_palette"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Command palette")
+    description = text_prop(props, ["description", "help"])
+    search_children = slot_children(iur, "search")
+    command_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    command_children =
+      if search_children == [] and command_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        command_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-command-palette", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-command-palette-header">
+        <h2 class="ash-command-palette-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-command-palette-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-command-palette-search">
+        #{generate_children(search_children, opts)}
+      </div>
+      <div class="ash-command-palette-results">
+        #{generate_children(command_children, opts)}
+      </div>
+      <footer class="ash-command-palette-footer">
+        #{generate_children(footer_children, opts)}
+      </footer>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:viewport"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Viewport")
+    description = text_prop(props, ["description", "help"])
+    body_children = slot_children(iur, "body")
+    aside_children = slot_children(iur, "aside")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if body_children == [] and aside_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-viewport", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-viewport-header">
+        <h2 class="ash-viewport-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-viewport-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-viewport-frame">
+        <div class="ash-viewport-body">
+          #{generate_children(body_children, opts)}
+        </div>
+        <aside class="ash-viewport-aside">
+          #{generate_children(aside_children, opts)}
+        </aside>
+      </div>
+      <footer class="ash-viewport-footer">
+        #{generate_children(footer_children, opts)}
+      </footer>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:scroll_bar"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Scroll bar")
+    description = text_prop(props, ["description", "help"])
+    thumb_label = text_prop(props, ["thumb_label", "current_position"], "Focused lane")
+    body_children = slot_children(iur, "body")
+    footer_children = slot_children(iur, "footer")
+
+    body_children =
+      if body_children == [] and footer_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-scroll-bar", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-scroll-bar-header">
+        <h2 class="ash-scroll-bar-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-scroll-bar-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-scroll-bar-frame">
+        <div class="ash-scroll-bar-body">
+          #{generate_children(body_children, opts)}
+        </div>
+        <div class="ash-scroll-bar-track" aria-hidden="true">
+          <span class="ash-scroll-bar-thumb">#{thumb_label}</span>
+        </div>
+      </div>
+      <footer class="ash-scroll-bar-footer">
+        #{generate_children(footer_children, opts)}
+      </footer>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:split_pane"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Split pane")
+    description = text_prop(props, ["description", "help"])
+    primary_children = slot_children(iur, "primary")
+    secondary_children = slot_children(iur, "secondary")
+    action_children = slot_children(iur, "actions")
+
+    primary_children =
+      if primary_children == [] and secondary_children == [] and action_children == [] do
+        iur["children"] || []
+      else
+        primary_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-split-pane", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-split-pane-header">
+        <h2 class="ash-split-pane-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-split-pane-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-split-pane-layout">
+        <section class="ash-split-pane-primary">
+          #{generate_children(primary_children, opts)}
+        </section>
+        <section class="ash-split-pane-secondary">
+          #{generate_children(secondary_children, opts)}
+        </section>
+      </div>
+      <footer class="ash-split-pane-actions">
+        #{generate_children(action_children, opts)}
+      </footer>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:canvas"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"], "Canvas")
+    description = text_prop(props, ["description", "help"])
+    toolbar_children = slot_children(iur, "toolbar")
+    body_children = slot_children(iur, "body")
+    legend_children = slot_children(iur, "legend")
+
+    body_children =
+      if toolbar_children == [] and body_children == [] and legend_children == [] do
+        iur["children"] || []
+      else
+        body_children
+      end
+
+    """
+    <section class="#{css_classes(["ash-canvas-surface", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-canvas-header">
+        <h2 class="ash-canvas-title">#{title}</h2>
+        #{if description, do: "<p class=\"ash-canvas-description\">#{description}</p>", else: ""}
+      </header>
+      <div class="ash-canvas-toolbar">
+        #{generate_children(toolbar_children, opts)}
+      </div>
+      <div class="ash-canvas-board">
+        #{generate_children(body_children, opts)}
+      </div>
+      <aside class="ash-canvas-legend">
+        #{generate_children(legend_children, opts)}
+      </aside>
+    </section>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -912,6 +1152,19 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp normalize_item(item), do: %{"value" => item}
+
+  defp slot_children(iur, slot) do
+    desired = to_string(slot)
+
+    (iur["children"] || [])
+    |> Enum.filter(&(child_slot(&1) == desired))
+  end
+
+  defp child_slot(child) do
+    metadata = child["metadata"] || %{}
+    slot = Map.get(metadata, "slot", Map.get(metadata, :slot, "body"))
+    to_string(slot)
+  end
 
   defp icon_glyph(nil), do: "•"
 

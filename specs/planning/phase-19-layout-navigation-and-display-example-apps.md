@@ -40,18 +40,18 @@ Back to index: [README](./README.md)
       [x] 19.1.1.3 Subtask - Decide which of those surfaces should become public Ash UI widget types versus explicit `custom:*` example-only constructs.
       [x] 19.1.1.4 Subtask - Add validation, renderer, and documentation requirements for every newly admitted example-facing widget type.
 
-  [ ] 19.2 Section - Layout and Navigation Example Apps
+  [x] 19.2 Section - Layout and Navigation Example Apps
     Build the example apps that primarily demonstrate composition structure and
     movement through the UI rather than one-off content widgets.
 
-    [ ] 19.2.1 Task - Implement layout and navigation apps
+    [x] 19.2.1 Task - Implement layout and navigation apps
     Add examples whose main value is relationship-driven structure and app-level
     flow.
 
-      [ ] 19.2.1.1 Subtask - Implement `row`, `column`, and `grid` example apps with relationship-driven child ordering and spacing semantics.
-      [ ] 19.2.1.2 Subtask - Implement `menu`, `tabs`, and `command_palette` example apps with clear navigation stories and honest runtime affordances.
-      [ ] 19.2.1.3 Subtask - Use screen-local glue only where necessary, keeping the core structure in related element resources.
-      [ ] 19.2.1.4 Subtask - Add tests that prove representative layout and navigation apps compile and render in the declared relationship order.
+      [x] 19.2.1.1 Subtask - Implement `row`, `column`, and `grid` example apps with relationship-driven child ordering and spacing semantics.
+      [x] 19.2.1.2 Subtask - Implement `menu`, `tabs`, and `command_palette` example apps with clear navigation stories and honest runtime affordances.
+      [x] 19.2.1.3 Subtask - Use screen-local glue only where necessary, keeping the core structure in related element resources.
+      [x] 19.2.1.4 Subtask - Add tests that prove representative layout and navigation apps compile and render in the declared relationship order.
 
   [ ] 19.3 Section - Display-System Example Apps
     Build the examples that demonstrate larger viewports and multi-pane or

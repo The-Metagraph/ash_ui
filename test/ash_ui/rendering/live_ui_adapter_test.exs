@@ -305,6 +305,141 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert String.contains?(heex, "font-size: 18px")
       assert String.contains?(heex, "color: blue")
     end
+
+    test "generates dedicated navigation markup for example-facing custom surfaces" do
+      Enum.each(
+        [
+          {
+            "custom:menu",
+            "ash-menu",
+            "ash-menu-nav",
+            "Menu focus stays on nested public buttons."
+          },
+          {
+            "custom:tabs",
+            "ash-tabs",
+            "ash-tabs-panels",
+            "Panels stay inside the custom tabs shell."
+          },
+          {
+            "custom:command_palette",
+            "ash-command-palette",
+            "ash-command-palette-results",
+            "Commands execute through nested public buttons."
+          }
+        ],
+        fn {type, wrapper_class, section_class, detail_copy} ->
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => %{
+              "title" => "#{type} Demo",
+              "description" => detail_copy
+            },
+            "children" => [
+              %{
+                "type" => "button",
+                "id" => "#{type}-nav",
+                "props" => %{"label" => "Overview"},
+                "children" => [],
+                "metadata" => %{"slot" => if(type == "custom:command_palette", do: "search", else: "nav")}
+              },
+              %{
+                "type" => "text",
+                "id" => "#{type}-body",
+                "props" => %{"content" => detail_copy},
+                "children" => [],
+                "metadata" => %{"slot" => "body"}
+              }
+            ],
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ detail_copy
+          assert heex =~ "Overview"
+        end
+      )
+    end
+
+    test "generates dedicated display markup for example-facing custom surfaces" do
+      Enum.each(
+        [
+          {"custom:viewport", "ash-viewport", "ash-viewport-body", "body"},
+          {"custom:scroll_bar", "ash-scroll-bar", "ash-scroll-bar-track", "body"},
+          {"custom:split_pane", "ash-split-pane", "ash-split-pane-secondary", "secondary"},
+          {"custom:canvas", "ash-canvas-surface", "ash-canvas-toolbar", "toolbar"}
+        ],
+        fn {type, wrapper_class, section_class, slot} ->
+          children =
+            case type do
+              "custom:split_pane" ->
+                [
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-primary",
+                    "props" => %{"content" => "Primary lane"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "primary"}
+                  },
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-secondary",
+                    "props" => %{"content" => "Secondary lane"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "secondary"}
+                  }
+                ]
+
+              "custom:canvas" ->
+                [
+                  %{
+                    "type" => "button",
+                    "id" => "#{type}-tool",
+                    "props" => %{"label" => "Ink"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "toolbar"}
+                  },
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-body",
+                    "props" => %{"content" => "Annotation layer"},
+                    "children" => [],
+                    "metadata" => %{"slot" => "body"}
+                  }
+                ]
+
+              _other ->
+                [
+                  %{
+                    "type" => "text",
+                    "id" => "#{type}-body",
+                    "props" => %{"content" => "Viewport detail"},
+                    "children" => [],
+                    "metadata" => %{"slot" => slot}
+                  }
+                ]
+            end
+
+          iur = %{
+            "type" => type,
+            "id" => "#{type}-demo",
+            "props" => %{"title" => "#{type} Demo", "description" => "Dedicated example shell"},
+            "children" => children,
+            "metadata" => %{}
+          }
+
+          {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+          assert heex =~ wrapper_class
+          assert heex =~ section_class
+          assert heex =~ "Dedicated example shell"
+        end
+      )
+    end
   end
 
   describe "Section 7.2.1 - Event Binding Configuration" do

@@ -1,0 +1,670 @@
+/*
+  Copyable Ash HQ-derived theme baseline for Ash UI example apps.
+
+  Source sampled from https://www.ash-hq.org/ on 2026-04-24.
+  Future example apps should vendor these tokens and classes locally instead of
+  introducing an examples/shared dependency.
+*/
+
+:root {
+  --ashui-example-bg-base: #020617;
+  --ashui-example-glass-bg: #02061780;
+  --ashui-example-panel-bg: #0f172acc;
+  --ashui-example-panel-muted-bg: #1e293bb3;
+  --ashui-example-copy: #ffffff;
+  --ashui-example-copy-soft: #cbd5e1;
+  --ashui-example-copy-warm: #ffcaa9;
+  --ashui-example-accent-soft: #ffa46c;
+  --ashui-example-accent: #ff914d;
+  --ashui-example-accent-strong: #ff6e15;
+  --ashui-example-signal: #ff5757;
+  --ashui-example-signal-strong: #ff1f1f;
+  --ashui-example-signal-hover: #e60000;
+  --ashui-example-border-soft: #ff914d4d;
+  --ashui-example-border-strong: #ff575733;
+  --ashui-example-grid-line: rgba(254, 19, 19, 0.2);
+  --ashui-example-grid-size: 40px;
+  --ashui-example-panel-radius: 24px;
+  --ashui-example-inner-radius: 16px;
+  --ashui-example-pill-radius: 999px;
+  --ashui-example-shell-gradient: linear-gradient(
+    180deg,
+    #6c290033 0%,
+    #7600001a 50%,
+    #6c290033 100%
+  );
+  --ashui-example-primary-gradient: linear-gradient(
+    90deg,
+    var(--ashui-example-accent-strong) 0%,
+    var(--ashui-example-signal-strong) 100%
+  );
+  --ashui-example-primary-glow: 0 0 20px #ff5757;
+  --ashui-example-heading-glow: 0 0 10px rgba(255, 87, 87, 0.3);
+}
+
+.ashui-example-shell {
+  position: relative;
+  min-height: 100vh;
+  color: var(--ashui-example-copy);
+  background: var(--ashui-example-bg-base);
+  isolation: isolate;
+}
+
+.ashui-example-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ashui-example-shell-gradient);
+  pointer-events: none;
+  z-index: -2;
+}
+
+.ashui-example-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ashui-example-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ashui-example-grid-line) 1px, transparent 1px);
+  background-size: var(--ashui-example-grid-size) var(--ashui-example-grid-size);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ashui-example-review-grid {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.ashui-example-panel {
+  background: var(--ashui-example-glass-bg);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: var(--ashui-example-panel-radius);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.35);
+}
+
+.ashui-example-panel--story,
+.ashui-example-panel--signal {
+  background: var(--ashui-example-panel-bg);
+  border-radius: var(--ashui-example-inner-radius);
+  border: 1px solid var(--ashui-example-border-strong);
+}
+
+.ashui-example-code-surface {
+  background: var(--ashui-example-panel-bg);
+  border: 1px solid var(--ashui-example-border-strong);
+  border-radius: var(--ashui-example-inner-radius);
+  color: var(--ashui-example-copy-soft);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.ashui-example-title {
+  background: linear-gradient(
+    90deg,
+    var(--ashui-example-accent-soft) 0%,
+    var(--ashui-example-signal) 50%,
+    var(--ashui-example-accent-strong) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: var(--ashui-example-heading-glow);
+}
+
+.ashui-example-primary-cta,
+.ashui-example-secondary-cta {
+  border-radius: var(--ashui-example-pill-radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.ashui-example-primary-cta {
+  color: var(--ashui-example-copy);
+  background: var(--ashui-example-primary-gradient);
+  box-shadow: var(--ashui-example-primary-glow);
+}
+
+.ashui-example-primary-cta:hover,
+.ashui-example-primary-cta:focus-visible {
+  transform: scale(1.02);
+  background: linear-gradient(
+    90deg,
+    var(--ashui-example-signal-hover) 0%,
+    var(--ashui-example-signal-strong) 100%
+  );
+}
+
+.ashui-example-secondary-cta {
+  color: var(--ashui-example-accent-soft);
+  background: transparent;
+  border: 1px solid var(--ashui-example-accent);
+}
+
+.ashui-example-secondary-cta:hover,
+.ashui-example-secondary-cta:focus-visible {
+  transform: scale(1.02);
+  background: rgb(255 145 77 / 0.1);
+  color: var(--ashui-example-copy-warm);
+}
+
+.ashui-example-status-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--ashui-example-pill-radius);
+  border: 1px solid var(--ashui-example-border-strong);
+  background: rgb(255 87 87 / 0.12);
+  color: var(--ashui-example-copy-warm);
+  min-height: 32px;
+  padding: 0.25rem 0.75rem;
+}
+
+.ashui-example-focus-ring:focus-visible {
+  outline: 2px solid var(--ashui-example-signal);
+  outline-offset: 2px;
+}
+
+@media (min-width: 1024px) {
+  .ashui-example-review-grid {
+    grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ashui-example-primary-cta,
+  .ashui-example-secondary-cta {
+    transition: none;
+  }
+
+  .ashui-example-primary-cta:hover,
+  .ashui-example-primary-cta:focus-visible,
+  .ashui-example-secondary-cta:hover,
+  .ashui-example-secondary-cta:focus-visible {
+    transform: none;
+  }
+}
+
+.ashui-example-live-surface {
+  position: relative;
+  z-index: 1;
+}
+
+.ashui-example-shell-header {
+  display: grid;
+  gap: 0.8rem;
+  margin-bottom: 1.5rem;
+}
+
+.ashui-example-shell-kicker {
+  color: var(--ashui-example-accent);
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ashui-example-shell-title {
+  margin: 0;
+  color: var(--ashui-example-copy-strong);
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1.05;
+}
+
+.ashui-example-shell-summary {
+  max-width: 46rem;
+  margin: 0;
+  color: var(--ashui-example-copy-muted);
+}
+
+.ashui-example-subject {
+  width: 100%;
+}
+
+.ashui-example-copy {
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.ashui-example-copy-wide {
+  max-width: 42rem;
+}
+
+.ashui-example-link {
+  color: var(--ashui-example-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.ashui-example-link:hover,
+.ashui-example-link:focus-visible {
+  text-decoration: underline;
+}
+
+.ashui-example-icon {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.65rem;
+  padding: 0.8rem 1rem;
+}
+
+.ashui-example-image {
+  border-radius: 1.2rem;
+  box-shadow: var(--ashui-example-panel-shadow);
+  display: block;
+  max-width: min(100%, 28rem);
+  overflow: hidden;
+}
+
+.ash-form-builder,
+.ash-field-group {
+  display: grid;
+  gap: 1rem;
+}
+
+.ash-field-group {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1.2rem;
+  padding: 1rem;
+}
+
+.ash-field-group-title {
+  color: var(--ashui-example-copy-strong);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ash-field-group-description {
+  color: var(--ashui-example-copy-muted);
+  font-size: 0.92rem;
+  margin: 0.35rem 0 0;
+}
+
+.ash-form-field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ash-form-field-label,
+.ash-label {
+  color: var(--ashui-example-copy-strong);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.ash-form-field-help {
+  color: var(--ashui-example-copy-muted);
+  font-size: 0.88rem;
+  margin: 0;
+}
+
+.ash-input {
+  background: rgba(7, 14, 26, 0.74);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 0.95rem;
+  color: var(--ashui-example-copy-strong);
+  min-height: 3rem;
+  padding: 0.85rem 0.95rem;
+  width: 100%;
+}
+
+.ash-input::placeholder {
+  color: rgba(224, 229, 237, 0.48);
+}
+
+.ash-input:focus-visible {
+  border-color: rgba(255, 122, 61, 0.66);
+  box-shadow: 0 0 0 0.18rem rgba(255, 122, 61, 0.15);
+  outline: none;
+}
+
+.ash-checkbox {
+  accent-color: var(--ashui-example-accent);
+  block-size: 1.15rem;
+  inline-size: 1.15rem;
+}
+
+.ash-select {
+  background: rgba(7, 14, 26, 0.74);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 0.95rem;
+  color: var(--ashui-example-copy-strong);
+  min-height: 3rem;
+  padding: 0.75rem 0.95rem;
+  width: 100%;
+}
+
+.ash-radio-group {
+  border: 0;
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+}
+
+.ash-radio-option {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.65rem;
+}
+
+.ash-switch {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  color: var(--ashui-example-copy-strong);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.85rem;
+  padding: 0;
+}
+
+.ash-switch-track {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 999px;
+  display: inline-flex;
+  height: 1.75rem;
+  padding: 0.18rem;
+  transition: background 180ms ease;
+  width: 3.2rem;
+}
+
+.ash-switch-thumb {
+  background: linear-gradient(135deg, #fff0df 0%, #ff9c61 100%);
+  border-radius: 999px;
+  box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.25);
+  display: block;
+  height: 1.2rem;
+  transform: translateX(0);
+  transition: transform 180ms ease;
+  width: 1.2rem;
+}
+
+.ash-switch.is-on .ash-switch-track {
+  background: rgba(255, 122, 61, 0.3);
+}
+
+.ash-switch.is-on .ash-switch-thumb {
+  transform: translateX(1.35rem);
+}
+
+.ash-pick-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.ash-pick-list-option {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 999px;
+  color: var(--ashui-example-copy-strong);
+  cursor: pointer;
+  padding: 0.7rem 1rem;
+}
+
+.ash-pick-list-option.is-selected {
+  background: rgba(255, 122, 61, 0.15);
+  border-color: rgba(255, 122, 61, 0.55);
+  box-shadow: 0 0.8rem 2rem rgba(255, 122, 61, 0.12);
+}
+
+.ashui-example-box {
+  min-height: 12rem;
+}
+
+.ash-row.ashui-example-row-layout,
+.ash-column.ashui-example-column-layout,
+.ash-grid.ashui-example-grid-layout {
+  width: 100%;
+}
+
+.ashui-example-layout-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1.2rem;
+  display: grid;
+  gap: 0.7rem;
+  min-height: 8.5rem;
+  padding: 1.1rem;
+}
+
+.ashui-example-layout-title {
+  color: var(--ashui-example-copy-strong);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ashui-example-layout-copy {
+  color: var(--ashui-example-copy-muted);
+  line-height: 1.6;
+}
+
+.ash-menu,
+.ash-tabs,
+.ash-command-palette,
+.ash-viewport,
+.ash-scroll-bar,
+.ash-split-pane,
+.ash-canvas-surface {
+  background: rgba(7, 14, 26, 0.72);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1.35rem;
+  box-shadow: var(--ashui-example-panel-shadow);
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.ash-menu-header,
+.ash-tabs-header,
+.ash-command-palette-header,
+.ash-viewport-header,
+.ash-scroll-bar-header,
+.ash-split-pane-header,
+.ash-canvas-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ash-menu-title,
+.ash-tabs-title,
+.ash-command-palette-title,
+.ash-viewport-title,
+.ash-scroll-bar-title,
+.ash-split-pane-title,
+.ash-canvas-title {
+  color: var(--ashui-example-copy-strong);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ash-menu-description,
+.ash-tabs-description,
+.ash-command-palette-description,
+.ash-viewport-description,
+.ash-scroll-bar-description,
+.ash-split-pane-description,
+.ash-canvas-description {
+  color: var(--ashui-example-copy-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.ash-menu-nav,
+.ash-tabs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ashui-example-nav-button,
+.ashui-example-command-button {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 999px;
+  color: var(--ashui-example-copy-strong);
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.ashui-example-nav-button:hover,
+.ashui-example-nav-button:focus-visible,
+.ashui-example-command-button:hover,
+.ashui-example-command-button:focus-visible {
+  border-color: rgba(255, 122, 61, 0.55);
+  box-shadow: 0 0.8rem 2rem rgba(255, 122, 61, 0.12);
+  outline: none;
+}
+
+.ash-menu-body,
+.ash-tabs-panels,
+.ash-command-palette-results,
+.ash-viewport-body,
+.ash-canvas-board {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.ashui-example-menu-summary,
+.ashui-example-tabs-panel,
+.ashui-example-surface-copy {
+  color: var(--ashui-example-copy-strong);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.ashui-example-surface-meta {
+  color: var(--ashui-example-copy-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.ash-command-palette-search {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.ash-command-palette-results {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.ash-viewport-frame {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+}
+
+.ash-viewport-body,
+.ash-viewport-aside,
+.ash-scroll-bar-body,
+.ash-split-pane-primary,
+.ash-split-pane-secondary,
+.ash-canvas-legend {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1rem;
+  padding: 1rem;
+}
+
+.ash-scroll-bar-frame {
+  align-items: stretch;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ash-scroll-bar-track {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 999px;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 3.25rem;
+  padding: 0.35rem;
+}
+
+.ash-scroll-bar-thumb {
+  background: linear-gradient(135deg, rgba(255, 184, 107, 0.95), rgba(255, 94, 58, 0.95));
+  border-radius: 999px;
+  color: #101621;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.65rem 0.5rem;
+  text-align: center;
+  writing-mode: vertical-rl;
+}
+
+.ash-split-pane-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ash-split-pane-actions,
+.ash-canvas-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ash-canvas-board {
+  min-height: 14rem;
+  position: relative;
+}
+
+.ash-canvas-board::before {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 1.2rem 1.2rem;
+  content: "";
+  inset: 0;
+  opacity: 0.7;
+  pointer-events: none;
+  position: absolute;
+}
+
+.ash-canvas-board > * {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 900px) {
+  .ash-viewport-frame,
+  .ash-split-pane-layout,
+  .ash-scroll-bar-frame {
+    grid-template-columns: 1fr;
+  }
+
+  .ash-scroll-bar-track {
+    min-width: 100%;
+  }
+
+  .ash-scroll-bar-thumb {
+    writing-mode: horizontal-tb;
+  }
+}
+
+/* Tabs Example */

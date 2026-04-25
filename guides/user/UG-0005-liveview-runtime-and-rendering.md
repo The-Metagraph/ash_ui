@@ -114,6 +114,7 @@ Today:
 
 - LiveView is the most complete shipped runtime path.
 - The fallback LiveView adapter explicitly renders `row`, `column`, `grid`, `stack`, `card`, `text`, `label`, `badge`, `hero`, `stat`, `key_value`, `info_list`, `form_builder`, `form_field`, `button`, `input`, `textarea`, `checkbox`, `select`, `divider`, and `spacer`.
+- The fallback LiveView adapter also gives dedicated markup to selected example-facing `custom:*` shells, currently `custom:link`, `custom:pick_list`, `custom:field_group`, `custom:menu`, `custom:tabs`, `custom:command_palette`, `custom:viewport`, `custom:scroll_bar`, `custom:split_pane`, and `custom:canvas`.
 - Types outside that set survive as canonical widgets but fall back to generic wrapper markup unless an external renderer package handles them.
 - The desktop adapter is narrower and explicitly covers only a smaller interactive subset.
 

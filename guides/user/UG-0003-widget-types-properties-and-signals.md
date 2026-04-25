@@ -82,8 +82,9 @@ These are the types currently accepted by `ui_element` validation.
 | `slider` | Range input | no dedicated fallback widget markup |
 
 You can also author `custom:*` types. They are accepted as widget types, but the
-shipped validation/runtime does not give them built-in signal semantics or
-renderer behavior.
+shipped validation/runtime does not automatically give them built-in signal
+semantics. Some explicitly supported custom surfaces do have dedicated fallback
+renderer behavior, but that does not make them public built-in widget types.
 
 ## Shared Styling Props the Fallback Adapter Reads
 
@@ -152,11 +153,32 @@ Two important edge cases:
 - The fallback LiveView adapter understands `label` and `form_builder`, but they are not part of the current validated public `ui_element type` vocabulary.
 - `props[:variant]` on `button` is renderer-read today, while `variants [...]` on `ui_element` is better treated as semantic tagging for downstream tooling.
 
+### Example-Suite Custom Surfaces
+
+The checked-in example suite now relies on a small set of explicitly rendered
+`custom:*` surfaces that remain outside the public widget vocabulary:
+
+| Example-facing type | Intended use | Signal ownership rule |
+|---|---|---|
+| `custom:link` | Honest navigation affordance until link semantics are admitted publicly | keep navigation/browser behavior on the custom surface itself; do not assume Ash write semantics |
+| `custom:pick_list` | Multi-pick style review surface with narrowed runtime semantics | keep value change semantics explicit and narrow |
+| `custom:field_group` | Grouped form review shell around native `form_field` children | keep write semantics on nested inputs |
+| `custom:menu` | Navigation shell around child buttons/text | keep actions on nested public child widgets |
+| `custom:tabs` | Tabbed review shell around child buttons/panels | keep tab switching on nested public child widgets |
+| `custom:command_palette` | Command launcher shell around search/input and command actions | keep search and command actions on nested public child widgets |
+| `custom:viewport` | Example-only viewport review frame | keep state changes on nested public child widgets |
+| `custom:scroll_bar` | Example-only scroll affordance shell | keep state changes on nested public child widgets |
+| `custom:split_pane` | Example-only two-pane layout shell | keep focus or mode changes on nested public child widgets |
+| `custom:canvas` | Example-only drawing/review shell | keep tool changes or writes on nested public child widgets |
+
+Treat those as explicit renderer extensions for the example suite, not as
+stable built-in authoring types for general application work.
+
 ## Choosing the Right Widget Today
 
 - Use `hero`, `stat`, `key_value`, and `info_list` when you want predictable shipped fallback rendering.
 - Use `list`, `table`, `image`, `icon`, `radio`, `switch`, and `slider` only if your chosen renderer path supports them or a generic wrapper is acceptable.
-- Use `custom:*` when you are deliberately extending the renderer boundary, not when you need a built-in interactive widget.
+- Use `custom:*` when you are deliberately extending the renderer boundary or building an explicitly example-only shell, not when you need a built-in interactive widget.
 
 ## See Also
 

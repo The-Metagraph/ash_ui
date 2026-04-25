@@ -45,9 +45,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     started_at = System.monotonic_time()
     metadata = render_metadata(canonical_iur, :live_ui)
     Telemetry.emit(:render, :start, %{count: 1}, metadata)
+    force_fallback? = Keyword.get(opts, :force_fallback, false)
 
     result =
-      if Code.ensure_loaded?(LiveUI.Renderer) do
+      if Code.ensure_loaded?(LiveUI.Renderer) and not force_fallback? do
         call_live_ui_renderer(canonical_iur, opts)
       else
         render_fallback(canonical_iur, opts)
@@ -360,6 +361,33 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "icon"} = iur, _opts) do
+    props = iur["props"] || %{}
+    name = text_prop(props, ["name", "icon", "value"], "spark")
+    label = text_prop(props, ["label", "text", "content"], name)
+
+    """
+    <span class="#{css_classes(["ash-icon", prop_class(iur)])}" role="img" aria-label="#{label}"#{style_attr(prop_style(iur))}>
+      <span class="ash-icon-glyph">#{icon_glyph(name)}</span>
+      <span class="ash-icon-label">#{label}</span>
+    </span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "image"} = iur, _opts) do
+    props = iur["props"] || %{}
+    src = text_prop(props, ["src", "url"], "")
+    alt = text_prop(props, ["alt", "label", "content"], "Image")
+    caption = text_prop(props, ["caption", "description"])
+
+    """
+    <figure class="#{css_classes(["ash-image", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <img src="#{src}" alt="#{alt}" loading="lazy" />
+      #{if caption, do: "<figcaption class=\"ash-image-caption\">#{caption}</figcaption>", else: ""}
+    </figure>
+    """
+  end
+
   defp generate_heex(%{"type" => "badge"} = iur, opts) do
     props = iur["props"] || %{}
     presentation = prop(props, "presentation", "default")
@@ -446,8 +474,18 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp generate_heex(%{"type" => "form_builder"} = iur, opts) do
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "event")
+
+    submit_attrs =
+      if binding do
+        ~s( phx-submit="#{event_name(event_prefix, :action)}"#{attr("phx-value-action_id", binding["id"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", binding_signal(binding, "submit"))})
+      else
+        ""
+      end
+
     """
-    <form class="#{css_classes(["ash-form-builder", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+    <form class="#{css_classes(["ash-form-builder", prop_class(iur)])}"#{style_attr(prop_style(iur))}#{submit_attrs}>
       #{generate_children(iur["children"], opts)}
     </form>
     """
@@ -455,10 +493,14 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp generate_heex(%{"type" => "form_field"} = iur, opts) do
     props = iur["props"] || %{}
+    label = text_prop(props, ["label", "title"])
+    help = text_prop(props, ["help", "description"])
 
     """
     <div class="#{css_classes(["ash-form-field", prop_class(iur)])}"#{attr("data-field-name", dom_id(prop(props, "name")))}#{style_attr(prop_style(iur))}>
+      #{if label, do: "<label class=\"ash-form-field-label\">#{label}</label>", else: ""}
       #{generate_children(iur["children"], opts)}
+      #{if help, do: "<p class=\"ash-form-field-help\">#{help}</p>", else: ""}
     </div>
     """
   end
@@ -467,16 +509,24 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     label = Map.get(iur["props"] || %{}, "label", "Button")
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
     variant = Map.get(iur["props"] || %{}, "variant", "primary")
+    button_type = Map.get(iur["props"] || %{}, "type", "button")
     binding = find_binding(opts, iur["id"], "event")
 
-    click_event = event_name(event_prefix, :action)
-    action_attr = attr("phx-value-action_id", binding && binding["id"])
-    element_attr = attr("phx-value-element_id", iur["id"])
-    signal_attr = attr("phx-value-signal", binding_signal(binding, "click"))
     class_name = css_classes(["ash-button", "ash-button-#{variant}", prop_class(iur)])
 
+    event_attrs =
+      if binding && button_type != "submit" do
+        click_event = event_name(event_prefix, :action)
+        action_attr = attr("phx-value-action_id", binding["id"])
+        element_attr = attr("phx-value-element_id", iur["id"])
+        signal_attr = attr("phx-value-signal", binding_signal(binding, "click"))
+        ~s( phx-click="#{click_event}"#{action_attr}#{element_attr}#{signal_attr})
+      else
+        ""
+      end
+
     """
-    <button type="button" class="#{class_name}"#{style_attr(prop_style(iur))} phx-click="#{click_event}"#{action_attr}#{element_attr}#{signal_attr}>#{label}</button>
+    <button type="#{button_type}" class="#{class_name}"#{style_attr(prop_style(iur))}#{event_attrs}>#{label}</button>
     """
   end
 
@@ -500,11 +550,59 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp generate_heex(%{"type" => "checkbox"} = iur, opts) do
     name = Map.get(iur["props"] || %{}, "name", "checkbox")
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
-    checked = if Map.get(iur["props"] || %{}, "checked"), do: " checked", else: ""
+    checked? = !!Map.get(iur["props"] || %{}, "checked")
+    checked = if checked?, do: " checked", else: ""
     binding = find_binding(opts, iur["id"], "bidirectional")
+    next_value = if checked?, do: "false", else: "true"
 
     """
-    <input type="checkbox" class="#{css_classes(["ash-checkbox", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))}#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
+    <input type="checkbox" class="#{css_classes(["ash-checkbox", prop_class(iur)])}" name="#{name}"#{style_attr(prop_style(iur))}#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", next_value)} />
+    """
+  end
+
+  defp generate_heex(%{"type" => "radio"} = iur, opts) do
+    props = iur["props"] || %{}
+    name = Map.get(props, "name", "radio")
+    options = Map.get(props, "options", [])
+    selected_value = Map.get(props, "value")
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "bidirectional")
+
+    options_html =
+      Enum.map_join(options, fn option ->
+        {label, option_value} = normalize_choice(option)
+
+        checked =
+          if to_string(option_value) == to_string(selected_value), do: " checked", else: ""
+
+        """
+        <label class="ash-radio-option">
+          <input type="radio" name="#{name}" value="#{option_value}"#{checked} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", option_value)} />
+          <span class="ash-radio-option-label">#{label}</span>
+        </label>
+        """
+      end)
+
+    """
+    <fieldset class="#{css_classes(["ash-radio-group", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{options_html}
+    </fieldset>
+    """
+  end
+
+  defp generate_heex(%{"type" => "switch"} = iur, opts) do
+    props = iur["props"] || %{}
+    checked? = !!Map.get(props, "checked")
+    label = text_prop(props, ["label", "text", "content"], "Toggle")
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "bidirectional")
+    next_value = if checked?, do: "false", else: "true"
+
+    """
+    <button type="button" role="switch" aria-checked="#{checked?}" class="#{css_classes(["ash-switch", checked? && "is-on", prop_class(iur)])}"#{style_attr(prop_style(iur))} phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", next_value)}>
+      <span class="ash-switch-track"><span class="ash-switch-thumb"></span></span>
+      <span class="ash-switch-label">#{label}</span>
+    </button>
     """
   end
 
@@ -517,7 +615,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     options_html =
       Enum.map_join(options, fn option ->
-        {label, option_value} = if is_binary(option), do: {option, option}, else: option
+        {label, option_value} = normalize_choice(option)
 
         selected =
           if to_string(option_value) == to_string(selected_value), do: " selected", else: ""
@@ -543,6 +641,57 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     """
     <div class="#{css_classes(["ash-spacer", prop_class(iur)])}"#{style_attr(merge_style(["height: #{size}px"], prop_style(iur)))}></div>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:link"} = iur, _opts) do
+    props = iur["props"] || %{}
+    href = text_prop(props, ["href", "to", "url"], "#")
+    label = text_prop(props, ["label", "text", "content"], href)
+    target = text_prop(props, "target")
+    rel = text_prop(props, "rel")
+
+    """
+    <a class="#{css_classes(["ash-link", prop_class(iur)])}" href="#{href}"#{attr("target", target)}#{attr("rel", rel)}#{style_attr(prop_style(iur))}>#{label}</a>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:pick_list"} = iur, opts) do
+    props = iur["props"] || %{}
+    options = Map.get(props, "options", [])
+    selected_value = Map.get(props, "value")
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    binding = find_binding(opts, iur["id"], "bidirectional")
+
+    options_html =
+      Enum.map_join(options, fn option ->
+        {label, option_value} = normalize_choice(option)
+        selected? = to_string(option_value) == to_string(selected_value)
+
+        """
+        <button type="button" class="#{css_classes(["ash-pick-list-option", selected? && "is-selected"])}" phx-click="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")}#{attr("phx-value-value", option_value)}>#{label}</button>
+        """
+      end)
+
+    """
+    <div class="#{css_classes(["ash-pick-list", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{options_html}
+    </div>
+    """
+  end
+
+  defp generate_heex(%{"type" => "custom:field_group"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, ["title", "label"])
+    description = text_prop(props, ["description", "help"])
+
+    """
+    <section class="#{css_classes(["ash-field-group", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{if title, do: "<header class=\"ash-field-group-header\"><h2 class=\"ash-field-group-title\">#{title}</h2>#{if description, do: "<p class=\"ash-field-group-description\">#{description}</p>", else: ""}</header>", else: ""}
+      <div class="ash-field-group-body">
+        #{generate_children(iur["children"], opts)}
+      </div>
+    </section>
     """
   end
 
@@ -693,9 +842,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     type = Map.get(props, "type", "text")
     binding = find_binding(opts, iur["id"], "bidirectional")
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    value_attr = if type == "file", do: "", else: attr("value", value)
 
     """
-    <input type="#{type}" class="#{css_classes(["ash-#{css_base}", prop_class(iur)])}" name="#{name}" value="#{value}" placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
+    <input type="#{type}" class="#{css_classes(["ash-#{css_base}", prop_class(iur)])}" name="#{name}"#{value_attr} placeholder="#{placeholder}"#{style_attr(prop_style(iur))} phx-blur="#{event_name(event_prefix, :change)}" phx-change="#{event_name(event_prefix, :change)}"#{attr("phx-value-binding_id", binding && binding["id"])}#{attr("phx-value-target", binding && binding["target"])}#{attr("phx-value-element_id", iur["id"])}#{attr("phx-value-signal", "change")} />
     """
   end
 
@@ -737,15 +887,23 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp text_prop(props, keys, default \\ nil)
 
   defp text_prop(props, keys, default) when is_list(keys) do
-    Enum.find_value(keys, default, fn key ->
+    Enum.reduce_while(keys, default, fn key, _acc ->
       case prop(props, key) do
-        value when value in [nil, "", []] -> false
-        value -> to_string(value)
+        value when value in [nil, "", []] -> {:cont, default}
+        value -> {:halt, to_string(value)}
       end
     end)
   end
 
   defp text_prop(props, key, default), do: text_prop(props, [key], default)
+
+  defp normalize_choice(option) when is_map(option) do
+    {text_prop(option, ["label", "title", "value"], ""), prop(option, "value")}
+  end
+
+  defp normalize_choice({label, value}), do: {label, value}
+  defp normalize_choice(option) when is_binary(option), do: {option, option}
+  defp normalize_choice(option), do: {to_string(option), option}
 
   defp normalize_item(item) when is_map(item), do: item
 
@@ -754,6 +912,19 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp normalize_item(item), do: %{"value" => item}
+
+  defp icon_glyph(nil), do: "•"
+
+  defp icon_glyph(name) do
+    case to_string(name) do
+      "sparkles" -> "✦"
+      "star" -> "★"
+      "check" -> "✓"
+      "alert" -> "!"
+      "image" -> "▣"
+      other -> other |> String.first() |> Kernel.||("•") |> String.upcase()
+    end
+  end
 
   defp dom_id(nil), do: nil
   defp dom_id(value) when is_atom(value), do: Atom.to_string(value)

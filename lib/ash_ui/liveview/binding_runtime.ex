@@ -152,10 +152,9 @@ defmodule AshUI.LiveView.BindingRuntime do
 
         target ->
           Map.put(acc, target, %{
-            "value" => Map.get(binding_state, :value) || Map.get(binding_state, "value"),
-            "error" => Map.get(binding_state, :error) || Map.get(binding_state, "error"),
-            "updated_at" =>
-              Map.get(binding_state, :updated_at) || Map.get(binding_state, "updated_at")
+            "value" => binding_state_attr(binding_state, :value),
+            "error" => binding_state_attr(binding_state, :error),
+            "updated_at" => binding_state_attr(binding_state, :updated_at)
           })
       end
     end)
@@ -169,10 +168,9 @@ defmodule AshUI.LiveView.BindingRuntime do
 
         target ->
           Map.put(acc, target, %{
-            "value" => Map.get(binding_state, :value) || Map.get(binding_state, "value"),
-            "error" => Map.get(binding_state, :error) || Map.get(binding_state, "error"),
-            "updated_at" =>
-              Map.get(binding_state, :updated_at) || Map.get(binding_state, "updated_at")
+            "value" => binding_state_attr(binding_state, :value),
+            "error" => binding_state_attr(binding_state, :error),
+            "updated_at" => binding_state_attr(binding_state, :updated_at)
           })
       end
     end)
@@ -186,5 +184,9 @@ defmodule AshUI.LiveView.BindingRuntime do
       _ ->
         socket
     end
+  end
+
+  defp binding_state_attr(binding_state, key) do
+    Map.get_lazy(binding_state, key, fn -> Map.get(binding_state, Atom.to_string(key)) end)
   end
 end

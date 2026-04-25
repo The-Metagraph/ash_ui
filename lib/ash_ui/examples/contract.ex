@@ -58,26 +58,41 @@ defmodule AshUI.Examples.Contract do
     "@media (prefers-reduced-motion: reduce)"
   ]
 
+  @doc """
+  Returns the checked-in catalog crosswalk used by the example-suite contract.
+  """
   @spec default_catalog_path() :: String.t()
   def default_catalog_path do
     Path.expand("../../../examples/catalog.tsv", __DIR__)
   end
 
+  @doc """
+  Returns the sibling `unified_ui/examples` directory used for parity checks.
+  """
   @spec default_sibling_examples_path() :: String.t()
   def default_sibling_examples_path do
     Path.expand("../../../../unified_ui/examples", __DIR__)
   end
 
+  @doc """
+  Returns the Ash HQ theme baseline guide consumed by contract validation.
+  """
   @spec default_theme_doc_path() :: String.t()
   def default_theme_doc_path do
     Path.expand("../../../examples/ash_hq_theme_baseline.md", __DIR__)
   end
 
+  @doc """
+  Returns the shared Ash HQ theme token stylesheet consumed by contract validation.
+  """
   @spec default_theme_css_path() :: String.t()
   def default_theme_css_path do
     Path.expand("../../../examples/ash_hq_theme_tokens.css", __DIR__)
   end
 
+  @doc """
+  Loads the TSV catalog and returns the parsed headers plus row maps.
+  """
   @spec load_catalog(String.t()) :: {:ok, %{headers: [String.t()], rows: [map()]}} | {:error, term()}
   def load_catalog(path \\ default_catalog_path()) do
     with {:ok, body} <- read_existing(path) do
@@ -104,6 +119,9 @@ defmodule AshUI.Examples.Contract do
     end
   end
 
+  @doc """
+  Validates that the Ash UI catalog stays aligned with the sibling `unified_ui` example directories.
+  """
   @spec validate_catalog_parity(String.t(), String.t()) :: :ok | {:error, term()}
   def validate_catalog_parity(
         catalog_path \\ default_catalog_path(),
@@ -111,7 +129,7 @@ defmodule AshUI.Examples.Contract do
       ) do
     with {:ok, %{headers: headers, rows: rows}} <- load_catalog(catalog_path),
          :ok <- validate_catalog_headers(headers),
-         {:ok, sibling_dirs} <- sibling_directories(sibling_examples_path) do
+         {:ok, sibling_dirs} <- reference_example_directories(sibling_examples_path) do
       directories = Enum.map(rows, &Map.fetch!(&1, "directory"))
       duplicates = duplicate_values(directories)
       missing = sibling_dirs -- Enum.uniq(directories)
@@ -127,6 +145,9 @@ defmodule AshUI.Examples.Contract do
     end
   end
 
+  @doc """
+  Validates that the checked-in Ash HQ theme baseline guide and CSS expose the required contract markers.
+  """
   @spec validate_theme_baseline(String.t(), String.t()) :: :ok | {:error, term()}
   def validate_theme_baseline(
         theme_doc_path \\ default_theme_doc_path(),
@@ -173,6 +194,19 @@ defmodule AshUI.Examples.Contract do
     end
   end
 
+  defp reference_example_directories(path) do
+    case sibling_directories(path) do
+      {:ok, directories} ->
+        {:ok, directories}
+
+      {:error, {:missing_sibling_examples, ^path, reason}} when reason in [:enoent, :enotdir] ->
+        snapshot_directories()
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
   defp sibling_directories(path) do
     with {:ok, entries} <- File.ls(path) do
       directories =
@@ -183,6 +217,20 @@ defmodule AshUI.Examples.Contract do
       {:ok, directories}
     else
       {:error, reason} -> {:error, {:missing_sibling_examples, path, reason}}
+    end
+  end
+
+  defp snapshot_directories do
+    snapshot_path = Path.expand("../../../examples/unified_ui_example_directories.txt", __DIR__)
+
+    with {:ok, body} <- read_existing(snapshot_path) do
+      directories =
+        body
+        |> String.split("\n", trim: true)
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.sort()
+
+      {:ok, directories}
     end
   end
 

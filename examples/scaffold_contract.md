@@ -4,8 +4,8 @@ This document defines the reusable app shape that every standalone Ash UI
 example must follow.
 
 It mirrors the sibling `unified_ui` example-app layout by directory name while
-rebuilding each app as a resource-authority Ash UI application instead of a
-screen-document or builder-first demo.
+rebuilding each app as a resource-authority Ash UI application instead of an
+older transitional example surface.
 
 ## Per-App Layout
 
@@ -68,8 +68,9 @@ Every app must provide these authored module roles:
   or example-local notes.
 
 Bindings and actions belong on the owning screen or element resource. Example
-apps should not ship detached screen documents, builder-first definitions, or
-monolithic inline trees that bypass the element relationship graph.
+apps should not ship detached serialized payloads, superseded helper-driven
+definitions, or monolithic inline trees that bypass the element relationship
+graph.
 
 The intended resource pattern matches the package's existing support fixtures:
 

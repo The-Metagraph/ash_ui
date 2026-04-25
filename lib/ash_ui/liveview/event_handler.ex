@@ -10,6 +10,7 @@ defmodule AshUI.LiveView.EventHandler do
 
   alias AshUI.Config
   alias AshUI.LiveView.BindingRuntime
+  alias AshUI.LiveView.UpdateIntegration
   alias AshUI.Runtime.ActionBinding
   alias AshUI.Runtime.BidirectionalBinding
 
@@ -71,8 +72,9 @@ defmodule AshUI.LiveView.EventHandler do
 
     with {:ok, binding} <- find_value_binding(binding_id, target, element_id, socket),
          context <- build_event_context(socket, binding),
-         {:ok, socket} <- write_value(binding, value, socket, context) do
-      {:noreply, socket}
+         {:ok, socket} <- write_value(binding, value, socket, context),
+         {:noreply, refreshed_socket} <- refresh_bindings(socket) do
+      {:noreply, refreshed_socket}
     else
       {:error, reason, error_socket} ->
         Logger.error("Value change failed: #{inspect(reason)}")
@@ -426,6 +428,13 @@ defmodule AshUI.LiveView.EventHandler do
       _ ->
         field_name = Map.get(params, "name")
         if is_binary(field_name), do: Map.get(params, field_name), else: nil
+    end
+  end
+
+  defp refresh_bindings(socket) do
+    case UpdateIntegration.refresh_bindings(socket) do
+      {:noreply, refreshed_socket} -> {:noreply, refreshed_socket}
+      other -> other
     end
   end
 

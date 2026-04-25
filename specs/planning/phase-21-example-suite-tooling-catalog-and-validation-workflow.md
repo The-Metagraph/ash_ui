@@ -35,16 +35,16 @@ Back to index: [README](./README.md)
       [x] 21.1.1.3 Subtask - Add discovery metadata that records where catalog parity is exact versus normalized through canonical type mappings.
       [x] 21.1.1.4 Subtask - Add tests that prove the root index stays synchronized with the machine-readable example catalog.
 
-  [ ] 21.2 Section - Independent App Run and Preview Tooling
+  [x] 21.2 Section - Independent App Run and Preview Tooling
     Give maintainers one repeatable path for launching and reviewing any app.
 
-    [ ] 21.2.1 Task - Implement per-app launcher workflows
+    [x] 21.2.1 Task - Implement per-app launcher workflows
     Make app startup and previewing routine instead of bespoke.
 
-      [ ] 21.2.1.1 Subtask - Implement and standardize `mix example.start` or an equivalent maintained launcher surface for each app.
-      [ ] 21.2.1.2 Subtask - Add helper workflows for selecting representative actor, seed, and runtime mode where an example supports more than one review path.
-      [ ] 21.2.1.3 Subtask - Add preview surfaces that foreground the shared Ash HQ shell, the primary interaction story, and the canonical signal preview consistently.
-      [ ] 21.2.1.4 Subtask - Add tests that prove maintainers can discover and launch representative apps from multiple families through one workflow.
+      [x] 21.2.1.1 Subtask - Implement and standardize `mix example.start` or an equivalent maintained launcher surface for each app.
+      [x] 21.2.1.2 Subtask - Add helper workflows for selecting representative actor, seed, and runtime mode where an example supports more than one review path.
+      [x] 21.2.1.3 Subtask - Add preview surfaces that foreground the shared Ash HQ shell, the primary interaction story, and the canonical signal preview consistently.
+      [x] 21.2.1.4 Subtask - Add tests that prove maintainers can discover and launch representative apps from multiple families through one workflow.
 
   [ ] 21.3 Section - Validation and Governance Checks
     Prevent the suite from drifting away from the architecture it is supposed to

@@ -26,6 +26,7 @@ defmodule AshUI.Examples.Suite do
     "preview_policy",
     "runtime_notes"
   ]
+  @shared_shell_label "Ash HQ example shell"
 
   @type catalog_entry :: %{
           required(:directory) => String.t(),
@@ -40,6 +41,26 @@ defmodule AshUI.Examples.Suite do
           required(:maintained_runtime) => String.t(),
           required(:preview_policy) => String.t(),
           required(:runtime_notes) => String.t()
+        }
+
+  @type launch_spec :: %{
+          required(:directory) => String.t(),
+          required(:title) => String.t(),
+          required(:project_path) => String.t(),
+          required(:command) => [String.t()],
+          required(:shell) => String.t(),
+          required(:actor_profiles) => [String.t()],
+          required(:seed_profiles) => [String.t()],
+          required(:runtime_modes) => [String.t()],
+          required(:actor) => String.t(),
+          required(:seed) => String.t(),
+          required(:runtime) => String.t(),
+          required(:story_text) => String.t(),
+          required(:signal_text) => String.t(),
+          required(:support_notice) => String.t() | nil,
+          required(:launcher) => String.t(),
+          required(:preview) => String.t(),
+          required(:dry_run_command) => String.t()
         }
 
   @doc """
@@ -95,6 +116,106 @@ defmodule AshUI.Examples.Suite do
         runtime_notes: row["notes"]
       }
     end)
+  end
+
+  @doc """
+  Returns the maintained directory identifiers in catalog order.
+  """
+  @spec directories() :: [String.t()]
+  def directories do
+    Enum.map(catalog_entries(), & &1.directory)
+  end
+
+  @doc """
+  Returns the checked-in example project path for a directory.
+  """
+  @spec project_path(String.t()) :: String.t()
+  def project_path(directory) when is_binary(directory) do
+    Path.expand("../../../examples/#{directory}", __DIR__)
+  end
+
+  @doc """
+  Returns the compiled example definition for a directory.
+  """
+  @spec definition!(String.t()) :: map()
+  def definition!(directory) when is_binary(directory) do
+    definitions_by_directory()
+    |> Map.fetch!(directory)
+  end
+
+  @doc """
+  Returns the catalog entry for a directory.
+  """
+  @spec entry!(String.t()) :: catalog_entry()
+  def entry!(directory) when is_binary(directory) do
+    Enum.find(catalog_entries(), &(&1.directory == directory)) ||
+      raise KeyError, key: directory, term: :example_suite_catalog
+  end
+
+  @doc """
+  Returns the maintained launcher and review metadata for one example app.
+  """
+  @spec launch_spec(String.t(), keyword()) :: launch_spec()
+  def launch_spec(directory, opts \\ []) when is_binary(directory) do
+    entry = entry!(directory)
+    definition = definition!(directory)
+    actor_profiles = actor_profiles(entry)
+    seed_profiles = seed_profiles(entry)
+    runtime_modes = runtime_modes(entry)
+
+    actor = Keyword.get(opts, :actor, hd(actor_profiles))
+    seed = Keyword.get(opts, :seed, hd(seed_profiles))
+    runtime = Keyword.get(opts, :runtime, hd(runtime_modes))
+
+    validate_profile!(actor, actor_profiles, :actor)
+    validate_profile!(seed, seed_profiles, :seed)
+    validate_profile!(runtime, runtime_modes, :runtime)
+
+    project_path = project_path(directory)
+
+    %{
+      directory: directory,
+      title: entry.title,
+      project_path: project_path,
+      command: ["mix", "example.start"],
+      shell: @shared_shell_label,
+      actor_profiles: actor_profiles,
+      seed_profiles: seed_profiles,
+      runtime_modes: runtime_modes,
+      actor: actor,
+      seed: seed,
+      runtime: runtime,
+      story_text: definition.story_text,
+      signal_text: definition.signal_text,
+      support_notice: definition.support_notice,
+      launcher: "mix ash_ui.examples.start #{directory}",
+      preview: "mix ash_ui.examples.preview #{directory}",
+      dry_run_command: "cd #{project_path} && MIX_ENV=dev mix example.start"
+    }
+  end
+
+  @doc """
+  Returns the maintained preview contract for one example app.
+  """
+  @spec preview_spec(String.t(), keyword()) :: map()
+  def preview_spec(directory, opts \\ []) when is_binary(directory) do
+    spec = launch_spec(directory, opts)
+    entry = entry!(directory)
+
+    %{
+      directory: directory,
+      title: spec.title,
+      shell: spec.shell,
+      story_text: spec.story_text,
+      signal_text: spec.signal_text,
+      support_notice: spec.support_notice,
+      canonical_subject: entry.canonical_subject,
+      parity_kind: entry.parity_kind,
+      maintained_runtime: entry.maintained_runtime,
+      actor: spec.actor,
+      seed: spec.seed,
+      runtime: spec.runtime
+    }
   end
 
   @doc """
@@ -191,4 +312,27 @@ defmodule AshUI.Examples.Suite do
   defp parity_kind("specialized_input"), do: "normalized"
   defp parity_kind("composed_native_screen"), do: "composed"
   defp parity_kind("custom_widget"), do: "custom"
+
+  defp actor_profiles(%{phase: phase}) when phase >= 20 do
+    ["admin", "operator", "read_only"]
+  end
+
+  defp actor_profiles(_entry), do: ["reviewer"]
+
+  defp seed_profiles(%{phase: phase}) when phase >= 20 do
+    ["seeded_screen", "runtime_realism"]
+  end
+
+  defp seed_profiles(_entry), do: ["seeded_screen"]
+
+  defp runtime_modes(_entry), do: ["liveview"]
+
+  defp validate_profile!(value, allowed, option) do
+    if value in allowed do
+      :ok
+    else
+      raise ArgumentError,
+            "unsupported #{option} profile #{inspect(value)}; expected one of: #{Enum.join(allowed, ", ")}"
+    end
+  end
 end

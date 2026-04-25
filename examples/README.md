@@ -27,6 +27,20 @@ visual contract.
 - `custom`: the example still depends on an explicit `custom:*` shell until a
   stable public widget contract exists.
 
+## Maintained Workflow
+
+- `mix ash_ui.examples.list`
+  prints the maintained root catalog with one launcher command per directory.
+- `mix ash_ui.examples.preview <directory>`
+  prints the shared shell, meaningful interaction story, canonical signal
+  preview, and support notice for one example.
+- `mix ash_ui.examples.start <directory> --dry-run`
+  shows the delegated `mix example.start` command without launching the target
+  Phoenix app.
+- `mix ash_ui.examples.start <directory> [--actor <profile>] [--seed <profile>] [--runtime liveview]`
+  starts the selected app through the root workflow when you want to review it
+  live.
+
 ## Suite Index
 
 <!-- ash_ui:example-suite-index:start -->

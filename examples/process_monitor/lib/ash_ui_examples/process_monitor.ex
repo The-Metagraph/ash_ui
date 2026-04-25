@@ -16,21 +16,14 @@ defmodule AshUIExamples.ProcessMonitor do
     directory: "process_monitor",
     family: :operational,
     title: "Process Monitor Example",
-    section: :operational_monitoring,
-    subject_type: :"custom:process_monitor",
-    subject_props: %{
-      description: "A compact runtime process surface fed by one persisted model snapshot.",
-      title: "Process monitor",
-      class: "ashui-example-process-monitor-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the monitored process state and confirm the visible process cards update from persisted runtime data rather than decorative placeholders.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.payload -> bound process monitor model plus preview label.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-process_monitor",
       status: "Process monitor mounted with the steady-state snapshot.",
-      current_value: "steady state",
       payload: %{
         "processes" => [
           %{"meta" => "0 restarts", "name" => "scheduler", "state" => "running"},
@@ -42,18 +35,11 @@ defmodule AshUIExamples.ProcessMonitor do
           }
         ],
         "summary" => "Schedulers and workers are healthy with no restart pressure."
-      }
+      },
+      current_value: "steady state"
     },
-    preview_field: :current_value,
-    preview_title: "Monitor mode",
-    subject_binding: %{
-      id: :process_monitor_model,
-      target: "model",
-      field: :payload,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `process_monitor` example uses explicit runtime snapshots and nested controls instead of implying a hidden supervisor tap.",
     subject_children: [
       %{
         position: 0,
@@ -81,7 +67,6 @@ defmodule AshUIExamples.ProcessMonitor do
                   "from" => "static",
                   "value" => "Process monitor mounted with the steady-state snapshot."
                 },
-                current_value: %{"from" => "static", "value" => "steady state"},
                 payload: %{
                   "from" => "static",
                   "value" => %{
@@ -104,7 +89,8 @@ defmodule AshUIExamples.ProcessMonitor do
                     ],
                     "summary" => "Schedulers and workers are healthy with no restart pressure."
                   }
-                }
+                },
+                current_value: %{"from" => "static", "value" => "steady state"}
               }
             }
           }
@@ -141,7 +127,6 @@ defmodule AshUIExamples.ProcessMonitor do
                   "from" => "static",
                   "value" => "Process monitor switched to the restart-pressure snapshot."
                 },
-                current_value: %{"from" => "static", "value" => "pressure state"},
                 payload: %{
                   "from" => "static",
                   "value" => %{
@@ -165,7 +150,8 @@ defmodule AshUIExamples.ProcessMonitor do
                     "summary" =>
                       "Retry workers are degraded and the refresh lane is under pressure."
                   }
-                }
+                },
+                current_value: %{"from" => "static", "value" => "pressure state"}
               }
             }
           }
@@ -197,14 +183,28 @@ defmodule AshUIExamples.ProcessMonitor do
         key: :process_monitor_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Process monitor mounted with the steady-state snapshot."
+          content: "Process monitor mounted with the steady-state snapshot.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `process_monitor` example uses explicit runtime snapshots and nested controls instead of implying a hidden supervisor tap.",
-    notes: "Binds one process monitor model map into a renderer-backed operational shell."
+    section: :operational_monitoring,
+    subject_action: nil,
+    subject_binding: %{
+      id: :process_monitor_model,
+      target: "model",
+      field: :payload,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:process_monitor",
+    notes: "Binds one process monitor model map into a renderer-backed operational shell.",
+    preview_title: "Monitor mode",
+    subject_props: %{
+      description: "A compact runtime process surface fed by one persisted model snapshot.",
+      title: "Process monitor",
+      class: "ashui-example-process-monitor-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -228,13 +228,32 @@ defmodule AshUIExamples.ProcessMonitor do
 
   def runtime_domains, do: [AshUIExamples.ProcessMonitor.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-process_monitor",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-process_monitor",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{
+      active: true,
+      id: "viewer-process_monitor",
+      name: "Example Viewer",
+      role: :viewer
+    }
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -257,7 +276,6 @@ defmodule AshUIExamples.ProcessMonitor do
       %{
         id: "state-process_monitor",
         status: "Process monitor mounted with the steady-state snapshot.",
-        current_value: "steady state",
         payload: %{
           "processes" => [
             %{"meta" => "0 restarts", "name" => "scheduler", "state" => "running"},
@@ -269,7 +287,8 @@ defmodule AshUIExamples.ProcessMonitor do
             }
           ],
           "summary" => "Schedulers and workers are healthy with no restart pressure."
-        }
+        },
+        current_value: "steady state"
       }
     )
   end
@@ -397,12 +416,25 @@ defmodule AshUIExamples.ProcessMonitor do
   end
 
   defmodule Runtime.ExampleState do
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:ProcessMonitor:Runtime:ExampleState"
+
     use Ash.Resource,
       domain: AshUIExamples.ProcessMonitor.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
       data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -468,6 +500,24 @@ defmodule AshUIExamples.ProcessMonitor do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -930,7 +980,6 @@ defmodule AshUIExamples.ProcessMonitor do
               "from" => "static",
               "value" => "Process monitor mounted with the steady-state snapshot."
             },
-            current_value: %{"from" => "static", "value" => "steady state"},
             payload: %{
               "from" => "static",
               "value" => %{
@@ -949,7 +998,8 @@ defmodule AshUIExamples.ProcessMonitor do
                 ],
                 "summary" => "Schedulers and workers are healthy with no restart pressure."
               }
-            }
+            },
+            current_value: %{"from" => "static", "value" => "steady state"}
           }
         })
 
@@ -990,7 +1040,6 @@ defmodule AshUIExamples.ProcessMonitor do
               "from" => "static",
               "value" => "Process monitor switched to the restart-pressure snapshot."
             },
-            current_value: %{"from" => "static", "value" => "pressure state"},
             payload: %{
               "from" => "static",
               "value" => %{
@@ -1009,7 +1058,8 @@ defmodule AshUIExamples.ProcessMonitor do
                 ],
                 "summary" => "Retry workers are degraded and the refresh lane is under pressure."
               }
-            }
+            },
+            current_value: %{"from" => "static", "value" => "pressure state"}
           }
         })
 
@@ -1025,8 +1075,8 @@ defmodule AshUIExamples.ProcessMonitor do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Process monitor mounted with the steady-state snapshot."
+        content: "Process monitor mounted with the steady-state snapshot.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "process-monitor-footer", position: 0, slot: "footer", section: "demo"})

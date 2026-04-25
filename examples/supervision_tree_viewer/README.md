@@ -26,6 +26,11 @@ Meaningful Interaction Story: switch the viewed supervision snapshot and confirm
 
 Canonical Signal Preview: nested button click -> ExampleState.payload -> bound supervision tree model plus preview label.
 
+Runtime contract:
+- Mount path: active viewers can mount the seeded screen, but mutating controls are reserved for operators and admins.
+- Refresh path: mounted viewers stay current through `ExampleState` notifications and LiveView binding reevaluation, not only by remounting the screen.
+- Shell state path: Operational examples expose the mounted snapshot through shell status copy and support notes instead of pretending to stream unseen background state. Incident and pressure snapshots must render degraded copy inside the primary surface and shared status/footer surfaces. Stable snapshot controls and notification-backed refresh return the mounted view to a healthy state without remounting.
+
 ## Validate
 
 `mix run --no-start -e "IO.puts("example/supervision_tree_viewer")"`

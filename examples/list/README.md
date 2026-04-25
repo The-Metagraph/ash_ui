@@ -26,6 +26,11 @@ Meaningful Interaction Story: switch between review queues and confirm the colle
 
 Canonical Signal Preview: nested button click -> ExampleState.items -> hydrated `list` props.items plus preview status inside the shared Ash HQ shell.
 
+Runtime contract:
+- Mount path: active viewers can mount the seeded screen, but mutating controls are reserved for operators and admins.
+- Refresh path: mounted viewers stay current through `ExampleState` notifications and LiveView binding reevaluation, not only by remounting the screen.
+- Shell state path: Data-surface examples expose the active dataset through preview and status copy as soon as the seeded screen mounts. Fallback or warning states must stay visible in the shared shell status copy rather than being implied by an empty collection alone. Operator-driven dataset changes and runtime notifications refresh the mounted viewer session through real binding reevaluation.
+
 ## Validate
 
 `mix run --no-start -e "IO.puts("example/list")"`

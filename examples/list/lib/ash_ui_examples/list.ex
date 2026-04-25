@@ -16,18 +16,11 @@ defmodule AshUIExamples.List do
     directory: "list",
     family: :data_surface,
     title: "List Example",
-    section: :data_surfaces,
-    subject_type: :list,
-    subject_props: %{
-      description: "A bound list surface that refreshes its rows from persisted runtime data.",
-      title: "Review queue",
-      class: "ashui-example-list-surface",
-      empty_text: "No review rows available."
-    },
     story_text:
       "Meaningful Interaction Story: switch between review queues and confirm the collection surface refreshes through a list binding instead of hard-coded inline rows.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.items -> hydrated `list` props.items plus preview status inside the shared Ash HQ shell.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-list",
       status: "List binding mounted with the triage queue.",
@@ -50,16 +43,8 @@ defmodule AshUIExamples.List do
       ],
       current_value: "triage queue"
     },
-    preview_field: :current_value,
-    preview_title: "Active queue",
-    subject_binding: %{
-      id: :list_items,
-      target: "items",
-      field: :items,
-      transform: %{},
-      binding_type: :list
-    },
-    subject_action: nil,
+    support_notice:
+      "The `list` example uses a real list binding on the maintained public widget instead of hiding collection changes inside static markup.",
     subject_children: [
       %{
         position: 0,
@@ -192,15 +177,30 @@ defmodule AshUIExamples.List do
         key: :list_status,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "List binding mounted with the triage queue."
+          content: "List binding mounted with the triage queue.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `list` example uses a real list binding on the maintained public widget instead of hiding collection changes inside static markup.",
+    section: :data_surfaces,
+    subject_action: nil,
+    subject_binding: %{
+      id: :list_items,
+      target: "items",
+      field: :items,
+      transform: %{},
+      binding_type: :list
+    },
+    subject_type: :list,
     notes:
-      "Actions switch the bound collection while the subject surface stays a maintained public widget."
+      "Actions switch the bound collection while the subject surface stays a maintained public widget.",
+    preview_title: "Active queue",
+    subject_props: %{
+      description: "A bound list surface that refreshes its rows from persisted runtime data.",
+      title: "Review queue",
+      class: "ashui-example-list-surface",
+      empty_text: "No review rows available."
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -224,8 +224,16 @@ defmodule AshUIExamples.List do
 
   def runtime_domains, do: [AshUIExamples.List.RuntimeDomain]
 
-  def current_user,
-    do: %{active: true, id: "reviewer-list", name: "Example Reviewer", role: :admin}
+  def admin_user, do: %{active: true, id: "reviewer-list", name: "Example Reviewer", role: :admin}
+
+  def operator_user,
+    do: %{active: true, id: "operator-list", name: "Example Operator", role: :operator}
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-list", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -377,10 +385,25 @@ defmodule AshUIExamples.List do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.List.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:List:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.List.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -446,6 +469,24 @@ defmodule AshUIExamples.List do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -987,8 +1028,8 @@ defmodule AshUIExamples.List do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "List binding mounted with the triage queue."
+        content: "List binding mounted with the triage queue.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "list-status", position: 0, slot: "footer", section: "demo"})

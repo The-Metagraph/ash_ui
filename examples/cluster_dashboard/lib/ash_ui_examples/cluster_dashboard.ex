@@ -16,21 +16,14 @@ defmodule AshUIExamples.ClusterDashboard do
     directory: "cluster_dashboard",
     family: :operational,
     title: "Cluster Dashboard Example",
-    section: :operational_monitoring,
-    subject_type: :"custom:cluster_dashboard",
-    subject_props: %{
-      description: "The flagship operational composition example for multi-region review.",
-      title: "Cluster dashboard",
-      class: "ashui-example-cluster-dashboard-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the dashboard between stable and incident snapshots and confirm the headline, regional cards, and alert rail all update from persisted runtime data.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.payload -> bound dashboard model plus preview label.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-cluster_dashboard",
       status: "Cluster dashboard mounted with the stable multi-region snapshot.",
-      current_value: "stable cluster",
       payload: %{
         "alerts" => [
           %{"message" => "Watching retriable writes.", "title" => "Billing lag"},
@@ -46,18 +39,11 @@ defmodule AshUIExamples.ClusterDashboard do
           %{"label" => "us-west", "load" => "58%", "status" => "Healthy"},
           %{"label" => "eu-central", "load" => "61%", "status" => "Watching"}
         ]
-      }
+      },
+      current_value: "stable cluster"
     },
-    preview_field: :current_value,
-    preview_title: "Snapshot",
-    subject_binding: %{
-      id: :cluster_dashboard_model,
-      target: "model",
-      field: :payload,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `cluster_dashboard` example is a composed custom shell that stays explicit about using representative snapshots and nested public controls rather than hidden runtime shortcuts.",
     subject_children: [
       %{
         position: 0,
@@ -85,7 +71,6 @@ defmodule AshUIExamples.ClusterDashboard do
                   "from" => "static",
                   "value" => "Cluster dashboard mounted with the stable multi-region snapshot."
                 },
-                current_value: %{"from" => "static", "value" => "stable cluster"},
                 payload: %{
                   "from" => "static",
                   "value" => %{
@@ -119,7 +104,8 @@ defmodule AshUIExamples.ClusterDashboard do
                       }
                     ]
                   }
-                }
+                },
+                current_value: %{"from" => "static", "value" => "stable cluster"}
               }
             }
           }
@@ -156,10 +142,6 @@ defmodule AshUIExamples.ClusterDashboard do
                   "from" => "static",
                   "value" => "Cluster dashboard switched to the incident response snapshot."
                 },
-                current_value: %{
-                  "from" => "static",
-                  "value" => "incident cluster"
-                },
                 payload: %{
                   "from" => "static",
                   "value" => %{
@@ -194,6 +176,10 @@ defmodule AshUIExamples.ClusterDashboard do
                       }
                     ]
                   }
+                },
+                current_value: %{
+                  "from" => "static",
+                  "value" => "incident cluster"
                 }
               }
             }
@@ -226,14 +212,28 @@ defmodule AshUIExamples.ClusterDashboard do
         key: :cluster_dashboard_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Cluster dashboard mounted with the stable multi-region snapshot."
+          content: "Cluster dashboard mounted with the stable multi-region snapshot.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `cluster_dashboard` example is a composed custom shell that stays explicit about using representative snapshots and nested public controls rather than hidden runtime shortcuts.",
-    notes: "Binds one dashboard model map into the flagship operational shell."
+    section: :operational_monitoring,
+    subject_action: nil,
+    subject_binding: %{
+      id: :cluster_dashboard_model,
+      target: "model",
+      field: :payload,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:cluster_dashboard",
+    notes: "Binds one dashboard model map into the flagship operational shell.",
+    preview_title: "Snapshot",
+    subject_props: %{
+      description: "The flagship operational composition example for multi-region review.",
+      title: "Cluster dashboard",
+      class: "ashui-example-cluster-dashboard-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -257,13 +257,32 @@ defmodule AshUIExamples.ClusterDashboard do
 
   def runtime_domains, do: [AshUIExamples.ClusterDashboard.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-cluster_dashboard",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-cluster_dashboard",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{
+      active: true,
+      id: "viewer-cluster_dashboard",
+      name: "Example Viewer",
+      role: :viewer
+    }
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -286,7 +305,6 @@ defmodule AshUIExamples.ClusterDashboard do
       %{
         id: "state-cluster_dashboard",
         status: "Cluster dashboard mounted with the stable multi-region snapshot.",
-        current_value: "stable cluster",
         payload: %{
           "alerts" => [
             %{"message" => "Watching retriable writes.", "title" => "Billing lag"},
@@ -302,7 +320,8 @@ defmodule AshUIExamples.ClusterDashboard do
             %{"label" => "us-west", "load" => "58%", "status" => "Healthy"},
             %{"label" => "eu-central", "load" => "61%", "status" => "Watching"}
           ]
-        }
+        },
+        current_value: "stable cluster"
       }
     )
   end
@@ -430,12 +449,25 @@ defmodule AshUIExamples.ClusterDashboard do
   end
 
   defmodule Runtime.ExampleState do
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:ClusterDashboard:Runtime:ExampleState"
+
     use Ash.Resource,
       domain: AshUIExamples.ClusterDashboard.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
       data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -501,6 +533,24 @@ defmodule AshUIExamples.ClusterDashboard do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -973,7 +1023,6 @@ defmodule AshUIExamples.ClusterDashboard do
               "from" => "static",
               "value" => "Cluster dashboard mounted with the stable multi-region snapshot."
             },
-            current_value: %{"from" => "static", "value" => "stable cluster"},
             payload: %{
               "from" => "static",
               "value" => %{
@@ -992,7 +1041,8 @@ defmodule AshUIExamples.ClusterDashboard do
                   %{"label" => "eu-central", "load" => "61%", "status" => "Watching"}
                 ]
               }
-            }
+            },
+            current_value: %{"from" => "static", "value" => "stable cluster"}
           }
         })
 
@@ -1033,7 +1083,6 @@ defmodule AshUIExamples.ClusterDashboard do
               "from" => "static",
               "value" => "Cluster dashboard switched to the incident response snapshot."
             },
-            current_value: %{"from" => "static", "value" => "incident cluster"},
             payload: %{
               "from" => "static",
               "value" => %{
@@ -1056,7 +1105,8 @@ defmodule AshUIExamples.ClusterDashboard do
                   %{"label" => "eu-central", "load" => "82%", "status" => "Degraded"}
                 ]
               }
-            }
+            },
+            current_value: %{"from" => "static", "value" => "incident cluster"}
           }
         })
 
@@ -1072,8 +1122,8 @@ defmodule AshUIExamples.ClusterDashboard do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Cluster dashboard mounted with the stable multi-region snapshot."
+        content: "Cluster dashboard mounted with the stable multi-region snapshot.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "cluster-dashboard-footer", position: 0, slot: "footer", section: "demo"})

@@ -16,17 +16,11 @@ defmodule AshUIExamples.TreeView do
     directory: "tree_view",
     family: :data_surface,
     title: "Tree View Example",
-    section: :data_surfaces,
-    subject_type: :"custom:tree_view",
-    subject_props: %{
-      description: "A nested review surface that shows hierarchical runtime structure.",
-      title: "System topology",
-      class: "ashui-example-tree-view-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the focused hierarchy and confirm the tree viewer redraws its nested branches from persisted runtime data rather than a static shell.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.items -> bound tree model plus selected-branch preview.",
+    preview_field: :selected_value,
     seed_state: %{
       id: "state-tree_view",
       status: "Tree viewer mounted with the runtime hierarchy.",
@@ -50,16 +44,8 @@ defmodule AshUIExamples.TreeView do
       ],
       selected_value: "runtime graph"
     },
-    preview_field: :selected_value,
-    preview_title: "Focused branch",
-    subject_binding: %{
-      id: :tree_model,
-      target: "model",
-      field: :items,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The tree example uses an explicit custom shell because hierarchical disclosure rendering is not a maintained public fallback surface.",
     subject_children: [
       %{
         position: 0,
@@ -201,14 +187,28 @@ defmodule AshUIExamples.TreeView do
         key: :tree_status,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Tree viewer mounted with the runtime hierarchy."
+          content: "Tree viewer mounted with the runtime hierarchy.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The tree example uses an explicit custom shell because hierarchical disclosure rendering is not a maintained public fallback surface.",
-    notes: "Binds one structured tree model map into the example-only renderer."
+    section: :data_surfaces,
+    subject_action: nil,
+    subject_binding: %{
+      id: :tree_model,
+      target: "model",
+      field: :items,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:tree_view",
+    notes: "Binds one structured tree model map into the example-only renderer.",
+    preview_title: "Focused branch",
+    subject_props: %{
+      description: "A nested review surface that shows hierarchical runtime structure.",
+      title: "System topology",
+      class: "ashui-example-tree-view-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -232,13 +232,27 @@ defmodule AshUIExamples.TreeView do
 
   def runtime_domains, do: [AshUIExamples.TreeView.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-tree_view",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-tree_view",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-tree_view", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -395,10 +409,25 @@ defmodule AshUIExamples.TreeView do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.TreeView.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:TreeView:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.TreeView.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -464,6 +493,24 @@ defmodule AshUIExamples.TreeView do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -1006,8 +1053,8 @@ defmodule AshUIExamples.TreeView do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Tree viewer mounted with the runtime hierarchy."
+        content: "Tree viewer mounted with the runtime hierarchy.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "tree-status", position: 0, slot: "footer", section: "demo"})

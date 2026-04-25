@@ -13,164 +13,167 @@ defmodule AshUIExamples.Toast do
   @directory "toast"
   @screen_name "example/toast"
   @definition %{
-  directory: "toast",
-  family: :overlay,
-  title: "Toast Example",
-  section: :overlay_layered_flows,
-  subject_type: :"custom:toast",
-  subject_props: %{
-    description: "A transient-style notification shell driven by persisted runtime fields.",
-    title: "Activity toast",
-    class: "ashui-example-toast-shell"
-  },
-  story_text: "Meaningful Interaction Story: trigger different toast variants and confirm the visible message and status copy update through nested controls instead of hard-coded shell text.",
-  signal_text: "Canonical Signal Preview: nested button click -> ExampleState.current_value and ExampleState.status -> toast body copy and preview stat inside the explicit `custom:toast` shell.",
-  seed_state: %{
-    enabled: true,
-    id: "state-toast",
-    status: "Toast example is waiting for a nested trigger.",
-    current_value: "No toast triggered yet."
-  },
-  preview_field: :current_value,
-  preview_title: "Toast message",
-  subject_binding: %{
-    id: :toast_visible,
-    target: "visible",
-    field: :enabled,
-    transform: %{}
-  },
-  subject_action: nil,
-  subject_children: [
-    %{
-      position: 0,
-      type: :text,
-      slot: :body,
-      bindings: [
-        %{
-          id: :toast_copy_binding,
-          metadata: %{owner: "body"},
-          source: %{
-            id: "state-toast",
-            resource: "ExampleState",
-            field: :current_value
-          },
-          target: "content",
-          transform: %{},
-          binding_type: :value
-        }
-      ],
-      key: :toast_copy,
-      children: [],
-      props: %{
-        class: "ashui-example-surface-copy",
-        content: "No toast triggered yet."
-      }
+    directory: "toast",
+    family: :overlay,
+    title: "Toast Example",
+    story_text:
+      "Meaningful Interaction Story: trigger different toast variants and confirm the visible message and status copy update through nested controls instead of hard-coded shell text.",
+    signal_text:
+      "Canonical Signal Preview: nested button click -> ExampleState.current_value and ExampleState.status -> toast body copy and preview stat inside the explicit `custom:toast` shell.",
+    preview_field: :current_value,
+    seed_state: %{
+      enabled: true,
+      id: "state-toast",
+      status: "Toast example is waiting for a nested trigger.",
+      current_value: "No toast triggered yet."
     },
-    %{
-      position: 0,
-      type: :text,
-      slot: :footer,
-      bindings: [
-        %{
-          id: :toast_status_binding,
-          metadata: %{owner: "footer"},
-          source: %{id: "state-toast", resource: "ExampleState", field: :status},
-          target: "content",
-          transform: %{},
-          binding_type: :value
+    support_notice:
+      "The toast shell remains explicit `custom:toast`; trigger semantics stay on nested button resources and persisted runtime fields.",
+    subject_children: [
+      %{
+        position: 0,
+        type: :text,
+        slot: :body,
+        bindings: [
+          %{
+            id: :toast_copy_binding,
+            metadata: %{owner: "body"},
+            source: %{
+              id: "state-toast",
+              resource: "ExampleState",
+              field: :current_value
+            },
+            target: "content",
+            transform: %{},
+            binding_type: :value
+          }
+        ],
+        key: :toast_copy,
+        children: [],
+        props: %{
+          content: "No toast triggered yet.",
+          class: "ashui-example-surface-copy"
         }
-      ],
-      key: :toast_status,
-      children: [],
-      props: %{
-        class: "ashui-example-surface-meta",
-        content: "Toast example is waiting for a nested trigger."
-      }
-    },
-    %{
-      position: 0,
-      type: :button,
-      slot: :actions,
-      key: :send_success_toast_button,
-      children: [],
-      actions: [
-        %{
-          id: :action_send_success_toast_button,
-          metadata: %{
-            intent: "update_example_state",
-            success_message: "Layered state updated"
-          },
-          signal: :click,
-          source: %{
-            id: "state-toast",
-            resource: "ExampleState",
-            action: "update"
-          },
-          target: "submit",
-          transform: %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Success toast triggered from the nested action row."
-              },
-              current_value: %{
-                "from" => "static",
-                "value" => "Deployment verified. Success toast delivered."
+      },
+      %{
+        position: 0,
+        type: :text,
+        slot: :footer,
+        bindings: [
+          %{
+            id: :toast_status_binding,
+            metadata: %{owner: "footer"},
+            source: %{id: "state-toast", resource: "ExampleState", field: :status},
+            target: "content",
+            transform: %{},
+            binding_type: :value
+          }
+        ],
+        key: :toast_status,
+        children: [],
+        props: %{
+          content: "Toast example is waiting for a nested trigger.",
+          class: "ashui-example-surface-meta"
+        }
+      },
+      %{
+        position: 0,
+        type: :button,
+        slot: :actions,
+        key: :send_success_toast_button,
+        children: [],
+        actions: [
+          %{
+            id: :action_send_success_toast_button,
+            metadata: %{
+              intent: "update_example_state",
+              success_message: "Layered state updated"
+            },
+            signal: :click,
+            source: %{
+              id: "state-toast",
+              resource: "ExampleState",
+              action: "update"
+            },
+            target: "submit",
+            transform: %{
+              params: %{
+                status: %{
+                  "from" => "static",
+                  "value" => "Success toast triggered from the nested action row."
+                },
+                current_value: %{
+                  "from" => "static",
+                  "value" => "Deployment verified. Success toast delivered."
+                }
               }
             }
           }
+        ],
+        props: %{
+          label: "Send success toast",
+          class: "ashui-example-primary-cta",
+          variant: "secondary"
         }
-      ],
-      props: %{
-        label: "Send success toast",
-        class: "ashui-example-primary-cta",
-        variant: "secondary"
-      }
-    },
-    %{
-      position: 10,
-      type: :button,
-      slot: :actions,
-      key: :send_risk_toast_button,
-      children: [],
-      actions: [
-        %{
-          id: :action_send_risk_toast_button,
-          metadata: %{
-            intent: "update_example_state",
-            success_message: "Layered state updated"
-          },
-          signal: :click,
-          source: %{
-            id: "state-toast",
-            resource: "ExampleState",
-            action: "update"
-          },
-          target: "submit",
-          transform: %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Risk toast triggered from the nested action row."
-              },
-              current_value: %{
-                "from" => "static",
-                "value" => "Risk signal elevated. Recovery toast delivered."
+      },
+      %{
+        position: 10,
+        type: :button,
+        slot: :actions,
+        key: :send_risk_toast_button,
+        children: [],
+        actions: [
+          %{
+            id: :action_send_risk_toast_button,
+            metadata: %{
+              intent: "update_example_state",
+              success_message: "Layered state updated"
+            },
+            signal: :click,
+            source: %{
+              id: "state-toast",
+              resource: "ExampleState",
+              action: "update"
+            },
+            target: "submit",
+            transform: %{
+              params: %{
+                status: %{
+                  "from" => "static",
+                  "value" => "Risk toast triggered from the nested action row."
+                },
+                current_value: %{
+                  "from" => "static",
+                  "value" => "Risk signal elevated. Recovery toast delivered."
+                }
               }
             }
           }
+        ],
+        props: %{
+          label: "Send risk toast",
+          class: "ashui-example-secondary-cta",
+          variant: "secondary"
         }
-      ],
-      props: %{
-        label: "Send risk toast",
-        class: "ashui-example-secondary-cta",
-        variant: "secondary"
       }
+    ],
+    section: :overlay_layered_flows,
+    subject_action: nil,
+    subject_binding: %{
+      id: :toast_visible,
+      target: "visible",
+      field: :enabled,
+      transform: %{}
+    },
+    subject_type: :"custom:toast",
+    notes: "Uses body, footer, and action slots.",
+    preview_title: "Toast message",
+    subject_props: %{
+      description: "A transient-style notification shell driven by persisted runtime fields.",
+      title: "Activity toast",
+      class: "ashui-example-toast-shell"
     }
-  ],
-  support_notice: "The toast shell remains explicit `custom:toast`; trigger semantics stay on nested button resources and persisted runtime fields.",
-  notes: "Uses body, footer, and action slots."
-}
+  }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
   def app, do: :ash_ui_example_toast
@@ -193,7 +196,18 @@ defmodule AshUIExamples.Toast do
 
   def runtime_domains, do: [AshUIExamples.Toast.RuntimeDomain]
 
-  def current_user, do: %{active: true, id: "reviewer-toast", name: "Example Reviewer", role: :admin}
+  def admin_user,
+    do: %{active: true, id: "reviewer-toast", name: "Example Reviewer", role: :admin}
+
+  def operator_user,
+    do: %{active: true, id: "operator-toast", name: "Example Operator", role: :operator}
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-toast", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
+
   def seed_state do
     Map.merge(
       %{
@@ -205,14 +219,19 @@ defmodule AshUIExamples.Toast do
         selected_value: "primary",
         checked: false,
         enabled: false,
-        notes: ""
+        notes: "",
+        items: [],
+        secondary_items: [],
+        metric: %{},
+        payload: %{},
+        series: []
       },
-%{
-  enabled: true,
-  id: "state-toast",
-  status: "Toast example is waiting for a nested trigger.",
-  current_value: "No toast triggered yet."
-}
+      %{
+        enabled: true,
+        id: "state-toast",
+        status: "Toast example is waiting for a nested trigger.",
+        current_value: "No toast triggered yet."
+      }
     )
   end
 
@@ -227,9 +246,10 @@ defmodule AshUIExamples.Toast do
   def seed!(opts \\ []) do
     actor = Keyword.get(opts, :actor, current_user())
     reset!()
+
     {:ok, _state} =
       Ash.create(
-AshUIExamples.Toast.Runtime.ExampleState,
+        AshUIExamples.Toast.Runtime.ExampleState,
         seed_state(),
         domain: AshUIExamples.Toast.RuntimeDomain,
         authorize?: false
@@ -237,7 +257,7 @@ AshUIExamples.Toast.Runtime.ExampleState,
 
     {:ok, screen} =
       Authority.create(
-AshUIExamples.Toast.Examples.ToastScreen,
+        AshUIExamples.Toast.Examples.ToastScreen,
         actor: actor,
         name: @screen_name,
         ui_storage: ui_storage()
@@ -265,7 +285,14 @@ AshUIExamples.Toast.Examples.ToastScreen,
 
   def mount_seeded!(opts \\ []) do
     seeded = seed!(opts)
-    socket = build_socket(%{current_user: seeded.actor, ash_ui_storage: seeded.ui_storage, ash_ui_domains: runtime_domains()})
+
+    socket =
+      build_socket(%{
+        current_user: seeded.actor,
+        ash_ui_storage: seeded.ui_storage,
+        ash_ui_domains: runtime_domains()
+      })
+
     {:ok, mounted_socket} = Integration.mount_ui_screen(socket, seeded.screen_name, %{})
     {:ok, mounted_socket} = EventHandler.wire_handlers(mounted_socket)
     Map.put(seeded, :socket, mounted_socket)
@@ -299,7 +326,7 @@ AshUIExamples.Toast.Examples.ToastScreen,
     def start(_type, _args) do
       children = [
         {Phoenix.PubSub, name: AshUIExamples.Toast.PubSub},
-AshUIExamples.Toast.Web.Endpoint
+        AshUIExamples.Toast.Web.Endpoint
       ]
 
       Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__.Supervisor)
@@ -315,10 +342,25 @@ AshUIExamples.Toast.Web.Endpoint
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.Toast.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:Toast:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.Toast.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -327,14 +369,19 @@ AshUIExamples.Toast.Web.Endpoint
         allow_nil?(false)
       end
 
-      attribute :current_value, :string, default: "Ready"
-      attribute :display_value, :string, default: "Ready"
-      attribute :status, :string, default: "Mounted"
-      attribute :submitted_value, :string, default: "Not submitted"
-      attribute :selected_value, :string, default: "primary"
-      attribute :checked, :boolean, default: false
-      attribute :enabled, :boolean, default: false
-      attribute :notes, :string, default: ""
+      attribute(:current_value, :string, default: "Ready")
+      attribute(:display_value, :string, default: "Ready")
+      attribute(:status, :string, default: "Mounted")
+      attribute(:submitted_value, :string, default: "Not submitted")
+      attribute(:selected_value, :string, default: "primary")
+      attribute(:checked, :boolean, default: false)
+      attribute(:enabled, :boolean, default: false)
+      attribute(:notes, :string, default: "")
+      attribute(:items, {:array, :map}, default: [])
+      attribute(:secondary_items, {:array, :map}, default: [])
+      attribute(:metric, :map, default: %{})
+      attribute(:payload, :map, default: %{})
+      attribute(:series, {:array, :map}, default: [])
     end
 
     actions do
@@ -342,12 +389,61 @@ AshUIExamples.Toast.Web.Endpoint
 
       create :create do
         primary?(true)
-        accept([:id, :current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes])
+
+        accept([
+          :id,
+          :current_value,
+          :display_value,
+          :status,
+          :submitted_value,
+          :selected_value,
+          :checked,
+          :enabled,
+          :notes,
+          :items,
+          :secondary_items,
+          :metric,
+          :payload,
+          :series
+        ])
       end
 
       update :update do
         primary?(true)
-        accept([:current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes])
+
+        accept([
+          :current_value,
+          :display_value,
+          :status,
+          :submitted_value,
+          :selected_value,
+          :checked,
+          :enabled,
+          :notes,
+          :items,
+          :secondary_items,
+          :metric,
+          :payload,
+          :series
+        ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -558,12 +654,34 @@ AshUIExamples.Toast.Web.Endpoint
 
       create :create do
         primary?(true)
-        accept([:source, :target, :binding_type, :transform, :element_id, :screen_id, :metadata, :active, :version])
+
+        accept([
+          :source,
+          :target,
+          :binding_type,
+          :transform,
+          :element_id,
+          :screen_id,
+          :metadata,
+          :active,
+          :version
+        ])
       end
 
       update :update do
         primary?(true)
-        accept([:source, :target, :binding_type, :transform, :element_id, :screen_id, :metadata, :active])
+
+        accept([
+          :source,
+          :target,
+          :binding_type,
+          :transform,
+          :element_id,
+          :screen_id,
+          :metadata,
+          :active
+        ])
+
         change(increment(:version))
       end
     end
@@ -591,18 +709,17 @@ AshUIExamples.Toast.Web.Endpoint
     use Ash.Domain, validate_config_inclusion?: false
 
     resources do
-
-            resource(AshUIExamples.Toast.Examples.ToastScreen)
-            resource(AshUIExamples.Toast.Examples.ToastDemoPanelElement)
-            resource(AshUIExamples.Toast.Examples.ToastSubjectElement)
-            resource(AshUIExamples.Toast.Examples.ToastPreviewElement)
-            resource(AshUIExamples.Toast.Examples.ToastStoryTextElement)
-            resource(AshUIExamples.Toast.Examples.ToastSignalTextElement)
-            resource(AshUIExamples.Toast.Examples.ToastSupportNoticeElement)
-            resource(AshUIExamples.Toast.Examples.ToastToastCopyElement)
-            resource(AshUIExamples.Toast.Examples.ToastToastStatusElement)
-            resource(AshUIExamples.Toast.Examples.ToastSendSuccessToastButtonElement)
-            resource(AshUIExamples.Toast.Examples.ToastSendRiskToastButtonElement)
+      resource(AshUIExamples.Toast.Examples.ToastScreen)
+      resource(AshUIExamples.Toast.Examples.ToastDemoPanelElement)
+      resource(AshUIExamples.Toast.Examples.ToastSubjectElement)
+      resource(AshUIExamples.Toast.Examples.ToastPreviewElement)
+      resource(AshUIExamples.Toast.Examples.ToastStoryTextElement)
+      resource(AshUIExamples.Toast.Examples.ToastSignalTextElement)
+      resource(AshUIExamples.Toast.Examples.ToastSupportNoticeElement)
+      resource(AshUIExamples.Toast.Examples.ToastToastCopyElement)
+      resource(AshUIExamples.Toast.Examples.ToastToastStatusElement)
+      resource(AshUIExamples.Toast.Examples.ToastSendSuccessToastButtonElement)
+      resource(AshUIExamples.Toast.Examples.ToastSendRiskToastButtonElement)
     end
   end
 
@@ -647,283 +764,278 @@ AshUIExamples.Toast.Web.Endpoint
       has_many :support_notices, AshUIExamples.Toast.Examples.ToastSupportNoticeElement do
         destination_attribute(:parent_id)
       end
-
     end
 
     ui_relationships do
       relationship :subjects do
-        kind :child
-        slot :body
-        placement :append
-        order 0
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
       end
 
       relationship :previews do
-        kind :child
-        slot :body
-        placement :append
-        order 10
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(10)
       end
 
       relationship :support_notices do
-        kind :child
-        slot :body
-        placement :append
-        order 20
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(20)
       end
-
     end
 
     ui_element do
-      type :card
-      props %{title: "Toast Example", class: "ashui-example-panel"}
-      metadata %{id: "example-toast-demo", section: "demo", slot: "body", position: 0}
+      type(:card)
+      props(%{title: "Toast Example", class: "ashui-example-panel"})
+      metadata(%{id: "example-toast-demo", section: "demo", slot: "body", position: 0})
     end
   end
 
   defmodule Examples.ToastSubjectElement do
     use AshUIExamples.Toast.ExampleElementBase
 
-          relationships do
-            has_many :toast_copy_elements, AshUIExamples.Toast.Examples.ToastToastCopyElement do
-              destination_attribute(:parent_id)
-            end
-            
-            has_many :toast_status_elements, AshUIExamples.Toast.Examples.ToastToastStatusElement do
-              destination_attribute(:parent_id)
-            end
-            
-            has_many :send_success_toast_button_elements, AshUIExamples.Toast.Examples.ToastSendSuccessToastButtonElement do
-              destination_attribute(:parent_id)
-            end
-            
-            has_many :send_risk_toast_button_elements, AshUIExamples.Toast.Examples.ToastSendRiskToastButtonElement do
-              destination_attribute(:parent_id)
-            end
-          end
+    relationships do
+      has_many :toast_copy_elements, AshUIExamples.Toast.Examples.ToastToastCopyElement do
+        destination_attribute(:parent_id)
+      end
 
-          ui_relationships do
-            relationship :toast_copy_elements do
-              kind :child
-              slot :body
-              placement :append
-              order 0
-            end
-            
-            relationship :toast_status_elements do
-              kind :child
-              slot :footer
-              placement :append
-              order 0
-            end
-            
-            relationship :send_success_toast_button_elements do
-              kind :child
-              slot :actions
-              placement :append
-              order 0
-            end
-            
-            relationship :send_risk_toast_button_elements do
-              kind :child
-              slot :actions
-              placement :append
-              order 10
-            end
-          end
+      has_many :toast_status_elements, AshUIExamples.Toast.Examples.ToastToastStatusElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :send_success_toast_button_elements,
+               AshUIExamples.Toast.Examples.ToastSendSuccessToastButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :send_risk_toast_button_elements,
+               AshUIExamples.Toast.Examples.ToastSendRiskToastButtonElement do
+        destination_attribute(:parent_id)
+      end
+    end
+
+    ui_relationships do
+      relationship :toast_copy_elements do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :toast_status_elements do
+        kind(:child)
+        slot(:footer)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :send_success_toast_button_elements do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :send_risk_toast_button_elements do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(10)
+      end
+    end
+
     ui_element do
-      type :"custom:toast"
-      props %{
-  description: "A transient-style notification shell driven by persisted runtime fields.",
-  title: "Activity toast",
-  class: "ashui-example-toast-shell"
-}
-      metadata %{id: "example-toast-subject", section: "demo", slot: "body", position: 1}
+      type(:"custom:toast")
+
+      props(%{
+        description: "A transient-style notification shell driven by persisted runtime fields.",
+        title: "Activity toast",
+        class: "ashui-example-toast-shell"
+      })
+
+      metadata(%{id: "example-toast-subject", section: "demo", slot: "body", position: 1})
     end
 
     ui_bindings do
       binding :toast_visible do
-        source %{resource: "ExampleState", field: :enabled, id: "state-toast"}
-        target "visible"
-        binding_type :value
-        transform %{}
-        metadata %{owner: "subject", owner_signal: "change"}
+        source(%{resource: "ExampleState", field: :enabled, id: "state-toast"})
+        target("visible")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "subject", owner_signal: "change"})
       end
     end
-
-
   end
 
-        defmodule Examples.ToastToastCopyElement do
-        
-          use AshUIExamples.Toast.ExampleElementBase
-        
-          ui_element do
-        
-            type :text
-        
-            props %{class: "ashui-example-surface-copy", content: "No toast triggered yet."}
-        
-            metadata %{id: "toast-copy", position: 0, slot: "body", section: "demo"}
-        
-          end
-        
-        ui_bindings do
-          binding :toast_copy_binding do
-            source %{id: "state-toast", resource: "ExampleState", field: :current_value}
-            target "content"
-            binding_type :value
-            transform %{}
-            metadata %{owner: "body"}
-          end
-        end
-        
-        end
-        
-        defmodule Examples.ToastToastStatusElement do
-        
-          use AshUIExamples.Toast.ExampleElementBase
-        
-          ui_element do
-        
-            type :text
-        
-            props %{
-          class: "ashui-example-surface-meta",
-          content: "Toast example is waiting for a nested trigger."
-        }
-        
-            metadata %{id: "toast-status", position: 0, slot: "footer", section: "demo"}
-        
-          end
-        
-        ui_bindings do
-          binding :toast_status_binding do
-            source %{id: "state-toast", resource: "ExampleState", field: :status}
-            target "content"
-            binding_type :value
-            transform %{}
-            metadata %{owner: "footer"}
-          end
-        end
-        
-        end
-        
-        defmodule Examples.ToastSendSuccessToastButtonElement do
-        
-          use AshUIExamples.Toast.ExampleElementBase
-        
-          ui_element do
-        
-            type :button
-        
-            props %{
-          label: "Send success toast",
-          class: "ashui-example-primary-cta",
-          variant: "secondary"
-        }
-        
-            metadata %{
-          id: "send-success-toast-button",
-          position: 0,
-          slot: "actions",
-          section: "demo"
-        }
-        
-          end
-        
-        ui_actions do
-          action :action_send_success_toast_button do
-            signal :click
-            source %{id: "state-toast", resource: "ExampleState", action: "update"}
-            target "submit"
-            transform %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Success toast triggered from the nested action row."
-              },
-              current_value: %{
-                "from" => "static",
-                "value" => "Deployment verified. Success toast delivered."
-              }
+  defmodule Examples.ToastToastCopyElement do
+    use AshUIExamples.Toast.ExampleElementBase
+
+    ui_element do
+      type(:text)
+
+      props(%{content: "No toast triggered yet.", class: "ashui-example-surface-copy"})
+
+      metadata(%{id: "toast-copy", position: 0, slot: "body", section: "demo"})
+    end
+
+    ui_bindings do
+      binding :toast_copy_binding do
+        source(%{id: "state-toast", resource: "ExampleState", field: :current_value})
+        target("content")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "body"})
+      end
+    end
+  end
+
+  defmodule Examples.ToastToastStatusElement do
+    use AshUIExamples.Toast.ExampleElementBase
+
+    ui_element do
+      type(:text)
+
+      props(%{
+        content: "Toast example is waiting for a nested trigger.",
+        class: "ashui-example-surface-meta"
+      })
+
+      metadata(%{id: "toast-status", position: 0, slot: "footer", section: "demo"})
+    end
+
+    ui_bindings do
+      binding :toast_status_binding do
+        source(%{id: "state-toast", resource: "ExampleState", field: :status})
+        target("content")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "footer"})
+      end
+    end
+  end
+
+  defmodule Examples.ToastSendSuccessToastButtonElement do
+    use AshUIExamples.Toast.ExampleElementBase
+
+    ui_element do
+      type(:button)
+
+      props(%{
+        label: "Send success toast",
+        class: "ashui-example-primary-cta",
+        variant: "secondary"
+      })
+
+      metadata(%{
+        id: "send-success-toast-button",
+        position: 0,
+        slot: "actions",
+        section: "demo"
+      })
+    end
+
+    ui_actions do
+      action :action_send_success_toast_button do
+        signal(:click)
+        source(%{id: "state-toast", resource: "ExampleState", action: "update"})
+        target("submit")
+
+        transform(%{
+          params: %{
+            status: %{
+              "from" => "static",
+              "value" => "Success toast triggered from the nested action row."
+            },
+            current_value: %{
+              "from" => "static",
+              "value" => "Deployment verified. Success toast delivered."
             }
           }
-            metadata %{intent: "update_example_state", success_message: "Layered state updated"}
-          end
-        end
-        
-        end
-        
-        defmodule Examples.ToastSendRiskToastButtonElement do
-        
-          use AshUIExamples.Toast.ExampleElementBase
-        
-          ui_element do
-        
-            type :button
-        
-            props %{
-          label: "Send risk toast",
-          class: "ashui-example-secondary-cta",
-          variant: "secondary"
-        }
-        
-            metadata %{id: "send-risk-toast-button", position: 10, slot: "actions", section: "demo"}
-        
-          end
-        
-        ui_actions do
-          action :action_send_risk_toast_button do
-            signal :click
-            source %{id: "state-toast", resource: "ExampleState", action: "update"}
-            target "submit"
-            transform %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Risk toast triggered from the nested action row."
-              },
-              current_value: %{
-                "from" => "static",
-                "value" => "Risk signal elevated. Recovery toast delivered."
-              }
+        })
+
+        metadata(%{intent: "update_example_state", success_message: "Layered state updated"})
+      end
+    end
+  end
+
+  defmodule Examples.ToastSendRiskToastButtonElement do
+    use AshUIExamples.Toast.ExampleElementBase
+
+    ui_element do
+      type(:button)
+
+      props(%{
+        label: "Send risk toast",
+        class: "ashui-example-secondary-cta",
+        variant: "secondary"
+      })
+
+      metadata(%{id: "send-risk-toast-button", position: 10, slot: "actions", section: "demo"})
+    end
+
+    ui_actions do
+      action :action_send_risk_toast_button do
+        signal(:click)
+        source(%{id: "state-toast", resource: "ExampleState", action: "update"})
+        target("submit")
+
+        transform(%{
+          params: %{
+            status: %{
+              "from" => "static",
+              "value" => "Risk toast triggered from the nested action row."
+            },
+            current_value: %{
+              "from" => "static",
+              "value" => "Risk signal elevated. Recovery toast delivered."
             }
           }
-            metadata %{intent: "update_example_state", success_message: "Layered state updated"}
-          end
-        end
-        
-        end
+        })
+
+        metadata(%{intent: "update_example_state", success_message: "Layered state updated"})
+      end
+    end
+  end
+
   defmodule Examples.ToastPreviewElement do
     use AshUIExamples.Toast.ExampleElementBase
 
     ui_element do
-      type :stat
-      props %{title: "Toast message", value: "No toast triggered yet."}
-      variants [:primary]
-      metadata %{id: "example-toast-preview", section: "demo", slot: "body", position: 2}
+      type(:stat)
+      props(%{title: "Toast message", value: "No toast triggered yet."})
+      variants([:primary])
+      metadata(%{id: "example-toast-preview", section: "demo", slot: "body", position: 2})
     end
 
     ui_bindings do
       binding :preview_value do
-        source %{resource: "ExampleState", field: :current_value, id: "state-toast"}
-        target "value"
-        binding_type :value
-        transform %{}
-        metadata %{owner: "preview"}
+        source(%{resource: "ExampleState", field: :current_value, id: "state-toast"})
+        target("value")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "preview"})
       end
     end
-
   end
 
   defmodule Examples.ToastStoryTextElement do
     use AshUIExamples.Toast.ExampleElementBase
 
     ui_element do
-      type :text
-      props %{content: "Meaningful Interaction Story: trigger different toast variants and confirm the visible message and status copy update through nested controls instead of hard-coded shell text.", class: "ashui-example-code-surface"}
-      metadata %{id: "example-toast-story", section: "story", slot: "body", position: 10}
+      type(:text)
+
+      props(%{
+        content:
+          "Meaningful Interaction Story: trigger different toast variants and confirm the visible message and status copy update through nested controls instead of hard-coded shell text.",
+        class: "ashui-example-code-surface"
+      })
+
+      metadata(%{id: "example-toast-story", section: "story", slot: "body", position: 10})
     end
   end
 
@@ -931,9 +1043,20 @@ AshUIExamples.Toast.Web.Endpoint
     use AshUIExamples.Toast.ExampleElementBase
 
     ui_element do
-      type :text
-      props %{content: "Canonical Signal Preview: nested button click -> ExampleState.current_value and ExampleState.status -> toast body copy and preview stat inside the explicit `custom:toast` shell.", class: "ashui-example-code-surface"}
-      metadata %{id: "example-toast-signal-preview", section: "signal_preview", slot: "body", position: 20}
+      type(:text)
+
+      props(%{
+        content:
+          "Canonical Signal Preview: nested button click -> ExampleState.current_value and ExampleState.status -> toast body copy and preview stat inside the explicit `custom:toast` shell.",
+        class: "ashui-example-code-surface"
+      })
+
+      metadata(%{
+        id: "example-toast-signal-preview",
+        section: "signal_preview",
+        slot: "body",
+        position: 20
+      })
     end
   end
 
@@ -941,9 +1064,15 @@ AshUIExamples.Toast.Web.Endpoint
     use AshUIExamples.Toast.ExampleElementBase
 
     ui_element do
-      type :text
-      props %{content: "The toast shell remains explicit `custom:toast`; trigger semantics stay on nested button resources and persisted runtime fields.", class: "ashui-example-focus-ring"}
-      metadata %{id: "example-toast-support-note", section: "demo", slot: "body", position: 3}
+      type(:text)
+
+      props(%{
+        content:
+          "The toast shell remains explicit `custom:toast`; trigger semantics stay on nested button resources and persisted runtime fields.",
+        class: "ashui-example-focus-ring"
+      })
+
+      metadata(%{id: "example-toast-support-note", section: "demo", slot: "body", position: 3})
     end
   end
 
@@ -982,31 +1111,36 @@ AshUIExamples.Toast.Web.Endpoint
 
     ui_relationships do
       relationship :demo_panels do
-        kind :child
-        slot :body
-        placement :append
-        order 0
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
       end
 
       relationship :story_texts do
-        kind :child
-        slot :body
-        placement :append
-        order 10
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(10)
       end
 
       relationship :signal_texts do
-        kind :child
-        slot :body
-        placement :append
-        order 20
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(20)
       end
     end
 
     ui_screen do
-      layout :column
-      route "/"
-      metadata %{title: "Toast Example", example_directory: "toast", shell_id: "example-toast-shell"}
+      layout(:column)
+      route("/")
+
+      metadata(%{
+        title: "Toast Example",
+        example_directory: "toast",
+        shell_id: "example-toast-shell"
+      })
     end
   end
 
@@ -1020,42 +1154,45 @@ AshUIExamples.Toast.Web.Endpoint
     import Phoenix.LiveView.Router
 
     pipeline :browser do
-      plug :accepts, ["html"]
-      plug :fetch_session
-      plug :protect_from_forgery
-      plug :put_secure_browser_headers
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:protect_from_forgery)
+      plug(:put_secure_browser_headers)
     end
 
     scope "/", AshUIExamples.Toast.Web do
-      pipe_through :browser
-      live "/", ExampleLive
+      pipe_through(:browser)
+      live("/", ExampleLive)
     end
   end
 
   defmodule Web.Endpoint do
     use Phoenix.Endpoint, otp_app: :ash_ui_example_toast
+
     @session_options [
       store: :cookie,
       key: "_ash_ui_example_key",
       signing_salt: "ashuiph20"
     ]
 
-    socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+    socket("/live", Phoenix.LiveView.Socket,
+      websocket: [connect_info: [session: @session_options]]
+    )
 
-    plug Plug.RequestId
-    plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
-    plug Plug.Session, @session_options
-    plug AshUIExamples.Toast.Web.Router
+    plug(Plug.RequestId)
+    plug(Plug.Telemetry, event_prefix: [:phoenix, :endpoint])
+    plug(Plug.Session, @session_options)
+    plug(AshUIExamples.Toast.Web.Router)
   end
 
   defmodule Web.Components.ExampleShell do
     use Phoenix.Component
 
-    attr :title, :string, required: true
-    attr :directory, :string, required: true
-    attr :summary, :string, required: true
-    attr :theme_css, :string, required: true
-    slot :inner_block, required: true
+    attr(:title, :string, required: true)
+    attr(:directory, :string, required: true)
+    attr(:summary, :string, required: true)
+    attr(:theme_css, :string, required: true)
+    slot(:inner_block, required: true)
 
     def example_shell(assigns) do
       ~H"""
@@ -1098,7 +1235,8 @@ AshUIExamples.Toast.Web.Endpoint
         {:ok, refresh_rendered_ui(socket)}
       else
         {:error, reason} ->
-          {:ok, Phoenix.Component.assign(socket, :rendered_ui, "Mount failed: #{inspect(reason)}")}
+          {:ok,
+           Phoenix.Component.assign(socket, :rendered_ui, "Mount failed: #{inspect(reason)}")}
       end
     end
 
@@ -1130,7 +1268,11 @@ AshUIExamples.Toast.Web.Endpoint
     end
 
     defp refresh_rendered_ui(socket) do
-      Phoenix.Component.assign(socket, :rendered_ui, AshUIExamples.Toast.rendered_ui(socket.assigns))
+      Phoenix.Component.assign(
+        socket,
+        :rendered_ui,
+        AshUIExamples.Toast.rendered_ui(socket.assigns)
+      )
     end
   end
 end

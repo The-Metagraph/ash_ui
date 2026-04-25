@@ -16,17 +16,11 @@ defmodule AshUIExamples.MarkdownViewer do
     directory: "markdown_viewer",
     family: :data_surface,
     title: "Markdown Viewer Example",
-    section: :data_surfaces,
-    subject_type: :"custom:markdown_viewer",
-    subject_props: %{
-      description: "A document viewer that swaps between authored markdown sources.",
-      title: "Review notes",
-      class: "ashui-example-markdown-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active document and confirm the markdown viewer updates its rendered body from persisted runtime content instead of duplicated static copy.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.notes -> bound markdown content plus active-document preview.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-markdown_viewer",
       status: "Markdown viewer mounted with the incident guide.",
@@ -34,16 +28,8 @@ defmodule AshUIExamples.MarkdownViewer do
         "# Incident Guide\n\n- Confirm the alert scope.\n- Capture the current owner.\n- Record the next handoff window.\n",
       current_value: "incident guide"
     },
-    preview_field: :current_value,
-    preview_title: "Active document",
-    subject_binding: %{
-      id: :markdown_content,
-      target: "content",
-      field: :notes,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The markdown viewer stays an explicit custom example shell because the fallback renderer does not expose markdown semantics as a maintained public widget.",
     subject_children: [
       %{
         position: 0,
@@ -150,14 +136,28 @@ defmodule AshUIExamples.MarkdownViewer do
         key: :markdown_status,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Markdown viewer mounted with the incident guide."
+          content: "Markdown viewer mounted with the incident guide.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The markdown viewer stays an explicit custom example shell because the fallback renderer does not expose markdown semantics as a maintained public widget.",
-    notes: "Binds markdown content into a renderer-backed document surface."
+    section: :data_surfaces,
+    subject_action: nil,
+    subject_binding: %{
+      id: :markdown_content,
+      target: "content",
+      field: :notes,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:markdown_viewer",
+    notes: "Binds markdown content into a renderer-backed document surface.",
+    preview_title: "Active document",
+    subject_props: %{
+      description: "A document viewer that swaps between authored markdown sources.",
+      title: "Review notes",
+      class: "ashui-example-markdown-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -181,13 +181,32 @@ defmodule AshUIExamples.MarkdownViewer do
 
   def runtime_domains, do: [AshUIExamples.MarkdownViewer.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-markdown_viewer",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-markdown_viewer",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{
+      active: true,
+      id: "viewer-markdown_viewer",
+      name: "Example Viewer",
+      role: :viewer
+    }
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -340,12 +359,25 @@ defmodule AshUIExamples.MarkdownViewer do
   end
 
   defmodule Runtime.ExampleState do
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:MarkdownViewer:Runtime:ExampleState"
+
     use Ash.Resource,
       domain: AshUIExamples.MarkdownViewer.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
       data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -411,6 +443,24 @@ defmodule AshUIExamples.MarkdownViewer do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -933,8 +983,8 @@ defmodule AshUIExamples.MarkdownViewer do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Markdown viewer mounted with the incident guide."
+        content: "Markdown viewer mounted with the incident guide.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "markdown-status", position: 0, slot: "footer", section: "demo"})

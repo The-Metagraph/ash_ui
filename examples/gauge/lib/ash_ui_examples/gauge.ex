@@ -16,17 +16,11 @@ defmodule AshUIExamples.Gauge do
     directory: "gauge",
     family: :feedback_chart,
     title: "Gauge Example",
-    section: :feedback_charts,
-    subject_type: :"custom:gauge",
-    subject_props: %{
-      description: "A compact capacity surface that reads one bounded metric model.",
-      title: "Capacity gauge",
-      class: "ashui-example-gauge-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the live capacity snapshot and confirm the gauge surface updates both its visible fill amount and its supporting detail.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.metric -> bound gauge model plus preview state.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-gauge",
       status: "Gauge surface mounted with the normal capacity snapshot.",
@@ -38,16 +32,8 @@ defmodule AshUIExamples.Gauge do
         "value" => 63
       }
     },
-    preview_field: :current_value,
-    preview_title: "Capacity",
-    subject_binding: %{
-      id: :gauge_metric,
-      target: "model",
-      field: :metric,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `gauge` example stays a custom shell because its radial/threshold presentation is renderer-backed rather than part of the maintained public widget set.",
     subject_children: [
       %{
         position: 0,
@@ -159,14 +145,28 @@ defmodule AshUIExamples.Gauge do
         key: :gauge_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Gauge surface mounted with the normal capacity snapshot."
+          content: "Gauge surface mounted with the normal capacity snapshot.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `gauge` example stays a custom shell because its radial/threshold presentation is renderer-backed rather than part of the maintained public widget set.",
-    notes: "Binds a bounded metric map into a gauge-style visual."
+    section: :feedback_charts,
+    subject_action: nil,
+    subject_binding: %{
+      id: :gauge_metric,
+      target: "model",
+      field: :metric,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:gauge",
+    notes: "Binds a bounded metric map into a gauge-style visual.",
+    preview_title: "Capacity",
+    subject_props: %{
+      description: "A compact capacity surface that reads one bounded metric model.",
+      title: "Capacity gauge",
+      class: "ashui-example-gauge-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -190,8 +190,17 @@ defmodule AshUIExamples.Gauge do
 
   def runtime_domains, do: [AshUIExamples.Gauge.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{active: true, id: "reviewer-gauge", name: "Example Reviewer", role: :admin}
+
+  def operator_user,
+    do: %{active: true, id: "operator-gauge", name: "Example Operator", role: :operator}
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-gauge", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -332,10 +341,25 @@ defmodule AshUIExamples.Gauge do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.Gauge.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:Gauge:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.Gauge.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -401,6 +425,24 @@ defmodule AshUIExamples.Gauge do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -916,8 +958,8 @@ defmodule AshUIExamples.Gauge do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Gauge surface mounted with the normal capacity snapshot."
+        content: "Gauge surface mounted with the normal capacity snapshot.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "gauge-footer", position: 0, slot: "footer", section: "demo"})

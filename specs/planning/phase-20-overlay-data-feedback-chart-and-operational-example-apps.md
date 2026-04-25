@@ -76,18 +76,18 @@ Back to index: [README](./README.md)
       [x] 20.4.1.3 Subtask - Define how those apps use notifications, seeded refresh cycles, or simulated telemetry without introducing dishonest runtime claims.
       [x] 20.4.1.4 Subtask - Add tests that prove representative operational examples preserve state updates, list refresh, and action-driven control flows.
 
-  [ ] 20.5 Section - Runtime, Authorization, and Seed Realism
+  [x] 20.5 Section - Runtime, Authorization, and Seed Realism
     Keep the complex example apps grounded in real Ash UI runtime behavior
     instead of decorative shells.
 
-    [ ] 20.5.1 Task - Align complex examples with real runtime semantics
+    [x] 20.5.1 Task - Align complex examples with real runtime semantics
     Make the advanced examples prove the package's runtime story and not only
     its rendering story.
 
-      [ ] 20.5.1.1 Subtask - Define when advanced examples should include authorization policies and actor-aware mounting.
-      [ ] 20.5.1.2 Subtask - Define when notifications or update subscriptions are required instead of one-shot seeded renders.
-      [ ] 20.5.1.3 Subtask - Define how operational examples surface failures, loading states, and recovery paths inside the shared shell.
-      [ ] 20.5.1.4 Subtask - Add tests that prove complex examples stay aligned with Ash UI runtime and authorization expectations.
+      [x] 20.5.1.1 Subtask - Define when advanced examples should include authorization policies and actor-aware mounting.
+      [x] 20.5.1.2 Subtask - Define when notifications or update subscriptions are required instead of one-shot seeded renders.
+      [x] 20.5.1.3 Subtask - Define how operational examples surface failures, loading states, and recovery paths inside the shared shell.
+      [x] 20.5.1.4 Subtask - Add tests that prove complex examples stay aligned with Ash UI runtime and authorization expectations.
 
   [ ] 20.6 Section - Phase 20 Integration Tests
     Validate the advanced example families through one coherent Ash UI example

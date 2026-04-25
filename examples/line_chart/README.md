@@ -26,6 +26,11 @@ Meaningful Interaction Story: switch the active trend series and confirm the lin
 
 Canonical Signal Preview: nested button click -> ExampleState.series -> bound line series plus preview label.
 
+Runtime contract:
+- Mount path: active viewers can mount the seeded screen, but mutating controls are reserved for operators and admins.
+- Refresh path: mounted viewers stay current through `ExampleState` notifications and LiveView binding reevaluation, not only by remounting the screen.
+- Shell state path: Feedback examples mount with an explicit seeded metric snapshot so the first visible state is already reviewer-verifiable. Risk, warning, and degraded chart states remain visible through the rendered metric shell and preview status copy. Operator metric writes and notification-backed refresh restore the viewer-visible signal without ad hoc local state.
+
 ## Validate
 
 `mix run --no-start -e "IO.puts("example/line_chart")"`

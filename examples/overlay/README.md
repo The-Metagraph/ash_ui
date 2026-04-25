@@ -26,6 +26,11 @@ Meaningful Interaction Story: open the overlay, inspect the layered body copy, a
 
 Canonical Signal Preview: nested button click -> ExampleState.enabled -> overlay visibility and status copy inside the explicit `custom:overlay` shell.
 
+Runtime contract:
+- Mount path: active viewers can mount the seeded screen, but mutating controls are reserved for operators and admins.
+- Refresh path: the mounted shell stays grounded in persisted runtime state, with nested controls driving visible updates through real resource writes.
+- Shell state path: Layered examples surface their mounted state through persisted preview and footer copy instead of hidden browser-only state. Dismissal, defer, and escalation outcomes stay visible in persisted status fields owned by nested resources. Nested public controls restore the closed or acknowledged state without leaving the shared Ash HQ shell.
+
 ## Validate
 
 `mix run --no-start -e "IO.puts("example/overlay")"`

@@ -16,17 +16,11 @@ defmodule AshUIExamples.LogViewer do
     directory: "log_viewer",
     family: :data_surface,
     title: "Log Viewer Example",
-    section: :data_surfaces,
-    subject_type: :"custom:log_viewer",
-    subject_props: %{
-      description: "A bounded log review surface fed by persisted runtime rows.",
-      title: "Event stream",
-      class: "ashui-example-log-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active stream and confirm the visible log rows refresh through persisted runtime data rather than one fixed code sample.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.items -> bound log entries plus active-stream preview state.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-log_viewer",
       status: "Log viewer mounted with the live application tail.",
@@ -49,16 +43,8 @@ defmodule AshUIExamples.LogViewer do
       ],
       current_value: "live tail"
     },
-    preview_field: :current_value,
-    preview_title: "Active stream",
-    subject_binding: %{
-      id: :log_entries,
-      target: "entries",
-      field: :items,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The log viewer remains a custom example surface while still using persisted runtime rows and nested public controls for state changes.",
     subject_children: [
       %{
         position: 0,
@@ -195,14 +181,28 @@ defmodule AshUIExamples.LogViewer do
         key: :log_status,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Log viewer mounted with the live application tail."
+          content: "Log viewer mounted with the live application tail.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The log viewer remains a custom example surface while still using persisted runtime rows and nested public controls for state changes.",
-    notes: "Uses a bound entry list and nested controls to swap representative streams."
+    section: :data_surfaces,
+    subject_action: nil,
+    subject_binding: %{
+      id: :log_entries,
+      target: "entries",
+      field: :items,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:log_viewer",
+    notes: "Uses a bound entry list and nested controls to swap representative streams.",
+    preview_title: "Active stream",
+    subject_props: %{
+      description: "A bounded log review surface fed by persisted runtime rows.",
+      title: "Event stream",
+      class: "ashui-example-log-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -226,13 +226,27 @@ defmodule AshUIExamples.LogViewer do
 
   def runtime_domains, do: [AshUIExamples.LogViewer.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-log_viewer",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-log_viewer",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-log_viewer", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -388,10 +402,25 @@ defmodule AshUIExamples.LogViewer do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.LogViewer.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:LogViewer:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.LogViewer.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -457,6 +486,24 @@ defmodule AshUIExamples.LogViewer do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -993,8 +1040,8 @@ defmodule AshUIExamples.LogViewer do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Log viewer mounted with the live application tail."
+        content: "Log viewer mounted with the live application tail.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "log-status", position: 0, slot: "footer", section: "demo"})

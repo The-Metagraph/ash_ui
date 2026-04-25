@@ -45,6 +45,8 @@ defmodule Phase20ExampleGenerator do
   end
 
   defp render_readme(definition) do
+    runtime_contract = Phase20.runtime_contract_for(definition.directory)
+
     """
     # #{definition.title}
 
@@ -73,6 +75,11 @@ defmodule Phase20ExampleGenerator do
     #{definition.story_text}
 
     #{definition.signal_text}
+
+    Runtime contract:
+    - Mount path: active viewers can mount the seeded screen, but mutating controls are reserved for operators and admins.
+    - Refresh path: #{runtime_contract_refresh_text(runtime_contract)}
+    - Shell state path: #{runtime_contract_shell_text(runtime_contract)}
 
     ## Validate
 
@@ -1355,12 +1362,29 @@ defmodule Phase20ExampleGenerator do
   defp render_app_module(root_module, screen_module, definition) do
     screen_name = Phase20.screen_name(definition.directory)
 
-    current_user = %{
+    admin_user = %{
       id: "reviewer-#{definition.directory}",
       name: "Example Reviewer",
       role: :admin,
       active: true
     }
+
+    operator_user = %{
+      id: "operator-#{definition.directory}",
+      name: "Example Operator",
+      role: :operator,
+      active: true
+    }
+
+    read_only_user = %{
+      id: "viewer-#{definition.directory}",
+      name: "Example Viewer",
+      role: :viewer,
+      active: true
+    }
+
+    example_state_topic_prefix =
+      "ash_ui:resource:#{String.replace(root_module, ".", ":")}:Runtime:ExampleState"
 
     preview_value =
       if definition.preview_field do
@@ -1432,7 +1456,11 @@ defmodule Phase20ExampleGenerator do
 
         def runtime_domains, do: [<%= root_module %>.RuntimeDomain]
 
-        def current_user, do: <%= Phase20ExampleGenerator.pretty_literal(current_user) %>
+        def admin_user, do: <%= Phase20ExampleGenerator.pretty_literal(admin_user) %>
+        def operator_user, do: <%= Phase20ExampleGenerator.pretty_literal(operator_user) %>
+        def read_only_user, do: <%= Phase20ExampleGenerator.pretty_literal(read_only_user) %>
+        def current_user, do: admin_user()
+        def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
         def seed_state do
           Map.merge(
@@ -1555,10 +1583,25 @@ defmodule Phase20ExampleGenerator do
         end
 
         defmodule Runtime.ExampleState do
-          use Ash.Resource, domain: <%= root_module %>.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+          @resource_topic_prefix "<%= example_state_topic_prefix %>"
+
+          use Ash.Resource,
+            domain: <%= root_module %>.RuntimeDomain,
+            authorizers: [Ash.Policy.Authorizer],
+            notifiers: [Ash.Notifier.PubSub],
+            data_layer: Ash.DataLayer.Ets
 
           ets do
             private?(true)
+          end
+
+          pub_sub do
+            module(AshUI.Notifications)
+            prefix(@resource_topic_prefix)
+
+            publish(:create, "changes")
+            publish(:update, "changes")
+            publish(:destroy, "changes")
           end
 
           attributes do
@@ -1593,6 +1636,24 @@ defmodule Phase20ExampleGenerator do
             update :update do
               primary?(true)
               accept([:current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes, :items, :secondary_items, :metric, :payload, :series])
+            end
+          end
+
+          policies do
+            bypass actor_attribute_equals(:role, :admin) do
+              authorize_if(always())
+            end
+
+            policy action_type(:read) do
+              authorize_if(actor_attribute_equals(:active, true))
+            end
+
+            policy action(:create) do
+              authorize_if(actor_attribute_equals(:role, :operator))
+            end
+
+            policy action([:update, :destroy]) do
+              authorize_if(actor_attribute_equals(:role, :operator))
             end
           end
         end
@@ -2203,7 +2264,10 @@ defmodule Phase20ExampleGenerator do
         root_module: root_module,
         screen_module: screen_module,
         definition: definition,
-        current_user: current_user,
+        admin_user: admin_user,
+        operator_user: operator_user,
+        read_only_user: read_only_user,
+        example_state_topic_prefix: example_state_topic_prefix,
         screen_name: screen_name,
         preview_value: preview_value,
         support_relationship?: support_relationship?,
@@ -2459,6 +2523,27 @@ defmodule Phase20ExampleGenerator do
     |> String.trim_trailing()
     |> String.split("\n")
     |> Enum.map_join("\n", &(indent <> &1))
+  end
+
+  defp runtime_contract_refresh_text(%{subscription_mode: :notification_required}) do
+    "mounted viewers stay current through `ExampleState` notifications and LiveView binding reevaluation, not only by remounting the screen."
+  end
+
+  defp runtime_contract_refresh_text(%{subscription_mode: :seeded_action_refresh}) do
+    "the mounted shell stays grounded in persisted runtime state, with nested controls driving visible updates through real resource writes."
+  end
+
+  defp runtime_contract_shell_text(runtime_contract) do
+    shell_story = Map.fetch!(runtime_contract, :shell_state_story)
+
+    Enum.join(
+      [
+        shell_story.loading,
+        shell_story.failure,
+        shell_story.recovery
+      ],
+      " "
+    )
   end
 
   defp try_it_text(%{subject_action: %{signal: :click}}),

@@ -16,17 +16,11 @@ defmodule AshUIExamples.InlineFeedback do
     directory: "inline_feedback",
     family: :feedback_chart,
     title: "Inline Feedback Example",
-    section: :feedback_charts,
-    subject_type: :"custom:inline_feedback",
-    subject_props: %{
-      description: "A compact inline advisory surface for operator-visible guidance.",
-      title: "Recovery note",
-      class: "ashui-example-inline-feedback-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the advisory message and confirm the inline feedback surface updates its visible tone and message from persisted runtime data.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.metric -> bound feedback model plus preview tone.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-inline_feedback",
       status: "Inline feedback mounted with the recovery-ready note.",
@@ -37,16 +31,8 @@ defmodule AshUIExamples.InlineFeedback do
         "tone" => "success"
       }
     },
-    preview_field: :current_value,
-    preview_title: "Tone",
-    subject_binding: %{
-      id: :inline_feedback_metric,
-      target: "model",
-      field: :metric,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `inline_feedback` example uses a custom surface to keep tone-box styling and semantics example-scoped.",
     subject_children: [
       %{
         position: 0,
@@ -161,14 +147,28 @@ defmodule AshUIExamples.InlineFeedback do
         key: :inline_feedback_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Inline feedback mounted with the recovery-ready note."
+          content: "Inline feedback mounted with the recovery-ready note.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `inline_feedback` example uses a custom surface to keep tone-box styling and semantics example-scoped.",
-    notes: "Binds one advisory model map into the feedback shell."
+    section: :feedback_charts,
+    subject_action: nil,
+    subject_binding: %{
+      id: :inline_feedback_metric,
+      target: "model",
+      field: :metric,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:inline_feedback",
+    notes: "Binds one advisory model map into the feedback shell.",
+    preview_title: "Tone",
+    subject_props: %{
+      description: "A compact inline advisory surface for operator-visible guidance.",
+      title: "Recovery note",
+      class: "ashui-example-inline-feedback-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -192,13 +192,32 @@ defmodule AshUIExamples.InlineFeedback do
 
   def runtime_domains, do: [AshUIExamples.InlineFeedback.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-inline_feedback",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-inline_feedback",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{
+      active: true,
+      id: "viewer-inline_feedback",
+      name: "Example Viewer",
+      role: :viewer
+    }
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -354,12 +373,25 @@ defmodule AshUIExamples.InlineFeedback do
   end
 
   defmodule Runtime.ExampleState do
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:InlineFeedback:Runtime:ExampleState"
+
     use Ash.Resource,
       domain: AshUIExamples.InlineFeedback.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
       data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -425,6 +457,24 @@ defmodule AshUIExamples.InlineFeedback do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -962,8 +1012,8 @@ defmodule AshUIExamples.InlineFeedback do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Inline feedback mounted with the recovery-ready note."
+        content: "Inline feedback mounted with the recovery-ready note.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "inline-feedback-footer", position: 0, slot: "footer", section: "demo"})

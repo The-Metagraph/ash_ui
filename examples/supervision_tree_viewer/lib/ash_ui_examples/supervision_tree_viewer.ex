@@ -16,21 +16,14 @@ defmodule AshUIExamples.SupervisionTreeViewer do
     directory: "supervision_tree_viewer",
     family: :operational,
     title: "Supervision Tree Viewer Example",
-    section: :operational_monitoring,
-    subject_type: :"custom:supervision_tree_viewer",
-    subject_props: %{
-      description: "A hierarchical operational shell for supervisor and worker relationships.",
-      title: "Supervision tree",
-      class: "ashui-example-supervision-tree-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the viewed supervision snapshot and confirm the tree structure updates from persisted runtime data instead of a fixed outline.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.payload -> bound supervision tree model plus preview label.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-supervision_tree_viewer",
       status: "Supervision tree viewer mounted with the worker supervision snapshot.",
-      current_value: "worker supervision",
       payload: %{
         "label" => "Worker supervisor",
         "meta" => "Primary",
@@ -45,18 +38,11 @@ defmodule AshUIExamples.SupervisionTreeViewer do
             "meta" => "running"
           }
         ]
-      }
+      },
+      current_value: "worker supervision"
     },
-    preview_field: :current_value,
-    preview_title: "Snapshot",
-    subject_binding: %{
-      id: :supervision_tree_model,
-      target: "model",
-      field: :payload,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `supervision_tree_viewer` example remains a custom shell because operational supervision visuals are renderer-backed and example-scoped.",
     subject_children: [
       %{
         position: 0,
@@ -85,10 +71,6 @@ defmodule AshUIExamples.SupervisionTreeViewer do
                   "value" =>
                     "Supervision tree viewer mounted with the worker supervision snapshot."
                 },
-                current_value: %{
-                  "from" => "static",
-                  "value" => "worker supervision"
-                },
                 payload: %{
                   "from" => "static",
                   "value" => %{
@@ -106,6 +88,10 @@ defmodule AshUIExamples.SupervisionTreeViewer do
                       }
                     ]
                   }
+                },
+                current_value: %{
+                  "from" => "static",
+                  "value" => "worker supervision"
                 }
               }
             }
@@ -144,10 +130,6 @@ defmodule AshUIExamples.SupervisionTreeViewer do
                   "value" =>
                     "Supervision tree viewer switched to the recovery supervision snapshot."
                 },
-                current_value: %{
-                  "from" => "static",
-                  "value" => "recovery supervision"
-                },
                 payload: %{
                   "from" => "static",
                   "value" => %{
@@ -165,6 +147,10 @@ defmodule AshUIExamples.SupervisionTreeViewer do
                       }
                     ]
                   }
+                },
+                current_value: %{
+                  "from" => "static",
+                  "value" => "recovery supervision"
                 }
               }
             }
@@ -197,14 +183,28 @@ defmodule AshUIExamples.SupervisionTreeViewer do
         key: :supervision_tree_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Supervision tree viewer mounted with the worker supervision snapshot."
+          content: "Supervision tree viewer mounted with the worker supervision snapshot.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `supervision_tree_viewer` example remains a custom shell because operational supervision visuals are renderer-backed and example-scoped.",
-    notes: "Binds one supervision tree snapshot into a hierarchical shell."
+    section: :operational_monitoring,
+    subject_action: nil,
+    subject_binding: %{
+      id: :supervision_tree_model,
+      target: "model",
+      field: :payload,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:supervision_tree_viewer",
+    notes: "Binds one supervision tree snapshot into a hierarchical shell.",
+    preview_title: "Snapshot",
+    subject_props: %{
+      description: "A hierarchical operational shell for supervisor and worker relationships.",
+      title: "Supervision tree",
+      class: "ashui-example-supervision-tree-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -228,13 +228,32 @@ defmodule AshUIExamples.SupervisionTreeViewer do
 
   def runtime_domains, do: [AshUIExamples.SupervisionTreeViewer.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-supervision_tree_viewer",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-supervision_tree_viewer",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{
+      active: true,
+      id: "viewer-supervision_tree_viewer",
+      name: "Example Viewer",
+      role: :viewer
+    }
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -257,7 +276,6 @@ defmodule AshUIExamples.SupervisionTreeViewer do
       %{
         id: "state-supervision_tree_viewer",
         status: "Supervision tree viewer mounted with the worker supervision snapshot.",
-        current_value: "worker supervision",
         payload: %{
           "label" => "Worker supervisor",
           "meta" => "Primary",
@@ -272,7 +290,8 @@ defmodule AshUIExamples.SupervisionTreeViewer do
               "meta" => "running"
             }
           ]
-        }
+        },
+        current_value: "worker supervision"
       }
     )
   end
@@ -400,12 +419,25 @@ defmodule AshUIExamples.SupervisionTreeViewer do
   end
 
   defmodule Runtime.ExampleState do
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:SupervisionTreeViewer:Runtime:ExampleState"
+
     use Ash.Resource,
       domain: AshUIExamples.SupervisionTreeViewer.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
       data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -471,6 +503,24 @@ defmodule AshUIExamples.SupervisionTreeViewer do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -955,7 +1005,6 @@ defmodule AshUIExamples.SupervisionTreeViewer do
               "from" => "static",
               "value" => "Supervision tree viewer mounted with the worker supervision snapshot."
             },
-            current_value: %{"from" => "static", "value" => "worker supervision"},
             payload: %{
               "from" => "static",
               "value" => %{
@@ -973,7 +1022,8 @@ defmodule AshUIExamples.SupervisionTreeViewer do
                   }
                 ]
               }
-            }
+            },
+            current_value: %{"from" => "static", "value" => "worker supervision"}
           }
         })
 
@@ -1020,7 +1070,6 @@ defmodule AshUIExamples.SupervisionTreeViewer do
               "from" => "static",
               "value" => "Supervision tree viewer switched to the recovery supervision snapshot."
             },
-            current_value: %{"from" => "static", "value" => "recovery supervision"},
             payload: %{
               "from" => "static",
               "value" => %{
@@ -1038,7 +1087,8 @@ defmodule AshUIExamples.SupervisionTreeViewer do
                   }
                 ]
               }
-            }
+            },
+            current_value: %{"from" => "static", "value" => "recovery supervision"}
           }
         })
 
@@ -1054,8 +1104,8 @@ defmodule AshUIExamples.SupervisionTreeViewer do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Supervision tree viewer mounted with the worker supervision snapshot."
+        content: "Supervision tree viewer mounted with the worker supervision snapshot.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "supervision-tree-footer", position: 0, slot: "footer", section: "demo"})

@@ -16,17 +16,11 @@ defmodule AshUIExamples.Sparkline do
     directory: "sparkline",
     family: :feedback_chart,
     title: "Sparkline Example",
-    section: :feedback_charts,
-    subject_type: :"custom:sparkline",
-    subject_props: %{
-      description: "A compact trend surface for quick directional review.",
-      title: "Latency sparkline",
-      class: "ashui-example-sparkline-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active mini-series and confirm the sparkline redraws its trend points from persisted runtime data.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.series -> bound sparkline points plus preview series label.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-sparkline",
       status: "Sparkline mounted with the queue-latency trend.",
@@ -39,16 +33,8 @@ defmodule AshUIExamples.Sparkline do
         %{"label" => "20m", "value" => 21}
       ]
     },
-    preview_field: :current_value,
-    preview_title: "Series",
-    subject_binding: %{
-      id: :sparkline_series,
-      target: "series",
-      field: :series,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `sparkline` example uses a renderer-backed custom shell because lightweight chart glyphs are not a maintained public fallback surface.",
     subject_children: [
       %{
         position: 0,
@@ -165,14 +151,28 @@ defmodule AshUIExamples.Sparkline do
         key: :sparkline_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Sparkline mounted with the queue-latency trend."
+          content: "Sparkline mounted with the queue-latency trend.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `sparkline` example uses a renderer-backed custom shell because lightweight chart glyphs are not a maintained public fallback surface.",
-    notes: "Binds one short point series into the sparkline shell."
+    section: :feedback_charts,
+    subject_action: nil,
+    subject_binding: %{
+      id: :sparkline_series,
+      target: "series",
+      field: :series,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:sparkline",
+    notes: "Binds one short point series into the sparkline shell.",
+    preview_title: "Series",
+    subject_props: %{
+      description: "A compact trend surface for quick directional review.",
+      title: "Latency sparkline",
+      class: "ashui-example-sparkline-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -196,13 +196,27 @@ defmodule AshUIExamples.Sparkline do
 
   def runtime_domains, do: [AshUIExamples.Sparkline.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-sparkline",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-sparkline",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-sparkline", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -348,10 +362,25 @@ defmodule AshUIExamples.Sparkline do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.Sparkline.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:Sparkline:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.Sparkline.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -417,6 +446,24 @@ defmodule AshUIExamples.Sparkline do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -943,8 +990,8 @@ defmodule AshUIExamples.Sparkline do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Sparkline mounted with the queue-latency trend."
+        content: "Sparkline mounted with the queue-latency trend.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "sparkline-footer", position: 0, slot: "footer", section: "demo"})

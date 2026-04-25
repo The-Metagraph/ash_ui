@@ -26,6 +26,21 @@ defmodule AshUI.Examples.Phase20 do
           notes: String.t() | nil
         }
 
+  @type runtime_contract_entry :: %{
+          required(:mount_actor) => :active_viewer_required,
+          required(:mutate_roles) => [atom()],
+          required(:subscription_mode) => :seeded_action_refresh | :notification_required,
+          required(:shell_state_surface) => atom(),
+          required(:shell_state_story) => %{
+            required(:loading) => String.t(),
+            required(:failure) => String.t(),
+            required(:recovery) => String.t()
+          },
+          optional(:directory) => String.t(),
+          optional(:section) => atom(),
+          optional(:family) => atom()
+        }
+
   @sections [
     :overlay_layered_flows,
     :data_surfaces,
@@ -2170,5 +2185,84 @@ defmodule AshUI.Examples.Phase20 do
     definitions()
     |> Enum.map(& &1.directory)
     |> Enum.sort()
+  end
+
+  @doc """
+  Returns the Phase 20 runtime contract for each advanced example section.
+  """
+  @spec runtime_contract() :: map()
+  def runtime_contract do
+    %{
+      overlay_layered_flows: %{
+        mount_actor: :active_viewer_required,
+        mutate_roles: [:operator, :admin],
+        subscription_mode: :seeded_action_refresh,
+        shell_state_surface: :preview_and_footer,
+        shell_state_story: %{
+          loading:
+            "Layered examples surface their mounted state through persisted preview and footer copy instead of hidden browser-only state.",
+          failure:
+            "Dismissal, defer, and escalation outcomes stay visible in persisted status fields owned by nested resources.",
+          recovery:
+            "Nested public controls restore the closed or acknowledged state without leaving the shared Ash HQ shell."
+        }
+      },
+      data_surfaces: %{
+        mount_actor: :active_viewer_required,
+        mutate_roles: [:operator, :admin],
+        subscription_mode: :notification_required,
+        shell_state_surface: :preview_and_status,
+        shell_state_story: %{
+          loading:
+            "Data-surface examples expose the active dataset through preview and status copy as soon as the seeded screen mounts.",
+          failure:
+            "Fallback or warning states must stay visible in the shared shell status copy rather than being implied by an empty collection alone.",
+          recovery:
+            "Operator-driven dataset changes and runtime notifications refresh the mounted viewer session through real binding reevaluation."
+        }
+      },
+      feedback_charts: %{
+        mount_actor: :active_viewer_required,
+        mutate_roles: [:operator, :admin],
+        subscription_mode: :notification_required,
+        shell_state_surface: :preview_and_status,
+        shell_state_story: %{
+          loading:
+            "Feedback examples mount with an explicit seeded metric snapshot so the first visible state is already reviewer-verifiable.",
+          failure:
+            "Risk, warning, and degraded chart states remain visible through the rendered metric shell and preview status copy.",
+          recovery:
+            "Operator metric writes and notification-backed refresh restore the viewer-visible signal without ad hoc local state."
+        }
+      },
+      operational_monitoring: %{
+        mount_actor: :active_viewer_required,
+        mutate_roles: [:operator, :admin],
+        subscription_mode: :notification_required,
+        shell_state_surface: :status_and_support_notice,
+        shell_state_story: %{
+          loading:
+            "Operational examples expose the mounted snapshot through shell status copy and support notes instead of pretending to stream unseen background state.",
+          failure:
+            "Incident and pressure snapshots must render degraded copy inside the primary surface and shared status/footer surfaces.",
+          recovery:
+            "Stable snapshot controls and notification-backed refresh return the mounted view to a healthy state without remounting."
+        }
+      }
+    }
+  end
+
+  @doc """
+  Returns the runtime contract that applies to one authored Phase 20 example.
+  """
+  @spec runtime_contract_for(String.t()) :: runtime_contract_entry()
+  def runtime_contract_for(directory) when is_binary(directory) do
+    definition = definition!(directory)
+
+    runtime_contract()
+    |> Map.fetch!(definition.section)
+    |> Map.put(:directory, definition.directory)
+    |> Map.put(:section, definition.section)
+    |> Map.put(:family, definition.family)
   end
 end

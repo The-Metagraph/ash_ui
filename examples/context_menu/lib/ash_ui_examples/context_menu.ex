@@ -13,196 +13,199 @@ defmodule AshUIExamples.ContextMenu do
   @directory "context_menu"
   @screen_name "example/context_menu"
   @definition %{
-  directory: "context_menu",
-  family: :overlay,
-  title: "Context Menu Example",
-  section: :overlay_layered_flows,
-  subject_type: :"custom:context_menu",
-  subject_props: %{
-    description: "A focused action menu that opens around one review target.",
-    title: "Row actions",
-    class: "ashui-example-context-menu-shell"
-  },
-  story_text: "Meaningful Interaction Story: open the context menu, choose one action, and verify the chosen operation is reflected in persisted summary copy and preview state.",
-  signal_text: "Canonical Signal Preview: nested menu button click -> ExampleState.selected_value -> context-menu summary text and footer status.",
-  seed_state: %{
-    enabled: true,
-    id: "state-context_menu",
-    status: "Context menu is focused on one record-level action set.",
-    selected_value: "inspect record"
-  },
-  preview_field: :selected_value,
-  preview_title: "Chosen action",
-  subject_binding: %{
-    id: :context_menu_open,
-    target: "open",
-    field: :enabled,
-    transform: %{}
-  },
-  subject_action: nil,
-  subject_children: [
-    %{
-      position: 0,
-      type: :button,
-      slot: :menu,
-      key: :inspect_record_button,
-      children: [],
-      actions: [
-        %{
-          id: :action_inspect_record_button,
-          metadata: %{
-            intent: "update_example_state",
-            success_message: "Layered state updated"
-          },
-          signal: :click,
-          source: %{
-            id: "state-context_menu",
-            resource: "ExampleState",
-            action: "update"
-          },
-          target: "submit",
-          transform: %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Inspect record selected from the nested context menu."
-              },
-              selected_value: %{"from" => "static", "value" => "inspect record"}
+    directory: "context_menu",
+    family: :overlay,
+    title: "Context Menu Example",
+    story_text:
+      "Meaningful Interaction Story: open the context menu, choose one action, and verify the chosen operation is reflected in persisted summary copy and preview state.",
+    signal_text:
+      "Canonical Signal Preview: nested menu button click -> ExampleState.selected_value -> context-menu summary text and footer status.",
+    preview_field: :selected_value,
+    seed_state: %{
+      enabled: true,
+      id: "state-context_menu",
+      status: "Context menu is focused on one record-level action set.",
+      selected_value: "inspect record"
+    },
+    support_notice:
+      "The context-menu shell stays explicit `custom:context_menu`; the menu items remain plain button resources with persisted action outcomes.",
+    subject_children: [
+      %{
+        position: 0,
+        type: :button,
+        slot: :menu,
+        key: :inspect_record_button,
+        children: [],
+        actions: [
+          %{
+            id: :action_inspect_record_button,
+            metadata: %{
+              intent: "update_example_state",
+              success_message: "Layered state updated"
+            },
+            signal: :click,
+            source: %{
+              id: "state-context_menu",
+              resource: "ExampleState",
+              action: "update"
+            },
+            target: "submit",
+            transform: %{
+              params: %{
+                status: %{
+                  "from" => "static",
+                  "value" => "Inspect record selected from the nested context menu."
+                },
+                selected_value: %{"from" => "static", "value" => "inspect record"}
+              }
             }
           }
+        ],
+        props: %{
+          label: "Inspect record",
+          class: "ashui-example-nav-button",
+          variant: "secondary"
         }
-      ],
-      props: %{
-        label: "Inspect record",
-        class: "ashui-example-nav-button",
-        variant: "secondary"
-      }
-    },
-    %{
-      position: 10,
-      type: :button,
-      slot: :menu,
-      key: :reassign_owner_button,
-      children: [],
-      actions: [
-        %{
-          id: :action_reassign_owner_button,
-          metadata: %{
-            intent: "update_example_state",
-            success_message: "Layered state updated"
-          },
-          signal: :click,
-          source: %{
-            id: "state-context_menu",
-            resource: "ExampleState",
-            action: "update"
-          },
-          target: "submit",
-          transform: %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Reassign owner selected from the nested context menu."
-              },
-              selected_value: %{"from" => "static", "value" => "reassign owner"}
+      },
+      %{
+        position: 10,
+        type: :button,
+        slot: :menu,
+        key: :reassign_owner_button,
+        children: [],
+        actions: [
+          %{
+            id: :action_reassign_owner_button,
+            metadata: %{
+              intent: "update_example_state",
+              success_message: "Layered state updated"
+            },
+            signal: :click,
+            source: %{
+              id: "state-context_menu",
+              resource: "ExampleState",
+              action: "update"
+            },
+            target: "submit",
+            transform: %{
+              params: %{
+                status: %{
+                  "from" => "static",
+                  "value" => "Reassign owner selected from the nested context menu."
+                },
+                selected_value: %{"from" => "static", "value" => "reassign owner"}
+              }
             }
           }
+        ],
+        props: %{
+          label: "Reassign owner",
+          class: "ashui-example-nav-button",
+          variant: "secondary"
         }
-      ],
-      props: %{
-        label: "Reassign owner",
-        class: "ashui-example-nav-button",
-        variant: "secondary"
-      }
-    },
-    %{
-      position: 20,
-      type: :button,
-      slot: :menu,
-      key: :add_watcher_button,
-      children: [],
-      actions: [
-        %{
-          id: :action_add_watcher_button,
-          metadata: %{
-            intent: "update_example_state",
-            success_message: "Layered state updated"
-          },
-          signal: :click,
-          source: %{
-            id: "state-context_menu",
-            resource: "ExampleState",
-            action: "update"
-          },
-          target: "submit",
-          transform: %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Add watcher selected from the nested context menu."
-              },
-              selected_value: %{"from" => "static", "value" => "add watcher"}
+      },
+      %{
+        position: 20,
+        type: :button,
+        slot: :menu,
+        key: :add_watcher_button,
+        children: [],
+        actions: [
+          %{
+            id: :action_add_watcher_button,
+            metadata: %{
+              intent: "update_example_state",
+              success_message: "Layered state updated"
+            },
+            signal: :click,
+            source: %{
+              id: "state-context_menu",
+              resource: "ExampleState",
+              action: "update"
+            },
+            target: "submit",
+            transform: %{
+              params: %{
+                status: %{
+                  "from" => "static",
+                  "value" => "Add watcher selected from the nested context menu."
+                },
+                selected_value: %{"from" => "static", "value" => "add watcher"}
+              }
             }
           }
+        ],
+        props: %{
+          label: "Add watcher",
+          class: "ashui-example-nav-button",
+          variant: "secondary"
         }
-      ],
-      props: %{
-        label: "Add watcher",
-        class: "ashui-example-nav-button",
-        variant: "secondary"
+      },
+      %{
+        position: 0,
+        type: :text,
+        slot: :body,
+        bindings: [
+          %{
+            id: :context_menu_summary_binding,
+            metadata: %{owner: "body"},
+            source: %{
+              id: "state-context_menu",
+              resource: "ExampleState",
+              field: :selected_value
+            },
+            target: "content",
+            transform: %{},
+            binding_type: :value
+          }
+        ],
+        key: :context_menu_summary,
+        children: [],
+        props: %{content: "inspect record", class: "ashui-example-surface-copy"}
+      },
+      %{
+        position: 0,
+        type: :text,
+        slot: :footer,
+        bindings: [
+          %{
+            id: :context_menu_status_binding,
+            metadata: %{owner: "footer"},
+            source: %{
+              id: "state-context_menu",
+              resource: "ExampleState",
+              field: :status
+            },
+            target: "content",
+            transform: %{},
+            binding_type: :value
+          }
+        ],
+        key: :context_menu_status,
+        children: [],
+        props: %{
+          content: "Context menu is focused on one record-level action set.",
+          class: "ashui-example-surface-meta"
+        }
       }
+    ],
+    section: :overlay_layered_flows,
+    subject_action: nil,
+    subject_binding: %{
+      id: :context_menu_open,
+      target: "open",
+      field: :enabled,
+      transform: %{}
     },
-    %{
-      position: 0,
-      type: :text,
-      slot: :body,
-      bindings: [
-        %{
-          id: :context_menu_summary_binding,
-          metadata: %{owner: "body"},
-          source: %{
-            id: "state-context_menu",
-            resource: "ExampleState",
-            field: :selected_value
-          },
-          target: "content",
-          transform: %{},
-          binding_type: :value
-        }
-      ],
-      key: :context_menu_summary,
-      children: [],
-      props: %{class: "ashui-example-surface-copy", content: "inspect record"}
-    },
-    %{
-      position: 0,
-      type: :text,
-      slot: :footer,
-      bindings: [
-        %{
-          id: :context_menu_status_binding,
-          metadata: %{owner: "footer"},
-          source: %{
-            id: "state-context_menu",
-            resource: "ExampleState",
-            field: :status
-          },
-          target: "content",
-          transform: %{},
-          binding_type: :value
-        }
-      ],
-      key: :context_menu_status,
-      children: [],
-      props: %{
-        class: "ashui-example-surface-meta",
-        content: "Context menu is focused on one record-level action set."
-      }
+    subject_type: :"custom:context_menu",
+    notes: "Uses menu, body, and footer slots.",
+    preview_title: "Chosen action",
+    subject_props: %{
+      description: "A focused action menu that opens around one review target.",
+      title: "Row actions",
+      class: "ashui-example-context-menu-shell"
     }
-  ],
-  support_notice: "The context-menu shell stays explicit `custom:context_menu`; the menu items remain plain button resources with persisted action outcomes.",
-  notes: "Uses menu, body, and footer slots."
-}
+  }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
   def app, do: :ash_ui_example_context_menu
@@ -225,12 +228,33 @@ defmodule AshUIExamples.ContextMenu do
 
   def runtime_domains, do: [AshUIExamples.ContextMenu.RuntimeDomain]
 
-  def current_user, do: %{
-  active: true,
-  id: "reviewer-context_menu",
-  name: "Example Reviewer",
-  role: :admin
-}
+  def admin_user,
+    do: %{
+      active: true,
+      id: "reviewer-context_menu",
+      name: "Example Reviewer",
+      role: :admin
+    }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-context_menu",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{
+      active: true,
+      id: "viewer-context_menu",
+      name: "Example Viewer",
+      role: :viewer
+    }
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
+
   def seed_state do
     Map.merge(
       %{
@@ -242,21 +266,38 @@ defmodule AshUIExamples.ContextMenu do
         selected_value: "primary",
         checked: false,
         enabled: false,
-        notes: ""
+        notes: "",
+        items: [],
+        secondary_items: [],
+        metric: %{},
+        payload: %{},
+        series: []
       },
-%{
-  enabled: true,
-  id: "state-context_menu",
-  status: "Context menu is focused on one record-level action set.",
-  selected_value: "inspect record"
-}
+      %{
+        enabled: true,
+        id: "state-context_menu",
+        status: "Context menu is focused on one record-level action set.",
+        selected_value: "inspect record"
+      }
     )
   end
 
   def reset! do
-    reset_resource!(AshUIExamples.ContextMenu.Runtime.ExampleState, AshUIExamples.ContextMenu.RuntimeDomain)
-    reset_resource!(AshUIExamples.ContextMenu.UiBinding, AshUIExamples.ContextMenu.UiStorageDomain)
-    reset_resource!(AshUIExamples.ContextMenu.UiElement, AshUIExamples.ContextMenu.UiStorageDomain)
+    reset_resource!(
+      AshUIExamples.ContextMenu.Runtime.ExampleState,
+      AshUIExamples.ContextMenu.RuntimeDomain
+    )
+
+    reset_resource!(
+      AshUIExamples.ContextMenu.UiBinding,
+      AshUIExamples.ContextMenu.UiStorageDomain
+    )
+
+    reset_resource!(
+      AshUIExamples.ContextMenu.UiElement,
+      AshUIExamples.ContextMenu.UiStorageDomain
+    )
+
     reset_resource!(AshUIExamples.ContextMenu.UiScreen, AshUIExamples.ContextMenu.UiStorageDomain)
     :ok
   end
@@ -264,9 +305,10 @@ defmodule AshUIExamples.ContextMenu do
   def seed!(opts \\ []) do
     actor = Keyword.get(opts, :actor, current_user())
     reset!()
+
     {:ok, _state} =
       Ash.create(
-AshUIExamples.ContextMenu.Runtime.ExampleState,
+        AshUIExamples.ContextMenu.Runtime.ExampleState,
         seed_state(),
         domain: AshUIExamples.ContextMenu.RuntimeDomain,
         authorize?: false
@@ -274,7 +316,7 @@ AshUIExamples.ContextMenu.Runtime.ExampleState,
 
     {:ok, screen} =
       Authority.create(
-AshUIExamples.ContextMenu.Examples.ContextMenuScreen,
+        AshUIExamples.ContextMenu.Examples.ContextMenuScreen,
         actor: actor,
         name: @screen_name,
         ui_storage: ui_storage()
@@ -302,7 +344,14 @@ AshUIExamples.ContextMenu.Examples.ContextMenuScreen,
 
   def mount_seeded!(opts \\ []) do
     seeded = seed!(opts)
-    socket = build_socket(%{current_user: seeded.actor, ash_ui_storage: seeded.ui_storage, ash_ui_domains: runtime_domains()})
+
+    socket =
+      build_socket(%{
+        current_user: seeded.actor,
+        ash_ui_storage: seeded.ui_storage,
+        ash_ui_domains: runtime_domains()
+      })
+
     {:ok, mounted_socket} = Integration.mount_ui_screen(socket, seeded.screen_name, %{})
     {:ok, mounted_socket} = EventHandler.wire_handlers(mounted_socket)
     Map.put(seeded, :socket, mounted_socket)
@@ -336,7 +385,7 @@ AshUIExamples.ContextMenu.Examples.ContextMenuScreen,
     def start(_type, _args) do
       children = [
         {Phoenix.PubSub, name: AshUIExamples.ContextMenu.PubSub},
-AshUIExamples.ContextMenu.Web.Endpoint
+        AshUIExamples.ContextMenu.Web.Endpoint
       ]
 
       Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__.Supervisor)
@@ -352,10 +401,25 @@ AshUIExamples.ContextMenu.Web.Endpoint
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.ContextMenu.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:ContextMenu:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.ContextMenu.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -364,14 +428,19 @@ AshUIExamples.ContextMenu.Web.Endpoint
         allow_nil?(false)
       end
 
-      attribute :current_value, :string, default: "Ready"
-      attribute :display_value, :string, default: "Ready"
-      attribute :status, :string, default: "Mounted"
-      attribute :submitted_value, :string, default: "Not submitted"
-      attribute :selected_value, :string, default: "primary"
-      attribute :checked, :boolean, default: false
-      attribute :enabled, :boolean, default: false
-      attribute :notes, :string, default: ""
+      attribute(:current_value, :string, default: "Ready")
+      attribute(:display_value, :string, default: "Ready")
+      attribute(:status, :string, default: "Mounted")
+      attribute(:submitted_value, :string, default: "Not submitted")
+      attribute(:selected_value, :string, default: "primary")
+      attribute(:checked, :boolean, default: false)
+      attribute(:enabled, :boolean, default: false)
+      attribute(:notes, :string, default: "")
+      attribute(:items, {:array, :map}, default: [])
+      attribute(:secondary_items, {:array, :map}, default: [])
+      attribute(:metric, :map, default: %{})
+      attribute(:payload, :map, default: %{})
+      attribute(:series, {:array, :map}, default: [])
     end
 
     actions do
@@ -379,12 +448,61 @@ AshUIExamples.ContextMenu.Web.Endpoint
 
       create :create do
         primary?(true)
-        accept([:id, :current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes])
+
+        accept([
+          :id,
+          :current_value,
+          :display_value,
+          :status,
+          :submitted_value,
+          :selected_value,
+          :checked,
+          :enabled,
+          :notes,
+          :items,
+          :secondary_items,
+          :metric,
+          :payload,
+          :series
+        ])
       end
 
       update :update do
         primary?(true)
-        accept([:current_value, :display_value, :status, :submitted_value, :selected_value, :checked, :enabled, :notes])
+
+        accept([
+          :current_value,
+          :display_value,
+          :status,
+          :submitted_value,
+          :selected_value,
+          :checked,
+          :enabled,
+          :notes,
+          :items,
+          :secondary_items,
+          :metric,
+          :payload,
+          :series
+        ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -595,12 +713,34 @@ AshUIExamples.ContextMenu.Web.Endpoint
 
       create :create do
         primary?(true)
-        accept([:source, :target, :binding_type, :transform, :element_id, :screen_id, :metadata, :active, :version])
+
+        accept([
+          :source,
+          :target,
+          :binding_type,
+          :transform,
+          :element_id,
+          :screen_id,
+          :metadata,
+          :active,
+          :version
+        ])
       end
 
       update :update do
         primary?(true)
-        accept([:source, :target, :binding_type, :transform, :element_id, :screen_id, :metadata, :active])
+
+        accept([
+          :source,
+          :target,
+          :binding_type,
+          :transform,
+          :element_id,
+          :screen_id,
+          :metadata,
+          :active
+        ])
+
         change(increment(:version))
       end
     end
@@ -628,19 +768,18 @@ AshUIExamples.ContextMenu.Web.Endpoint
     use Ash.Domain, validate_config_inclusion?: false
 
     resources do
-
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuScreen)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuDemoPanelElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuSubjectElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuPreviewElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuStoryTextElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuSignalTextElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuSupportNoticeElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuInspectRecordButtonElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuReassignOwnerButtonElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuAddWatcherButtonElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuSummaryElement)
-            resource(AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuStatusElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuScreen)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuDemoPanelElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuSubjectElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuPreviewElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuStoryTextElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuSignalTextElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuSupportNoticeElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuInspectRecordButtonElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuReassignOwnerButtonElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuAddWatcherButtonElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuSummaryElement)
+      resource(AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuStatusElement)
     end
   end
 
@@ -682,320 +821,317 @@ AshUIExamples.ContextMenu.Web.Endpoint
         destination_attribute(:parent_id)
       end
 
-      has_many :support_notices, AshUIExamples.ContextMenu.Examples.ContextMenuSupportNoticeElement do
+      has_many :support_notices,
+               AshUIExamples.ContextMenu.Examples.ContextMenuSupportNoticeElement do
         destination_attribute(:parent_id)
       end
-
     end
 
     ui_relationships do
       relationship :subjects do
-        kind :child
-        slot :body
-        placement :append
-        order 0
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
       end
 
       relationship :previews do
-        kind :child
-        slot :body
-        placement :append
-        order 10
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(10)
       end
 
       relationship :support_notices do
-        kind :child
-        slot :body
-        placement :append
-        order 20
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(20)
       end
-
     end
 
     ui_element do
-      type :card
-      props %{title: "Context Menu Example", class: "ashui-example-panel"}
-      metadata %{id: "example-context_menu-demo", section: "demo", slot: "body", position: 0}
+      type(:card)
+      props(%{title: "Context Menu Example", class: "ashui-example-panel"})
+      metadata(%{id: "example-context_menu-demo", section: "demo", slot: "body", position: 0})
     end
   end
 
   defmodule Examples.ContextMenuSubjectElement do
     use AshUIExamples.ContextMenu.ExampleElementBase
 
-          relationships do
-            has_many :inspect_record_button_elements, AshUIExamples.ContextMenu.Examples.ContextMenuInspectRecordButtonElement do
-              destination_attribute(:parent_id)
-            end
-            
-            has_many :reassign_owner_button_elements, AshUIExamples.ContextMenu.Examples.ContextMenuReassignOwnerButtonElement do
-              destination_attribute(:parent_id)
-            end
-            
-            has_many :add_watcher_button_elements, AshUIExamples.ContextMenu.Examples.ContextMenuAddWatcherButtonElement do
-              destination_attribute(:parent_id)
-            end
-            
-            has_many :context_menu_summary_elements, AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuSummaryElement do
-              destination_attribute(:parent_id)
-            end
-            
-            has_many :context_menu_status_elements, AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuStatusElement do
-              destination_attribute(:parent_id)
-            end
-          end
+    relationships do
+      has_many :inspect_record_button_elements,
+               AshUIExamples.ContextMenu.Examples.ContextMenuInspectRecordButtonElement do
+        destination_attribute(:parent_id)
+      end
 
-          ui_relationships do
-            relationship :inspect_record_button_elements do
-              kind :child
-              slot :menu
-              placement :append
-              order 0
-            end
-            
-            relationship :reassign_owner_button_elements do
-              kind :child
-              slot :menu
-              placement :append
-              order 10
-            end
-            
-            relationship :add_watcher_button_elements do
-              kind :child
-              slot :menu
-              placement :append
-              order 20
-            end
-            
-            relationship :context_menu_summary_elements do
-              kind :child
-              slot :body
-              placement :append
-              order 0
-            end
-            
-            relationship :context_menu_status_elements do
-              kind :child
-              slot :footer
-              placement :append
-              order 0
-            end
-          end
+      has_many :reassign_owner_button_elements,
+               AshUIExamples.ContextMenu.Examples.ContextMenuReassignOwnerButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :add_watcher_button_elements,
+               AshUIExamples.ContextMenu.Examples.ContextMenuAddWatcherButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :context_menu_summary_elements,
+               AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuSummaryElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :context_menu_status_elements,
+               AshUIExamples.ContextMenu.Examples.ContextMenuContextMenuStatusElement do
+        destination_attribute(:parent_id)
+      end
+    end
+
+    ui_relationships do
+      relationship :inspect_record_button_elements do
+        kind(:child)
+        slot(:menu)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :reassign_owner_button_elements do
+        kind(:child)
+        slot(:menu)
+        placement(:append)
+        order(10)
+      end
+
+      relationship :add_watcher_button_elements do
+        kind(:child)
+        slot(:menu)
+        placement(:append)
+        order(20)
+      end
+
+      relationship :context_menu_summary_elements do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :context_menu_status_elements do
+        kind(:child)
+        slot(:footer)
+        placement(:append)
+        order(0)
+      end
+    end
+
     ui_element do
-      type :"custom:context_menu"
-      props %{
-  description: "A focused action menu that opens around one review target.",
-  title: "Row actions",
-  class: "ashui-example-context-menu-shell"
-}
-      metadata %{id: "example-context_menu-subject", section: "demo", slot: "body", position: 1}
+      type(:"custom:context_menu")
+
+      props(%{
+        description: "A focused action menu that opens around one review target.",
+        title: "Row actions",
+        class: "ashui-example-context-menu-shell"
+      })
+
+      metadata(%{id: "example-context_menu-subject", section: "demo", slot: "body", position: 1})
     end
 
     ui_bindings do
       binding :context_menu_open do
-        source %{resource: "ExampleState", field: :enabled, id: "state-context_menu"}
-        target "open"
-        binding_type :value
-        transform %{}
-        metadata %{owner: "subject", owner_signal: "change"}
+        source(%{resource: "ExampleState", field: :enabled, id: "state-context_menu"})
+        target("open")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "subject", owner_signal: "change"})
       end
     end
-
-
   end
 
-        defmodule Examples.ContextMenuInspectRecordButtonElement do
-        
-          use AshUIExamples.ContextMenu.ExampleElementBase
-        
-          ui_element do
-        
-            type :button
-        
-            props %{
-          label: "Inspect record",
-          class: "ashui-example-nav-button",
-          variant: "secondary"
-        }
-        
-            metadata %{id: "inspect-record-button", position: 0, slot: "menu", section: "demo"}
-        
-          end
-        
-        ui_actions do
-          action :action_inspect_record_button do
-            signal :click
-            source %{id: "state-context_menu", resource: "ExampleState", action: "update"}
-            target "submit"
-            transform %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Inspect record selected from the nested context menu."
-              },
-              selected_value: %{"from" => "static", "value" => "inspect record"}
-            }
+  defmodule Examples.ContextMenuInspectRecordButtonElement do
+    use AshUIExamples.ContextMenu.ExampleElementBase
+
+    ui_element do
+      type(:button)
+
+      props(%{
+        label: "Inspect record",
+        class: "ashui-example-nav-button",
+        variant: "secondary"
+      })
+
+      metadata(%{id: "inspect-record-button", position: 0, slot: "menu", section: "demo"})
+    end
+
+    ui_actions do
+      action :action_inspect_record_button do
+        signal(:click)
+        source(%{id: "state-context_menu", resource: "ExampleState", action: "update"})
+        target("submit")
+
+        transform(%{
+          params: %{
+            status: %{
+              "from" => "static",
+              "value" => "Inspect record selected from the nested context menu."
+            },
+            selected_value: %{"from" => "static", "value" => "inspect record"}
           }
-            metadata %{intent: "update_example_state", success_message: "Layered state updated"}
-          end
-        end
-        
-        end
-        
-        defmodule Examples.ContextMenuReassignOwnerButtonElement do
-        
-          use AshUIExamples.ContextMenu.ExampleElementBase
-        
-          ui_element do
-        
-            type :button
-        
-            props %{
-          label: "Reassign owner",
-          class: "ashui-example-nav-button",
-          variant: "secondary"
-        }
-        
-            metadata %{id: "reassign-owner-button", position: 10, slot: "menu", section: "demo"}
-        
-          end
-        
-        ui_actions do
-          action :action_reassign_owner_button do
-            signal :click
-            source %{id: "state-context_menu", resource: "ExampleState", action: "update"}
-            target "submit"
-            transform %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Reassign owner selected from the nested context menu."
-              },
-              selected_value: %{"from" => "static", "value" => "reassign owner"}
-            }
+        })
+
+        metadata(%{intent: "update_example_state", success_message: "Layered state updated"})
+      end
+    end
+  end
+
+  defmodule Examples.ContextMenuReassignOwnerButtonElement do
+    use AshUIExamples.ContextMenu.ExampleElementBase
+
+    ui_element do
+      type(:button)
+
+      props(%{
+        label: "Reassign owner",
+        class: "ashui-example-nav-button",
+        variant: "secondary"
+      })
+
+      metadata(%{id: "reassign-owner-button", position: 10, slot: "menu", section: "demo"})
+    end
+
+    ui_actions do
+      action :action_reassign_owner_button do
+        signal(:click)
+        source(%{id: "state-context_menu", resource: "ExampleState", action: "update"})
+        target("submit")
+
+        transform(%{
+          params: %{
+            status: %{
+              "from" => "static",
+              "value" => "Reassign owner selected from the nested context menu."
+            },
+            selected_value: %{"from" => "static", "value" => "reassign owner"}
           }
-            metadata %{intent: "update_example_state", success_message: "Layered state updated"}
-          end
-        end
-        
-        end
-        
-        defmodule Examples.ContextMenuAddWatcherButtonElement do
-        
-          use AshUIExamples.ContextMenu.ExampleElementBase
-        
-          ui_element do
-        
-            type :button
-        
-            props %{label: "Add watcher", class: "ashui-example-nav-button", variant: "secondary"}
-        
-            metadata %{id: "add-watcher-button", position: 20, slot: "menu", section: "demo"}
-        
-          end
-        
-        ui_actions do
-          action :action_add_watcher_button do
-            signal :click
-            source %{id: "state-context_menu", resource: "ExampleState", action: "update"}
-            target "submit"
-            transform %{
-            params: %{
-              status: %{
-                "from" => "static",
-                "value" => "Add watcher selected from the nested context menu."
-              },
-              selected_value: %{"from" => "static", "value" => "add watcher"}
-            }
+        })
+
+        metadata(%{intent: "update_example_state", success_message: "Layered state updated"})
+      end
+    end
+  end
+
+  defmodule Examples.ContextMenuAddWatcherButtonElement do
+    use AshUIExamples.ContextMenu.ExampleElementBase
+
+    ui_element do
+      type(:button)
+
+      props(%{label: "Add watcher", class: "ashui-example-nav-button", variant: "secondary"})
+
+      metadata(%{id: "add-watcher-button", position: 20, slot: "menu", section: "demo"})
+    end
+
+    ui_actions do
+      action :action_add_watcher_button do
+        signal(:click)
+        source(%{id: "state-context_menu", resource: "ExampleState", action: "update"})
+        target("submit")
+
+        transform(%{
+          params: %{
+            status: %{
+              "from" => "static",
+              "value" => "Add watcher selected from the nested context menu."
+            },
+            selected_value: %{"from" => "static", "value" => "add watcher"}
           }
-            metadata %{intent: "update_example_state", success_message: "Layered state updated"}
-          end
-        end
-        
-        end
-        
-        defmodule Examples.ContextMenuContextMenuSummaryElement do
-        
-          use AshUIExamples.ContextMenu.ExampleElementBase
-        
-          ui_element do
-        
-            type :text
-        
-            props %{class: "ashui-example-surface-copy", content: "inspect record"}
-        
-            metadata %{id: "context-menu-summary", position: 0, slot: "body", section: "demo"}
-        
-          end
-        
-        ui_bindings do
-          binding :context_menu_summary_binding do
-            source %{id: "state-context_menu", resource: "ExampleState", field: :selected_value}
-            target "content"
-            binding_type :value
-            transform %{}
-            metadata %{owner: "body"}
-          end
-        end
-        
-        end
-        
-        defmodule Examples.ContextMenuContextMenuStatusElement do
-        
-          use AshUIExamples.ContextMenu.ExampleElementBase
-        
-          ui_element do
-        
-            type :text
-        
-            props %{
-          class: "ashui-example-surface-meta",
-          content: "Context menu is focused on one record-level action set."
-        }
-        
-            metadata %{id: "context-menu-status", position: 0, slot: "footer", section: "demo"}
-        
-          end
-        
-        ui_bindings do
-          binding :context_menu_status_binding do
-            source %{id: "state-context_menu", resource: "ExampleState", field: :status}
-            target "content"
-            binding_type :value
-            transform %{}
-            metadata %{owner: "footer"}
-          end
-        end
-        
-        end
+        })
+
+        metadata(%{intent: "update_example_state", success_message: "Layered state updated"})
+      end
+    end
+  end
+
+  defmodule Examples.ContextMenuContextMenuSummaryElement do
+    use AshUIExamples.ContextMenu.ExampleElementBase
+
+    ui_element do
+      type(:text)
+
+      props(%{content: "inspect record", class: "ashui-example-surface-copy"})
+
+      metadata(%{id: "context-menu-summary", position: 0, slot: "body", section: "demo"})
+    end
+
+    ui_bindings do
+      binding :context_menu_summary_binding do
+        source(%{id: "state-context_menu", resource: "ExampleState", field: :selected_value})
+        target("content")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "body"})
+      end
+    end
+  end
+
+  defmodule Examples.ContextMenuContextMenuStatusElement do
+    use AshUIExamples.ContextMenu.ExampleElementBase
+
+    ui_element do
+      type(:text)
+
+      props(%{
+        content: "Context menu is focused on one record-level action set.",
+        class: "ashui-example-surface-meta"
+      })
+
+      metadata(%{id: "context-menu-status", position: 0, slot: "footer", section: "demo"})
+    end
+
+    ui_bindings do
+      binding :context_menu_status_binding do
+        source(%{id: "state-context_menu", resource: "ExampleState", field: :status})
+        target("content")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "footer"})
+      end
+    end
+  end
+
   defmodule Examples.ContextMenuPreviewElement do
     use AshUIExamples.ContextMenu.ExampleElementBase
 
     ui_element do
-      type :stat
-      props %{title: "Chosen action", value: "inspect record"}
-      variants [:primary]
-      metadata %{id: "example-context_menu-preview", section: "demo", slot: "body", position: 2}
+      type(:stat)
+      props(%{title: "Chosen action", value: "inspect record"})
+      variants([:primary])
+      metadata(%{id: "example-context_menu-preview", section: "demo", slot: "body", position: 2})
     end
 
     ui_bindings do
       binding :preview_value do
-        source %{resource: "ExampleState", field: :selected_value, id: "state-context_menu"}
-        target "value"
-        binding_type :value
-        transform %{}
-        metadata %{owner: "preview"}
+        source(%{resource: "ExampleState", field: :selected_value, id: "state-context_menu"})
+        target("value")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "preview"})
       end
     end
-
   end
 
   defmodule Examples.ContextMenuStoryTextElement do
     use AshUIExamples.ContextMenu.ExampleElementBase
 
     ui_element do
-      type :text
-      props %{content: "Meaningful Interaction Story: open the context menu, choose one action, and verify the chosen operation is reflected in persisted summary copy and preview state.", class: "ashui-example-code-surface"}
-      metadata %{id: "example-context_menu-story", section: "story", slot: "body", position: 10}
+      type(:text)
+
+      props(%{
+        content:
+          "Meaningful Interaction Story: open the context menu, choose one action, and verify the chosen operation is reflected in persisted summary copy and preview state.",
+        class: "ashui-example-code-surface"
+      })
+
+      metadata(%{id: "example-context_menu-story", section: "story", slot: "body", position: 10})
     end
   end
 
@@ -1003,9 +1139,20 @@ AshUIExamples.ContextMenu.Web.Endpoint
     use AshUIExamples.ContextMenu.ExampleElementBase
 
     ui_element do
-      type :text
-      props %{content: "Canonical Signal Preview: nested menu button click -> ExampleState.selected_value -> context-menu summary text and footer status.", class: "ashui-example-code-surface"}
-      metadata %{id: "example-context_menu-signal-preview", section: "signal_preview", slot: "body", position: 20}
+      type(:text)
+
+      props(%{
+        content:
+          "Canonical Signal Preview: nested menu button click -> ExampleState.selected_value -> context-menu summary text and footer status.",
+        class: "ashui-example-code-surface"
+      })
+
+      metadata(%{
+        id: "example-context_menu-signal-preview",
+        section: "signal_preview",
+        slot: "body",
+        position: 20
+      })
     end
   end
 
@@ -1013,9 +1160,20 @@ AshUIExamples.ContextMenu.Web.Endpoint
     use AshUIExamples.ContextMenu.ExampleElementBase
 
     ui_element do
-      type :text
-      props %{content: "The context-menu shell stays explicit `custom:context_menu`; the menu items remain plain button resources with persisted action outcomes.", class: "ashui-example-focus-ring"}
-      metadata %{id: "example-context_menu-support-note", section: "demo", slot: "body", position: 3}
+      type(:text)
+
+      props(%{
+        content:
+          "The context-menu shell stays explicit `custom:context_menu`; the menu items remain plain button resources with persisted action outcomes.",
+        class: "ashui-example-focus-ring"
+      })
+
+      metadata(%{
+        id: "example-context_menu-support-note",
+        section: "demo",
+        slot: "body",
+        position: 3
+      })
     end
   end
 
@@ -1054,31 +1212,36 @@ AshUIExamples.ContextMenu.Web.Endpoint
 
     ui_relationships do
       relationship :demo_panels do
-        kind :child
-        slot :body
-        placement :append
-        order 0
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
       end
 
       relationship :story_texts do
-        kind :child
-        slot :body
-        placement :append
-        order 10
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(10)
       end
 
       relationship :signal_texts do
-        kind :child
-        slot :body
-        placement :append
-        order 20
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(20)
       end
     end
 
     ui_screen do
-      layout :column
-      route "/"
-      metadata %{title: "Context Menu Example", example_directory: "context_menu", shell_id: "example-context_menu-shell"}
+      layout(:column)
+      route("/")
+
+      metadata(%{
+        title: "Context Menu Example",
+        example_directory: "context_menu",
+        shell_id: "example-context_menu-shell"
+      })
     end
   end
 
@@ -1092,42 +1255,45 @@ AshUIExamples.ContextMenu.Web.Endpoint
     import Phoenix.LiveView.Router
 
     pipeline :browser do
-      plug :accepts, ["html"]
-      plug :fetch_session
-      plug :protect_from_forgery
-      plug :put_secure_browser_headers
+      plug(:accepts, ["html"])
+      plug(:fetch_session)
+      plug(:protect_from_forgery)
+      plug(:put_secure_browser_headers)
     end
 
     scope "/", AshUIExamples.ContextMenu.Web do
-      pipe_through :browser
-      live "/", ExampleLive
+      pipe_through(:browser)
+      live("/", ExampleLive)
     end
   end
 
   defmodule Web.Endpoint do
     use Phoenix.Endpoint, otp_app: :ash_ui_example_context_menu
+
     @session_options [
       store: :cookie,
       key: "_ash_ui_example_key",
       signing_salt: "ashuiph20"
     ]
 
-    socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
+    socket("/live", Phoenix.LiveView.Socket,
+      websocket: [connect_info: [session: @session_options]]
+    )
 
-    plug Plug.RequestId
-    plug Plug.Telemetry, event_prefix: [:phoenix, :endpoint]
-    plug Plug.Session, @session_options
-    plug AshUIExamples.ContextMenu.Web.Router
+    plug(Plug.RequestId)
+    plug(Plug.Telemetry, event_prefix: [:phoenix, :endpoint])
+    plug(Plug.Session, @session_options)
+    plug(AshUIExamples.ContextMenu.Web.Router)
   end
 
   defmodule Web.Components.ExampleShell do
     use Phoenix.Component
 
-    attr :title, :string, required: true
-    attr :directory, :string, required: true
-    attr :summary, :string, required: true
-    attr :theme_css, :string, required: true
-    slot :inner_block, required: true
+    attr(:title, :string, required: true)
+    attr(:directory, :string, required: true)
+    attr(:summary, :string, required: true)
+    attr(:theme_css, :string, required: true)
+    slot(:inner_block, required: true)
 
     def example_shell(assigns) do
       ~H"""
@@ -1170,7 +1336,8 @@ AshUIExamples.ContextMenu.Web.Endpoint
         {:ok, refresh_rendered_ui(socket)}
       else
         {:error, reason} ->
-          {:ok, Phoenix.Component.assign(socket, :rendered_ui, "Mount failed: #{inspect(reason)}")}
+          {:ok,
+           Phoenix.Component.assign(socket, :rendered_ui, "Mount failed: #{inspect(reason)}")}
       end
     end
 
@@ -1202,7 +1369,11 @@ AshUIExamples.ContextMenu.Web.Endpoint
     end
 
     defp refresh_rendered_ui(socket) do
-      Phoenix.Component.assign(socket, :rendered_ui, AshUIExamples.ContextMenu.rendered_ui(socket.assigns))
+      Phoenix.Component.assign(
+        socket,
+        :rendered_ui,
+        AshUIExamples.ContextMenu.rendered_ui(socket.assigns)
+      )
     end
   end
 end

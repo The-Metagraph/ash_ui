@@ -16,18 +16,11 @@ defmodule AshUIExamples.StreamWidget do
     directory: "stream_widget",
     family: :operational,
     title: "Stream Widget Example",
-    section: :operational_monitoring,
-    subject_type: :"custom:stream_widget",
-    subject_props: %{
-      description:
-        "A bounded operational feed that swaps between representative runtime streams.",
-      title: "Activity stream",
-      class: "ashui-example-stream-widget-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active operational feed and confirm the stream surface redraws from persisted runtime entries instead of claiming an unimplemented live transport.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.items -> bound stream entries plus preview label.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-stream_widget",
       status: "Stream widget mounted with the ingest feed snapshot.",
@@ -50,16 +43,8 @@ defmodule AshUIExamples.StreamWidget do
       ],
       current_value: "ingest stream"
     },
-    preview_field: :current_value,
-    preview_title: "Active feed",
-    subject_binding: %{
-      id: :stream_entries,
-      target: "entries",
-      field: :items,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `stream_widget` example intentionally swaps persisted snapshots through nested controls; it does not claim a live subscription transport the package does not ship yet.",
     subject_children: [
       %{
         position: 0,
@@ -196,14 +181,29 @@ defmodule AshUIExamples.StreamWidget do
         key: :stream_widget_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Stream widget mounted with the ingest feed snapshot."
+          content: "Stream widget mounted with the ingest feed snapshot.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `stream_widget` example intentionally swaps persisted snapshots through nested controls; it does not claim a live subscription transport the package does not ship yet.",
-    notes: "Uses representative runtime feed snapshots with explicit operator controls."
+    section: :operational_monitoring,
+    subject_action: nil,
+    subject_binding: %{
+      id: :stream_entries,
+      target: "entries",
+      field: :items,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:stream_widget",
+    notes: "Uses representative runtime feed snapshots with explicit operator controls.",
+    preview_title: "Active feed",
+    subject_props: %{
+      description:
+        "A bounded operational feed that swaps between representative runtime streams.",
+      title: "Activity stream",
+      class: "ashui-example-stream-widget-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -227,13 +227,32 @@ defmodule AshUIExamples.StreamWidget do
 
   def runtime_domains, do: [AshUIExamples.StreamWidget.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-stream_widget",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-stream_widget",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{
+      active: true,
+      id: "viewer-stream_widget",
+      name: "Example Viewer",
+      role: :viewer
+    }
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -401,12 +420,25 @@ defmodule AshUIExamples.StreamWidget do
   end
 
   defmodule Runtime.ExampleState do
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:StreamWidget:Runtime:ExampleState"
+
     use Ash.Resource,
       domain: AshUIExamples.StreamWidget.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
       data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -472,6 +504,24 @@ defmodule AshUIExamples.StreamWidget do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -1027,8 +1077,8 @@ defmodule AshUIExamples.StreamWidget do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Stream widget mounted with the ingest feed snapshot."
+        content: "Stream widget mounted with the ingest feed snapshot.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "stream-widget-footer", position: 0, slot: "footer", section: "demo"})

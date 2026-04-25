@@ -895,6 +895,164 @@
   text-align: center;
 }
 
+.ash-stream-widget,
+.ash-process-monitor,
+.ash-supervision-tree-viewer,
+.ash-cluster-dashboard {
+  background: rgba(7, 14, 26, 0.72);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1.35rem;
+  box-shadow: var(--ashui-example-panel-shadow);
+  display: grid;
+  gap: 1rem;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.ash-stream-widget-header,
+.ash-process-monitor-header,
+.ash-supervision-tree-viewer-header,
+.ash-cluster-dashboard-header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ash-stream-widget-title,
+.ash-process-monitor-title,
+.ash-supervision-tree-viewer-title,
+.ash-cluster-dashboard-title {
+  color: var(--ashui-example-copy-strong);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.ash-stream-widget-description,
+.ash-process-monitor-description,
+.ash-supervision-tree-viewer-description,
+.ash-cluster-dashboard-description {
+  color: var(--ashui-example-copy-muted);
+  font-size: 0.92rem;
+  margin: 0;
+}
+
+.ash-stream-widget-body,
+.ash-process-monitor-body,
+.ash-supervision-tree-viewer-body,
+.ash-cluster-dashboard-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.ash-stream-widget-entries,
+.ash-process-monitor-cards,
+.ash-cluster-dashboard-regions,
+.ash-cluster-dashboard-alerts {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ash-stream-widget-entry,
+.ash-process-monitor-card,
+.ash-cluster-dashboard-region,
+.ash-cluster-dashboard-alert,
+.ash-cluster-dashboard-hero {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.95rem 1rem;
+}
+
+.ash-stream-widget-time,
+.ash-stream-widget-label,
+.ash-process-monitor-state,
+.ash-process-monitor-meta,
+.ash-supervision-tree-root-meta,
+.ash-supervision-tree-node-meta,
+.ash-cluster-dashboard-region-status,
+.ash-cluster-dashboard-region-load,
+.ash-cluster-dashboard-alert-title {
+  color: var(--ashui-example-accent);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ash-stream-widget-message,
+.ash-process-monitor-summary,
+.ash-cluster-dashboard-detail,
+.ash-cluster-dashboard-alert-message {
+  color: var(--ashui-example-copy-muted);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.ash-process-monitor-name,
+.ash-supervision-tree-root-label,
+.ash-supervision-tree-node-label,
+.ash-cluster-dashboard-headline,
+.ash-cluster-dashboard-region-label {
+  color: var(--ashui-example-copy-strong);
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.ash-supervision-tree-list,
+.ash-supervision-tree-children {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ash-supervision-tree-root,
+.ash-supervision-tree-node-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.ash-supervision-tree-node {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.95rem 1rem;
+}
+
+.ash-supervision-tree-children {
+  padding-left: 1rem;
+}
+
+.ash-cluster-dashboard-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+}
+
+.ash-stream-widget-actions,
+.ash-process-monitor-actions,
+.ash-supervision-tree-viewer-actions,
+.ash-cluster-dashboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ash-stream-widget-footer,
+.ash-process-monitor-footer,
+.ash-supervision-tree-viewer-footer,
+.ash-cluster-dashboard-footer {
+  display: grid;
+  gap: 0.6rem;
+}
+
 .ash-menu,
 .ash-tabs,
 .ash-command-palette,

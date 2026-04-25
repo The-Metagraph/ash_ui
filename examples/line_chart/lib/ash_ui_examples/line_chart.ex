@@ -16,17 +16,11 @@ defmodule AshUIExamples.LineChart do
     directory: "line_chart",
     family: :feedback_chart,
     title: "Line Chart Example",
-    section: :feedback_charts,
-    subject_type: :"custom:line_chart",
-    subject_props: %{
-      description: "A longer-running trend surface for directional review.",
-      title: "Trend line",
-      class: "ashui-example-line-chart-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active trend series and confirm the line-chart surface redraws its points from persisted runtime data.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.series -> bound line series plus preview label.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-line_chart",
       status: "Line chart mounted with the error-trend series.",
@@ -39,16 +33,8 @@ defmodule AshUIExamples.LineChart do
         %{"label" => "Fri", "value" => 5}
       ]
     },
-    preview_field: :current_value,
-    preview_title: "Series",
-    subject_binding: %{
-      id: :line_chart_series,
-      target: "series",
-      field: :series,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `line_chart` example stays a custom shell because trend-line rendering is intentionally renderer-backed and example-scoped.",
     subject_children: [
       %{
         position: 0,
@@ -165,14 +151,28 @@ defmodule AshUIExamples.LineChart do
         key: :line_chart_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Line chart mounted with the error-trend series."
+          content: "Line chart mounted with the error-trend series.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `line_chart` example stays a custom shell because trend-line rendering is intentionally renderer-backed and example-scoped.",
-    notes: "Binds one trend point series into the line-chart shell."
+    section: :feedback_charts,
+    subject_action: nil,
+    subject_binding: %{
+      id: :line_chart_series,
+      target: "series",
+      field: :series,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:line_chart",
+    notes: "Binds one trend point series into the line-chart shell.",
+    preview_title: "Series",
+    subject_props: %{
+      description: "A longer-running trend surface for directional review.",
+      title: "Trend line",
+      class: "ashui-example-line-chart-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -196,13 +196,27 @@ defmodule AshUIExamples.LineChart do
 
   def runtime_domains, do: [AshUIExamples.LineChart.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-line_chart",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-line_chart",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-line_chart", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -348,10 +362,25 @@ defmodule AshUIExamples.LineChart do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.LineChart.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:LineChart:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.LineChart.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -417,6 +446,24 @@ defmodule AshUIExamples.LineChart do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -943,8 +990,8 @@ defmodule AshUIExamples.LineChart do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Line chart mounted with the error-trend series."
+        content: "Line chart mounted with the error-trend series.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "line-chart-footer", position: 0, slot: "footer", section: "demo"})

@@ -26,6 +26,11 @@ Meaningful Interaction Story: confirm or cancel the dialog and verify that the r
 
 Canonical Signal Preview: nested button click -> ExampleState.selected_value and ExampleState.status -> dialog summary copy and preview stat.
 
+Runtime contract:
+- Mount path: active viewers can mount the seeded screen, but mutating controls are reserved for operators and admins.
+- Refresh path: the mounted shell stays grounded in persisted runtime state, with nested controls driving visible updates through real resource writes.
+- Shell state path: Layered examples surface their mounted state through persisted preview and footer copy instead of hidden browser-only state. Dismissal, defer, and escalation outcomes stay visible in persisted status fields owned by nested resources. Nested public controls restore the closed or acknowledged state without leaving the shared Ash HQ shell.
+
 ## Validate
 
 `mix run --no-start -e "IO.puts("example/dialog")"`

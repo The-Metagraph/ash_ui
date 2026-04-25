@@ -16,17 +16,11 @@ defmodule AshUIExamples.Progress do
     directory: "progress",
     family: :feedback_chart,
     title: "Progress Example",
-    section: :feedback_charts,
-    subject_type: :"custom:progress",
-    subject_props: %{
-      description: "A progress surface fed by persisted rollout metrics.",
-      title: "Rollout progress",
-      class: "ashui-example-progress-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the rollout phase and confirm the progress surface updates both its completion amount and explanatory detail.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.metric -> bound progress model plus preview value.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-progress",
       status: "Progress surface mounted with the canary rollout.",
@@ -38,16 +32,8 @@ defmodule AshUIExamples.Progress do
         "value" => 42
       }
     },
-    preview_field: :current_value,
-    preview_title: "Completion",
-    subject_binding: %{
-      id: :progress_metric,
-      target: "model",
-      field: :metric,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `progress` example uses a renderer-backed custom shell so completion visuals stay honest without implying a public maintained progress widget.",
     subject_children: [
       %{
         position: 0,
@@ -162,14 +148,28 @@ defmodule AshUIExamples.Progress do
         key: :progress_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Progress surface mounted with the canary rollout."
+          content: "Progress surface mounted with the canary rollout.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `progress` example uses a renderer-backed custom shell so completion visuals stay honest without implying a public maintained progress widget.",
-    notes: "Binds one rollout metric map into the progress shell."
+    section: :feedback_charts,
+    subject_action: nil,
+    subject_binding: %{
+      id: :progress_metric,
+      target: "model",
+      field: :metric,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:progress",
+    notes: "Binds one rollout metric map into the progress shell.",
+    preview_title: "Completion",
+    subject_props: %{
+      description: "A progress surface fed by persisted rollout metrics.",
+      title: "Rollout progress",
+      class: "ashui-example-progress-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -193,8 +193,22 @@ defmodule AshUIExamples.Progress do
 
   def runtime_domains, do: [AshUIExamples.Progress.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{active: true, id: "reviewer-progress", name: "Example Reviewer", role: :admin}
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-progress",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-progress", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -339,10 +353,25 @@ defmodule AshUIExamples.Progress do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.Progress.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:Progress:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.Progress.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -408,6 +437,24 @@ defmodule AshUIExamples.Progress do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -932,8 +979,8 @@ defmodule AshUIExamples.Progress do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Progress surface mounted with the canary rollout."
+        content: "Progress surface mounted with the canary rollout.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "progress-footer", position: 0, slot: "footer", section: "demo"})

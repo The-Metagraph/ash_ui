@@ -26,6 +26,11 @@ Meaningful Interaction Story: open the context menu, choose one action, and veri
 
 Canonical Signal Preview: nested menu button click -> ExampleState.selected_value -> context-menu summary text and footer status.
 
+Runtime contract:
+- Mount path: active viewers can mount the seeded screen, but mutating controls are reserved for operators and admins.
+- Refresh path: the mounted shell stays grounded in persisted runtime state, with nested controls driving visible updates through real resource writes.
+- Shell state path: Layered examples surface their mounted state through persisted preview and footer copy instead of hidden browser-only state. Dismissal, defer, and escalation outcomes stay visible in persisted status fields owned by nested resources. Nested public controls restore the closed or acknowledged state without leaving the shared Ash HQ shell.
+
 ## Validate
 
 `mix run --no-start -e "IO.puts("example/context_menu")"`

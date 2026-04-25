@@ -16,17 +16,11 @@ defmodule AshUIExamples.BarChart do
     directory: "bar_chart",
     family: :feedback_chart,
     title: "Bar Chart Example",
-    section: :feedback_charts,
-    subject_type: :"custom:bar_chart",
-    subject_props: %{
-      description: "A categorical comparison surface driven by persisted runtime series.",
-      title: "Volume bars",
-      class: "ashui-example-bar-chart-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active categorical series and confirm the bar chart redraws its bars from persisted runtime data.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.series -> bound bar series plus preview label.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-bar_chart",
       status: "Bar chart mounted with the regional volume series.",
@@ -37,16 +31,8 @@ defmodule AshUIExamples.BarChart do
         %{"label" => "eu-central", "value" => 58}
       ]
     },
-    preview_field: :current_value,
-    preview_title: "Series",
-    subject_binding: %{
-      id: :bar_chart_series,
-      target: "series",
-      field: :series,
-      transform: %{},
-      binding_type: :value
-    },
-    subject_action: nil,
+    support_notice:
+      "The `bar_chart` example uses an explicit custom surface because categorical chart rendering is a renderer-backed extension, not a maintained public widget.",
     subject_children: [
       %{
         position: 0,
@@ -159,14 +145,28 @@ defmodule AshUIExamples.BarChart do
         key: :bar_chart_footer,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Bar chart mounted with the regional volume series."
+          content: "Bar chart mounted with the regional volume series.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `bar_chart` example uses an explicit custom surface because categorical chart rendering is a renderer-backed extension, not a maintained public widget.",
-    notes: "Binds one categorical point series into the bar-chart shell."
+    section: :feedback_charts,
+    subject_action: nil,
+    subject_binding: %{
+      id: :bar_chart_series,
+      target: "series",
+      field: :series,
+      transform: %{},
+      binding_type: :value
+    },
+    subject_type: :"custom:bar_chart",
+    notes: "Binds one categorical point series into the bar-chart shell.",
+    preview_title: "Series",
+    subject_props: %{
+      description: "A categorical comparison surface driven by persisted runtime series.",
+      title: "Volume bars",
+      class: "ashui-example-bar-chart-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -190,13 +190,27 @@ defmodule AshUIExamples.BarChart do
 
   def runtime_domains, do: [AshUIExamples.BarChart.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{
       active: true,
       id: "reviewer-bar_chart",
       name: "Example Reviewer",
       role: :admin
     }
+
+  def operator_user,
+    do: %{
+      active: true,
+      id: "operator-bar_chart",
+      name: "Example Operator",
+      role: :operator
+    }
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-bar_chart", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -340,10 +354,25 @@ defmodule AshUIExamples.BarChart do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.BarChart.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:BarChart:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.BarChart.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -409,6 +438,24 @@ defmodule AshUIExamples.BarChart do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -931,8 +978,8 @@ defmodule AshUIExamples.BarChart do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Bar chart mounted with the regional volume series."
+        content: "Bar chart mounted with the regional volume series.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "bar-chart-footer", position: 0, slot: "footer", section: "demo"})

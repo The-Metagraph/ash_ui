@@ -16,22 +16,11 @@ defmodule AshUIExamples.Table do
     directory: "table",
     family: :data_surface,
     title: "Table Example",
-    section: :data_surfaces,
-    subject_type: :table,
-    subject_props: %{
-      description: "A tabular collection bound to persisted row data.",
-      title: "Service handoff table",
-      columns: [
-        %{"key" => "service", "label" => "Service"},
-        %{"key" => "owner", "label" => "Owner"},
-        %{"key" => "status", "label" => "Status"}
-      ],
-      class: "ashui-example-table-surface"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active operational dataset and confirm the table rows refresh through list binding hydration instead of a one-shot render.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.items -> hydrated `table` props.items plus preview value for the active dataset.",
+    preview_field: :current_value,
     seed_state: %{
       id: "state-table",
       status: "Table binding mounted with the service readiness dataset.",
@@ -46,16 +35,8 @@ defmodule AshUIExamples.Table do
       ],
       current_value: "service readiness"
     },
-    preview_field: :current_value,
-    preview_title: "Active dataset",
-    subject_binding: %{
-      id: :table_items,
-      target: "items",
-      field: :items,
-      transform: %{},
-      binding_type: :list
-    },
-    subject_action: nil,
+    support_notice:
+      "The `table` example keeps its columns static but refreshes the visible row collection through bound runtime data.",
     subject_children: [
       %{
         position: 0,
@@ -191,14 +172,33 @@ defmodule AshUIExamples.Table do
         key: :table_status,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Table binding mounted with the service readiness dataset."
+          content: "Table binding mounted with the service readiness dataset.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `table` example keeps its columns static but refreshes the visible row collection through bound runtime data.",
-    notes: "Uses collection hydration for the maintained public `table` widget."
+    section: :data_surfaces,
+    subject_action: nil,
+    subject_binding: %{
+      id: :table_items,
+      target: "items",
+      field: :items,
+      transform: %{},
+      binding_type: :list
+    },
+    subject_type: :table,
+    notes: "Uses collection hydration for the maintained public `table` widget.",
+    preview_title: "Active dataset",
+    subject_props: %{
+      description: "A tabular collection bound to persisted row data.",
+      title: "Service handoff table",
+      columns: [
+        %{"key" => "service", "label" => "Service"},
+        %{"key" => "owner", "label" => "Owner"},
+        %{"key" => "status", "label" => "Status"}
+      ],
+      class: "ashui-example-table-surface"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
 
@@ -222,8 +222,17 @@ defmodule AshUIExamples.Table do
 
   def runtime_domains, do: [AshUIExamples.Table.RuntimeDomain]
 
-  def current_user,
+  def admin_user,
     do: %{active: true, id: "reviewer-table", name: "Example Reviewer", role: :admin}
+
+  def operator_user,
+    do: %{active: true, id: "operator-table", name: "Example Operator", role: :operator}
+
+  def read_only_user,
+    do: %{active: true, id: "viewer-table", name: "Example Viewer", role: :viewer}
+
+  def current_user, do: admin_user()
+  def runtime_contract, do: AshUI.Examples.Phase20.runtime_contract_for(@directory)
 
   def seed_state do
     Map.merge(
@@ -363,10 +372,25 @@ defmodule AshUIExamples.Table do
   end
 
   defmodule Runtime.ExampleState do
-    use Ash.Resource, domain: AshUIExamples.Table.RuntimeDomain, data_layer: Ash.DataLayer.Ets
+    @resource_topic_prefix "ash_ui:resource:AshUIExamples:Table:Runtime:ExampleState"
+
+    use Ash.Resource,
+      domain: AshUIExamples.Table.RuntimeDomain,
+      authorizers: [Ash.Policy.Authorizer],
+      notifiers: [Ash.Notifier.PubSub],
+      data_layer: Ash.DataLayer.Ets
 
     ets do
       private?(true)
+    end
+
+    pub_sub do
+      module(AshUI.Notifications)
+      prefix(@resource_topic_prefix)
+
+      publish(:create, "changes")
+      publish(:update, "changes")
+      publish(:destroy, "changes")
     end
 
     attributes do
@@ -432,6 +456,24 @@ defmodule AshUIExamples.Table do
           :payload,
           :series
         ])
+      end
+    end
+
+    policies do
+      bypass actor_attribute_equals(:role, :admin) do
+        authorize_if(always())
+      end
+
+      policy action_type(:read) do
+        authorize_if(actor_attribute_equals(:active, true))
+      end
+
+      policy action(:create) do
+        authorize_if(actor_attribute_equals(:role, :operator))
+      end
+
+      policy action([:update, :destroy]) do
+        authorize_if(actor_attribute_equals(:role, :operator))
       end
     end
   end
@@ -962,8 +1004,8 @@ defmodule AshUIExamples.Table do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Table binding mounted with the service readiness dataset."
+        content: "Table binding mounted with the service readiness dataset.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "table-status", position: 0, slot: "footer", section: "demo"})

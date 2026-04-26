@@ -13,6 +13,8 @@ application over time instead of presenting disconnected widget walkthroughs.
   chapter.
 - `tutorials/chapter_metadata.json` is the maintained machine-readable chapter
   index used for validation and review.
+- `tutorials/operations_control_center_baseline.md` defines the shared Phase 23
+  domain, actor, theme, and seed contract for the tutorial story.
 
 ## Final App Versus Checkpoints
 

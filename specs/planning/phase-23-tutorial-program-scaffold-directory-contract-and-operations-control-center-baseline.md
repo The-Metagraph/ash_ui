@@ -55,18 +55,18 @@ Back to index: [README](./README.md)
       [x] 23.1.2.3 Subtask - Define how chapters can cite supporting `examples/*` apps as background material without telling readers to author directly against the example suite.
       [x] 23.1.2.4 Subtask - Define drift rules that reject missing chapter-to-code references, missing checkpoint directories, or mismatches between chapter names and checkpoint slugs.
 
-  [ ] 23.2 Section - Shared Domain, Theme, and Seed Baseline
+  [x] 23.2 Section - Shared Domain, Theme, and Seed Baseline
     Define the real application that the tutorial is going to build rather than
     treating widget coverage as an abstract checklist.
 
-    [ ] 23.2.1 Task - Define the Operations Control Center baseline
+    [x] 23.2.1 Task - Define the Operations Control Center baseline
     Establish the shared domain, actor, and style contract that every later
     chapter builds on.
 
-      [ ] 23.2.1.1 Subtask - Define the initial Ash-domain resources for `Service`, `Incident`, `Cluster`, `Deployment`, `Runbook`, and `Operator`, including the minimum relationships needed for the tutorial story.
-      [ ] 23.2.1.2 Subtask - Define representative actor profiles such as `admin`, `on_call_operator`, and `viewer` so later chapters can teach permission-aware screens honestly.
-      [ ] 23.2.1.3 Subtask - Reuse the Ash HQ visual baseline from the example suite for the tutorial shell while allowing the tutorial app to compose multiple widgets on one screen.
-      [ ] 23.2.1.4 Subtask - Define the seed fixtures that give later chapters stable incidents, services, deploys, logs, metrics, and topology data to work with.
+      [x] 23.2.1.1 Subtask - Define the initial Ash-domain resources for `Service`, `Incident`, `Cluster`, `Deployment`, `Runbook`, and `Operator`, including the minimum relationships needed for the tutorial story.
+      [x] 23.2.1.2 Subtask - Define representative actor profiles such as `admin`, `on_call_operator`, and `viewer` so later chapters can teach permission-aware screens honestly.
+      [x] 23.2.1.3 Subtask - Reuse the Ash HQ visual baseline from the example suite for the tutorial shell while allowing the tutorial app to compose multiple widgets on one screen.
+      [x] 23.2.1.4 Subtask - Define the seed fixtures that give later chapters stable incidents, services, deploys, logs, metrics, and topology data to work with.
 
   [ ] 23.3 Section - Chapters 1 and 2 Initial Tutorial Milestones
     Land the first working tutorial checkpoints so the series starts from a

@@ -6,8 +6,8 @@ title: LiveView Runtime and Rendering
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-23
-next_review: 2026-10-23
+last_reviewed: 2026-04-25
+next_review: 2026-10-25
 related_reqs: [REQ-SCREEN-002, REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002]
 related_scns: [SCN-021, SCN-041, SCN-061, SCN-101]
 related_guides: [UG-0001, UG-0003, UG-0004, UG-0006, DG-0001]
@@ -93,14 +93,15 @@ The current event handler understands these event names:
 | `ash_ui_change` | Value-change path |
 | `ash_ui_click` | Click action path |
 | `ash_ui_submit` | Submit action path |
-| `ash_ui_action` | Generic action path used by buttons in the fallback adapter |
+| `ash_ui_action` | Generic action path used by the fallback adapter for action triggers and form submits |
 
 The fallback LiveView adapter currently emits:
 
 - `phx-click` for `button`
 - `phx-blur` and `phx-change` for `input` and `textarea`
 - `phx-change` for `select`
-- `phx-click` for `checkbox`
+- `phx-click` for `checkbox`, `radio`, and `switch`
+- `phx-submit` for `form_builder` when a submit-capable action binding is present
 
 At runtime, AshUI routes those events by binding id, action id, target,
 element id, and signal.
@@ -113,7 +114,7 @@ not mean every widget has equally rich fallback rendering in every adapter.
 Today:
 
 - LiveView is the most complete shipped runtime path.
-- The fallback LiveView adapter explicitly renders `row`, `column`, `grid`, `stack`, `card`, `text`, `label`, `badge`, `hero`, `stat`, `key_value`, `info_list`, `list`, `table`, `form_builder`, `form_field`, `button`, `input`, `textarea`, `checkbox`, `select`, `divider`, and `spacer`.
+- The fallback LiveView adapter explicitly renders `row`, `column`, `grid`, `stack`, `card`, `text`, `label`, `icon`, `image`, `badge`, `hero`, `stat`, `key_value`, `info_list`, `list`, `table`, `form_builder`, `form_field`, `button`, `input`, `textarea`, `checkbox`, `radio`, `switch`, `select`, `divider`, and `spacer`.
 - The fallback LiveView adapter also gives dedicated markup to selected example-facing `custom:*` shells, currently `custom:link`, `custom:pick_list`, `custom:field_group`, `custom:menu`, `custom:tabs`, `custom:command_palette`, `custom:viewport`, `custom:scroll_bar`, `custom:split_pane`, `custom:canvas`, `custom:overlay`, `custom:dialog`, `custom:alert_dialog`, `custom:context_menu`, `custom:toast`, `custom:tree_view`, `custom:markdown_viewer`, `custom:log_viewer`, `custom:status`, `custom:progress`, `custom:gauge`, `custom:inline_feedback`, `custom:sparkline`, `custom:bar_chart`, `custom:line_chart`, `custom:stream_widget`, `custom:process_monitor`, `custom:supervision_tree_viewer`, and `custom:cluster_dashboard`.
 - Types outside that set survive as canonical widgets but fall back to generic wrapper markup unless an external renderer package handles them.
 - The desktop adapter is narrower and explicitly covers only a smaller interactive subset.

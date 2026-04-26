@@ -49,6 +49,7 @@ These are the types currently accepted by `ui_element` validation.
 | `fragment` | Canonical wrapper fragment | none |
 | `container` | Generic wrapper container | none |
 | `card` | Panel or bounded container | no widget-specific props are read by the fallback adapter |
+| `form_builder` | Form container and submit boundary | no widget-specific props are read; submit behavior is action-driven |
 | `form_field` | Field wrapper | `name` as `data-field-name` |
 | `divider` | Rule or separator | none |
 | `spacer` | Fixed empty space | `size` |
@@ -58,6 +59,7 @@ These are the types currently accepted by `ui_element` validation.
 | Type | Typical use | Fallback LiveView props explicitly read |
 |---|---|---|
 | `text` | Inline or block copy | `content` or `text`, optional `size`, `color`, `weight`, `align` |
+| `label` | Form or field label copy | `text` or `content` or `label`, optional `for` |
 | `hero` | Large intro section | `eyebrow`, `title`, `message` |
 | `badge` | Small status label | `presentation`, `text` or `label` or `content` |
 | `stat` | Metric card | `title`, `value`, `message` |
@@ -77,8 +79,8 @@ These are the types currently accepted by `ui_element` validation.
 | `textarea` | Multi-line text input | `name`, `placeholder`, `value`, `rows` |
 | `checkbox` | Boolean input | `name`, `checked` |
 | `select` | Option picker | `name`, `options`, `value` |
-| `radio` | Exclusive option choice | no dedicated fallback widget markup |
-| `switch` | Toggle input | no dedicated fallback widget markup |
+| `radio` | Exclusive option choice | `name`, `options`, `value` |
+| `switch` | Toggle input | `checked`, `label` or `text` or `content` |
 | `slider` | Range input | no dedicated fallback widget markup |
 
 You can also author `custom:*` types. They are accepted as widget types, but the
@@ -112,6 +114,7 @@ Signal support is type-specific.
 | `radio` | `:change`, `:input` |
 | `switch` | `:change`, `:toggle` |
 | `slider` | `:change`, `:input` |
+| `form_builder` | `:submit` |
 
 If you declare a signal outside this matrix, authoring validation raises.
 
@@ -136,6 +139,7 @@ The current action-binding-capable widgets are:
 - `radio`
 - `switch`
 - `slider`
+- `form_builder`
 
 ## Compatibility and Normalization Notes
 
@@ -150,7 +154,8 @@ AshUI internally normalizes some upstream names:
 
 Two important edge cases:
 
-- The fallback LiveView adapter understands `label` and `form_builder`, but they are not part of the current validated public `ui_element type` vocabulary.
+- `label` and `form_builder` are part of the current validated public `ui_element type` vocabulary.
+- `form_builder` remains a thin form shell in the shipped fallback renderer; richer form semantics still live on nested public widgets.
 - `props[:variant]` on `button` is renderer-read today, while `variants [...]` on `ui_element` is better treated as semantic tagging for downstream tooling.
 
 ### Representative Example Directories
@@ -215,7 +220,8 @@ stable built-in authoring types for general application work.
 ## Choosing the Right Widget Today
 
 - Use `hero`, `stat`, `key_value`, and `info_list` when you want predictable shipped fallback rendering.
-- Use `list`, `table`, `image`, `icon`, `radio`, `switch`, and `slider` only if your chosen renderer path supports them or a generic wrapper is acceptable.
+- Use `list`, `table`, `image`, `icon`, `radio`, `switch`, `label`, and `form_builder` when the shipped fallback renderer is sufficient and your props stay within the currently documented surface.
+- Use `slider` only if your chosen renderer path supports it or a generic wrapper is acceptable.
 - Use `custom:*` when you are deliberately extending the renderer boundary or building an explicitly example-only shell, not when you need a built-in interactive widget.
 
 ## See Also

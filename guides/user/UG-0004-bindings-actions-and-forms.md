@@ -6,8 +6,8 @@ title: Bindings, Actions, and Forms
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-23
-next_review: 2026-10-23
+last_reviewed: 2026-04-25
+next_review: 2026-10-25
 related_reqs: [REQ-BIND-001, REQ-BIND-002, REQ-BIND-003, REQ-BIND-007, REQ-BIND-008, REQ-BIND-010]
 related_scns: [SCN-006, SCN-007, SCN-009, SCN-010, SCN-011, SCN-021]
 related_guides: [UG-0002, UG-0003, UG-0005, UG-0006, DG-0004, DG-0005]
@@ -215,8 +215,8 @@ Both `"from"` and `"source"` spellings are supported by the runtime mapper.
 
 ## Current Form Caveats
 
-- `form_builder` appears in fallback renderer/runtime code, but it is not part of the current validated public `ui_element type` vocabulary. Do not rely on it as a stable authoring type yet.
-- `radio`, `switch`, and `slider` are signal-capable in authoring validation, but the shipped fallback LiveView renderer does not currently provide dedicated widget markup for them.
+- `form_builder` is part of the current validated public vocabulary and supports submit-scoped actions, but it remains a thin form shell in the shipped fallback renderer.
+- `radio` and `switch` are signal-capable and now have dedicated fallback markup; `slider` is still validation-capable without dedicated shipped fallback markup.
 - `form_field` is mainly structural in the shipped fallback renderer. Labels, help text, and richer semantics depend on your renderer path.
 
 ## Troubleshooting

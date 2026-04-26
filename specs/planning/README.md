@@ -31,6 +31,13 @@ The active architectural baseline is defined by:
 20. [Phase 20 - Overlay, Data, Feedback, Chart, and Operational Example Apps](./phase-20-overlay-data-feedback-chart-and-operational-example-apps.md): implement the higher-complexity overlay, data-surface, feedback, chart, and operational examples.
 21. [Phase 21 - Example Suite Tooling, Catalog, and Validation Workflow](./phase-21-example-suite-tooling-catalog-and-validation-workflow.md): implement suite discovery, launcher, validation, and governance workflows for the Ash UI example catalog.
 22. [Phase 22 - Documentation, Governance, and Full Suite Integration](./phase-22-documentation-governance-and-full-suite-integration.md): finish the public docs, release gates, and full-suite integration coverage for the Ash UI example suite.
+23. [Phase 23 - Tutorial Program Scaffold, Directory Contract, and Operations Control Center Baseline](./phase-23-tutorial-program-scaffold-directory-contract-and-operations-control-center-baseline.md): define the long-form tutorial structure under `tutorials/`, the maintained tutorial app, the per-chapter code checkpoints, and the first dashboard/workspace milestones.
+24. [Phase 24 - Tutorial Filtering, Search, Forms, and Safe Operator Workflows](./phase-24-tutorial-filtering-search-forms-and-safe-operator-workflows.md): implement the tutorial chapters for filtering, search, operator forms, and guarded overlay flows.
+25. [Phase 25 - Tutorial Runbooks, Attachments, and Live Diagnostics](./phase-25-tutorial-runbooks-attachments-and-live-diagnostics.md): implement the tutorial chapters for runbooks, attachments, rich detail views, and streaming operational diagnostics.
+26. [Phase 26 - Tutorial Topology, Navigation, and Metrics Surfaces](./phase-26-tutorial-topology-navigation-and-metrics-surfaces.md): implement the tutorial chapters for service topology, navigation workspaces, and telemetry dashboards.
+27. [Phase 27 - Tutorial Runtime Introspection and Permission-Aware Operations](./phase-27-tutorial-runtime-introspection-and-permission-aware-operations.md): implement the tutorial chapters for deeper runtime inspection and role-aware operational screens.
+28. [Phase 28 - Tutorial Production Polish and Final Application Consolidation](./phase-28-tutorial-production-polish-and-final-application-consolidation.md): implement the final tutorial chapter, responsive and accessibility cleanup, and the maintained final tutorial-app surface.
+29. [Phase 29 - Tutorial Publication, Governance, and End-to-End Validation](./phase-29-tutorial-publication-governance-and-end-to-end-validation.md): publish the tutorial as a maintained product surface with chapter-to-code validation, release readiness, and end-to-end proof.
 
 ## Shared Conventions
 - Numbering:
@@ -76,7 +83,11 @@ removed and the public example surface is now intentionally empty, but the
 remaining public-surface integration coverage and closeout tracking in that
 phase are still open.
 
-Phases 17-22 describe the proposed next line after that reset: rebuild a full
-`examples/` suite that mirrors the sibling `unified_ui` catalog through Ash UI
-resource-authority screens and element resources, using the current
-`ash-hq.org` visual language as the shared style baseline.
+Phases 17-22 are complete on the current implementation branch and establish
+the mirrored `examples/` suite, its Ash-HQ-derived visual baseline, and the
+supporting governance and release workflows.
+
+Phases 23-29 describe the next line: build a long-form `tutorials/`
+experience around one realistic Operations Control Center application, with a
+maintained final app under `tutorials/` and one standalone checkpoint app per
+chapter under `tutorials/code/`.

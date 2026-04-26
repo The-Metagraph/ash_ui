@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Trigger the nested action controls and confirm the active pane or layer updates while the larger display surface remains an explicit custom shell.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:split_pane`
+
+Authored properties:
+
+```elixir
+%{
+  description: "Primary and secondary panes stay in related child resources while footer actions switch the emphasized pane.",
+  title: "Review split pane",
+  class: "ashui-example-split-pane-shell"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses explicit primary, secondary, and actions slots.
+
 ## Expect
 
 Meaningful Interaction Story: move emphasis between split panes and confirm the active pane copy changes through nested public actions instead of screen-local imperative layout code.

@@ -168,8 +168,15 @@ suite:
 
 - `Run`
 - `Try It`
+- `Widget Attributes and Properties`
 - `Expect`
 - `Validate`
+
+The `Widget Attributes and Properties` section should show the subject widget's
+authored type and the current property map from the example definition. When an
+example binds or acts directly through the subject widget, that section should
+also show the relevant binding or action contract so reviewers can compare the
+README against the persisted resource-authority definition.
 
 The `Run` section should explain the maintained launcher explicitly:
 

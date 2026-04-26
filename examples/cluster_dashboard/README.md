@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active operational snapshot and confirm the surface redraws from persisted runtime data instead of hidden background state.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:cluster_dashboard`
+
+Authored properties:
+
+```elixir
+%{
+  description: "The flagship operational composition example for multi-region review.",
+  title: "Cluster dashboard",
+  class: "ashui-example-cluster-dashboard-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :cluster_dashboard_model,
+  target: "model",
+  field: :payload,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one dashboard model map into the flagship operational shell.
+
 ## Expect
 
 Meaningful Interaction Story: switch the dashboard between stable and incident snapshots and confirm the headline, regional cards, and alert rail all update from persisted runtime data.

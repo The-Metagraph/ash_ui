@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the bound content and confirm the preview card reflects the same persisted runtime state.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:markdown_viewer`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A document viewer that swaps between authored markdown sources.",
+  title: "Review notes",
+  class: "ashui-example-markdown-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :markdown_content,
+  target: "content",
+  field: :notes,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds markdown content into a renderer-backed document surface.
+
 ## Expect
 
 Meaningful Interaction Story: switch the active document and confirm the markdown viewer updates its rendered body from persisted runtime content instead of duplicated static copy.

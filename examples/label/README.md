@@ -35,6 +35,30 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `label`
+
+Authored properties:
+
+```elixir
+%{
+  text: "Profile nickname",
+  for: "profile-nickname",
+  class: "ashui-example-label"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :label_copy, target: "text", field: :display_value, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Promotes the existing label renderer into the public example suite.
+
 ## Expect
 
 Meaningful Interaction Story: review the authored label copy and confirm it remains distinct from helper text and stat surfaces inside the example shell.

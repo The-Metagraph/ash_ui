@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Swap the active stream and confirm the visible log rows refresh through persisted runtime entries.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:log_viewer`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A bounded log review surface fed by persisted runtime rows.",
+  title: "Event stream",
+  class: "ashui-example-log-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :log_entries,
+  target: "entries",
+  field: :items,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses a bound entry list and nested controls to swap representative streams.
+
 ## Expect
 
 Meaningful Interaction Story: switch the active stream and confirm the visible log rows refresh through persisted runtime data rather than one fixed code sample.

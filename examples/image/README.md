@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `image`
+
+Authored properties:
+
+```elixir
+%{
+  alt: "Ash HQ visual treatment",
+  class: "ashui-example-image",
+  src: "https://www.ash-hq.org/images/og-image.png"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the public image widget with real <img> fallback markup.
+
 ## Expect
 
 Meaningful Interaction Story: confirm the image example renders as a real preview surface rather than a generic wrapper while still using the shared Ash HQ shell.

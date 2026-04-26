@@ -35,6 +35,30 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Choose one nested decision button and confirm the persisted result closes the modal shell while updating the preview stat.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:dialog`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A composed dialog shell with nested confirm and cancel controls.",
+  title: "Confirm handoff",
+  class: "ashui-example-dialog-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :dialog_open, target: "open", field: :enabled, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses body, actions, and footer slots.
+
 ## Expect
 
 Meaningful Interaction Story: confirm or cancel the dialog and verify that the result lands in persisted runtime state rather than living only inside ephemeral shell markup.

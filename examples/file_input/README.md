@@ -35,6 +35,31 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `input`
+
+Authored properties:
+
+```elixir
+%{name: "attachment", type: "file", class: "ashui-example-input"}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :file_input_value,
+  target: "value",
+  field: :submitted_value,
+  transform: %{}
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the canonical input widget with a narrowed file-input contract.
+
 ## Expect
 
 Meaningful Interaction Story: choose a representative filename and confirm the preview stat records the selection while the support note stays explicit that upload transport is not implemented here.

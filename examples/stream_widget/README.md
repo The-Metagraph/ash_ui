@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active operational snapshot and confirm the surface redraws from persisted runtime data instead of hidden background state.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:stream_widget`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A bounded operational feed that swaps between representative runtime streams.",
+  title: "Activity stream",
+  class: "ashui-example-stream-widget-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :stream_entries,
+  target: "entries",
+  field: :items,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses representative runtime feed snapshots with explicit operator controls.
+
 ## Expect
 
 Meaningful Interaction Story: switch the active operational feed and confirm the stream surface redraws from persisted runtime entries instead of claiming an unimplemented live transport.

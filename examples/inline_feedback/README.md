@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active feedback state and confirm the visible signal surface updates from persisted runtime metrics.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:inline_feedback`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A compact inline advisory surface for operator-visible guidance.",
+  title: "Recovery note",
+  class: "ashui-example-inline-feedback-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :inline_feedback_metric,
+  target: "model",
+  field: :metric,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one advisory model map into the feedback shell.
+
 ## Expect
 
 Meaningful Interaction Story: switch the advisory message and confirm the inline feedback surface updates its visible tone and message from persisted runtime data.

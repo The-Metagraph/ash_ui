@@ -35,6 +35,27 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `form_field`
+
+Authored properties:
+
+```elixir
+%{
+  label: "Display name",
+  name: "display_name",
+  help: "Field structure stays local to the resource graph.",
+  class: "ashui-example-form-field"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Preserves sibling naming while using the public form_field widget.
+
 ## Expect
 
 Meaningful Interaction Story: review the field wrapper and edit the nested input to confirm the field keeps label and help context while the write remains owned by the input element.

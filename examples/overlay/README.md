@@ -35,6 +35,30 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Open and dismiss the layered surface with the nested action row and confirm the preview state follows the persisted runtime value.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:overlay`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A layered review surface that opens and dismisses through nested controls.",
+  title: "Inspection overlay",
+  class: "ashui-example-overlay-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :overlay_open, target: "open", field: :enabled, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses body and action slots inside an example-only layered surface.
+
 ## Expect
 
 Meaningful Interaction Story: open the overlay, inspect the layered body copy, and dismiss it again without losing the shared Ash HQ shell around the example.

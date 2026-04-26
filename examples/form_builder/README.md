@@ -35,6 +35,37 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Edit the nested form field, submit the form, and confirm the preview surface captures the persisted result.
 
+## Widget Attributes and Properties
+
+Subject widget type: `form_builder`
+
+Authored properties:
+
+```elixir
+%{class: "ashui-example-form"}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract:
+
+```elixir
+%{
+  id: :submit_profile,
+  metadata: %{owner: "form_builder", intent: "submit_profile"},
+  signal: :submit,
+  params: %{
+    status: %{
+      "from" => "static",
+      "value" => "Form submitted through form_builder"
+    },
+    submitted_value: %{"from" => "binding", "key" => "display_name"}
+  }
+}
+```
+
+Notes: Promotes form_builder from fallback-only rendering into the public example suite.
+
 ## Expect
 
 Meaningful Interaction Story: edit the nested display-name field and submit the form to confirm the authored form shell owns the review surface while the write and submit flow stay local to the resource graph.

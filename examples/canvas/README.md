@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Trigger the nested action controls and confirm the active pane or layer updates while the larger display surface remains an explicit custom shell.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:canvas`
+
+Authored properties:
+
+```elixir
+%{
+  description: "Toolbar controls and legend copy stay in related child resources while the board remains an explicit custom display surface.",
+  title: "Response canvas",
+  class: "ashui-example-canvas-shell"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses explicit toolbar, body, and legend slots.
+
 ## Expect
 
 Meaningful Interaction Story: switch the active layer from the toolbar and confirm the board plus legend update through nested public controls while the canvas shell remains explicit.

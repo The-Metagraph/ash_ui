@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active feedback state and confirm the visible signal surface updates from persisted runtime metrics.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:gauge`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A compact capacity surface that reads one bounded metric model.",
+  title: "Capacity gauge",
+  class: "ashui-example-gauge-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :gauge_metric,
+  target: "model",
+  field: :metric,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds a bounded metric map into a gauge-style visual.
+
 ## Expect
 
 Meaningful Interaction Story: switch the live capacity snapshot and confirm the gauge surface updates both its visible fill amount and its supporting detail.

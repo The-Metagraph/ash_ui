@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Use the nested focus controls and confirm the larger display shell updates without moving state ownership onto the outer custom surface.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:scroll_bar`
+
+Authored properties:
+
+```elixir
+%{
+  description: "Nested public buttons shift the focused lane while the outer custom shell owns the larger scroll-track surface only.",
+  title: "Lane scroll",
+  class: "ashui-example-scroll-bar-shell",
+  thumb_label: "queue lane"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :scroll_thumb_focus,
+  target: "thumb_label",
+  field: :selected_value,
+  transform: %{}
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses an explicit custom shell with a bound thumb label.
+
 ## Expect
 
 Meaningful Interaction Story: change the scroll focus through nested public buttons and confirm the thumb label plus status copy update without turning `scroll_bar` into an admitted public widget.

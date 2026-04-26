@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Swap the active series and confirm the chart surface redraws from persisted runtime points.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:sparkline`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A compact trend surface for quick directional review.",
+  title: "Latency sparkline",
+  class: "ashui-example-sparkline-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :sparkline_series,
+  target: "series",
+  field: :series,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one short point series into the sparkline shell.
+
 ## Expect
 
 Meaningful Interaction Story: switch the active mini-series and confirm the sparkline redraws its trend points from persisted runtime data.

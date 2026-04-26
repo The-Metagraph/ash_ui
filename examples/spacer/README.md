@@ -35,6 +35,22 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `spacer`
+
+Authored properties:
+
+```elixir
+%{size: 32, class: "ashui-example-spacer"}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the current public spacer widget directly.
+
 ## Expect
 
 Meaningful Interaction Story: verify the authored spacer creates intentional breathing room inside the shared review shell without introducing fake container semantics.

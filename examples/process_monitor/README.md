@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active operational snapshot and confirm the surface redraws from persisted runtime data instead of hidden background state.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:process_monitor`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A compact runtime process surface fed by one persisted model snapshot.",
+  title: "Process monitor",
+  class: "ashui-example-process-monitor-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :process_monitor_model,
+  target: "model",
+  field: :payload,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one process monitor model map into a renderer-backed operational shell.
+
 ## Expect
 
 Meaningful Interaction Story: switch the monitored process state and confirm the visible process cards update from persisted runtime data rather than decorative placeholders.

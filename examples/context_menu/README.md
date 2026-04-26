@@ -35,6 +35,30 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Trigger one nested menu action and confirm the selected operation is reflected in both the body summary and the preview stat.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:context_menu`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A focused action menu that opens around one review target.",
+  title: "Row actions",
+  class: "ashui-example-context-menu-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :context_menu_open, target: "open", field: :enabled, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses menu, body, and footer slots.
+
 ## Expect
 
 Meaningful Interaction Story: open the context menu, choose one action, and verify the chosen operation is reflected in persisted summary copy and preview state.

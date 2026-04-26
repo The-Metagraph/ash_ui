@@ -35,6 +35,30 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Trigger the nested toast buttons and confirm the message copy and preview surface update through persisted runtime fields.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:toast`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A transient-style notification shell driven by persisted runtime fields.",
+  title: "Activity toast",
+  class: "ashui-example-toast-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :toast_visible, target: "visible", field: :enabled, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses body, footer, and action slots.
+
 ## Expect
 
 Meaningful Interaction Story: trigger different toast variants and confirm the visible message and status copy update through nested controls instead of hard-coded shell text.

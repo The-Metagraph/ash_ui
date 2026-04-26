@@ -35,6 +35,38 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Click the primary subject and watch the persisted preview surface update.
 
+## Widget Attributes and Properties
+
+Subject widget type: `button`
+
+Authored properties:
+
+```elixir
+%{
+  label: "Persist button story",
+  class: "ashui-example-primary-cta",
+  variant: "primary"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract:
+
+```elixir
+%{
+  id: :press_button,
+  metadata: %{intent: "button_press", success_message: "Button example updated"},
+  signal: :click,
+  params: %{
+    status: %{"from" => "static", "value" => "Action completed"},
+    current_value: %{"from" => "static", "value" => "Button press persisted"}
+  }
+}
+```
+
+Notes: Uses the current public button widget directly.
+
 ## Expect
 
 Meaningful Interaction Story: click the primary button and confirm the current status changes without leaving the resource-authority runtime path.

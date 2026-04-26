@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Swap the active series and confirm the chart surface redraws from persisted runtime points.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:line_chart`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A longer-running trend surface for directional review.",
+  title: "Trend line",
+  class: "ashui-example-line-chart-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :line_chart_series,
+  target: "series",
+  field: :series,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one trend point series into the line-chart shell.
+
 ## Expect
 
 Meaningful Interaction Story: switch the active trend series and confirm the line-chart surface redraws its points from persisted runtime data.

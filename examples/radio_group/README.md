@@ -35,6 +35,40 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `radio`
+
+Authored properties:
+
+```elixir
+%{
+  name: "plan",
+  value: "pro",
+  options: [
+    {"Starter", "starter"},
+    {"Pro", "pro"},
+    {"Enterprise", "enterprise"}
+  ],
+  class: "ashui-example-radio-group"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :radio_group_value,
+  target: "value",
+  field: :selected_value,
+  transform: %{}
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Preserves the sibling directory name while using the canonical radio widget.
+
 ## Expect
 
 Meaningful Interaction Story: pick a radio option and confirm the normalized `radio` subject preserves the directory story while the preview stat reflects the selected value.

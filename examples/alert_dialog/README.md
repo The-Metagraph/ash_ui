@@ -35,6 +35,30 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Choose one nested decision button and confirm the persisted result closes the modal shell while updating the preview stat.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:alert_dialog`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A higher-severity confirmation flow with explicit recovery actions.",
+  title: "Escalation required",
+  class: "ashui-example-alert-dialog-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :alert_dialog_open, target: "open", field: :enabled, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the same layered shell contract with stronger alert copy.
+
 ## Expect
 
 Meaningful Interaction Story: acknowledge or defer the alert dialog and verify that the persisted status copy shows which recovery path the reviewer chose.

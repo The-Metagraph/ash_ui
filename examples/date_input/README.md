@@ -35,6 +35,31 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `input`
+
+Authored properties:
+
+```elixir
+%{
+  name: "launch_date",
+  type: "date",
+  value: "2026-04-24",
+  class: "ashui-example-input"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :date_input_value, target: "value", field: :current_value, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the canonical input widget with date props.
+
 ## Expect
 
 Meaningful Interaction Story: choose a date and confirm the preview stat reflects the authored input state inside the shared form-oriented shell.

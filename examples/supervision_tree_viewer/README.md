@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active operational snapshot and confirm the surface redraws from persisted runtime data instead of hidden background state.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:supervision_tree_viewer`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A hierarchical operational shell for supervisor and worker relationships.",
+  title: "Supervision tree",
+  class: "ashui-example-supervision-tree-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :supervision_tree_model,
+  target: "model",
+  field: :payload,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one supervision tree snapshot into a hierarchical shell.
+
 ## Expect
 
 Meaningful Interaction Story: switch the viewed supervision snapshot and confirm the tree structure updates from persisted runtime data instead of a fixed outline.

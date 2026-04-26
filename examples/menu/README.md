@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Click the nested navigation buttons and confirm the selected value updates without moving the action ownership onto the outer custom shell.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:menu`
+
+Authored properties:
+
+```elixir
+%{
+  description: "Nested public buttons own selection changes inside an explicit custom menu shell.",
+  title: "Workspace menu",
+  class: "ashui-example-menu-shell"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses a dedicated example-only custom shell with nested public buttons.
+
 ## Expect
 
 Meaningful Interaction Story: select a menu item and confirm the selection state changes through nested public button resources while the outer subject remains an explicit `custom:menu` shell.

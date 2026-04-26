@@ -35,6 +35,22 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the rendered lane order and confirm the resource-authored structure stays visible in the mounted shell.
 
+## Widget Attributes and Properties
+
+Subject widget type: `column`
+
+Authored properties:
+
+```elixir
+%{class: "ashui-example-column-layout", spacing: 16}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the maintained public `column` widget directly.
+
 ## Expect
 
 Meaningful Interaction Story: inspect the vertical review flow and confirm the column example makes ordering obvious through related child resources and consistent spacing.

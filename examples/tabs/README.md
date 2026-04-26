@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Click the nested navigation buttons and confirm the selected value updates without moving the action ownership onto the outer custom shell.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:tabs`
+
+Authored properties:
+
+```elixir
+%{
+  description: "Nested public buttons own tab switching while the outer shell stays explicit.",
+  title: "Triage tabs",
+  class: "ashui-example-tabs-shell"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses a dedicated example-only custom shell with nested public buttons.
+
 ## Expect
 
 Meaningful Interaction Story: switch tabs and confirm the active panel value changes through nested public button resources while the outer subject remains an explicit `custom:tabs` shell.

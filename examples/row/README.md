@@ -35,6 +35,22 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the rendered lane order and confirm the resource-authored structure stays visible in the mounted shell.
 
+## Widget Attributes and Properties
+
+Subject widget type: `row`
+
+Authored properties:
+
+```elixir
+%{class: "ashui-example-row-layout", spacing: 18}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the maintained public `row` widget directly.
+
 ## Expect
 
 Meaningful Interaction Story: review the horizontal lane sequence and confirm the row example compiles its order from related child resources rather than one inline screen fragment.

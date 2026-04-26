@@ -35,6 +35,31 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `select`
+
+Authored properties:
+
+```elixir
+%{
+  name: "theme",
+  value: "ember",
+  options: [{"Ember", "ember"}, {"Slate", "slate"}, {"Mist", "mist"}],
+  class: "ashui-example-select"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :select_value, target: "value", field: :selected_value, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the current public select widget directly.
+
 ## Expect
 
 Meaningful Interaction Story: change the selected option and confirm the preview stat tracks the current selection through the shared example shell.

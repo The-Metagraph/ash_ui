@@ -35,6 +35,41 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active dataset with the nested controls and confirm the collection surface refreshes through persisted bound data.
 
+## Widget Attributes and Properties
+
+Subject widget type: `table`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A tabular collection bound to persisted row data.",
+  title: "Service handoff table",
+  columns: [
+    %{"key" => "service", "label" => "Service"},
+    %{"key" => "owner", "label" => "Owner"},
+    %{"key" => "status", "label" => "Status"}
+  ],
+  class: "ashui-example-table-surface"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :table_items,
+  target: "items",
+  field: :items,
+  transform: %{},
+  binding_type: :list
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses collection hydration for the maintained public `table` widget.
+
 ## Expect
 
 Meaningful Interaction Story: switch the active operational dataset and confirm the table rows refresh through list binding hydration instead of a one-shot render.

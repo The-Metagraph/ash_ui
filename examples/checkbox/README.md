@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `checkbox`
+
+Authored properties:
+
+```elixir
+%{name: "receive_updates", class: "ashui-example-checkbox", checked: true}
+```
+
+Binding contract:
+
+```elixir
+%{id: :checkbox_value, target: "checked", field: :checked, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the current public checkbox widget directly.
+
 ## Expect
 
 Meaningful Interaction Story: toggle the checkbox and confirm the preview stat tracks the boolean state through an element-local binding.

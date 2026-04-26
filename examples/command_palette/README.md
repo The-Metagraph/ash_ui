@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Change the query, trigger a command button, and confirm the last-command preview updates through nested public controls.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:command_palette`
+
+Authored properties:
+
+```elixir
+%{
+  description: "Search input and command actions stay public children inside an explicit custom palette shell.",
+  title: "Command palette",
+  class: "ashui-example-command-palette-shell"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses a dedicated example-only custom shell with nested public controls.
+
 ## Expect
 
 Meaningful Interaction Story: change the query and execute a command to confirm the example keeps both the input and the actions on nested public child resources while the shell remains explicit.

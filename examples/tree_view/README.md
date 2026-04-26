@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Swap the focused hierarchy and confirm the rendered tree redraws from bound runtime data instead of a static outline.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:tree_view`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A nested review surface that shows hierarchical runtime structure.",
+  title: "System topology",
+  class: "ashui-example-tree-view-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :tree_model,
+  target: "model",
+  field: :items,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one structured tree model map into the example-only renderer.
+
 ## Expect
 
 Meaningful Interaction Story: switch the focused hierarchy and confirm the tree viewer redraws its nested branches from persisted runtime data rather than a static shell.

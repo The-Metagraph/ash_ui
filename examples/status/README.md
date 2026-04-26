@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active feedback state and confirm the visible signal surface updates from persisted runtime metrics.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:status`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A compact signal surface for current operational health.",
+  title: "System readiness",
+  class: "ashui-example-status-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :status_metric,
+  target: "model",
+  field: :metric,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one status model map into a renderer-backed signal surface.
+
 ## Expect
 
 Meaningful Interaction Story: switch the operational health state and confirm the status surface updates its visible tone and detail from persisted runtime data.

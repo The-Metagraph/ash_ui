@@ -35,6 +35,22 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `divider`
+
+Authored properties:
+
+```elixir
+%{class: "ashui-example-divider"}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Preserves sibling naming while authoring through divider.
+
 ## Expect
 
 Meaningful Interaction Story: review how the normalized `divider` subject preserves the sibling directory name while keeping the shell visually structured.

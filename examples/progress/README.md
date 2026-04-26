@@ -35,6 +35,36 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active feedback state and confirm the visible signal surface updates from persisted runtime metrics.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:progress`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A progress surface fed by persisted rollout metrics.",
+  title: "Rollout progress",
+  class: "ashui-example-progress-shell"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :progress_metric,
+  target: "model",
+  field: :metric,
+  transform: %{},
+  binding_type: :value
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Binds one rollout metric map into the progress shell.
+
 ## Expect
 
 Meaningful Interaction Story: switch the rollout phase and confirm the progress surface updates both its completion amount and explanatory detail.

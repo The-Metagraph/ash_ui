@@ -35,6 +35,37 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Switch the active dataset with the nested controls and confirm the collection surface refreshes through persisted bound data.
 
+## Widget Attributes and Properties
+
+Subject widget type: `list`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A bound list surface that refreshes its rows from persisted runtime data.",
+  title: "Review queue",
+  class: "ashui-example-list-surface",
+  empty_text: "No review rows available."
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :list_items,
+  target: "items",
+  field: :items,
+  transform: %{},
+  binding_type: :list
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Actions switch the bound collection while the subject surface stays a maintained public widget.
+
 ## Expect
 
 Meaningful Interaction Story: switch between review queues and confirm the collection surface refreshes through a list binding instead of hard-coded inline rows.

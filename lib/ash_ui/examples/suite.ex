@@ -65,6 +65,11 @@ defmodule AshUI.Examples.Suite do
     {:story_surface, "Meaningful Interaction Story:"},
     {:signal_preview, "Canonical Signal Preview:"}
   ]
+  @required_readme_markers @required_review_markers ++
+                             [
+                               {:widget_attributes_and_properties,
+                                "## Widget Attributes and Properties"}
+                             ]
   @default_runtime "live_ui"
   @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
   @runtime_aliases %{
@@ -507,7 +512,7 @@ defmodule AshUI.Examples.Suite do
         source_path = source_path(entry.directory, opts)
 
         theme_issues = contains_markers(css_path, @required_theme_markers, entry.directory)
-        readme_issues = contains_markers(readme_path, @required_review_markers, entry.directory)
+        readme_issues = contains_markers(readme_path, @required_readme_markers, entry.directory)
         source_issues = contains_markers(source_path, @required_review_markers, entry.directory)
 
         def_theme_issue =

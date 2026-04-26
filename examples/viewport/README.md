@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Use the nested focus controls and confirm the larger display shell updates without moving state ownership onto the outer custom surface.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:viewport`
+
+Authored properties:
+
+```elixir
+%{
+  description: "Nested public buttons in the aside move viewport focus while the larger shell stays explicit.",
+  title: "Operations viewport",
+  class: "ashui-example-viewport-shell"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses a dedicated example-only custom shell with bound body and footer text.
+
 ## Expect
 
 Meaningful Interaction Story: change the focused lane from the viewport aside and confirm the larger display surface updates through nested public controls rather than a monolithic screen authority fragment.

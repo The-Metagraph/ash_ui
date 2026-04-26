@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `icon`
+
+Authored properties:
+
+```elixir
+%{label: "Ready", name: "sparkles", class: "ashui-example-icon"}
+```
+
+Binding contract:
+
+```elixir
+%{id: :icon_label, target: "label", field: :display_value, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the public icon widget with a richer fallback presentation.
+
 ## Expect
 
 Meaningful Interaction Story: review the icon inside the shared presentation panel and confirm the fallback renderer exposes both the glyph token and its accessible label.

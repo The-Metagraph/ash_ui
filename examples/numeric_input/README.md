@@ -35,6 +35,37 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `input`
+
+Authored properties:
+
+```elixir
+%{
+  name: "quantity",
+  type: "number",
+  value: "42",
+  placeholder: "Enter a number",
+  class: "ashui-example-input"
+}
+```
+
+Binding contract:
+
+```elixir
+%{
+  id: :numeric_input_value,
+  target: "value",
+  field: :current_value,
+  transform: %{}
+}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the canonical input widget with numeric props.
+
 ## Expect
 
 Meaningful Interaction Story: change the numeric value and confirm the preview stat reflects the stored example-state value without pretending Ash UI is doing hidden coercion.

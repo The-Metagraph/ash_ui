@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `switch`
+
+Authored properties:
+
+```elixir
+%{label: "Enable pager alerts", class: "ashui-example-toggle", checked: false}
+```
+
+Binding contract:
+
+```elixir
+%{id: :toggle_value, target: "checked", field: :enabled, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Preserves the sibling directory name while using the canonical switch widget.
+
 ## Expect
 
 Meaningful Interaction Story: flip the toggle and confirm the preview stat reflects the normalized `switch` state without claiming a separate public toggle widget.

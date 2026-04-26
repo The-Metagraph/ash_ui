@@ -85,6 +85,8 @@ defmodule Phase20ExampleGenerator do
 
     #{try_it_text(definition)}
 
+    #{widget_attributes_section(definition)}
+
     ## Expect
 
     #{definition.story_text}
@@ -2789,6 +2791,51 @@ defmodule Phase20ExampleGenerator do
   defp child_relationship_name(node) do
     String.to_atom("#{Map.fetch!(node, :key)}_elements")
   end
+
+  defp widget_attributes_section(definition) do
+    [
+      "## Widget Attributes and Properties",
+      "",
+      "Subject widget type: `#{subject_type_label(definition.subject_type)}`",
+      "",
+      "Authored properties:",
+      "",
+      "```elixir",
+      pretty_literal(definition.subject_props),
+      "```",
+      "",
+      optional_contract_section(
+        "Binding contract",
+        definition.subject_binding,
+        "none. This subject widget is rendered without a dedicated binding in the example definition."
+      ),
+      "",
+      optional_contract_section(
+        "Action contract",
+        definition.subject_action,
+        "none. This subject widget is rendered without a dedicated action in the example definition."
+      ),
+      "",
+      "Notes: #{definition.notes || "No additional widget notes are recorded for this example."}"
+    ]
+    |> Enum.join("\n")
+  end
+
+  defp optional_contract_section(label, nil, empty_copy), do: "#{label}: #{empty_copy}"
+
+  defp optional_contract_section(label, value, _empty_copy) do
+    [
+      "#{label}:",
+      "",
+      "```elixir",
+      pretty_literal(value),
+      "```"
+    ]
+    |> Enum.join("\n")
+  end
+
+  defp subject_type_label(subject_type) when is_atom(subject_type),
+    do: Atom.to_string(subject_type)
 
   def literal(term, opts \\ []) do
     inspect(term, Keyword.put_new(opts, :limit, :infinity))

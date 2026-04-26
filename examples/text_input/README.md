@@ -35,6 +35,32 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `input`
+
+Authored properties:
+
+```elixir
+%{
+  name: "headline",
+  type: "text",
+  value: "Ada Example",
+  placeholder: "Type a label",
+  class: "ashui-example-input"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :text_input_value, target: "value", field: :display_value, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Preserves the sibling directory name through the canonical input widget.
+
 ## Expect
 
 Meaningful Interaction Story: edit the canonical input control and confirm the preview stat updates through an element-local value binding without bypassing the shared shell.

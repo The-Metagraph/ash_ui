@@ -35,6 +35,26 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:field_group`
+
+Authored properties:
+
+```elixir
+%{
+  description: "A grouped review subject can still compile from native form resources.",
+  title: "Profile fields",
+  class: "ashui-example-field-group"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses a composed native screen pattern behind a custom review surface.
+
 ## Expect
 
 Meaningful Interaction Story: edit either grouped field and confirm the example stays explicit that `field_group` is a composed review subject built from nested `form_field` resources.

@@ -35,6 +35,29 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the bound content and confirm the preview card reflects the same persisted runtime state.
 
+## Widget Attributes and Properties
+
+Subject widget type: `text`
+
+Authored properties:
+
+```elixir
+%{
+  content: "Resource-owned copy stays readable inside the shared Ash HQ shell.",
+  class: "ashui-example-subject ashui-example-copy"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :display_value, target: "content", field: :display_value, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses the current public text widget directly.
+
 ## Expect
 
 Meaningful Interaction Story: review the authored copy and confirm the shared shell keeps text content legible without bypassing the resource-authority path.

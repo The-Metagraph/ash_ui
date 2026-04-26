@@ -35,6 +35,28 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Inspect the navigation affordance and confirm the support note explains the custom-surface boundary.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:link`
+
+Authored properties:
+
+```elixir
+%{
+  label: "Open Ash HQ",
+  target: "_blank",
+  rel: "noreferrer",
+  class: "ashui-example-link",
+  href: "https://www.ash-hq.org/"
+}
+```
+
+Binding contract: none. This subject widget is rendered without a dedicated binding in the example definition.
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Preserves the sibling directory name while using a custom surface.
+
 ## Expect
 
 Meaningful Interaction Story: inspect the styled navigation affordance and confirm the example calls out that link semantics are still implemented through an explicit custom surface.

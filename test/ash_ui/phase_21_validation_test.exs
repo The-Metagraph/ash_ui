@@ -90,6 +90,34 @@ defmodule AshUI.Phase21ValidationTest do
       assert Enum.any?(issues, &(&1.directory == "button" and &1.kind == :builder_first))
       assert Enum.any?(issues, &(&1.directory == "button" and &1.kind == :builder_first_text))
     end
+
+    test "21.3.1.5 - validation requires each example README to show the subject widget attributes and properties" do
+      temp_root = temp_examples_root!("widget_attributes")
+      entry = Suite.entry!("button")
+      readme_path = Path.join(temp_root, "button/README.md")
+
+      copy_example!("button", temp_root)
+
+      assert :ok =
+               Suite.validate_theme_review_contract(entries: [entry], examples_root: temp_root)
+
+      File.write!(
+        readme_path,
+        String.replace(
+          File.read!(readme_path),
+          "## Widget Attributes and Properties",
+          "## Widget Contract"
+        )
+      )
+
+      assert {:error, {:theme_review_drift, issues}} =
+               Suite.validate_theme_review_contract(entries: [entry], examples_root: temp_root)
+
+      assert Enum.any?(
+               issues,
+               &(&1.directory == "button" and &1.kind == :widget_attributes_and_properties)
+             )
+    end
   end
 
   defp temp_examples_root!(suffix) do

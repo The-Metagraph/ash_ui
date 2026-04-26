@@ -35,6 +35,35 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 
 Review the focused subject panel together with the story and signal surfaces.
 
+## Widget Attributes and Properties
+
+Subject widget type: `custom:pick_list`
+
+Authored properties:
+
+```elixir
+%{
+  name: "role",
+  value: "ops",
+  options: [
+    {"Operations", "ops"},
+    {"Finance", "finance"},
+    {"Support", "support"}
+  ],
+  class: "ashui-example-pick-list"
+}
+```
+
+Binding contract:
+
+```elixir
+%{id: :pick_list_value, target: "value", field: :selected_value, transform: %{}}
+```
+
+Action contract: none. This subject widget is rendered without a dedicated action in the example definition.
+
+Notes: Uses an explicit custom surface until a public pick-list contract exists.
+
 ## Expect
 
 Meaningful Interaction Story: choose one promoted pick-list option and confirm the custom surface stays explicit about the current single-selection runtime boundary.

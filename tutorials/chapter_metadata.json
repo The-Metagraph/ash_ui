@@ -55,7 +55,7 @@
     "chapter_path": "tutorials/chapters/05-safe-overlays-and-guards.md",
     "code_path": "tutorials/code/05-safe-overlays-and-guards",
     "previous_code_path": "tutorials/code/04-operator-actions-and-forms",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add dialogs, confirmation flows, and post-action feedback for sensitive operations.",
     "supporting_examples": ["alert_dialog", "context_menu", "dialog", "toast"]
   },

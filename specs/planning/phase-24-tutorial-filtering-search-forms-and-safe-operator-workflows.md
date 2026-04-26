@@ -51,18 +51,18 @@ Back to index: [README](./README.md)
       [x] 24.2.1.3 Subtask - Show validation, disabled states, and success/error feedback through resource-backed actions rather than host-only form simulations.
       [x] 24.2.1.4 Subtask - Add `tutorials/chapters/04-operator-actions-and-forms.md` with exact references to `tutorials/code/04-operator-actions-and-forms/`.
 
-  [ ] 24.3 Section - Chapter 5 Safe Overlays and Guarded Actions
+  [x] 24.3 Section - Chapter 5 Safe Overlays and Guarded Actions
     Add the safety rails that a real operations console needs for sensitive
     commands.
 
-    [ ] 24.3.1 Task - Implement dialogs, alerts, and transient feedback
+    [x] 24.3.1 Task - Implement dialogs, alerts, and transient feedback
     Teach confirmation and escalation flows without detaching them from the
     underlying resource model.
 
-      [ ] 24.3.1.1 Subtask - Implement `tutorials/code/05-safe-overlays-and-guards/` with `dialog`, `alert_dialog`, `overlay`, `context_menu`, and `toast` flows for restart, resolve, silence, and delete-style operations.
-      [ ] 24.3.1.2 Subtask - Ensure guarded actions show clear preconditions, destructive-action confirmations, and post-action feedback inside the shared Ash HQ shell.
-      [ ] 24.3.1.3 Subtask - Keep overlay state, action intent, and result summaries traceable to persisted tutorial resources or explicit runtime signals rather than invisible host-side shortcuts.
-      [ ] 24.3.1.4 Subtask - Add `tutorials/chapters/05-safe-overlays-and-guards.md` with exact references to `tutorials/code/05-safe-overlays-and-guards/`.
+      [x] 24.3.1.1 Subtask - Implement `tutorials/code/05-safe-overlays-and-guards/` with `dialog`, `alert_dialog`, `overlay`, `context_menu`, and `toast` flows for restart, resolve, silence, and delete-style operations.
+      [x] 24.3.1.2 Subtask - Ensure guarded actions show clear preconditions, destructive-action confirmations, and post-action feedback inside the shared Ash HQ shell.
+      [x] 24.3.1.3 Subtask - Keep overlay state, action intent, and result summaries traceable to persisted tutorial resources or explicit runtime signals rather than invisible host-side shortcuts.
+      [x] 24.3.1.4 Subtask - Add `tutorials/chapters/05-safe-overlays-and-guards.md` with exact references to `tutorials/code/05-safe-overlays-and-guards/`.
 
   [ ] 24.4 Section - Phase 24 Integration Tests
     Validate the interaction-heavy middle tutorial checkpoints through one

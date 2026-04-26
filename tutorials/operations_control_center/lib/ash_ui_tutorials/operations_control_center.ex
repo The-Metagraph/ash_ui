@@ -74,6 +74,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   def current_user, do: actor_profile(:on_call_operator)
+  def authoring_actor, do: actor_profile(:admin)
 
   def seed_state do
     fixtures = TutorialBaseline.seed_fixtures()
@@ -124,7 +125,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   def seed!(opts \\ []) do
-    actor = Keyword.get(opts, :actor, current_user())
+    actor = Keyword.get(opts, :actor, authoring_actor())
     reset!()
 
     {:ok, _state} =

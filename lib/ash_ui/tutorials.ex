@@ -25,7 +25,7 @@ defmodule AshUI.Tutorials do
   """
   @spec tutorials_root() :: String.t()
   def tutorials_root do
-    Path.expand("../../../tutorials", __DIR__)
+    Path.expand("../../tutorials", __DIR__)
   end
 
   @doc """
@@ -174,7 +174,7 @@ defmodule AshUI.Tutorials do
             "Checkpoint app:",
             entry["code_path"] <> "/",
             @supporting_examples_heading
-          ] ++ previous_checkpoint_terms(entry)
+          ] ++ previous_checkpoint_terms(entry) ++ supporting_example_terms(entry)
 
         Enum.reject(required_terms, &String.contains?(body, &1))
         |> Enum.map(fn missing_term ->
@@ -195,6 +195,13 @@ defmodule AshUI.Tutorials do
     ["Previous checkpoint:", previous_code_path <> "/"]
   end
 
+  defp supporting_example_terms(%{"supporting_examples" => supporting_examples})
+       when is_list(supporting_examples) do
+    Enum.map(supporting_examples, &"examples/#{&1}")
+  end
+
+  defp supporting_example_terms(_entry), do: []
+
   defp path_issue(entry, kind, path) do
     if File.exists?(path) do
       nil
@@ -204,6 +211,6 @@ defmodule AshUI.Tutorials do
   end
 
   defp repo_root do
-    Path.expand("../../..", __DIR__)
+    Path.expand("../..", __DIR__)
   end
 end

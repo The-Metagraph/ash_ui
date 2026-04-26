@@ -27,7 +27,7 @@ Back to index: [README](./README.md)
 - every chapter document must explicitly reference its own checkpoint directory
   and the immediately previous checkpoint when it builds incrementally
 
-[ ] 23 Phase 23 - Tutorial Program Scaffold, Directory Contract, and Operations Control Center Baseline
+[x] 23 Phase 23 - Tutorial Program Scaffold, Directory Contract, and Operations Control Center Baseline
   Define the tutorial product surface under `tutorials/`, establish the
   Operations Control Center application contract, and land the first two
   tutorial milestones around the shell and the core services/incidents
@@ -88,15 +88,15 @@ Back to index: [README](./README.md)
       [x] 23.3.2.3 Subtask - Add seed-backed service and incident records that make the dashboard and detail views feel like a real small operations console.
       [x] 23.3.2.4 Subtask - Add `tutorials/chapters/02-services-and-incidents.md` with exact references to `tutorials/code/02-services-and-incidents/` and the new screen/element resources.
 
-  [ ] 23.4 Section - Phase 23 Integration Tests
+  [x] 23.4 Section - Phase 23 Integration Tests
     Validate the tutorial scaffold, the directory contract, and the first two
     checkpoints before later chapters layer on more behavior.
 
-    [ ] 23.4.1 Task - Tutorial scaffold and early-milestone scenarios
+    [x] 23.4.1 Task - Tutorial scaffold and early-milestone scenarios
     Prove the tutorial behaves like one coherent product surface from the
     outset.
 
-      [ ] 23.4.1.1 Subtask - Verify the `tutorials/` directory, chapter documents, maintained final app, and chapter checkpoint directories all exist and follow the documented naming contract.
-      [ ] 23.4.1.2 Subtask - Verify `tutorials/code/01-project-shell/` and `tutorials/code/02-services-and-incidents/` boot as independent Mix projects and mount seeded resource-authority screens successfully.
-      [ ] 23.4.1.3 Subtask - Verify the maintained final app and the Chapter 2 checkpoint both compile from authoritative screen and element resources rather than detached screen documents.
-      [ ] 23.4.1.4 Subtask - Verify Chapters 1 and 2 each reference their exact checkpoint directory and any supporting example-app source material explicitly.
+      [x] 23.4.1.1 Subtask - Verify the `tutorials/` directory, chapter documents, maintained final app, and chapter checkpoint directories all exist and follow the documented naming contract.
+      [x] 23.4.1.2 Subtask - Verify `tutorials/code/01-project-shell/` and `tutorials/code/02-services-and-incidents/` boot as independent Mix projects and mount seeded resource-authority screens successfully.
+      [x] 23.4.1.3 Subtask - Verify the maintained final app and the Chapter 2 checkpoint both compile from authoritative screen and element resources rather than detached screen documents.
+      [x] 23.4.1.4 Subtask - Verify Chapters 1 and 2 each reference their exact checkpoint directory and any supporting example-app source material explicitly.

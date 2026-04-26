@@ -19,7 +19,7 @@ application over time instead of presenting disconnected widget walkthroughs.
 ## Final App Versus Checkpoints
 
 The maintained final application under `tutorials/operations_control_center/`
-tracks the completed tutorial story.
+tracks the furthest implemented tutorial story.
 
 The checkpoint apps under `tutorials/code/` are intentionally narrower. Each
 one freezes the exact state a reader should have after finishing one chapter so

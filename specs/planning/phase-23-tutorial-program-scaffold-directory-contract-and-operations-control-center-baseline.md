@@ -68,25 +68,25 @@ Back to index: [README](./README.md)
       [x] 23.2.1.3 Subtask - Reuse the Ash HQ visual baseline from the example suite for the tutorial shell while allowing the tutorial app to compose multiple widgets on one screen.
       [x] 23.2.1.4 Subtask - Define the seed fixtures that give later chapters stable incidents, services, deploys, logs, metrics, and topology data to work with.
 
-  [ ] 23.3 Section - Chapters 1 and 2 Initial Tutorial Milestones
+  [x] 23.3 Section - Chapters 1 and 2 Initial Tutorial Milestones
     Land the first working tutorial checkpoints so the series starts from a
     real app rather than only a directory skeleton.
 
-    [ ] 23.3.1 Task - Implement Chapter 1, Project Shell and Home Dashboard
+    [x] 23.3.1 Task - Implement Chapter 1, Project Shell and Home Dashboard
     Create the tutorial's first runnable application state and written chapter.
 
-      [ ] 23.3.1.1 Subtask - Implement `tutorials/code/01-project-shell/` and the matching final-app baseline with the shared Ash HQ shell, navigation frame, and resource-authority screen bootstrap.
-      [ ] 23.3.1.2 Subtask - Teach the home dashboard through foundational widgets such as `text`, `label`, `button`, `icon`, `link`, `separator`, `spacer`, `content`, `box`, `row`, `column`, and `grid`.
-      [ ] 23.3.1.3 Subtask - Add `tutorials/chapters/01-project-shell.md` with explicit references to `tutorials/code/01-project-shell/` and the exact modules/resources introduced in that checkpoint.
-      [ ] 23.3.1.4 Subtask - Ensure the chapter explains the default `live_ui` LiveView host path while keeping optional alternate-runtime previews clearly secondary.
+      [x] 23.3.1.1 Subtask - Implement `tutorials/code/01-project-shell/` and the matching final-app baseline with the shared Ash HQ shell, navigation frame, and resource-authority screen bootstrap.
+      [x] 23.3.1.2 Subtask - Teach the home dashboard through foundational widgets such as `text`, `label`, `button`, `icon`, `link`, `separator`, `spacer`, `content`, `box`, `row`, `column`, and `grid`.
+      [x] 23.3.1.3 Subtask - Add `tutorials/chapters/01-project-shell.md` with explicit references to `tutorials/code/01-project-shell/` and the exact modules/resources introduced in that checkpoint.
+      [x] 23.3.1.4 Subtask - Ensure the chapter explains the default `live_ui` LiveView host path while keeping optional alternate-runtime previews clearly secondary.
 
-    [ ] 23.3.2 Task - Implement Chapter 2, Services and Incidents Workspace
+    [x] 23.3.2 Task - Implement Chapter 2, Services and Incidents Workspace
     Add the first realistic operational workspace around live application data.
 
-      [ ] 23.3.2.1 Subtask - Implement `tutorials/code/02-services-and-incidents/` with list and detail screens for services and active incidents.
-      [ ] 23.3.2.2 Subtask - Teach the workspace through `list`, `table`, `tabs`, `status`, and related layout widgets without collapsing the entire tutorial into one monolithic screen resource.
-      [ ] 23.3.2.3 Subtask - Add seed-backed service and incident records that make the dashboard and detail views feel like a real small operations console.
-      [ ] 23.3.2.4 Subtask - Add `tutorials/chapters/02-services-and-incidents.md` with exact references to `tutorials/code/02-services-and-incidents/` and the new screen/element resources.
+      [x] 23.3.2.1 Subtask - Implement `tutorials/code/02-services-and-incidents/` with list and detail screens for services and active incidents.
+      [x] 23.3.2.2 Subtask - Teach the workspace through `list`, `table`, `tabs`, `status`, and related layout widgets without collapsing the entire tutorial into one monolithic screen resource.
+      [x] 23.3.2.3 Subtask - Add seed-backed service and incident records that make the dashboard and detail views feel like a real small operations console.
+      [x] 23.3.2.4 Subtask - Add `tutorials/chapters/02-services-and-incidents.md` with exact references to `tutorials/code/02-services-and-incidents/` and the new screen/element resources.
 
   [ ] 23.4 Section - Phase 23 Integration Tests
     Validate the tutorial scaffold, the directory contract, and the first two

@@ -43,7 +43,7 @@
     "chapter_path": "tutorials/chapters/04-operator-actions-and-forms.md",
     "code_path": "tutorials/code/04-operator-actions-and-forms",
     "previous_code_path": "tutorials/code/03-filtering-and-search",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Introduce form builders, workflow actions, and maintenance flows.",
     "supporting_examples": ["date_input", "field_group", "form_builder", "pick_list"]
   },

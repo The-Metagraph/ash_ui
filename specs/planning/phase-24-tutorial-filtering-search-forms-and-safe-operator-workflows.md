@@ -38,18 +38,18 @@ Back to index: [README](./README.md)
       [x] 24.1.1.3 Subtask - Ensure filter updates drive meaningful changes in `list` and `table` views through resource-authority bindings or actions rather than ad hoc host-side state.
       [x] 24.1.1.4 Subtask - Add `tutorials/chapters/03-filtering-and-search.md` with exact references to `tutorials/code/03-filtering-and-search/` and the previous Chapter 2 checkpoint.
 
-  [ ] 24.2 Section - Chapter 4 Forms and Operator Actions
+  [x] 24.2 Section - Chapter 4 Forms and Operator Actions
     Add the first write workflows so the tutorial moves beyond read-only
     monitoring.
 
-    [ ] 24.2.1 Task - Implement incident and maintenance form flows
+    [x] 24.2.1 Task - Implement incident and maintenance form flows
     Teach resource-first forms, validation, and update actions in the context
     of operations work.
 
-      [ ] 24.2.1.1 Subtask - Implement `tutorials/code/04-operator-actions-and-forms/` with `form_builder`, `field_group`, and `field` scaffolds for acknowledge, assign, annotate, and maintenance-window flows.
-      [ ] 24.2.1.2 Subtask - Use `numeric_input`, `date_input`, `time_input`, `pick_list`, and related supporting controls where they clarify real operator actions instead of being inserted only for coverage.
-      [ ] 24.2.1.3 Subtask - Show validation, disabled states, and success/error feedback through resource-backed actions rather than host-only form simulations.
-      [ ] 24.2.1.4 Subtask - Add `tutorials/chapters/04-operator-actions-and-forms.md` with exact references to `tutorials/code/04-operator-actions-and-forms/`.
+      [x] 24.2.1.1 Subtask - Implement `tutorials/code/04-operator-actions-and-forms/` with `form_builder`, `field_group`, and `field` scaffolds for acknowledge, assign, annotate, and maintenance-window flows.
+      [x] 24.2.1.2 Subtask - Use `numeric_input`, `date_input`, `time_input`, `pick_list`, and related supporting controls where they clarify real operator actions instead of being inserted only for coverage.
+      [x] 24.2.1.3 Subtask - Show validation, disabled states, and success/error feedback through resource-backed actions rather than host-only form simulations.
+      [x] 24.2.1.4 Subtask - Add `tutorials/chapters/04-operator-actions-and-forms.md` with exact references to `tutorials/code/04-operator-actions-and-forms/`.
 
   [ ] 24.3 Section - Chapter 5 Safe Overlays and Guarded Actions
     Add the safety rails that a real operations console needs for sensitive

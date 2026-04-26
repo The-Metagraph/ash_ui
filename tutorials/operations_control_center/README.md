@@ -3,12 +3,12 @@
 This is the maintained final tutorial application for the Operations Control
 Center series.
 
-It now tracks the Chapter 3 milestone from
-[`tutorials/code/03-filtering-and-search/`](../code/03-filtering-and-search/):
-the shared shell, the persisted services-and-incidents workspace, plus the new
-filtering, quick-search, and command-navigation surface. Later phases should
-keep advancing this directory, while the checkpoint apps under `tutorials/code/`
-remain frozen chapter snapshots.
+It now tracks the Chapter 4 milestone from
+[`tutorials/code/04-operator-actions-and-forms/`](../code/04-operator-actions-and-forms/):
+the shared shell, persisted filters, command navigation, and the first
+resource-backed operator write workflows. Later phases should keep advancing
+this directory, while the checkpoint apps under `tutorials/code/` remain frozen
+chapter snapshots.
 
 ## Run
 
@@ -43,5 +43,5 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
   `tutorial/services-incidents/incidents`
 - Current story scope:
   services review, incidents review, shared detail focus, persisted filters,
-  command navigation, and the maintained shell that later tutorial chapters
-  will extend
+  command navigation, operator forms, and the maintained shell that later
+  tutorial chapters will extend

@@ -25,18 +25,18 @@ Back to index: [README](./README.md)
   Implement the tutorial milestones that add search, filtering, operator forms,
   and guarded overlay flows to the Operations Control Center application.
 
-  [ ] 24.1 Section - Chapter 3 Filtering, Search, and Command Navigation
+  [x] 24.1 Section - Chapter 3 Filtering, Search, and Command Navigation
     Add the discovery and query tools that make the workspace usable once the
     baseline services and incidents views exist.
 
-    [ ] 24.1.1 Task - Implement query and command workflows
+    [x] 24.1.1 Task - Implement query and command workflows
     Teach stateful filtering and quick navigation through explicit bindings and
     resource-backed screen state.
 
-      [ ] 24.1.1.1 Subtask - Implement `tutorials/code/03-filtering-and-search/` with `text_input`, `select`, `checkbox`, `radio_group`, and `toggle` controls bound to persisted filter state.
-      [ ] 24.1.1.2 Subtask - Introduce `command_palette`, `menu`, and supporting navigation surfaces for quick jumps between services, incidents, and operator views.
-      [ ] 24.1.1.3 Subtask - Ensure filter updates drive meaningful changes in `list` and `table` views through resource-authority bindings or actions rather than ad hoc host-side state.
-      [ ] 24.1.1.4 Subtask - Add `tutorials/chapters/03-filtering-and-search.md` with exact references to `tutorials/code/03-filtering-and-search/` and the previous Chapter 2 checkpoint.
+      [x] 24.1.1.1 Subtask - Implement `tutorials/code/03-filtering-and-search/` with `text_input`, `select`, `checkbox`, `radio_group`, and `toggle` controls bound to persisted filter state.
+      [x] 24.1.1.2 Subtask - Introduce `command_palette`, `menu`, and supporting navigation surfaces for quick jumps between services, incidents, and operator views.
+      [x] 24.1.1.3 Subtask - Ensure filter updates drive meaningful changes in `list` and `table` views through resource-authority bindings or actions rather than ad hoc host-side state.
+      [x] 24.1.1.4 Subtask - Add `tutorials/chapters/03-filtering-and-search.md` with exact references to `tutorials/code/03-filtering-and-search/` and the previous Chapter 2 checkpoint.
 
   [ ] 24.2 Section - Chapter 4 Forms and Operator Actions
     Add the first write workflows so the tutorial moves beyond read-only

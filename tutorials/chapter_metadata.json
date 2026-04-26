@@ -31,7 +31,7 @@
     "chapter_path": "tutorials/chapters/03-filtering-and-search.md",
     "code_path": "tutorials/code/03-filtering-and-search",
     "previous_code_path": "tutorials/code/02-services-and-incidents",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add persisted filter state, quick search, and command-based navigation.",
     "supporting_examples": ["command_palette", "menu", "select", "text_input"]
   },

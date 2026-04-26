@@ -64,14 +64,14 @@ Back to index: [README](./README.md)
       [x] 24.3.1.3 Subtask - Keep overlay state, action intent, and result summaries traceable to persisted tutorial resources or explicit runtime signals rather than invisible host-side shortcuts.
       [x] 24.3.1.4 Subtask - Add `tutorials/chapters/05-safe-overlays-and-guards.md` with exact references to `tutorials/code/05-safe-overlays-and-guards/`.
 
-  [ ] 24.4 Section - Phase 24 Integration Tests
+  [x] 24.4 Section - Phase 24 Integration Tests
     Validate the interaction-heavy middle tutorial checkpoints through one
     coherent maintainer path.
 
-    [ ] 24.4.1 Task - Filtering, form, and overlay scenarios
+    [x] 24.4.1 Task - Filtering, form, and overlay scenarios
     Prove the tutorial can now handle realistic operator workflows.
 
-      [ ] 24.4.1.1 Subtask - Verify the Chapter 3, 4, and 5 checkpoint apps boot independently and preserve the shared shell and navigation contract.
-      [ ] 24.4.1.2 Subtask - Verify filters, command navigation, and resource-backed form actions update the visible workspace state predictably.
-      [ ] 24.4.1.3 Subtask - Verify guarded overlay flows reject unsafe or incomplete actions clearly and surface success/error feedback explicitly.
-      [ ] 24.4.1.4 Subtask - Verify Chapters 3, 4, and 5 each reference the correct checkpoint directory and previous checkpoint path in their prose.
+      [x] 24.4.1.1 Subtask - Verify the Chapter 3, 4, and 5 checkpoint apps boot independently and preserve the shared shell and navigation contract.
+      [x] 24.4.1.2 Subtask - Verify filters, command navigation, and resource-backed form actions update the visible workspace state predictably.
+      [x] 24.4.1.3 Subtask - Verify guarded overlay flows reject unsafe or incomplete actions clearly and surface success/error feedback explicitly.
+      [x] 24.4.1.4 Subtask - Verify Chapters 3, 4, and 5 each reference the correct checkpoint directory and previous checkpoint path in their prose.

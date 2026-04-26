@@ -65,6 +65,18 @@ defmodule AshUI.Examples.Suite do
     {:story_surface, "Meaningful Interaction Story:"},
     {:signal_preview, "Canonical Signal Preview:"}
   ]
+  @default_runtime "live_ui"
+  @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
+  @runtime_aliases %{
+    "desktop" => "desktop_ui",
+    "desktop_ui" => "desktop_ui",
+    "elm" => "elm_ui",
+    "elm_ui" => "elm_ui",
+    "live" => "live_ui",
+    "live-ui" => "live_ui",
+    "live_ui" => "live_ui",
+    "liveview" => "live_ui"
+  }
   @banned_governance_markers [
     {:builder_first, "AshUI.DSL.Builder"},
     {:legacy_document, "AshUI.Authoring.Document"},
@@ -76,7 +88,8 @@ defmodule AshUI.Examples.Suite do
     {:screen_document, "screen_document"},
     {:document_first, "document-first"},
     {:builder_first_text, "builder-first"},
-    {:inline_fragment, "inline_fragment"}
+    {:inline_fragment, "inline_fragment"},
+    {:centralized_runtime, "AshUI.Examples.Runtime"}
   ]
 
   @type catalog_entry :: %{
@@ -251,7 +264,11 @@ defmodule AshUI.Examples.Suite do
 
     actor = Keyword.get(opts, :actor, hd(actor_profiles))
     seed = Keyword.get(opts, :seed, hd(seed_profiles))
-    runtime = Keyword.get(opts, :runtime, hd(runtime_modes))
+
+    runtime =
+      opts
+      |> Keyword.get(:runtime, hd(runtime_modes))
+      |> normalize_runtime!()
 
     validate_profile!(actor, actor_profiles, :actor)
     validate_profile!(seed, seed_profiles, :seed)
@@ -263,7 +280,7 @@ defmodule AshUI.Examples.Suite do
       directory: directory,
       title: entry.title,
       project_path: project_path,
-      command: ["mix", "example.start"],
+      command: example_start_command(runtime, opts),
       shell: @shared_shell_label,
       actor_profiles: actor_profiles,
       seed_profiles: seed_profiles,
@@ -276,7 +293,8 @@ defmodule AshUI.Examples.Suite do
       support_notice: definition.support_notice,
       launcher: "mix ash_ui.examples.start #{directory}",
       preview: "mix ash_ui.examples.preview #{directory}",
-      dry_run_command: "cd #{project_path} && MIX_ENV=dev mix example.start"
+      dry_run_command:
+        "cd #{project_path} && MIX_ENV=dev #{Enum.join(example_start_command(runtime, opts), " ")}"
     }
   end
 
@@ -368,7 +386,7 @@ defmodule AshUI.Examples.Suite do
           })
           |> maybe_add_issue(mix_supports_launcher?(mix_path), %{
             directory: entry.directory,
-            kind: :missing_example_start_alias,
+            kind: :missing_example_start_task_support,
             path: mix_path
           })
           |> maybe_add_issue(File.exists?(source_path), %{
@@ -842,8 +860,17 @@ defmodule AshUI.Examples.Suite do
 
   defp mix_supports_launcher?(path) do
     case File.read(path) do
-      {:ok, body} -> String.contains?(body, "\"example.start\": [\"phx.server\"]")
-      {:error, _reason} -> false
+      {:ok, body} ->
+        String.contains?(body, "{:ash_ui, path: \"../..\"}") and
+          String.contains?(body, "\"example.start\": [&example_start/1]") and
+          String.contains?(body, "@supported_runtimes [\"live_ui\", \"elm_ui\", \"desktop_ui\"]") and
+          String.contains?(body, "ASH_UI_EXAMPLE_RUNTIME") and
+          String.contains?(body, "runtime = normalize_runtime!(runtime)") and
+          not String.contains?(body, "AshUI.Examples.Runtime") and
+          String.contains?(body, "Mix.Task.run(\"phx.server\", [])")
+
+      {:error, _reason} ->
+        false
     end
   end
 
@@ -911,7 +938,42 @@ defmodule AshUI.Examples.Suite do
 
   defp seed_profiles(_entry), do: ["seeded_screen"]
 
-  defp runtime_modes(_entry), do: ["liveview"]
+  defp runtime_modes(_entry), do: @supported_runtimes
+
+  defp example_start_command(runtime, opts) do
+    command = ["mix", "example.start"]
+
+    if runtime == @default_runtime and not Keyword.has_key?(opts, :runtime) do
+      command
+    else
+      command ++ [runtime]
+    end
+  end
+
+  defp normalize_runtime(nil), do: {:ok, @default_runtime}
+
+  defp normalize_runtime(runtime) when is_binary(runtime) do
+    runtime =
+      runtime
+      |> String.trim()
+      |> String.downcase()
+
+    case Map.fetch(@runtime_aliases, runtime) do
+      {:ok, canonical} -> {:ok, canonical}
+      :error -> {:error, {:unsupported_runtime, runtime, @supported_runtimes}}
+    end
+  end
+
+  defp normalize_runtime!(runtime) do
+    case normalize_runtime(runtime) do
+      {:ok, canonical} ->
+        canonical
+
+      {:error, {:unsupported_runtime, value, supported}} ->
+        raise ArgumentError,
+              "unsupported runtime #{inspect(value)}; expected one of: #{Enum.join(supported, ", ")}"
+    end
+  end
 
   defp validate_profile!(value, allowed, option) do
     if value in allowed do

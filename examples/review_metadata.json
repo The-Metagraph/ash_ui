@@ -4,1358 +4,1466 @@
     "family": "content",
     "title": "Button Example",
     "phase": 18,
-    "canonical_subject": "button",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Uses the current public `button` type directly.",
     "launcher": "mix ash_ui.examples.start button",
     "preview": "mix ash_ui.examples.preview button",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "button",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "text",
     "family": "content",
     "title": "Text Example",
     "phase": 18,
-    "canonical_subject": "text",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Uses the current public `text` type directly.",
     "launcher": "mix ash_ui.examples.start text",
     "preview": "mix ash_ui.examples.preview text",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "text",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "text_input",
     "family": "input",
     "title": "Text Input Example",
     "phase": 18,
-    "canonical_subject": "input",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Preserves the directory name while authoring through the canonical `input` type.",
     "launcher": "mix ash_ui.examples.start text_input",
     "preview": "mix ash_ui.examples.preview text_input",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "input",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "box",
     "family": "layout",
     "title": "Box Example",
     "phase": 18,
-    "canonical_subject": "container",
-    "parity_kind": "composed",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `box` directory preserves sibling parity while the current Ash UI implementation composes the experience from native container/card structure.",
     "launcher": "mix ash_ui.examples.start box",
     "preview": "mix ash_ui.examples.preview box",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "composed",
+    "canonical_subject": "container",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "content",
     "family": "layout",
     "title": "Content Example",
     "phase": 18,
-    "canonical_subject": "fragment",
-    "parity_kind": "composed",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `content` directory is intentionally implemented as a composed review pattern rather than a newly claimed public widget type.",
     "launcher": "mix ash_ui.examples.start content",
     "preview": "mix ash_ui.examples.preview content",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "composed",
+    "canonical_subject": "fragment",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "icon",
     "family": "content",
     "title": "Icon Example",
     "phase": 18,
-    "canonical_subject": "icon",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "`icon` is a public type today, but the shipped fallback renderer only gives it generic wrapper treatment.",
     "launcher": "mix ash_ui.examples.start icon",
     "preview": "mix ash_ui.examples.preview icon",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "icon",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "image",
     "family": "content",
     "title": "Image Example",
     "phase": 18,
-    "canonical_subject": "image",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "`image` is a public type today, but the shipped fallback renderer only gives it generic wrapper treatment.",
     "launcher": "mix ash_ui.examples.start image",
     "preview": "mix ash_ui.examples.preview image",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "image",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "label",
     "family": "content",
     "title": "Label Example",
     "phase": 18,
-    "canonical_subject": "label",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The fallback renderer already understands `label`; Phase 18 admits it as a first-class authored example surface.",
     "launcher": "mix ash_ui.examples.start label",
     "preview": "mix ash_ui.examples.preview label",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "label",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "link",
     "family": "content",
     "title": "Link Example",
     "phase": 18,
-    "canonical_subject": "custom:link",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Navigation semantics are intentionally implemented as `custom:link` so the example stays honest about the current public widget boundary.",
     "launcher": "mix ash_ui.examples.start link",
     "preview": "mix ash_ui.examples.preview link",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:link",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "separator",
     "family": "content",
     "title": "Separator Example",
     "phase": 18,
-    "canonical_subject": "divider",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Preserves the directory name while authoring through the canonical `divider` type.",
     "launcher": "mix ash_ui.examples.start separator",
     "preview": "mix ash_ui.examples.preview separator",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "divider",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "spacer",
     "family": "content",
     "title": "Spacer Example",
     "phase": 18,
-    "canonical_subject": "spacer",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Uses the current public `spacer` type directly.",
     "launcher": "mix ash_ui.examples.start spacer",
     "preview": "mix ash_ui.examples.preview spacer",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "spacer",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "checkbox",
     "family": "input",
     "title": "Checkbox Example",
     "phase": 18,
-    "canonical_subject": "checkbox",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Uses the current public `checkbox` type directly.",
     "launcher": "mix ash_ui.examples.start checkbox",
     "preview": "mix ash_ui.examples.preview checkbox",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "checkbox",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "date_input",
     "family": "input",
     "title": "Date Input Example",
     "phase": 18,
-    "canonical_subject": "input",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Preserves the directory name while authoring through the canonical `input` type with date-specific props.",
     "launcher": "mix ash_ui.examples.start date_input",
     "preview": "mix ash_ui.examples.preview date_input",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "input",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "field",
     "family": "forms",
     "title": "Field Example",
     "phase": 18,
-    "canonical_subject": "form_field",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The sibling `field` directory is intentionally authored through the canonical `form_field` widget.",
     "launcher": "mix ash_ui.examples.start field",
     "preview": "mix ash_ui.examples.preview field",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "form_field",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "field_group",
     "family": "forms",
     "title": "Field Group Example",
     "phase": 18,
-    "canonical_subject": "custom:field_group",
-    "parity_kind": "composed",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "`field_group` is intentionally implemented as `custom:field_group` plus nested `form_field` resources until a first-class public grouping contract exists.",
     "launcher": "mix ash_ui.examples.start field_group",
     "preview": "mix ash_ui.examples.preview field_group",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "composed",
+    "canonical_subject": "custom:field_group",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "file_input",
     "family": "input",
     "title": "File Input Example",
     "phase": 18,
-    "canonical_subject": "input",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Upload transport is not implemented in this example suite yet; the file-input example only echoes the selected filename through the resource-authority path.",
     "launcher": "mix ash_ui.examples.start file_input",
     "preview": "mix ash_ui.examples.preview file_input",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "input",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "form_builder",
     "family": "forms",
     "title": "Form Builder Example",
     "phase": 18,
-    "canonical_subject": "form_builder",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The example uses `form_builder` as the public subject and keeps submit handling local to the authored form resource.",
     "launcher": "mix ash_ui.examples.start form_builder",
     "preview": "mix ash_ui.examples.preview form_builder",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "form_builder",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "numeric_input",
     "family": "input",
     "title": "Numeric Input Example",
     "phase": 18,
-    "canonical_subject": "input",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The example keeps numeric values string-backed in example state so any future coercion or validation work stays explicit.",
     "launcher": "mix ash_ui.examples.start numeric_input",
     "preview": "mix ash_ui.examples.preview numeric_input",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "input",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "pick_list",
     "family": "input",
     "title": "Pick List Example",
     "phase": 18,
-    "canonical_subject": "custom:pick_list",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The example uses `custom:pick_list` and currently narrows the runtime to one promoted selection until a first-class multi-pick widget is admitted publicly.",
     "launcher": "mix ash_ui.examples.start pick_list",
     "preview": "mix ash_ui.examples.preview pick_list",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:pick_list",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "radio_group",
     "family": "input",
     "title": "Radio Group Example",
     "phase": 18,
-    "canonical_subject": "radio",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The sibling `radio_group` directory is authored through the canonical `radio` type, with dedicated group markup in the fallback renderer.",
     "launcher": "mix ash_ui.examples.start radio_group",
     "preview": "mix ash_ui.examples.preview radio_group",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "radio",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "select",
     "family": "input",
     "title": "Select Example",
     "phase": 18,
-    "canonical_subject": "select",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Uses the current public `select` type directly.",
     "launcher": "mix ash_ui.examples.start select",
     "preview": "mix ash_ui.examples.preview select",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "select",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "time_input",
     "family": "input",
     "title": "Time Input Example",
     "phase": 18,
-    "canonical_subject": "input",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "Preserves the directory name while authoring through the canonical `input` type with time-specific props.",
     "launcher": "mix ash_ui.examples.start time_input",
     "preview": "mix ash_ui.examples.preview time_input",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "input",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "toggle",
     "family": "input",
     "title": "Toggle Example",
     "phase": 18,
-    "canonical_subject": "switch",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The sibling `toggle` directory is authored through the canonical `switch` widget, and its current state is surfaced through the preview stat rather than a fake device chrome.",
     "launcher": "mix ash_ui.examples.start toggle",
     "preview": "mix ash_ui.examples.preview toggle",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "normalized",
+    "canonical_subject": "switch",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "row",
     "family": "layout",
     "title": "Row Example",
     "phase": 19,
-    "canonical_subject": "row",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `row` example treats nested element relationships as the primary composition path rather than relying on an inline screen body.",
     "launcher": "mix ash_ui.examples.start row",
     "preview": "mix ash_ui.examples.preview row",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "row",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "column",
     "family": "layout",
     "title": "Column Example",
     "phase": 19,
-    "canonical_subject": "column",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `column` example uses nested child resources as the authored stack, not one monolithic inline fragment.",
     "launcher": "mix ash_ui.examples.start column",
     "preview": "mix ash_ui.examples.preview column",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "column",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "grid",
     "family": "layout",
     "title": "Grid Example",
     "phase": 19,
-    "canonical_subject": "grid",
-    "parity_kind": "exact",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `grid` example keeps tile order and grouping in the resource graph so the compiler output still makes the authored structure visible.",
     "launcher": "mix ash_ui.examples.start grid",
     "preview": "mix ash_ui.examples.preview grid",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "exact",
+    "canonical_subject": "grid",
+    "support_status": "full_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "full_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "viewport",
     "family": "display",
     "title": "Viewport Example",
     "phase": 19,
-    "canonical_subject": "custom:viewport",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `viewport` example remains an explicit `custom:viewport` surface; the focus controls live on related child resources in the aside.",
     "launcher": "mix ash_ui.examples.start viewport",
     "preview": "mix ash_ui.examples.preview viewport",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:viewport",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "scroll_bar",
     "family": "display",
     "title": "Scroll Bar Example",
     "phase": 19,
-    "canonical_subject": "custom:scroll_bar",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `scroll_bar` example keeps focus changes on nested public buttons while the thumb itself is driven through a subject-level binding.",
     "launcher": "mix ash_ui.examples.start scroll_bar",
     "preview": "mix ash_ui.examples.preview scroll_bar",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:scroll_bar",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "split_pane",
     "family": "display",
     "title": "Split Pane Example",
     "phase": 19,
-    "canonical_subject": "custom:split_pane",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `split_pane` example keeps pane emphasis and action ownership on related child resources instead of collapsing the whole layout into one screen fragment.",
     "launcher": "mix ash_ui.examples.start split_pane",
     "preview": "mix ash_ui.examples.preview split_pane",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:split_pane",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "canvas",
     "family": "display",
     "title": "Canvas Example",
     "phase": 19,
-    "canonical_subject": "custom:canvas",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `canvas` example keeps toolbar controls and legend updates on related child resources while the board remains an explicit `custom:canvas` surface.",
     "launcher": "mix ash_ui.examples.start canvas",
     "preview": "mix ash_ui.examples.preview canvas",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:canvas",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "overlay",
     "family": "overlay",
     "title": "Overlay Example",
     "phase": 20,
-    "canonical_subject": "custom:overlay",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The overlay shell remains explicit `custom:overlay`; open and dismiss semantics stay on nested public button resources.",
+    "launcher": "mix ash_ui.examples.start overlay",
+    "preview": "mix ash_ui.examples.preview overlay",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The overlay shell remains explicit `custom:overlay`; open and dismiss semantics stay on nested public button resources.",
-    "launcher": "mix ash_ui.examples.start overlay",
-    "preview": "mix ash_ui.examples.preview overlay",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:overlay",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "dialog",
     "family": "overlay",
     "title": "Dialog Example",
     "phase": 20,
-    "canonical_subject": "custom:dialog",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The dialog shell stays explicit `custom:dialog` while the decision buttons own the action declarations.",
+    "launcher": "mix ash_ui.examples.start dialog",
+    "preview": "mix ash_ui.examples.preview dialog",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The dialog shell stays explicit `custom:dialog` while the decision buttons own the action declarations.",
-    "launcher": "mix ash_ui.examples.start dialog",
-    "preview": "mix ash_ui.examples.preview dialog",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:dialog",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "alert_dialog",
     "family": "overlay",
     "title": "Alert Dialog Example",
     "phase": 20,
-    "canonical_subject": "custom:alert_dialog",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The alert-dialog shell remains explicit `custom:alert_dialog`; severity semantics stay readable in persisted state and nested action resources.",
+    "launcher": "mix ash_ui.examples.start alert_dialog",
+    "preview": "mix ash_ui.examples.preview alert_dialog",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The alert-dialog shell remains explicit `custom:alert_dialog`; severity semantics stay readable in persisted state and nested action resources.",
-    "launcher": "mix ash_ui.examples.start alert_dialog",
-    "preview": "mix ash_ui.examples.preview alert_dialog",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:alert_dialog",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "context_menu",
     "family": "overlay",
     "title": "Context Menu Example",
     "phase": 20,
-    "canonical_subject": "custom:context_menu",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The context-menu shell stays explicit `custom:context_menu`; the menu items remain plain button resources with persisted action outcomes.",
+    "launcher": "mix ash_ui.examples.start context_menu",
+    "preview": "mix ash_ui.examples.preview context_menu",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The context-menu shell stays explicit `custom:context_menu`; the menu items remain plain button resources with persisted action outcomes.",
-    "launcher": "mix ash_ui.examples.start context_menu",
-    "preview": "mix ash_ui.examples.preview context_menu",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:context_menu",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "toast",
     "family": "overlay",
     "title": "Toast Example",
     "phase": 20,
-    "canonical_subject": "custom:toast",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The toast shell remains explicit `custom:toast`; trigger semantics stay on nested button resources and persisted runtime fields.",
+    "launcher": "mix ash_ui.examples.start toast",
+    "preview": "mix ash_ui.examples.preview toast",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The toast shell remains explicit `custom:toast`; trigger semantics stay on nested button resources and persisted runtime fields.",
-    "launcher": "mix ash_ui.examples.start toast",
-    "preview": "mix ash_ui.examples.preview toast",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:toast",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "stream_widget",
     "family": "operational",
     "title": "Stream Widget Example",
     "phase": 20,
-    "canonical_subject": "screen",
-    "parity_kind": "composed",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `stream_widget` example intentionally swaps persisted snapshots through nested controls; it does not claim a live subscription transport the package does not ship yet.",
+    "launcher": "mix ash_ui.examples.start stream_widget",
+    "preview": "mix ash_ui.examples.preview stream_widget",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `stream_widget` example intentionally swaps persisted snapshots through nested controls; it does not claim a live subscription transport the package does not ship yet.",
-    "launcher": "mix ash_ui.examples.start stream_widget",
-    "preview": "mix ash_ui.examples.preview stream_widget",
-    "shared_theme": true,
+    "parity_kind": "composed",
+    "canonical_subject": "screen",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "process_monitor",
     "family": "operational",
     "title": "Process Monitor Example",
     "phase": 20,
-    "canonical_subject": "screen",
-    "parity_kind": "composed",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `process_monitor` example uses explicit runtime snapshots and nested controls instead of implying a hidden supervisor tap.",
+    "launcher": "mix ash_ui.examples.start process_monitor",
+    "preview": "mix ash_ui.examples.preview process_monitor",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `process_monitor` example uses explicit runtime snapshots and nested controls instead of implying a hidden supervisor tap.",
-    "launcher": "mix ash_ui.examples.start process_monitor",
-    "preview": "mix ash_ui.examples.preview process_monitor",
-    "shared_theme": true,
+    "parity_kind": "composed",
+    "canonical_subject": "screen",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "supervision_tree_viewer",
     "family": "operational",
     "title": "Supervision Tree Viewer Example",
     "phase": 20,
-    "canonical_subject": "screen",
-    "parity_kind": "composed",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `supervision_tree_viewer` example remains a custom shell because operational supervision visuals are renderer-backed and example-scoped.",
+    "launcher": "mix ash_ui.examples.start supervision_tree_viewer",
+    "preview": "mix ash_ui.examples.preview supervision_tree_viewer",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `supervision_tree_viewer` example remains a custom shell because operational supervision visuals are renderer-backed and example-scoped.",
-    "launcher": "mix ash_ui.examples.start supervision_tree_viewer",
-    "preview": "mix ash_ui.examples.preview supervision_tree_viewer",
-    "shared_theme": true,
+    "parity_kind": "composed",
+    "canonical_subject": "screen",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "cluster_dashboard",
     "family": "operational",
     "title": "Cluster Dashboard Example",
     "phase": 20,
-    "canonical_subject": "screen",
-    "parity_kind": "composed",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `cluster_dashboard` example is a composed custom shell that stays explicit about using representative snapshots and nested public controls rather than hidden runtime shortcuts.",
+    "launcher": "mix ash_ui.examples.start cluster_dashboard",
+    "preview": "mix ash_ui.examples.preview cluster_dashboard",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `cluster_dashboard` example is a composed custom shell that stays explicit about using representative snapshots and nested public controls rather than hidden runtime shortcuts.",
-    "launcher": "mix ash_ui.examples.start cluster_dashboard",
-    "preview": "mix ash_ui.examples.preview cluster_dashboard",
-    "shared_theme": true,
+    "parity_kind": "composed",
+    "canonical_subject": "screen",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "menu",
     "family": "navigation",
     "title": "Menu Example",
     "phase": 19,
-    "canonical_subject": "custom:menu",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `menu` example remains an explicit `custom:menu` surface; selection actions stay on nested public button resources.",
     "launcher": "mix ash_ui.examples.start menu",
     "preview": "mix ash_ui.examples.preview menu",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:menu",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "tabs",
     "family": "navigation",
     "title": "Tabs Example",
     "phase": 19,
-    "canonical_subject": "custom:tabs",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `tabs` example keeps tab switching on nested public buttons instead of claiming a first-class public tabs widget.",
     "launcher": "mix ash_ui.examples.start tabs",
     "preview": "mix ash_ui.examples.preview tabs",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:tabs",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "command_palette",
     "family": "navigation",
     "title": "Command Palette Example",
     "phase": 19,
-    "canonical_subject": "custom:command_palette",
-    "parity_kind": "custom",
     "actor_profiles": [
       "reviewer"
-    ],
-    "seed_profiles": [
-      "seeded_screen"
-    ],
-    "runtime_modes": [
-      "liveview"
     ],
     "support_notice": "The `command_palette` example keeps query changes and command execution on nested public input/button resources instead of claiming a public palette widget.",
     "launcher": "mix ash_ui.examples.start command_palette",
     "preview": "mix ash_ui.examples.preview command_palette",
-    "shared_theme": true,
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
+    "seed_profiles": [
+      "seeded_screen"
+    ],
+    "parity_kind": "custom",
+    "canonical_subject": "custom:command_palette",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "list",
     "family": "data",
     "title": "List Example",
     "phase": 20,
-    "canonical_subject": "list",
-    "parity_kind": "exact",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `list` example uses a real list binding on the maintained public widget instead of hiding collection changes inside static markup.",
+    "launcher": "mix ash_ui.examples.start list",
+    "preview": "mix ash_ui.examples.preview list",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `list` example uses a real list binding on the maintained public widget instead of hiding collection changes inside static markup.",
-    "launcher": "mix ash_ui.examples.start list",
-    "preview": "mix ash_ui.examples.preview list",
-    "shared_theme": true,
+    "parity_kind": "exact",
+    "canonical_subject": "list",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "table",
     "family": "data",
     "title": "Table Example",
     "phase": 20,
-    "canonical_subject": "table",
-    "parity_kind": "exact",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `table` example keeps its columns static but refreshes the visible row collection through bound runtime data.",
+    "launcher": "mix ash_ui.examples.start table",
+    "preview": "mix ash_ui.examples.preview table",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `table` example keeps its columns static but refreshes the visible row collection through bound runtime data.",
-    "launcher": "mix ash_ui.examples.start table",
-    "preview": "mix ash_ui.examples.preview table",
-    "shared_theme": true,
+    "parity_kind": "exact",
+    "canonical_subject": "table",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "tree_view",
     "family": "data",
     "title": "Tree View Example",
     "phase": 20,
-    "canonical_subject": "custom:tree_view",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The tree example uses an explicit custom shell because hierarchical disclosure rendering is not a maintained public fallback surface.",
+    "launcher": "mix ash_ui.examples.start tree_view",
+    "preview": "mix ash_ui.examples.preview tree_view",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The tree example uses an explicit custom shell because hierarchical disclosure rendering is not a maintained public fallback surface.",
-    "launcher": "mix ash_ui.examples.start tree_view",
-    "preview": "mix ash_ui.examples.preview tree_view",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:tree_view",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "markdown_viewer",
     "family": "data",
     "title": "Markdown Viewer Example",
     "phase": 20,
-    "canonical_subject": "custom:markdown_viewer",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The markdown viewer stays an explicit custom example shell because the fallback renderer does not expose markdown semantics as a maintained public widget.",
+    "launcher": "mix ash_ui.examples.start markdown_viewer",
+    "preview": "mix ash_ui.examples.preview markdown_viewer",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The markdown viewer stays an explicit custom example shell because the fallback renderer does not expose markdown semantics as a maintained public widget.",
-    "launcher": "mix ash_ui.examples.start markdown_viewer",
-    "preview": "mix ash_ui.examples.preview markdown_viewer",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:markdown_viewer",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "log_viewer",
     "family": "data",
     "title": "Log Viewer Example",
     "phase": 20,
-    "canonical_subject": "custom:log_viewer",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The log viewer remains a custom example surface while still using persisted runtime rows and nested public controls for state changes.",
+    "launcher": "mix ash_ui.examples.start log_viewer",
+    "preview": "mix ash_ui.examples.preview log_viewer",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The log viewer remains a custom example surface while still using persisted runtime rows and nested public controls for state changes.",
-    "launcher": "mix ash_ui.examples.start log_viewer",
-    "preview": "mix ash_ui.examples.preview log_viewer",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:log_viewer",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "status",
     "family": "feedback",
     "title": "Status Example",
     "phase": 20,
-    "canonical_subject": "badge",
-    "parity_kind": "normalized",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `status` example remains an explicit custom shell so tone and badge semantics stay example-scoped rather than silently widening the public widget surface.",
+    "launcher": "mix ash_ui.examples.start status",
+    "preview": "mix ash_ui.examples.preview status",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `status` example remains an explicit custom shell so tone and badge semantics stay example-scoped rather than silently widening the public widget surface.",
-    "launcher": "mix ash_ui.examples.start status",
-    "preview": "mix ash_ui.examples.preview status",
-    "shared_theme": true,
+    "parity_kind": "normalized",
+    "canonical_subject": "badge",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "progress",
     "family": "feedback",
     "title": "Progress Example",
     "phase": 20,
-    "canonical_subject": "custom:progress",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `progress` example uses a renderer-backed custom shell so completion visuals stay honest without implying a public maintained progress widget.",
+    "launcher": "mix ash_ui.examples.start progress",
+    "preview": "mix ash_ui.examples.preview progress",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `progress` example uses a renderer-backed custom shell so completion visuals stay honest without implying a public maintained progress widget.",
-    "launcher": "mix ash_ui.examples.start progress",
-    "preview": "mix ash_ui.examples.preview progress",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:progress",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "gauge",
     "family": "feedback",
     "title": "Gauge Example",
     "phase": 20,
-    "canonical_subject": "custom:gauge",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `gauge` example stays a custom shell because its radial/threshold presentation is renderer-backed rather than part of the maintained public widget set.",
+    "launcher": "mix ash_ui.examples.start gauge",
+    "preview": "mix ash_ui.examples.preview gauge",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `gauge` example stays a custom shell because its radial/threshold presentation is renderer-backed rather than part of the maintained public widget set.",
-    "launcher": "mix ash_ui.examples.start gauge",
-    "preview": "mix ash_ui.examples.preview gauge",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:gauge",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "inline_feedback",
     "family": "feedback",
     "title": "Inline Feedback Example",
     "phase": 20,
-    "canonical_subject": "custom:inline_feedback",
-    "parity_kind": "composed",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `inline_feedback` example uses a custom surface to keep tone-box styling and semantics example-scoped.",
+    "launcher": "mix ash_ui.examples.start inline_feedback",
+    "preview": "mix ash_ui.examples.preview inline_feedback",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `inline_feedback` example uses a custom surface to keep tone-box styling and semantics example-scoped.",
-    "launcher": "mix ash_ui.examples.start inline_feedback",
-    "preview": "mix ash_ui.examples.preview inline_feedback",
-    "shared_theme": true,
+    "parity_kind": "composed",
+    "canonical_subject": "custom:inline_feedback",
+    "support_status": "partial_support",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "partial_support"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "sparkline",
     "family": "feedback",
     "title": "Sparkline Example",
     "phase": 20,
-    "canonical_subject": "custom:sparkline",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `sparkline` example uses a renderer-backed custom shell because lightweight chart glyphs are not a maintained public fallback surface.",
+    "launcher": "mix ash_ui.examples.start sparkline",
+    "preview": "mix ash_ui.examples.preview sparkline",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `sparkline` example uses a renderer-backed custom shell because lightweight chart glyphs are not a maintained public fallback surface.",
-    "launcher": "mix ash_ui.examples.start sparkline",
-    "preview": "mix ash_ui.examples.preview sparkline",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:sparkline",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "bar_chart",
     "family": "feedback",
     "title": "Bar Chart Example",
     "phase": 20,
-    "canonical_subject": "custom:bar_chart",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `bar_chart` example uses an explicit custom surface because categorical chart rendering is a renderer-backed extension, not a maintained public widget.",
+    "launcher": "mix ash_ui.examples.start bar_chart",
+    "preview": "mix ash_ui.examples.preview bar_chart",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `bar_chart` example uses an explicit custom surface because categorical chart rendering is a renderer-backed extension, not a maintained public widget.",
-    "launcher": "mix ash_ui.examples.start bar_chart",
-    "preview": "mix ash_ui.examples.preview bar_chart",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:bar_chart",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   },
   {
     "directory": "line_chart",
     "family": "feedback",
     "title": "Line Chart Example",
     "phase": 20,
-    "canonical_subject": "custom:line_chart",
-    "parity_kind": "custom",
     "actor_profiles": [
       "admin",
       "operator",
       "read_only"
     ],
+    "support_notice": "The `line_chart` example stays a custom shell because trend-line rendering is intentionally renderer-backed and example-scoped.",
+    "launcher": "mix ash_ui.examples.start line_chart",
+    "preview": "mix ash_ui.examples.preview line_chart",
+    "runtime_modes": [
+      "live_ui",
+      "elm_ui",
+      "desktop_ui"
+    ],
     "seed_profiles": [
       "seeded_screen",
       "runtime_realism"
     ],
-    "runtime_modes": [
-      "liveview"
-    ],
-    "support_notice": "The `line_chart` example stays a custom shell because trend-line rendering is intentionally renderer-backed and example-scoped.",
-    "launcher": "mix ash_ui.examples.start line_chart",
-    "preview": "mix ash_ui.examples.preview line_chart",
-    "shared_theme": true,
+    "parity_kind": "custom",
+    "canonical_subject": "custom:line_chart",
+    "support_status": "custom_surface",
     "interaction_story_status": "present",
-    "signal_preview_status": "present",
-    "support_status": "custom_surface"
+    "shared_theme": true,
+    "signal_preview_status": "present"
   }
 ]

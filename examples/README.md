@@ -37,9 +37,11 @@ visual contract.
 - `mix ash_ui.examples.start <directory> --dry-run`
   shows the delegated `mix example.start` command without launching the target
   Phoenix app.
-- `mix ash_ui.examples.start <directory> [--actor <profile>] [--seed <profile>] [--runtime liveview]`
+- `mix ash_ui.examples.start <directory> [--actor <profile>] [--seed <profile>] [--runtime live_ui]`
   starts the selected app through the root workflow when you want to review it
-  live.
+  live. The app-local default is `mix example.start`, which shows the `live_ui`
+  renderer through the Phoenix LiveView host; pass `elm_ui` or `desktop_ui`
+  when you want a different renderer preview.
 - `mix ash_ui.examples.validate`
   runs the checked-in suite validation and governance checks from the root
   project.

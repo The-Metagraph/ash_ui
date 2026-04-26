@@ -1,6 +1,19 @@
 defmodule AshUIExamples.ClusterDashboard.MixProject do
   use Mix.Project
 
+  @default_runtime "live_ui"
+  @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
+  @runtime_aliases %{
+    "desktop" => "desktop_ui",
+    "desktop_ui" => "desktop_ui",
+    "elm" => "elm_ui",
+    "elm_ui" => "elm_ui",
+    "live" => "live_ui",
+    "live-ui" => "live_ui",
+    "live_ui" => "live_ui",
+    "liveview" => "live_ui"
+  }
+
   def project do
     [
       app: :ash_ui_example_cluster_dashboard,
@@ -31,7 +44,53 @@ defmodule AshUIExamples.ClusterDashboard.MixProject do
 
   defp aliases do
     [
-      "example.start": ["phx.server"]
+      "example.start": [&example_start/1]
     ]
+  end
+
+  defp example_start(args) do
+    {opts, positional} = OptionParser.parse!(args, strict: [runtime: :string])
+
+    runtime =
+      Keyword.get(opts, :runtime) ||
+        case positional do
+          [] -> default_runtime()
+          [value] -> value
+          _ -> Mix.raise("expected zero or one runtime argument, e.g. `mix example.start elm_ui`")
+        end
+
+    runtime = normalize_runtime!(runtime)
+
+    System.put_env("ASH_UI_EXAMPLE_RUNTIME", runtime)
+    Mix.shell().info("Starting example app with runtime=#{runtime}")
+    Mix.Task.run("phx.server", [])
+  end
+
+  defp default_runtime, do: @default_runtime
+
+  defp normalize_runtime(nil), do: {:ok, @default_runtime}
+
+  defp normalize_runtime(runtime) when is_binary(runtime) do
+    runtime =
+      runtime
+      |> String.trim()
+      |> String.downcase()
+
+    case Map.fetch(@runtime_aliases, runtime) do
+      {:ok, canonical} -> {:ok, canonical}
+      :error -> {:error, {:unsupported_runtime, runtime, @supported_runtimes}}
+    end
+  end
+
+  defp normalize_runtime!(runtime) do
+    case normalize_runtime(runtime) do
+      {:ok, canonical} ->
+        canonical
+
+      {:error, {:unsupported_runtime, value, supported}} ->
+        Mix.raise(
+          "unsupported runtime #{inspect(value)}; expected one of: #{Enum.join(supported, ", ")}"
+        )
+    end
   end
 end

@@ -202,6 +202,73 @@
   z-index: 1;
 }
 
+.ashui-example-runtime-panel {
+  align-items: start;
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1.25rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.45fr) minmax(16rem, 0.95fr);
+  margin-bottom: 1.5rem;
+  padding: 1.1rem 1.2rem;
+}
+
+.ashui-example-runtime-copy {
+  margin: 0;
+  color: var(--ashui-example-copy-muted);
+  line-height: 1.65;
+}
+
+.ashui-example-runtime-title {
+  margin: 0 0 0.45rem;
+  color: var(--ashui-example-copy-strong);
+  font-size: 1rem;
+}
+
+.ashui-example-runtime-actions {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+}
+
+.ashui-example-runtime-command {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--ashui-example-border-soft);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ashui-example-copy-strong);
+  font-size: 0.84rem;
+  white-space: nowrap;
+}
+
+.ashui-example-runtime-view {
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  background: rgba(2, 6, 23, 0.58);
+}
+
+.ashui-example-runtime-frame {
+  width: 100%;
+  min-height: 30rem;
+  border: 0;
+  background: #ffffff;
+}
+
+.ashui-example-runtime-pre {
+  margin: 0;
+  padding: 1.15rem;
+  color: var(--ashui-example-copy-strong);
+  font-size: 0.84rem;
+  line-height: 1.55;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .ashui-example-shell-header {
   display: grid;
   gap: 0.8rem;
@@ -268,6 +335,16 @@
   display: block;
   max-width: min(100%, 28rem);
   overflow: hidden;
+}
+
+@media (max-width: 860px) {
+  .ashui-example-runtime-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .ashui-example-runtime-command {
+    white-space: normal;
+  }
 }
 
 .ash-form-builder,

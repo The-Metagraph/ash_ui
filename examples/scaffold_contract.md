@@ -171,6 +171,15 @@ suite:
 - `Expect`
 - `Validate`
 
+The `Run` section should explain the maintained launcher explicitly:
+
+- `mix example.start` starts the default `live_ui` renderer inside the Phoenix
+  LiveView host shell
+- `mix example.start live_ui`, `mix example.start elm_ui`, and
+  `mix example.start desktop_ui` select the runtime preview by name
+- the same runtime can be reviewed through `/?runtime=<name>` once the server
+  is already running
+
 ## Bootstrap And Seed Conventions
 
 The default storage strategy for example apps is ETS-backed UI storage plus

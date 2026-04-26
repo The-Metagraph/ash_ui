@@ -7,7 +7,7 @@ defmodule AshUIExamples.Canvas do
 
   alias AshUI.LiveView.EventHandler
   alias AshUI.LiveView.Integration
-  alias AshUI.Rendering.LiveUIAdapter
+  alias AshUI.Rendering.{DesktopUIAdapter, ElmUIAdapter, LiveUIAdapter}
   alias AshUI.Resource.Authority
 
   @directory "canvas"
@@ -16,27 +16,18 @@ defmodule AshUIExamples.Canvas do
     directory: "canvas",
     family: :display,
     title: "Canvas Example",
-    section: :display_systems,
-    subject_type: :"custom:canvas",
-    subject_props: %{
-      description:
-        "Toolbar controls and legend copy stay in related child resources while the board remains an explicit custom display surface.",
-      title: "Response canvas",
-      class: "ashui-example-canvas-shell"
-    },
     story_text:
       "Meaningful Interaction Story: switch the active layer from the toolbar and confirm the board plus legend update through nested public controls while the canvas shell remains explicit.",
     signal_text:
       "Canonical Signal Preview: nested button click -> ExampleState.selected_value -> canvas board copy, legend status, and preview stat.",
+    preview_field: :selected_value,
     seed_state: %{
       id: "state-canvas",
       status: "Canvas layer selection stays local to nested public controls.",
       selected_value: "incident map"
     },
-    preview_field: :selected_value,
-    preview_title: "Active layer",
-    subject_binding: nil,
-    subject_action: nil,
+    support_notice:
+      "The `canvas` example keeps toolbar controls and legend updates on related child resources while the board remains an explicit `custom:canvas` surface.",
     subject_children: [
       %{
         position: 0,
@@ -44,11 +35,6 @@ defmodule AshUIExamples.Canvas do
         slot: :toolbar,
         key: :incident_map_button,
         children: [],
-        props: %{
-          label: "Incident map",
-          class: "ashui-example-command-button",
-          variant: "secondary"
-        },
         actions: [
           %{
             id: :select_incident_map_layer,
@@ -73,7 +59,12 @@ defmodule AshUIExamples.Canvas do
               }
             }
           }
-        ]
+        ],
+        props: %{
+          label: "Incident map",
+          class: "ashui-example-command-button",
+          variant: "secondary"
+        }
       },
       %{
         position: 10,
@@ -81,11 +72,6 @@ defmodule AshUIExamples.Canvas do
         slot: :toolbar,
         key: :handoff_path_button,
         children: [],
-        props: %{
-          label: "Handoff path",
-          class: "ashui-example-command-button",
-          variant: "secondary"
-        },
         actions: [
           %{
             id: :select_handoff_path_layer,
@@ -110,7 +96,12 @@ defmodule AshUIExamples.Canvas do
               }
             }
           }
-        ]
+        ],
+        props: %{
+          label: "Handoff path",
+          class: "ashui-example-command-button",
+          variant: "secondary"
+        }
       },
       %{
         position: 0,
@@ -132,7 +123,7 @@ defmodule AshUIExamples.Canvas do
         ],
         key: :canvas_active_layer,
         children: [],
-        props: %{class: "ashui-example-surface-copy", content: "incident map"}
+        props: %{content: "incident map", class: "ashui-example-surface-copy"}
       },
       %{
         position: 10,
@@ -141,9 +132,9 @@ defmodule AshUIExamples.Canvas do
         key: :canvas_board_copy,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
           content:
-            "The board stays intentionally sparse so the authored layer relationship remains readable."
+            "The board stays intentionally sparse so the authored layer relationship remains readable.",
+          class: "ashui-example-surface-meta"
         }
       },
       %{
@@ -167,19 +158,54 @@ defmodule AshUIExamples.Canvas do
         key: :canvas_status,
         children: [],
         props: %{
-          class: "ashui-example-surface-meta",
-          content: "Canvas layer selection stays local to nested public controls."
+          content: "Canvas layer selection stays local to nested public controls.",
+          class: "ashui-example-surface-meta"
         }
       }
     ],
-    support_notice:
-      "The `canvas` example keeps toolbar controls and legend updates on related child resources while the board remains an explicit `custom:canvas` surface.",
-    notes: "Uses explicit toolbar, body, and legend slots."
+    section: :display_systems,
+    subject_action: nil,
+    subject_binding: nil,
+    subject_type: :"custom:canvas",
+    notes: "Uses explicit toolbar, body, and legend slots.",
+    preview_title: "Active layer",
+    subject_props: %{
+      description:
+        "Toolbar controls and legend copy stay in related child resources while the board remains an explicit custom display surface.",
+      title: "Response canvas",
+      class: "ashui-example-canvas-shell"
+    }
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
+  @default_runtime "live_ui"
+  @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
+  @runtime_aliases %{
+    "desktop" => "desktop_ui",
+    "desktop_ui" => "desktop_ui",
+    "elm" => "elm_ui",
+    "elm_ui" => "elm_ui",
+    "live" => "live_ui",
+    "live-ui" => "live_ui",
+    "live_ui" => "live_ui",
+    "liveview" => "live_ui"
+  }
+  @runtime_descriptions %{
+    "live_ui" =>
+      "Default runtime: renders the live_ui surface inside the Phoenix LiveView example shell.",
+    "elm_ui" =>
+      "Alternate runtime: renders the canonical IUR through elm_ui and previews the generated document inside the Phoenix LiveView example shell.",
+    "desktop_ui" =>
+      "Alternate runtime: renders the canonical IUR to desktop_ui instructions and previews the generated payload inside the Phoenix LiveView example shell."
+  }
 
   def app, do: :ash_ui_example_canvas
+  def default_runtime, do: @default_runtime
   def definition, do: @definition
+
+  def runtime_description(runtime),
+    do: runtime |> normalize_runtime!() |> then(&Map.fetch!(@runtime_descriptions, &1))
+
+  def supported_runtimes, do: @supported_runtimes
   def title, do: @definition.title
   def theme_css, do: @theme_css
   def screen_name, do: @screen_name
@@ -286,19 +312,82 @@ defmodule AshUIExamples.Canvas do
   end
 
   def rendered_ui(assigns) do
+    assigns
+    |> rendered_runtime()
+    |> then(& &1.content)
+  end
+
+  def normalize_runtime(nil), do: {:ok, @default_runtime}
+
+  def normalize_runtime(runtime) when is_binary(runtime) do
+    runtime =
+      runtime
+      |> String.trim()
+      |> String.downcase()
+
+    case Map.fetch(@runtime_aliases, runtime) do
+      {:ok, canonical} -> {:ok, canonical}
+      :error -> {:error, {:unsupported_runtime, runtime, @supported_runtimes}}
+    end
+  end
+
+  def normalize_runtime!(runtime) do
+    case normalize_runtime(runtime) do
+      {:ok, canonical} ->
+        canonical
+
+      {:error, {:unsupported_runtime, value, supported}} ->
+        raise ArgumentError,
+              "unsupported runtime #{inspect(value)}; expected one of: #{Enum.join(supported, ", ")}"
+    end
+  end
+
+  def rendered_runtime(assigns, runtime \\ default_runtime()) do
+    runtime = normalize_runtime!(runtime)
+
     iur =
       assigns[:ash_ui_iur] ||
         Integration.hydrate_iur(assigns[:ash_ui_base_iur], assigns[:ash_ui_bindings] || %{})
 
-    {:ok, markup} =
-      LiveUIAdapter.render(
-        iur,
-        bindings: Map.values(assigns[:ash_ui_bindings] || %{}),
-        event_prefix: "ash_ui",
-        force_fallback: true
-      )
+    bindings = Map.values(assigns[:ash_ui_bindings] || %{})
 
-    markup
+    case runtime do
+      "live_ui" ->
+        {:ok, markup} =
+          LiveUIAdapter.render(
+            iur,
+            bindings: bindings,
+            event_prefix: "ash_ui",
+            force_fallback: true
+          )
+
+        %{
+          content: markup,
+          description: runtime_description(runtime),
+          mode: :live_fragment,
+          runtime: runtime
+        }
+
+      "elm_ui" ->
+        {:ok, html_document} = ElmUIAdapter.render(iur, title: title())
+
+        %{
+          content: html_document,
+          description: runtime_description(runtime),
+          mode: :html_document,
+          runtime: runtime
+        }
+
+      "desktop_ui" ->
+        {:ok, instructions} = DesktopUIAdapter.render(iur, window_title: title())
+
+        %{
+          content: Jason.encode!(instructions, pretty: true),
+          description: runtime_description(runtime),
+          mode: :desktop_instructions,
+          runtime: runtime
+        }
+    end
   end
 
   defp reset_resource!(resource, domain) do
@@ -894,7 +983,7 @@ defmodule AshUIExamples.Canvas do
     ui_element do
       type(:text)
 
-      props(%{class: "ashui-example-surface-copy", content: "incident map"})
+      props(%{content: "incident map", class: "ashui-example-surface-copy"})
 
       metadata(%{id: "canvas-active-layer", position: 0, slot: "body", section: "demo"})
     end
@@ -917,9 +1006,9 @@ defmodule AshUIExamples.Canvas do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
         content:
-          "The board stays intentionally sparse so the authored layer relationship remains readable."
+          "The board stays intentionally sparse so the authored layer relationship remains readable.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "canvas-board-copy", position: 10, slot: "body", section: "demo"})
@@ -933,8 +1022,8 @@ defmodule AshUIExamples.Canvas do
       type(:text)
 
       props(%{
-        class: "ashui-example-surface-meta",
-        content: "Canvas layer selection stays local to nested public controls."
+        content: "Canvas layer selection stays local to nested public controls.",
+        class: "ashui-example-surface-meta"
       })
 
       metadata(%{id: "canvas-status", position: 0, slot: "legend", section: "demo"})
@@ -1169,6 +1258,7 @@ defmodule AshUIExamples.Canvas do
 
     def mount(params, _session, socket) do
       _ = AshUIExamples.Canvas.seed!()
+      example_runtime = runtime_from_params(params)
 
       socket =
         socket
@@ -1178,6 +1268,11 @@ defmodule AshUIExamples.Canvas do
         |> Phoenix.Component.assign(:page_title, "Canvas Example")
         |> Phoenix.Component.assign(:example_directory, "canvas")
         |> Phoenix.Component.assign(:theme_css, AshUIExamples.Canvas.theme_css())
+        |> Phoenix.Component.assign(:example_runtime, example_runtime)
+        |> Phoenix.Component.assign(
+          :supported_runtimes,
+          AshUIExamples.Canvas.supported_runtimes()
+        )
 
       with {:ok, socket} <- Integration.mount_ui_screen(socket, "example/canvas", params),
            {:ok, socket} <- EventHandler.wire_handlers(socket) do
@@ -1204,6 +1299,24 @@ defmodule AshUIExamples.Canvas do
     end
 
     def render(assigns) do
+      assigns =
+        assigns
+        |> Phoenix.Component.assign_new(:supported_runtimes, fn ->
+          AshUIExamples.Canvas.supported_runtimes()
+        end)
+        |> Phoenix.Component.assign_new(:example_runtime, fn ->
+          AshUIExamples.Canvas.default_runtime()
+        end)
+        |> Phoenix.Component.assign_new(:rendered_runtime, fn ->
+          %{
+            content: assigns[:rendered_ui] || "",
+            description:
+              AshUIExamples.Canvas.runtime_description(AshUIExamples.Canvas.default_runtime()),
+            mode: :live_fragment,
+            runtime: AshUIExamples.Canvas.default_runtime()
+          }
+        end)
+
       ~H"""
       <ExampleShell.example_shell
         title={@page_title}
@@ -1211,17 +1324,57 @@ defmodule AshUIExamples.Canvas do
         summary={"Meaningful Interaction Story: switch the active layer from the toolbar and confirm the board plus legend update through nested public controls while the canvas shell remains explicit."}
         theme_css={@theme_css}
       >
-        <%= Phoenix.HTML.raw(@rendered_ui || "") %>
+        <section class="ashui-example-runtime-panel" id={"example-#{@example_directory}-runtime"}>
+          <div class="ashui-example-runtime-copy">
+            <h2 class="ashui-example-runtime-title">
+              Runtime preview: <%= @rendered_runtime.runtime %>
+            </h2>
+            <p class="ashui-example-runtime-copy"><%= @rendered_runtime.description %></p>
+          </div>
+          <div class="ashui-example-runtime-actions">
+            <%= for runtime <- @supported_runtimes do %>
+              <code class="ashui-example-runtime-command">mix example.start <%= runtime %></code>
+            <% end %>
+          </div>
+        </section>
+        <section class="ashui-example-runtime-view">
+          <%= case @rendered_runtime.mode do %>
+            <% :html_document -> %>
+              <iframe
+                class="ashui-example-runtime-frame"
+                sandbox="allow-same-origin"
+                srcdoc={@rendered_runtime.content}
+                title={"#{@example_directory}-#{@rendered_runtime.runtime}"}
+              />
+            <% :desktop_instructions -> %>
+              <pre class="ashui-example-runtime-pre"><%= @rendered_runtime.content %></pre>
+            <% :live_fragment -> %>
+              <%= Phoenix.HTML.raw(@rendered_runtime.content) %>
+          <% end %>
+        </section>
       </ExampleShell.example_shell>
       """
     end
 
     defp refresh_rendered_ui(socket) do
-      Phoenix.Component.assign(
-        socket,
-        :rendered_ui,
-        AshUIExamples.Canvas.rendered_ui(socket.assigns)
-      )
+      rendered_runtime =
+        AshUIExamples.Canvas.rendered_runtime(
+          socket.assigns,
+          socket.assigns[:example_runtime] || AshUIExamples.Canvas.default_runtime()
+        )
+
+      socket
+      |> Phoenix.Component.assign(:rendered_runtime, rendered_runtime)
+      |> Phoenix.Component.assign(:rendered_ui, rendered_runtime.content)
     end
+
+    defp runtime_from_params(params) do
+      params["runtime"]
+      |> fallback_runtime()
+      |> AshUIExamples.Canvas.normalize_runtime!()
+    end
+
+    defp fallback_runtime(nil), do: System.get_env("ASH_UI_EXAMPLE_RUNTIME")
+    defp fallback_runtime(runtime), do: runtime
   end
 end

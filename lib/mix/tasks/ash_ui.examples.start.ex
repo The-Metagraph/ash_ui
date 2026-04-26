@@ -3,8 +3,8 @@ defmodule Mix.Tasks.AshUi.Examples.Start do
   Launches one checked-in example app from the root project.
 
   The maintained workflow delegates into the target example directory and runs
-  its local `mix example.start` alias. Use `--dry-run` to confirm the command
-  and review profile without starting the Phoenix server.
+  its local `mix example.start` workflow. Use `--dry-run` to confirm the
+  delegated command and review profile without starting the Phoenix server.
   """
 
   use Mix.Task
@@ -45,7 +45,7 @@ defmodule Mix.Tasks.AshUi.Examples.Start do
       {_, status} =
         System.cmd(
           "mix",
-          ["example.start"],
+          tl(spec.command),
           cd: spec.project_path,
           env: [{"MIX_ENV", "dev"}],
           into: IO.stream(:stdio, :line),

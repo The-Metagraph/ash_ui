@@ -36,7 +36,7 @@ defmodule AshUI.Phase21LauncherWorkflowTest do
         end)
 
       assert output =~ "Status Example (`status`)"
-      assert output =~ "Review profile: actor=operator seed=runtime_realism runtime=liveview"
+      assert output =~ "Review profile: actor=operator seed=runtime_realism runtime=live_ui"
     end
 
     test "21.2.1.3 - preview output foregrounds the shared shell, interaction story, and canonical signal preview" do

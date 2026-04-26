@@ -11,10 +11,25 @@ shared Ash HQ shell.
 
 From this directory:
 
-`mix deps.get`
-`mix phx.server`
+```bash
+mix deps.get
+mix example.start
+```
 
-The app mounts at `http://127.0.0.1:5000/` by default.
+`mix example.start` starts the default `live_ui` renderer, shown through the
+example's Phoenix LiveView host at `http://127.0.0.1:5000/`.
+
+To preview another runtime, pass its name as the first argument:
+
+```bash
+mix example.start live_ui
+mix example.start elm_ui
+mix example.start desktop_ui
+```
+
+If the server is already running, the same runtime switch can be reviewed by
+visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
+`/?runtime=desktop_ui`.
 
 ## Try It
 

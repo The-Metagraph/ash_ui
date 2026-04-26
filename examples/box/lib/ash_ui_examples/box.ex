@@ -7,7 +7,7 @@ defmodule AshUIExamples.Box do
 
   alias AshUI.LiveView.EventHandler
   alias AshUI.LiveView.Integration
-  alias AshUI.Rendering.LiveUIAdapter
+  alias AshUI.Rendering.{DesktopUIAdapter, ElmUIAdapter, LiveUIAdapter}
   alias AshUI.Resource.Authority
 
   @directory "box"
@@ -16,29 +16,55 @@ defmodule AshUIExamples.Box do
     directory: "box",
     family: :content,
     title: "Box Example",
+    section: :foundational,
     story_text:
       "Meaningful Interaction Story: review the empty container shell and confirm the example is explicit that box semantics are expressed through composed card/container structure.",
     signal_text:
       "Canonical Signal Preview: composed native container review pattern -> `card` shell plus support note.",
+    support_notice:
+      "The `box` directory preserves sibling parity while the current Ash UI implementation composes the experience from native container/card structure.",
     preview_field: :status,
     seed_state: %{
       id: "state-box",
       status: "Box example composes container semantics from native card structure."
     },
-    support_notice:
-      "The `box` directory preserves sibling parity while the current Ash UI implementation composes the experience from native container/card structure.",
     subject_action: nil,
     subject_binding: nil,
     subject_type: :card,
-    section: :foundational,
     notes: "Uses a composed native container pattern.",
     preview_title: "Composition note",
     subject_props: %{title: "Box shell", class: "ashui-example-box"}
   }
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
+  @default_runtime "live_ui"
+  @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
+  @runtime_aliases %{
+    "desktop" => "desktop_ui",
+    "desktop_ui" => "desktop_ui",
+    "elm" => "elm_ui",
+    "elm_ui" => "elm_ui",
+    "live" => "live_ui",
+    "live-ui" => "live_ui",
+    "live_ui" => "live_ui",
+    "liveview" => "live_ui"
+  }
+  @runtime_descriptions %{
+    "live_ui" =>
+      "Default runtime: renders the live_ui surface inside the Phoenix LiveView example shell.",
+    "elm_ui" =>
+      "Alternate runtime: renders the canonical IUR through elm_ui and previews the generated document inside the Phoenix LiveView example shell.",
+    "desktop_ui" =>
+      "Alternate runtime: renders the canonical IUR to desktop_ui instructions and previews the generated payload inside the Phoenix LiveView example shell."
+  }
 
   def app, do: :ash_ui_example_box
+  def default_runtime, do: @default_runtime
   def definition, do: @definition
+
+  def runtime_description(runtime),
+    do: runtime |> normalize_runtime!() |> then(&Map.fetch!(@runtime_descriptions, &1))
+
+  def supported_runtimes, do: @supported_runtimes
   def title, do: @definition.title
   def theme_css, do: @theme_css
   def screen_name, do: @screen_name
@@ -144,19 +170,82 @@ defmodule AshUIExamples.Box do
   end
 
   def rendered_ui(assigns) do
+    assigns
+    |> rendered_runtime()
+    |> then(& &1.content)
+  end
+
+  def normalize_runtime(nil), do: {:ok, @default_runtime}
+
+  def normalize_runtime(runtime) when is_binary(runtime) do
+    runtime =
+      runtime
+      |> String.trim()
+      |> String.downcase()
+
+    case Map.fetch(@runtime_aliases, runtime) do
+      {:ok, canonical} -> {:ok, canonical}
+      :error -> {:error, {:unsupported_runtime, runtime, @supported_runtimes}}
+    end
+  end
+
+  def normalize_runtime!(runtime) do
+    case normalize_runtime(runtime) do
+      {:ok, canonical} ->
+        canonical
+
+      {:error, {:unsupported_runtime, value, supported}} ->
+        raise ArgumentError,
+              "unsupported runtime #{inspect(value)}; expected one of: #{Enum.join(supported, ", ")}"
+    end
+  end
+
+  def rendered_runtime(assigns, runtime \\ default_runtime()) do
+    runtime = normalize_runtime!(runtime)
+
     iur =
       assigns[:ash_ui_iur] ||
         Integration.hydrate_iur(assigns[:ash_ui_base_iur], assigns[:ash_ui_bindings] || %{})
 
-    {:ok, markup} =
-      LiveUIAdapter.render(
-        iur,
-        bindings: Map.values(assigns[:ash_ui_bindings] || %{}),
-        event_prefix: "ash_ui",
-        force_fallback: true
-      )
+    bindings = Map.values(assigns[:ash_ui_bindings] || %{})
 
-    markup
+    case runtime do
+      "live_ui" ->
+        {:ok, markup} =
+          LiveUIAdapter.render(
+            iur,
+            bindings: bindings,
+            event_prefix: "ash_ui",
+            force_fallback: true
+          )
+
+        %{
+          content: markup,
+          description: runtime_description(runtime),
+          mode: :live_fragment,
+          runtime: runtime
+        }
+
+      "elm_ui" ->
+        {:ok, html_document} = ElmUIAdapter.render(iur, title: title())
+
+        %{
+          content: html_document,
+          description: runtime_description(runtime),
+          mode: :html_document,
+          runtime: runtime
+        }
+
+      "desktop_ui" ->
+        {:ok, instructions} = DesktopUIAdapter.render(iur, window_title: title())
+
+        %{
+          content: Jason.encode!(instructions, pretty: true),
+          description: runtime_description(runtime),
+          mode: :desktop_instructions,
+          runtime: runtime
+        }
+    end
   end
 
   defp reset_resource!(resource, domain) do
@@ -817,6 +906,7 @@ defmodule AshUIExamples.Box do
 
     def mount(params, _session, socket) do
       _ = AshUIExamples.Box.seed!()
+      example_runtime = runtime_from_params(params)
 
       socket =
         socket
@@ -826,6 +916,8 @@ defmodule AshUIExamples.Box do
         |> Phoenix.Component.assign(:page_title, "Box Example")
         |> Phoenix.Component.assign(:example_directory, "box")
         |> Phoenix.Component.assign(:theme_css, AshUIExamples.Box.theme_css())
+        |> Phoenix.Component.assign(:example_runtime, example_runtime)
+        |> Phoenix.Component.assign(:supported_runtimes, AshUIExamples.Box.supported_runtimes())
 
       with {:ok, socket} <- Integration.mount_ui_screen(socket, "example/box", params),
            {:ok, socket} <- EventHandler.wire_handlers(socket) do
@@ -852,6 +944,24 @@ defmodule AshUIExamples.Box do
     end
 
     def render(assigns) do
+      assigns =
+        assigns
+        |> Phoenix.Component.assign_new(:supported_runtimes, fn ->
+          AshUIExamples.Box.supported_runtimes()
+        end)
+        |> Phoenix.Component.assign_new(:example_runtime, fn ->
+          AshUIExamples.Box.default_runtime()
+        end)
+        |> Phoenix.Component.assign_new(:rendered_runtime, fn ->
+          %{
+            content: assigns[:rendered_ui] || "",
+            description:
+              AshUIExamples.Box.runtime_description(AshUIExamples.Box.default_runtime()),
+            mode: :live_fragment,
+            runtime: AshUIExamples.Box.default_runtime()
+          }
+        end)
+
       ~H"""
       <ExampleShell.example_shell
         title={@page_title}
@@ -859,17 +969,57 @@ defmodule AshUIExamples.Box do
         summary={"Meaningful Interaction Story: review the empty container shell and confirm the example is explicit that box semantics are expressed through composed card/container structure."}
         theme_css={@theme_css}
       >
-        <%= Phoenix.HTML.raw(@rendered_ui || "") %>
+        <section class="ashui-example-runtime-panel" id={"example-#{@example_directory}-runtime"}>
+          <div class="ashui-example-runtime-copy">
+            <h2 class="ashui-example-runtime-title">
+              Runtime preview: <%= @rendered_runtime.runtime %>
+            </h2>
+            <p class="ashui-example-runtime-copy"><%= @rendered_runtime.description %></p>
+          </div>
+          <div class="ashui-example-runtime-actions">
+            <%= for runtime <- @supported_runtimes do %>
+              <code class="ashui-example-runtime-command">mix example.start <%= runtime %></code>
+            <% end %>
+          </div>
+        </section>
+        <section class="ashui-example-runtime-view">
+          <%= case @rendered_runtime.mode do %>
+            <% :html_document -> %>
+              <iframe
+                class="ashui-example-runtime-frame"
+                sandbox="allow-same-origin"
+                srcdoc={@rendered_runtime.content}
+                title={"#{@example_directory}-#{@rendered_runtime.runtime}"}
+              />
+            <% :desktop_instructions -> %>
+              <pre class="ashui-example-runtime-pre"><%= @rendered_runtime.content %></pre>
+            <% :live_fragment -> %>
+              <%= Phoenix.HTML.raw(@rendered_runtime.content) %>
+          <% end %>
+        </section>
       </ExampleShell.example_shell>
       """
     end
 
     defp refresh_rendered_ui(socket) do
-      Phoenix.Component.assign(
-        socket,
-        :rendered_ui,
-        AshUIExamples.Box.rendered_ui(socket.assigns)
-      )
+      rendered_runtime =
+        AshUIExamples.Box.rendered_runtime(
+          socket.assigns,
+          socket.assigns[:example_runtime] || AshUIExamples.Box.default_runtime()
+        )
+
+      socket
+      |> Phoenix.Component.assign(:rendered_runtime, rendered_runtime)
+      |> Phoenix.Component.assign(:rendered_ui, rendered_runtime.content)
     end
+
+    defp runtime_from_params(params) do
+      params["runtime"]
+      |> fallback_runtime()
+      |> AshUIExamples.Box.normalize_runtime!()
+    end
+
+    defp fallback_runtime(nil), do: System.get_env("ASH_UI_EXAMPLE_RUNTIME")
+    defp fallback_runtime(runtime), do: runtime
   end
 end

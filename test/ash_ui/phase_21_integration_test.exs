@@ -50,7 +50,7 @@ defmodule AshUI.Phase21IntegrationTest do
 
       File.write!(
         mix_path,
-        String.replace(File.read!(mix_path), "\"example.start\": [\"phx.server\"]", "")
+        String.replace(File.read!(mix_path), "\"example.start\": [&example_start/1]", "\"example.start\": []")
       )
 
       File.write!(

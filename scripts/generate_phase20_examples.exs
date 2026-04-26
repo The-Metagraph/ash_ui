@@ -61,10 +61,25 @@ defmodule Phase20ExampleGenerator do
 
     From this directory:
 
-    `mix deps.get`
-    `mix phx.server`
+    ```bash
+    mix deps.get
+    mix example.start
+    ```
 
-    The app mounts at `http://127.0.0.1:5000/` by default.
+    `mix example.start` starts the default `live_ui` renderer, shown through the
+    example's Phoenix LiveView host at `http://127.0.0.1:5000/`.
+
+    To preview another runtime, pass its name as the first argument:
+
+    ```bash
+    mix example.start live_ui
+    mix example.start elm_ui
+    mix example.start desktop_ui
+    ```
+
+    If the server is already running, the same runtime switch can be reviewed by
+    visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
+    `/?runtime=desktop_ui`.
 
     ## Try It
 
@@ -91,6 +106,19 @@ defmodule Phase20ExampleGenerator do
     """
     defmodule #{root_module}.MixProject do
       use Mix.Project
+
+      @default_runtime "live_ui"
+      @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
+      @runtime_aliases %{
+        "desktop" => "desktop_ui",
+        "desktop_ui" => "desktop_ui",
+        "elm" => "elm_ui",
+        "elm_ui" => "elm_ui",
+        "live" => "live_ui",
+        "live-ui" => "live_ui",
+        "live_ui" => "live_ui",
+        "liveview" => "live_ui"
+      }
 
       def project do
         [
@@ -122,8 +150,54 @@ defmodule Phase20ExampleGenerator do
 
       defp aliases do
         [
-          "example.start": ["phx.server"]
+          "example.start": [&example_start/1]
         ]
+      end
+
+      defp example_start(args) do
+        {opts, positional} = OptionParser.parse!(args, strict: [runtime: :string])
+
+        runtime =
+          Keyword.get(opts, :runtime) ||
+            case positional do
+              [] -> default_runtime()
+              [value] -> value
+              _ -> Mix.raise("expected zero or one runtime argument, e.g. `mix example.start elm_ui`")
+            end
+
+        runtime = normalize_runtime!(runtime)
+
+        System.put_env("ASH_UI_EXAMPLE_RUNTIME", runtime)
+        Mix.shell().info("Starting example app with runtime=\#{runtime}")
+        Mix.Task.run("phx.server", [])
+      end
+
+      defp default_runtime, do: @default_runtime
+
+      defp normalize_runtime(nil), do: {:ok, @default_runtime}
+
+      defp normalize_runtime(runtime) when is_binary(runtime) do
+        runtime =
+          runtime
+          |> String.trim()
+          |> String.downcase()
+
+        case Map.fetch(@runtime_aliases, runtime) do
+          {:ok, canonical} -> {:ok, canonical}
+          :error -> {:error, {:unsupported_runtime, runtime, @supported_runtimes}}
+        end
+      end
+
+      defp normalize_runtime!(runtime) do
+        case normalize_runtime(runtime) do
+          {:ok, canonical} ->
+            canonical
+
+          {:error, {:unsupported_runtime, value, supported}} ->
+            Mix.raise(
+              "unsupported runtime \#{inspect(value)}; expected one of: \#{Enum.join(supported, \", \")}"
+            )
+        end
       end
     end
     """
@@ -173,6 +247,73 @@ defmodule Phase20ExampleGenerator do
     .ashui-example-live-surface {
       position: relative;
       z-index: 1;
+    }
+
+    .ashui-example-runtime-panel {
+      align-items: start;
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 1.25rem;
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: minmax(0, 1.45fr) minmax(16rem, 0.95fr);
+      margin-bottom: 1.5rem;
+      padding: 1.1rem 1.2rem;
+    }
+
+    .ashui-example-runtime-copy {
+      margin: 0;
+      color: var(--ashui-example-copy-muted);
+      line-height: 1.65;
+    }
+
+    .ashui-example-runtime-title {
+      margin: 0 0 0.45rem;
+      color: var(--ashui-example-copy-strong);
+      font-size: 1rem;
+    }
+
+    .ashui-example-runtime-actions {
+      display: grid;
+      gap: 0.45rem;
+      justify-items: start;
+    }
+
+    .ashui-example-runtime-command {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.55rem 0.8rem;
+      border-radius: 999px;
+      border: 1px solid var(--ashui-example-border-soft);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--ashui-example-copy-strong);
+      font-size: 0.84rem;
+      white-space: nowrap;
+    }
+
+    .ashui-example-runtime-view {
+      border: 1px solid var(--ashui-example-border-soft);
+      border-radius: 1.25rem;
+      overflow: hidden;
+      background: rgba(2, 6, 23, 0.58);
+    }
+
+    .ashui-example-runtime-frame {
+      width: 100%;
+      min-height: 30rem;
+      border: 0;
+      background: #ffffff;
+    }
+
+    .ashui-example-runtime-pre {
+      margin: 0;
+      padding: 1.15rem;
+      color: var(--ashui-example-copy-strong);
+      font-size: 0.84rem;
+      line-height: 1.55;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
     .ashui-example-shell-header {
@@ -241,6 +382,16 @@ defmodule Phase20ExampleGenerator do
       display: block;
       max-width: min(100%, 28rem);
       overflow: hidden;
+    }
+
+    @media (max-width: 860px) {
+      .ashui-example-runtime-panel {
+        grid-template-columns: 1fr;
+      }
+
+      .ashui-example-runtime-command {
+        white-space: normal;
+      }
     }
 
     .ash-form-builder,
@@ -1428,17 +1579,40 @@ defmodule Phase20ExampleGenerator do
 
         alias AshUI.LiveView.EventHandler
         alias AshUI.LiveView.Integration
-        alias AshUI.Rendering.LiveUIAdapter
+        alias AshUI.Rendering.{DesktopUIAdapter, ElmUIAdapter, LiveUIAdapter}
         alias AshUI.Resource.Authority
 
         @directory "<%= definition.directory %>"
         @screen_name "<%= screen_name %>"
         @definition <%= Phase20ExampleGenerator.pretty_literal(definition) %>
         @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
+        @default_runtime "live_ui"
+        @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
+        @runtime_aliases %{
+          "desktop" => "desktop_ui",
+          "desktop_ui" => "desktop_ui",
+          "elm" => "elm_ui",
+          "elm_ui" => "elm_ui",
+          "live" => "live_ui",
+          "live-ui" => "live_ui",
+          "live_ui" => "live_ui",
+          "liveview" => "live_ui"
+        }
+        @runtime_descriptions %{
+          "live_ui" =>
+            "Default runtime: renders the live_ui surface inside the Phoenix LiveView example shell.",
+          "elm_ui" =>
+            "Alternate runtime: renders the canonical IUR through elm_ui and previews the generated document inside the Phoenix LiveView example shell.",
+          "desktop_ui" =>
+            "Alternate runtime: renders the canonical IUR to desktop_ui instructions and previews the generated payload inside the Phoenix LiveView example shell."
+        }
 
         def app, do: <%= Phase20ExampleGenerator.literal(AshUI.Examples.Phase20.app_atom(definition.directory)) %>
+        def default_runtime, do: @default_runtime
         def definition, do: @definition
         def title, do: @definition.title
+        def runtime_description(runtime), do: runtime |> normalize_runtime!() |> then(&Map.fetch!(@runtime_descriptions, &1))
+        def supported_runtimes, do: @supported_runtimes
         def theme_css, do: @theme_css
         def screen_name, do: @screen_name
 
@@ -1540,19 +1714,81 @@ defmodule Phase20ExampleGenerator do
         end
 
         def rendered_ui(assigns) do
+          assigns
+          |> rendered_runtime()
+          |> then(& &1.content)
+        end
+
+        def normalize_runtime(nil), do: {:ok, @default_runtime}
+
+        def normalize_runtime(runtime) when is_binary(runtime) do
+          runtime =
+            runtime
+            |> String.trim()
+            |> String.downcase()
+
+          case Map.fetch(@runtime_aliases, runtime) do
+            {:ok, canonical} -> {:ok, canonical}
+            :error -> {:error, {:unsupported_runtime, runtime, @supported_runtimes}}
+          end
+        end
+
+        def normalize_runtime!(runtime) do
+          case normalize_runtime(runtime) do
+            {:ok, canonical} ->
+              canonical
+
+            {:error, {:unsupported_runtime, value, supported}} ->
+              raise ArgumentError,
+                    "unsupported runtime #{inspect(value)}; expected one of: #{Enum.join(supported, ", ")}"
+          end
+        end
+
+        def rendered_runtime(assigns, runtime \\ default_runtime()) do
+          runtime = normalize_runtime!(runtime)
           iur =
             assigns[:ash_ui_iur] ||
               Integration.hydrate_iur(assigns[:ash_ui_base_iur], assigns[:ash_ui_bindings] || %{})
 
-          {:ok, markup} =
-            LiveUIAdapter.render(
-              iur,
-              bindings: Map.values(assigns[:ash_ui_bindings] || %{}),
-              event_prefix: "ash_ui",
-              force_fallback: true
-            )
+          bindings = Map.values(assigns[:ash_ui_bindings] || %{})
 
-          markup
+          case runtime do
+            "live_ui" ->
+              {:ok, markup} =
+                LiveUIAdapter.render(
+                  iur,
+                  bindings: bindings,
+                  event_prefix: "ash_ui",
+                  force_fallback: true
+                )
+
+              %{
+                content: markup,
+                description: runtime_description(runtime),
+                mode: :live_fragment,
+                runtime: runtime
+              }
+
+            "elm_ui" ->
+              {:ok, html_document} = ElmUIAdapter.render(iur, title: title())
+
+              %{
+                content: html_document,
+                description: runtime_description(runtime),
+                mode: :html_document,
+                runtime: runtime
+              }
+
+            "desktop_ui" ->
+              {:ok, instructions} = DesktopUIAdapter.render(iur, window_title: title())
+
+              %{
+                content: Jason.encode!(instructions, pretty: true),
+                description: runtime_description(runtime),
+                mode: :desktop_instructions,
+                runtime: runtime
+              }
+          end
         end
 
         defp reset_resource!(resource, domain) do
@@ -2208,6 +2444,7 @@ defmodule Phase20ExampleGenerator do
 
           def mount(params, _session, socket) do
             _ = <%= root_module %>.seed!()
+            example_runtime = runtime_from_params(params)
 
             socket =
               socket
@@ -2217,6 +2454,8 @@ defmodule Phase20ExampleGenerator do
               |> Phoenix.Component.assign(:page_title, <%= Phase20ExampleGenerator.literal(definition.title) %>)
               |> Phoenix.Component.assign(:example_directory, <%= Phase20ExampleGenerator.literal(definition.directory) %>)
               |> Phoenix.Component.assign(:theme_css, <%= root_module %>.theme_css())
+              |> Phoenix.Component.assign(:example_runtime, example_runtime)
+              |> Phoenix.Component.assign(:supported_runtimes, <%= root_module %>.supported_runtimes())
 
             with {:ok, socket} <- Integration.mount_ui_screen(socket, <%= Phase20ExampleGenerator.literal(screen_name) %>, params),
                  {:ok, socket} <- EventHandler.wire_handlers(socket) do
@@ -2242,6 +2481,23 @@ defmodule Phase20ExampleGenerator do
           end
 
           def render(assigns) do
+            assigns =
+              assigns
+              |> Phoenix.Component.assign_new(:supported_runtimes, fn ->
+                <%= root_module %>.supported_runtimes()
+              end)
+              |> Phoenix.Component.assign_new(:example_runtime, fn ->
+                <%= root_module %>.default_runtime()
+              end)
+              |> Phoenix.Component.assign_new(:rendered_runtime, fn ->
+                %{
+                  content: assigns[:rendered_ui] || "",
+                  description: <%= root_module %>.runtime_description(<%= root_module %>.default_runtime()),
+                  mode: :live_fragment,
+                  runtime: <%= root_module %>.default_runtime()
+                }
+              end)
+
             ~H"""
             <ExampleShell.example_shell
               title={@page_title}
@@ -2249,14 +2505,58 @@ defmodule Phase20ExampleGenerator do
               summary={<%= Phase20ExampleGenerator.literal(definition.story_text) %>}
               theme_css={@theme_css}
             >
-              <%%= Phoenix.HTML.raw(@rendered_ui || "") %>
+              <section class="ashui-example-runtime-panel" id={"example-#{@example_directory}-runtime"}>
+                <div class="ashui-example-runtime-copy">
+                  <h2 class="ashui-example-runtime-title">
+                    Runtime preview: <%%= @rendered_runtime.runtime %>
+                  </h2>
+                  <p class="ashui-example-runtime-copy"><%%= @rendered_runtime.description %></p>
+                </div>
+                <div class="ashui-example-runtime-actions">
+                  <%%= for runtime <- @supported_runtimes do %>
+                    <code class="ashui-example-runtime-command">mix example.start <%%= runtime %></code>
+                  <%% end %>
+                </div>
+              </section>
+              <section class="ashui-example-runtime-view">
+                <%%= case @rendered_runtime.mode do %>
+                  <%% :html_document -> %>
+                    <iframe
+                      class="ashui-example-runtime-frame"
+                      sandbox="allow-same-origin"
+                      srcdoc={@rendered_runtime.content}
+                      title={"#{@example_directory}-#{@rendered_runtime.runtime}"}
+                    />
+                  <%% :desktop_instructions -> %>
+                    <pre class="ashui-example-runtime-pre"><%%= @rendered_runtime.content %></pre>
+                  <%% :live_fragment -> %>
+                    <%%= Phoenix.HTML.raw(@rendered_runtime.content) %>
+                <%% end %>
+              </section>
             </ExampleShell.example_shell>
             """
           end
 
           defp refresh_rendered_ui(socket) do
-            Phoenix.Component.assign(socket, :rendered_ui, <%= root_module %>.rendered_ui(socket.assigns))
+            rendered_runtime =
+              <%= root_module %>.rendered_runtime(
+                socket.assigns,
+                socket.assigns[:example_runtime] || <%= root_module %>.default_runtime()
+              )
+
+            socket
+            |> Phoenix.Component.assign(:rendered_runtime, rendered_runtime)
+            |> Phoenix.Component.assign(:rendered_ui, rendered_runtime.content)
           end
+
+          defp runtime_from_params(params) do
+            params["runtime"]
+            |> fallback_runtime()
+            |> <%= root_module %>.normalize_runtime!()
+          end
+
+          defp fallback_runtime(nil), do: System.get_env("ASH_UI_EXAMPLE_RUNTIME")
+          defp fallback_runtime(runtime), do: runtime
         end
       end
       ''',

@@ -287,14 +287,7 @@ body {
 .ashui-tutorial-topology-tree,
 .ashui-tutorial-topology-viewport,
 .ashui-tutorial-topology-canvas,
-.ashui-tutorial-topology-scroll,
-.ashui-tutorial-metrics-panel,
-.ashui-tutorial-metrics-dashboard,
-.ashui-tutorial-metrics-progress,
-.ashui-tutorial-metrics-gauge,
-.ashui-tutorial-metrics-sparkline,
-.ashui-tutorial-metrics-bar-chart,
-.ashui-tutorial-metrics-line-chart {
+.ashui-tutorial-topology-scroll {
   display: grid;
   gap: 0.9rem;
 }

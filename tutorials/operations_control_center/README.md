@@ -3,12 +3,12 @@
 This is the maintained final tutorial application for the Operations Control
 Center series.
 
-It now tracks the Chapter 5 milestone from
-[`tutorials/code/05-safe-overlays-and-guards/`](../code/05-safe-overlays-and-guards/):
+It now tracks the Chapter 6 milestone from
+[`tutorials/code/06-runbooks-and-attachments/`](../code/06-runbooks-and-attachments/):
 the shared shell, persisted filters, command navigation, operator workflows,
-and guarded overlay confirmations. Later phases should keep advancing this
-directory, while the checkpoint apps under `tutorials/code/` remain frozen
-chapter snapshots.
+guarded overlay confirmations, and the first runbook plus attachment review
+surfaces. Later phases should keep advancing this directory, while the
+checkpoint apps under `tutorials/code/` remain frozen chapter snapshots.
 
 ## Run
 
@@ -43,5 +43,6 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
   `tutorial/services-incidents/incidents`
 - Current story scope:
   services review, incidents review, shared detail focus, persisted filters,
-  command navigation, operator forms, guarded actions, and the maintained shell
-  that later tutorial chapters will extend
+  command navigation, operator forms, guarded actions, runbook markdown,
+  filename-only attachment capture, and the maintained shell that later
+  tutorial chapters will extend

@@ -23,18 +23,18 @@ Back to index: [README](./README.md)
   Implement the tutorial milestones that add runbooks, attachments, rich detail
   views, and live diagnostic surfaces to the Operations Control Center app.
 
-  [ ] 25.1 Section - Chapter 6 Runbooks, Attachments, and Rich Detail Views
+  [x] 25.1 Section - Chapter 6 Runbooks, Attachments, and Rich Detail Views
     Add the documentation and attachment workflows operators use while
     responding to incidents.
 
-    [ ] 25.1.1 Task - Implement runbook and attachment surfaces
+    [x] 25.1.1 Task - Implement runbook and attachment surfaces
     Teach document-backed guidance and evidence capture inside the same
     resource-first app.
 
-      [ ] 25.1.1.1 Subtask - Implement `tutorials/code/06-runbooks-and-attachments/` with incident detail views that incorporate `markdown_viewer`, `file_input`, `link`, and `image` where they support a believable runbook story.
-      [ ] 25.1.1.2 Subtask - Introduce richer detail composition, including `split_pane`, `content`, and `box` patterns where they improve side-by-side operational review.
-      [ ] 25.1.1.3 Subtask - Ensure uploaded or referenced artifacts are represented honestly, including any runtime constraints that remain narrower than the UI vocabulary suggests.
-      [ ] 25.1.1.4 Subtask - Add `tutorials/chapters/06-runbooks-and-attachments.md` with exact references to `tutorials/code/06-runbooks-and-attachments/`.
+      [x] 25.1.1.1 Subtask - Implement `tutorials/code/06-runbooks-and-attachments/` with incident detail views that incorporate `markdown_viewer`, `file_input`, `link`, and `image` where they support a believable runbook story.
+      [x] 25.1.1.2 Subtask - Introduce richer detail composition, including `split_pane`, `content`, and `box` patterns where they improve side-by-side operational review.
+      [x] 25.1.1.3 Subtask - Ensure uploaded or referenced artifacts are represented honestly, including any runtime constraints that remain narrower than the UI vocabulary suggests.
+      [x] 25.1.1.4 Subtask - Add `tutorials/chapters/06-runbooks-and-attachments.md` with exact references to `tutorials/code/06-runbooks-and-attachments/`.
 
   [ ] 25.2 Section - Chapter 7 Live Monitoring and Streaming Diagnostics
     Add the first truly live operational review surfaces around logs, streams,

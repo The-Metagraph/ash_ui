@@ -67,7 +67,7 @@
     "chapter_path": "tutorials/chapters/06-runbooks-and-attachments.md",
     "code_path": "tutorials/code/06-runbooks-and-attachments",
     "previous_code_path": "tutorials/code/05-safe-overlays-and-guards",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Attach operator guidance, assets, and richer side-by-side detail surfaces.",
     "supporting_examples": ["file_input", "image", "link", "markdown_viewer"]
   },

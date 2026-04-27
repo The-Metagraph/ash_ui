@@ -18,7 +18,7 @@ Back to index: [README](./README.md)
 - every chapter in this phase must keep its own code checkpoint under
   `tutorials/code/`
 
-[ ] 26 Phase 26 - Tutorial Topology, Navigation, and Metrics Surfaces
+[x] 26 Phase 26 - Tutorial Topology, Navigation, and Metrics Surfaces
   Implement the tutorial milestones that add service-topology workspaces,
   richer navigation views, and telemetry dashboards to the Operations Control
   Center application.
@@ -47,14 +47,14 @@ Back to index: [README](./README.md)
       [x] 26.2.1.3 Subtask - Keep chart and dashboard stories explicit about what metrics are derived, sampled, or simulated inside the tutorial seed data.
       [x] 26.2.1.4 Subtask - Add `tutorials/chapters/09-metrics-and-capacity.md` with exact references to `tutorials/code/09-metrics-and-capacity/`.
 
-  [ ] 26.3 Section - Phase 26 Integration Tests
+  [x] 26.3 Section - Phase 26 Integration Tests
     Validate the topology and telemetry chapters through coherent operational
     review scenarios.
 
-    [ ] 26.3.1 Task - Topology and metrics scenarios
+    [x] 26.3.1 Task - Topology and metrics scenarios
     Prove the tutorial now supports both structural and quantitative review.
 
-      [ ] 26.3.1.1 Subtask - Verify the Chapter 8 and 9 checkpoint apps boot independently and preserve the shared tutorial shell, code-reference contract, and route expectations.
-      [ ] 26.3.1.2 Subtask - Verify topology and navigation surfaces keep large-screen review usable without abandoning mobile and smaller desktop breakpoints.
-      [ ] 26.3.1.3 Subtask - Verify chart, dashboard, and capacity views stay synchronized with the seeded services, incidents, and cluster data they claim to represent.
-      [ ] 26.3.1.4 Subtask - Verify Chapters 8 and 9 each reference the correct checkpoint directory and supporting resources clearly.
+      [x] 26.3.1.1 Subtask - Verify the Chapter 8 and 9 checkpoint apps boot independently and preserve the shared tutorial shell, code-reference contract, and route expectations.
+      [x] 26.3.1.2 Subtask - Verify topology and navigation surfaces keep large-screen review usable without abandoning mobile and smaller desktop breakpoints.
+      [x] 26.3.1.3 Subtask - Verify chart, dashboard, and capacity views stay synchronized with the seeded services, incidents, and cluster data they claim to represent.
+      [x] 26.3.1.4 Subtask - Verify Chapters 8 and 9 each reference the correct checkpoint directory and supporting resources clearly.

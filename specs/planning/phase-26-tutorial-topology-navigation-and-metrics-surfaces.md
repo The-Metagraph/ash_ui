@@ -23,17 +23,17 @@ Back to index: [README](./README.md)
   richer navigation views, and telemetry dashboards to the Operations Control
   Center application.
 
-  [ ] 26.1 Section - Chapter 8 Topology and Navigation Workspaces
+  [x] 26.1 Section - Chapter 8 Topology and Navigation Workspaces
     Add the structural and exploratory surfaces operators use to understand how
     systems connect.
 
-    [ ] 26.1.1 Task - Implement service-topology and navigation views
+    [x] 26.1.1 Task - Implement service-topology and navigation views
     Teach structural composition across panes, trees, and large review surfaces.
 
-      [ ] 26.1.1.1 Subtask - Implement `tutorials/code/08-topology-and-navigation/` with `tree_view`, `menu`, and `tabs` for navigating services, dependencies, and incident scopes.
-      [ ] 26.1.1.2 Subtask - Introduce `viewport`, `scroll_bar`, `split_pane`, and `canvas` where they materially improve large-topology review and not merely because they exist in the widget catalog.
-      [ ] 26.1.1.3 Subtask - Ensure topology screens remain resource-first by persisting the composed screen/element graph and explicit drill-down state.
-      [ ] 26.1.1.4 Subtask - Add `tutorials/chapters/08-topology-and-navigation.md` with exact references to `tutorials/code/08-topology-and-navigation/`.
+      [x] 26.1.1.1 Subtask - Implement `tutorials/code/08-topology-and-navigation/` with `tree_view`, `menu`, and `tabs` for navigating services, dependencies, and incident scopes.
+      [x] 26.1.1.2 Subtask - Introduce `viewport`, `scroll_bar`, `split_pane`, and `canvas` where they materially improve large-topology review and not merely because they exist in the widget catalog.
+      [x] 26.1.1.3 Subtask - Ensure topology screens remain resource-first by persisting the composed screen/element graph and explicit drill-down state.
+      [x] 26.1.1.4 Subtask - Add `tutorials/chapters/08-topology-and-navigation.md` with exact references to `tutorials/code/08-topology-and-navigation/`.
 
   [ ] 26.2 Section - Chapter 9 Metrics, Trends, and Capacity Views
     Add the telemetry surfaces operators use to understand current risk and

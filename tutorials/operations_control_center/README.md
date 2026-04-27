@@ -3,13 +3,13 @@
 This is the maintained final tutorial application for the Operations Control
 Center series.
 
-It now tracks the Chapter 7 milestone from
-[`tutorials/code/07-live-diagnostics/`](../code/07-live-diagnostics/):
+It now tracks the Chapter 8 milestone from
+[`tutorials/code/08-topology-and-navigation/`](../code/08-topology-and-navigation/):
 the shared shell, persisted filters, command navigation, operator workflows,
-guarded overlay confirmations, the first runbook plus attachment review
-surfaces, and the first live-shaped diagnostics lane. Later phases should keep
-advancing this directory, while the checkpoint apps under `tutorials/code/`
-remain frozen chapter snapshots.
+guarded overlay confirmations, runbook review, seeded diagnostics, and the
+first topology review panel with persisted menu, tabs, tree, viewport, canvas,
+and scroll state. Later phases should keep advancing this directory, while the
+checkpoint apps under `tutorials/code/` remain frozen chapter snapshots.
 
 ## Run
 
@@ -46,4 +46,5 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
   services review, incidents review, shared detail focus, persisted filters,
   command navigation, operator forms, guarded actions, runbook markdown,
   filename-only attachment capture, seeded diagnostics status/log/stream/process
-  review, and the maintained shell that later tutorial chapters will extend
+  review, service-topology drill-downs, large review surfaces, and the
+  maintained shell that later tutorial chapters will extend

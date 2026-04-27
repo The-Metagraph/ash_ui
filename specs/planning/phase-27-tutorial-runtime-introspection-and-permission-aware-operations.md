@@ -22,18 +22,18 @@ Back to index: [README](./README.md)
   Implement the tutorial milestones that add deeper runtime inspection and
   role-aware operational behavior to the Operations Control Center application.
 
-  [ ] 27.1 Section - Chapter 10 Runtime Introspection and Process Views
+  [x] 27.1 Section - Chapter 10 Runtime Introspection and Process Views
     Add the lower-level runtime surfaces advanced operators need when higher
     level dashboards are not enough.
 
-    [ ] 27.1.1 Task - Implement runtime inspection checkpoints
+    [x] 27.1.1 Task - Implement runtime inspection checkpoints
     Teach deeper system introspection through explicit tutorial screens instead
     of burying it in auxiliary notes.
 
-      [ ] 27.1.1.1 Subtask - Implement `tutorials/code/10-runtime-introspection/` with `supervision_tree_viewer`, expanded process/runtime views, and the related navigation needed to move between incidents, services, and BEAM structures.
-      [ ] 27.1.1.2 Subtask - Use supporting surfaces such as `table`, `command_palette`, and summary panels where they clarify runtime drill-down workflows.
-      [ ] 27.1.1.3 Subtask - Keep the tutorial explicit about which runtime trees and process details are real, sampled, or tutorial-seeded.
-      [ ] 27.1.1.4 Subtask - Add `tutorials/chapters/10-runtime-introspection.md` with exact references to `tutorials/code/10-runtime-introspection/`.
+      [x] 27.1.1.1 Subtask - Implement `tutorials/code/10-runtime-introspection/` with `supervision_tree_viewer`, expanded process/runtime views, and the related navigation needed to move between incidents, services, and BEAM structures.
+      [x] 27.1.1.2 Subtask - Use supporting surfaces such as `table`, `command_palette`, and summary panels where they clarify runtime drill-down workflows.
+      [x] 27.1.1.3 Subtask - Keep the tutorial explicit about which runtime trees and process details are real, sampled, or tutorial-seeded.
+      [x] 27.1.1.4 Subtask - Add `tutorials/chapters/10-runtime-introspection.md` with exact references to `tutorials/code/10-runtime-introspection/`.
 
   [ ] 27.2 Section - Chapter 11 Roles, Policies, and Permission-Aware Screens
     Add the authorization story that makes the tutorial usable for production

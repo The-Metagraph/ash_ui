@@ -139,7 +139,7 @@
     "chapter_path": "tutorials/chapters/12-production-polish.md",
     "code_path": "tutorials/code/12-production-polish",
     "previous_code_path": "tutorials/code/11-roles-and-policies",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Polish the final app for responsiveness, accessibility, and operational coherence.",
     "supporting_examples": ["box", "grid", "inline_feedback", "toast"]
   }

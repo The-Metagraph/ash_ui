@@ -23,17 +23,17 @@ Back to index: [README](./README.md)
   real-world review, and align the final application surface with the chapter
   checkpoints.
 
-  [ ] 28.1 Section - Chapter 12 Production Polish and Narrative Cleanup
+  [x] 28.1 Section - Chapter 12 Production Polish and Narrative Cleanup
     Refine the tutorial application until it behaves like a coherent teaching
     product rather than a stack of raw feature checkpoints.
 
-    [ ] 28.1.1 Task - Implement final polish and quality-of-use improvements
+    [x] 28.1.1 Task - Implement final polish and quality-of-use improvements
     Teach the last mile work that real applications need.
 
-      [ ] 28.1.1.1 Subtask - Implement `tutorials/code/12-production-polish/` with responsive refinement, empty states, loading states, error states, and visual cleanup across the full Operations Control Center story.
-      [ ] 28.1.1.2 Subtask - Ensure the final chapter teaches accessibility, keyboard navigation, and contrast expectations alongside visual polish rather than as an afterthought.
-      [ ] 28.1.1.3 Subtask - Keep default tutorial startup focused on the `live_ui` LiveView host while explaining optional alternate-runtime previews honestly where they remain useful.
-      [ ] 28.1.1.4 Subtask - Add `tutorials/chapters/12-production-polish.md` with exact references to `tutorials/code/12-production-polish/`.
+      [x] 28.1.1.1 Subtask - Implement `tutorials/code/12-production-polish/` with responsive refinement, empty states, loading states, error states, and visual cleanup across the full Operations Control Center story.
+      [x] 28.1.1.2 Subtask - Ensure the final chapter teaches accessibility, keyboard navigation, and contrast expectations alongside visual polish rather than as an afterthought.
+      [x] 28.1.1.3 Subtask - Keep default tutorial startup focused on the `live_ui` LiveView host while explaining optional alternate-runtime previews honestly where they remain useful.
+      [x] 28.1.1.4 Subtask - Add `tutorials/chapters/12-production-polish.md` with exact references to `tutorials/code/12-production-polish/`.
 
   [ ] 28.2 Section - Final Tutorial Application Consolidation
     Keep the maintained final app under `tutorials/` aligned with the complete

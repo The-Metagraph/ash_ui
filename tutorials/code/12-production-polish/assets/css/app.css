@@ -1,0 +1,442 @@
+:root {
+  --ashui-example-bg-base: #020617;
+  --ashui-example-glass-bg: rgba(2, 6, 23, 0.72);
+  --ashui-example-panel-bg: rgba(15, 23, 42, 0.9);
+  --ashui-example-copy: #ffffff;
+  --ashui-example-copy-soft: #cbd5e1;
+  --ashui-example-copy-warm: #ffcaa9;
+  --ashui-example-accent: #ff914d;
+  --ashui-example-accent-strong: #ff6e15;
+  --ashui-example-signal: #ff5757;
+  --ashui-example-signal-strong: #ff1f1f;
+  --ashui-example-border-soft: rgba(255, 145, 77, 0.3);
+  --ashui-example-border-strong: rgba(255, 87, 87, 0.24);
+  --ashui-example-grid-line: rgba(254, 19, 19, 0.2);
+  --ashui-example-grid-size: 42px;
+  --ashui-example-panel-radius: 24px;
+  --ashui-example-inner-radius: 18px;
+  --ashui-example-pill-radius: 999px;
+  --ashui-example-primary-gradient: linear-gradient(90deg, #ff6e15 0%, #ff1f1f 100%);
+  --ashui-example-shell-gradient:
+    radial-gradient(circle at top, rgba(255, 87, 87, 0.24), transparent 35%),
+    linear-gradient(180deg, rgba(108, 41, 0, 0.2) 0%, rgba(2, 6, 23, 0.9) 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  background: var(--ashui-example-bg-base);
+  color: var(--ashui-example-copy);
+}
+
+a,
+button,
+input,
+select,
+textarea {
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(255, 202, 169, 0.95);
+  outline-offset: 3px;
+}
+
+.ashui-example-shell {
+  position: relative;
+  min-height: 100vh;
+  padding: 2rem 1.25rem 3rem;
+  color: var(--ashui-example-copy);
+  background: var(--ashui-example-bg-base);
+  isolation: isolate;
+}
+
+.ashui-example-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--ashui-example-shell-gradient);
+  pointer-events: none;
+  z-index: -2;
+}
+
+.ashui-example-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ashui-example-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ashui-example-grid-line) 1px, transparent 1px);
+  background-size: var(--ashui-example-grid-size) var(--ashui-example-grid-size);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black, transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ashui-example-panel {
+  background: var(--ashui-example-glass-bg);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: var(--ashui-example-panel-radius);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px rgba(2, 6, 23, 0.35);
+}
+
+.ashui-tutorial-skip-link {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  transform: translateY(-180%);
+  z-index: 5;
+}
+
+.ashui-tutorial-skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.ashui-example-code-surface {
+  background: var(--ashui-example-panel-bg);
+  border: 1px solid var(--ashui-example-border-strong);
+  border-radius: var(--ashui-example-inner-radius);
+  color: var(--ashui-example-copy-soft);
+  padding: 1rem 1.125rem;
+}
+
+.ashui-example-primary-cta,
+.ashui-example-secondary-cta {
+  border-radius: var(--ashui-example-pill-radius);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ashui-example-primary-cta {
+  color: var(--ashui-example-copy);
+  background: var(--ashui-example-primary-gradient);
+  border: 0;
+}
+
+.ashui-example-secondary-cta {
+  color: var(--ashui-example-copy-warm);
+  background: transparent;
+  border: 1px solid var(--ashui-example-accent);
+}
+
+.ashui-tutorial-shell-header {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 70rem;
+  margin: 0 auto 1.5rem;
+}
+
+.ashui-tutorial-shell-kicker {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ashui-example-copy-warm);
+  font-size: 0.8rem;
+}
+
+.ashui-tutorial-shell-title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  line-height: 1.05;
+}
+
+.ashui-tutorial-shell-summary {
+  margin: 0;
+  max-width: 56rem;
+  color: var(--ashui-example-copy-soft);
+  line-height: 1.65;
+}
+
+.ashui-tutorial-nav {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.ashui-tutorial-actor-switcher {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.ashui-tutorial-actor-links {
+  display: flex;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.ashui-tutorial-actor-link {
+  justify-content: flex-start;
+}
+
+.ashui-tutorial-nav-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.65rem 1rem;
+  border-radius: var(--ashui-example-pill-radius);
+  text-decoration: none;
+  border: 1px solid var(--ashui-example-border-soft);
+  color: var(--ashui-example-copy-warm);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ashui-tutorial-nav-link:hover,
+.ashui-example-nav-button:hover,
+.ashui-example-command-button:hover,
+.ashui-example-primary-cta:hover,
+.ashui-example-secondary-cta:hover {
+  transform: translateY(-1px);
+}
+
+.ashui-tutorial-nav-link.is-active {
+  background: rgba(255, 87, 87, 0.14);
+  border-color: var(--ashui-example-signal);
+}
+
+.ashui-tutorial-shell-note {
+  padding: 1rem 1.125rem;
+}
+
+.ashui-tutorial-live-surface,
+.ashui-tutorial-workspace-grid {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.ashui-tutorial-runtime-panel {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: minmax(0, 1.4fr) minmax(14rem, 0.8fr);
+  padding: 1.25rem;
+}
+
+.ashui-tutorial-runtime-actions {
+  display: grid;
+  gap: 0.5rem;
+  justify-items: start;
+}
+
+.ashui-tutorial-runtime-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.ashui-tutorial-runtime-link {
+  min-width: 9rem;
+}
+
+.ashui-tutorial-runtime-command {
+  display: inline-flex;
+  padding: 0.5rem 0.8rem;
+  border-radius: var(--ashui-example-pill-radius);
+  border: 1px solid var(--ashui-example-border-soft);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ashui-tutorial-runtime-view {
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: var(--ashui-example-panel-radius);
+  overflow: hidden;
+  background: rgba(2, 6, 23, 0.56);
+}
+
+.ashui-tutorial-runtime-frame {
+  width: 100%;
+  min-height: 32rem;
+  border: 0;
+  background: #ffffff;
+}
+
+.ashui-tutorial-runtime-pre {
+  margin: 0;
+  padding: 1rem;
+  white-space: pre-wrap;
+}
+
+.ashui-tutorial-workspace-panel,
+.ashui-tutorial-detail-card {
+  padding: 1.25rem;
+}
+
+.ashui-tutorial-polish-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.ashui-tutorial-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+
+.ashui-tutorial-detail-card {
+  background: rgba(15, 23, 42, 0.84);
+  border-radius: var(--ashui-example-inner-radius);
+  border: 1px solid var(--ashui-example-border-strong);
+}
+
+.ashui-tutorial-status-pill {
+  display: inline-flex;
+  border-radius: var(--ashui-example-pill-radius);
+  background: rgba(255, 87, 87, 0.12);
+  border: 1px solid var(--ashui-example-border-strong);
+  color: var(--ashui-example-copy-warm);
+  padding: 0.4rem 0.8rem;
+}
+
+.ashui-tutorial-detail-title {
+  margin: 0.75rem 0 0.35rem;
+  font-size: 1.3rem;
+}
+
+.ashui-tutorial-detail-copy,
+.ashui-tutorial-muted-copy {
+  color: var(--ashui-example-copy-soft);
+  line-height: 1.6;
+}
+
+.ashui-tutorial-tabs-panel {
+  padding: 0.9rem 0;
+}
+
+.ashui-example-nav-button,
+.ashui-example-command-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.65rem 1rem;
+  border-radius: var(--ashui-example-pill-radius);
+  text-decoration: none;
+  border: 1px solid var(--ashui-example-border-soft);
+  color: var(--ashui-example-copy-warm);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ashui-example-layout-card {
+  background: rgba(15, 23, 42, 0.84);
+  border: 1px solid var(--ashui-example-border-soft);
+  border-radius: var(--ashui-example-inner-radius);
+  padding: 1rem;
+}
+
+.ashui-example-surface-copy {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ashui-example-copy);
+}
+
+.ashui-example-surface-meta {
+  margin: 0;
+  color: var(--ashui-example-copy-soft);
+  line-height: 1.6;
+}
+
+.ashui-tutorial-topology-panel,
+.ashui-tutorial-topology-menu,
+.ashui-tutorial-topology-tabs,
+.ashui-tutorial-topology-tree,
+.ashui-tutorial-topology-viewport,
+.ashui-tutorial-topology-canvas,
+.ashui-tutorial-topology-scroll,
+.ashui-tutorial-metrics-panel,
+.ashui-tutorial-metrics-dashboard,
+.ashui-tutorial-metrics-progress,
+.ashui-tutorial-metrics-gauge,
+.ashui-tutorial-metrics-sparkline,
+.ashui-tutorial-metrics-bar-chart,
+.ashui-tutorial-metrics-line-chart,
+.ashui-tutorial-runtime-panel,
+.ashui-tutorial-runtime-support {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.ashui-tutorial-topology-split {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
+@media (min-width: 960px) {
+  .ashui-tutorial-workspace-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(22rem, 1fr);
+  }
+
+  .ashui-tutorial-topology-split {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.15fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .ashui-example-shell {
+    padding-inline: 0.85rem;
+  }
+
+  .ashui-tutorial-shell-header {
+    gap: 1rem;
+  }
+
+  .ashui-tutorial-nav,
+  .ashui-tutorial-actor-links,
+  .ashui-tutorial-runtime-links,
+  .ashui-tutorial-toolbar {
+    flex-direction: column;
+  }
+
+  .ashui-tutorial-nav-link,
+  .ashui-tutorial-runtime-link,
+  .ashui-example-nav-button,
+  .ashui-example-command-button,
+  .ashui-example-primary-cta,
+  .ashui-example-secondary-cta {
+    width: 100%;
+  }
+
+  .ashui-tutorial-runtime-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .ashui-tutorial-runtime-frame {
+    min-height: 24rem;
+  }
+}
+
+@media (max-width: 960px) {
+  .ashui-tutorial-topology-split {
+    grid-template-columns: 1fr;
+  }
+
+  .ashui-tutorial-runtime-actions {
+    justify-items: stretch;
+  }
+}

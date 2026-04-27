@@ -103,7 +103,7 @@
     "chapter_path": "tutorials/chapters/09-metrics-and-capacity.md",
     "code_path": "tutorials/code/09-metrics-and-capacity",
     "previous_code_path": "tutorials/code/08-topology-and-navigation",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add charts, gauges, and capacity dashboards for services and clusters.",
     "supporting_examples": ["bar_chart", "cluster_dashboard", "gauge", "line_chart"]
   },

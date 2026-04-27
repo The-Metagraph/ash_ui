@@ -35,17 +35,17 @@ Back to index: [README](./README.md)
       [x] 26.1.1.3 Subtask - Ensure topology screens remain resource-first by persisting the composed screen/element graph and explicit drill-down state.
       [x] 26.1.1.4 Subtask - Add `tutorials/chapters/08-topology-and-navigation.md` with exact references to `tutorials/code/08-topology-and-navigation/`.
 
-  [ ] 26.2 Section - Chapter 9 Metrics, Trends, and Capacity Views
+  [x] 26.2 Section - Chapter 9 Metrics, Trends, and Capacity Views
     Add the telemetry surfaces operators use to understand current risk and
     longer-running trends.
 
-    [ ] 26.2.1 Task - Implement charting and capacity dashboards
+    [x] 26.2.1 Task - Implement charting and capacity dashboards
     Teach summary and trend analysis through real operational narratives.
 
-      [ ] 26.2.1.1 Subtask - Implement `tutorials/code/09-metrics-and-capacity/` with `progress`, `gauge`, `sparkline`, `bar_chart`, and `line_chart` surfaces tied to services, deploys, or clusters.
-      [ ] 26.2.1.2 Subtask - Introduce `cluster_dashboard` and related summary panels where they help unify service health, fleet capacity, and recent incident context.
-      [ ] 26.2.1.3 Subtask - Keep chart and dashboard stories explicit about what metrics are derived, sampled, or simulated inside the tutorial seed data.
-      [ ] 26.2.1.4 Subtask - Add `tutorials/chapters/09-metrics-and-capacity.md` with exact references to `tutorials/code/09-metrics-and-capacity/`.
+      [x] 26.2.1.1 Subtask - Implement `tutorials/code/09-metrics-and-capacity/` with `progress`, `gauge`, `sparkline`, `bar_chart`, and `line_chart` surfaces tied to services, deploys, or clusters.
+      [x] 26.2.1.2 Subtask - Introduce `cluster_dashboard` and related summary panels where they help unify service health, fleet capacity, and recent incident context.
+      [x] 26.2.1.3 Subtask - Keep chart and dashboard stories explicit about what metrics are derived, sampled, or simulated inside the tutorial seed data.
+      [x] 26.2.1.4 Subtask - Add `tutorials/chapters/09-metrics-and-capacity.md` with exact references to `tutorials/code/09-metrics-and-capacity/`.
 
   [ ] 26.3 Section - Phase 26 Integration Tests
     Validate the topology and telemetry chapters through coherent operational

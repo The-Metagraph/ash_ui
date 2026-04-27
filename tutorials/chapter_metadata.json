@@ -127,7 +127,7 @@
     "chapter_path": "tutorials/chapters/11-roles-and-policies.md",
     "code_path": "tutorials/code/11-roles-and-policies",
     "previous_code_path": "tutorials/code/10-runtime-introspection",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add role-aware screens, actor-specific actions, and policy-driven UI differences.",
     "supporting_examples": ["dialog", "form_builder", "menu", "status"]
   },

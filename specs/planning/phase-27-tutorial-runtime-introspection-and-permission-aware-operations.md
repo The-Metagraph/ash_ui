@@ -35,18 +35,18 @@ Back to index: [README](./README.md)
       [x] 27.1.1.3 Subtask - Keep the tutorial explicit about which runtime trees and process details are real, sampled, or tutorial-seeded.
       [x] 27.1.1.4 Subtask - Add `tutorials/chapters/10-runtime-introspection.md` with exact references to `tutorials/code/10-runtime-introspection/`.
 
-  [ ] 27.2 Section - Chapter 11 Roles, Policies, and Permission-Aware Screens
+  [x] 27.2 Section - Chapter 11 Roles, Policies, and Permission-Aware Screens
     Add the authorization story that makes the tutorial usable for production
     architecture education rather than only local demos.
 
-    [ ] 27.2.1 Task - Implement permission-aware tutorial flows
+    [x] 27.2.1 Task - Implement permission-aware tutorial flows
     Teach how resource policies and screen composition interact for different
     operators.
 
-      [ ] 27.2.1.1 Subtask - Implement `tutorials/code/11-roles-and-policies/` with role-aware views for `admin`, `on_call_operator`, and `viewer`.
-      [ ] 27.2.1.2 Subtask - Show how actions, overlays, forms, and navigation surfaces change when authorization removes or restricts capabilities.
-      [ ] 27.2.1.3 Subtask - Ensure the chapter ties permission behavior back to Ash policies and the authoritative screen/element graph rather than only host-template conditionals.
-      [ ] 27.2.1.4 Subtask - Add `tutorials/chapters/11-roles-and-policies.md` with exact references to `tutorials/code/11-roles-and-policies/`.
+      [x] 27.2.1.1 Subtask - Implement `tutorials/code/11-roles-and-policies/` with role-aware views for `admin`, `on_call_operator`, and `viewer`.
+      [x] 27.2.1.2 Subtask - Show how actions, overlays, forms, and navigation surfaces change when authorization removes or restricts capabilities.
+      [x] 27.2.1.3 Subtask - Ensure the chapter ties permission behavior back to Ash policies and the authoritative screen/element graph rather than only host-template conditionals.
+      [x] 27.2.1.4 Subtask - Add `tutorials/chapters/11-roles-and-policies.md` with exact references to `tutorials/code/11-roles-and-policies/`.
 
   [ ] 27.3 Section - Phase 27 Integration Tests
     Validate the runtime-inspection and permission-aware chapters through

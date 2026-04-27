@@ -18,7 +18,7 @@ Back to index: [README](./README.md)
 - the actor profiles defined in Phase 23 remain the basis for permission-aware
   screens and actions
 
-[ ] 27 Phase 27 - Tutorial Runtime Introspection and Permission-Aware Operations
+[x] 27 Phase 27 - Tutorial Runtime Introspection and Permission-Aware Operations
   Implement the tutorial milestones that add deeper runtime inspection and
   role-aware operational behavior to the Operations Control Center application.
 
@@ -48,15 +48,15 @@ Back to index: [README](./README.md)
       [x] 27.2.1.3 Subtask - Ensure the chapter ties permission behavior back to Ash policies and the authoritative screen/element graph rather than only host-template conditionals.
       [x] 27.2.1.4 Subtask - Add `tutorials/chapters/11-roles-and-policies.md` with exact references to `tutorials/code/11-roles-and-policies/`.
 
-  [ ] 27.3 Section - Phase 27 Integration Tests
+  [x] 27.3 Section - Phase 27 Integration Tests
     Validate the runtime-inspection and permission-aware chapters through
     representative operator scenarios.
 
-    [ ] 27.3.1 Task - Runtime and policy scenarios
+    [x] 27.3.1 Task - Runtime and policy scenarios
     Prove the tutorial can now teach both deep operational visibility and safe
     access control.
 
-      [ ] 27.3.1.1 Subtask - Verify the Chapter 10 and 11 checkpoint apps boot independently and preserve the tutorial shell and chapter-reference contract.
-      [ ] 27.3.1.2 Subtask - Verify runtime introspection surfaces remain navigable and traceable to the seeded services, incidents, and clusters that lead into them.
-      [ ] 27.3.1.3 Subtask - Verify role-aware screens and actions behave differently for the seeded actor profiles and fail clearly when policy denies access.
-      [ ] 27.3.1.4 Subtask - Verify Chapters 10 and 11 each reference the correct checkpoint directory, actor profiles, and policy modules explicitly.
+      [x] 27.3.1.1 Subtask - Verify the Chapter 10 and 11 checkpoint apps boot independently and preserve the tutorial shell and chapter-reference contract.
+      [x] 27.3.1.2 Subtask - Verify runtime introspection surfaces remain navigable and traceable to the seeded services, incidents, and clusters that lead into them.
+      [x] 27.3.1.3 Subtask - Verify role-aware screens and actions behave differently for the seeded actor profiles and fail clearly when policy denies access.
+      [x] 27.3.1.4 Subtask - Verify Chapters 10 and 11 each reference the correct checkpoint directory, actor profiles, and policy modules explicitly.

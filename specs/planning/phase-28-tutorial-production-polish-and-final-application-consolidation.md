@@ -18,7 +18,7 @@ Back to index: [README](./README.md)
 - the maintained final tutorial app should match the last tutorial checkpoint
   closely enough that readers are not surprised when they compare them
 
-[ ] 28 Phase 28 - Tutorial Production Polish and Final Application Consolidation
+[x] 28 Phase 28 - Tutorial Production Polish and Final Application Consolidation
   Implement the final tutorial chapter, polish the maintained tutorial app for
   real-world review, and align the final application surface with the chapter
   checkpoints.
@@ -48,14 +48,14 @@ Back to index: [README](./README.md)
       [x] 28.2.1.3 Subtask - Ensure the final app remains readable as a tutorial product by preserving chapter traceability instead of collapsing everything into opaque abstractions.
       [x] 28.2.1.4 Subtask - Update the tutorial landing material to point readers at the maintained final app when they want the full completed reference.
 
-  [ ] 28.3 Section - Phase 28 Integration Tests
+  [x] 28.3 Section - Phase 28 Integration Tests
     Validate the final chapter and maintained final app before the tutorial is
     published broadly.
 
-    [ ] 28.3.1 Task - Final checkpoint and consolidated-app scenarios
+    [x] 28.3.1 Task - Final checkpoint and consolidated-app scenarios
     Prove the tutorial closes with a polished and stable application surface.
 
-      [ ] 28.3.1.1 Subtask - Verify `tutorials/code/12-production-polish/` and `tutorials/operations_control_center/` boot independently and preserve the shared shell and seed expectations.
-      [ ] 28.3.1.2 Subtask - Verify the final tutorial app remains visually and behaviorally aligned with the Chapter 12 checkpoint within the documented allowed differences.
-      [ ] 28.3.1.3 Subtask - Verify the polished app remains usable on desktop and mobile breakpoints and continues to surface empty/error/loading states explicitly.
-      [ ] 28.3.1.4 Subtask - Verify Chapter 12 references the correct checkpoint directory and the maintained final app path clearly.
+      [x] 28.3.1.1 Subtask - Verify `tutorials/code/12-production-polish/` and `tutorials/operations_control_center/` boot independently and preserve the shared shell and seed expectations.
+      [x] 28.3.1.2 Subtask - Verify the final tutorial app remains visually and behaviorally aligned with the Chapter 12 checkpoint within the documented allowed differences.
+      [x] 28.3.1.3 Subtask - Verify the polished app remains usable on desktop and mobile breakpoints and continues to surface empty/error/loading states explicitly.
+      [x] 28.3.1.4 Subtask - Verify Chapter 12 references the correct checkpoint directory and the maintained final app path clearly.

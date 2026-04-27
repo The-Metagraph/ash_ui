@@ -138,21 +138,6 @@ body {
   flex-wrap: wrap;
 }
 
-.ashui-tutorial-actor-switcher {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.ashui-tutorial-actor-links {
-  display: flex;
-  gap: 0.85rem;
-  flex-wrap: wrap;
-}
-
-.ashui-tutorial-actor-link {
-  justify-content: flex-start;
-}
-
 .ashui-tutorial-nav-link {
   display: inline-flex;
   align-items: center;

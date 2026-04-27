@@ -115,7 +115,7 @@
     "chapter_path": "tutorials/chapters/10-runtime-introspection.md",
     "code_path": "tutorials/code/10-runtime-introspection",
     "previous_code_path": "tutorials/code/09-metrics-and-capacity",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Drill into supervision trees, runtime structures, and advanced process views.",
     "supporting_examples": ["command_palette", "supervision_tree_viewer", "table", "tabs"]
   },
@@ -127,7 +127,7 @@
     "chapter_path": "tutorials/chapters/11-roles-and-policies.md",
     "code_path": "tutorials/code/11-roles-and-policies",
     "previous_code_path": "tutorials/code/10-runtime-introspection",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add role-aware screens, actor-specific actions, and policy-driven UI differences.",
     "supporting_examples": ["dialog", "form_builder", "menu", "status"]
   },

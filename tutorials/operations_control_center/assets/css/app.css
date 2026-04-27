@@ -33,6 +33,23 @@ body {
   color: var(--ashui-example-copy);
 }
 
+a,
+button,
+input,
+select,
+textarea {
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(255, 202, 169, 0.95);
+  outline-offset: 3px;
+}
+
 .ashui-example-shell {
   position: relative;
   min-height: 100vh;
@@ -70,6 +87,18 @@ body {
   border-radius: var(--ashui-example-panel-radius);
   backdrop-filter: blur(16px);
   box-shadow: 0 20px 60px rgba(2, 6, 23, 0.35);
+}
+
+.ashui-tutorial-skip-link {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  transform: translateY(-180%);
+  z-index: 5;
+}
+
+.ashui-tutorial-skip-link:focus-visible {
+  transform: translateY(0);
 }
 
 .ashui-example-code-surface {
@@ -166,9 +195,21 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+.ashui-tutorial-nav-link:hover,
+.ashui-example-nav-button:hover,
+.ashui-example-command-button:hover,
+.ashui-example-primary-cta:hover,
+.ashui-example-secondary-cta:hover {
+  transform: translateY(-1px);
+}
+
 .ashui-tutorial-nav-link.is-active {
   background: rgba(255, 87, 87, 0.14);
   border-color: var(--ashui-example-signal);
+}
+
+.ashui-tutorial-shell-note {
+  padding: 1rem 1.125rem;
 }
 
 .ashui-tutorial-live-surface,
@@ -190,6 +231,16 @@ body {
   display: grid;
   gap: 0.5rem;
   justify-items: start;
+}
+
+.ashui-tutorial-runtime-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.ashui-tutorial-runtime-link {
+  min-width: 9rem;
 }
 
 .ashui-tutorial-runtime-command {
@@ -223,6 +274,11 @@ body {
 .ashui-tutorial-workspace-panel,
 .ashui-tutorial-detail-card {
   padding: 1.25rem;
+}
+
+.ashui-tutorial-polish-panel {
+  display: grid;
+  gap: 1rem;
 }
 
 .ashui-tutorial-toolbar {
@@ -321,6 +377,16 @@ body {
   gap: 1rem;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+  }
+}
+
 @media (min-width: 960px) {
   .ashui-tutorial-workspace-grid {
     grid-template-columns: minmax(0, 1.6fr) minmax(22rem, 1fr);
@@ -332,13 +398,45 @@ body {
 }
 
 @media (max-width: 760px) {
+  .ashui-example-shell {
+    padding-inline: 0.85rem;
+  }
+
+  .ashui-tutorial-shell-header {
+    gap: 1rem;
+  }
+
+  .ashui-tutorial-nav,
+  .ashui-tutorial-actor-links,
+  .ashui-tutorial-runtime-links,
+  .ashui-tutorial-toolbar {
+    flex-direction: column;
+  }
+
+  .ashui-tutorial-nav-link,
+  .ashui-tutorial-runtime-link,
+  .ashui-example-nav-button,
+  .ashui-example-command-button,
+  .ashui-example-primary-cta,
+  .ashui-example-secondary-cta {
+    width: 100%;
+  }
+
   .ashui-tutorial-runtime-panel {
     grid-template-columns: 1fr;
+  }
+
+  .ashui-tutorial-runtime-frame {
+    min-height: 24rem;
   }
 }
 
 @media (max-width: 960px) {
   .ashui-tutorial-topology-split {
     grid-template-columns: 1fr;
+  }
+
+  .ashui-tutorial-runtime-actions {
+    justify-items: stretch;
   }
 }

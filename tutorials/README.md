@@ -25,6 +25,11 @@ The checkpoint apps under `tutorials/code/` are intentionally narrower. Each
 one freezes the exact state a reader should have after finishing one chapter so
 they can start there directly without replaying the entire series.
 
+If you want the full completed reference today, start in
+`tutorials/operations_control_center/`. It currently tracks the completed
+Chapter 12 production-polish milestone and documents its allowed differences
+from `tutorials/code/12-production-polish/` in the local README.
+
 ## Supporting Example Policy
 
 Chapters may cite `examples/*` as supporting reference material when a focused

@@ -1,6 +1,6 @@
 defmodule AshUITutorials.OperationsControlCenter do
   @moduledoc """
-  Maintained final tutorial app for the Operations Control Center tutorial.
+  Maintained final tutorial application for the Operations Control Center series.
   """
 
   use Phoenix.Component
@@ -25,9 +25,9 @@ defmodule AshUITutorials.OperationsControlCenter do
     "viewer-ren" => "viewer-ren"
   }
   @title "Operations Control Center"
-  @summary "Maintained final tutorial app, now aligned with the Chapter 11 milestone: the shared shell, filters, workflows, runbook review, diagnostics, topology, metrics, and runtime-introspection surfaces remain intact while the app now mounts those screens for `admin`, `on_call_operator`, and `viewer` actors with policy-gated forms, guarded actions, and role-specific review panels."
-  @story_text "Meaningful Interaction Story: switch the current actor between admin, on-call operator, and viewer, then confirm the same resource-authored screens expose different capabilities, helper panels, and destructive paths because the screen graph and its bindings carry role requirements through Ash policies."
-  @signal_text "Canonical Signal Preview: actor param -> LiveView current_user -> policy-filtered screens, elements, and bindings; service/runtime click -> WorkspaceState.update(...) -> shared structural state; incident workflow action -> WorkspaceState.submit_operator_workflow(...) -> allowed only for the on-call/admin roles; guarded action click -> WorkspaceState.preview_guarded_action(...) / confirm_guarded_action() -> accepted for authorized actors and denied for viewer mounts through policy-backed runtime checks."
+  @summary "Maintained final tutorial application: it tracks the Chapter 12 production-polish milestone, keeping the authored services and incidents workspaces, actor-aware policies, runtime review lanes, and explicit ready/loading/empty/error states aligned with the completed tutorial reference."
+  @story_text "Meaningful Interaction Story: move between services and incidents, switch actors, and intentionally trigger ready, loading, empty, and support-error review states so the same resource-authored screens teach not just happy-path widgets but the quality-of-use details that real operators need."
+  @signal_text "Canonical Signal Preview: actor param -> LiveView current_user -> policy-filtered screens, elements, and bindings; runtime query -> shell preview selection with `live_ui` as the default host; polish-state click -> WorkspaceState.update(...) -> review status, inline feedback, detail card, and current workspace rows; operator action -> WorkspaceState.submit_operator_workflow(...) -> policy-backed workflow writes; guarded action -> WorkspaceState.preview_guarded_action(...) / confirm_guarded_action() -> explicit confirmation surfaces and final toast feedback."
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
   @default_runtime "live_ui"
   @supported_runtimes ["live_ui", "elm_ui", "desktop_ui"]
@@ -148,6 +148,10 @@ defmodule AshUITutorials.OperationsControlCenter do
       |> URI.encode_query()
 
     "#{page}?#{query}"
+  end
+
+  def runtime_path(page, actor, runtime) do
+    page_path(page, actor, runtime)
   end
 
   def service_catalog do
@@ -537,6 +541,7 @@ defmodule AshUITutorials.OperationsControlCenter do
       |> Map.put_new(:include_healthy, true)
       |> Map.put_new(:incident_severity_filter, "all")
       |> Map.put_new(:incident_escalated_only, false)
+      |> Map.put_new(:experience_mode, "ready")
       |> Map.put_new(:command_query, "")
       |> Map.put_new(:operator_view, "triage")
       |> Map.put_new(:operator_note, "")
@@ -606,6 +611,8 @@ defmodule AshUITutorials.OperationsControlCenter do
       |> Map.put_new(:actor_role, actor_context(current_user()).actor_role)
       |> Map.put_new(:actor_summary, actor_context(current_user()).actor_summary)
       |> Map.put_new(:actor_policy_notice, actor_context(current_user()).actor_policy_notice)
+      |> Map.put_new(:review_status_model, %{})
+      |> Map.put_new(:review_feedback_model, %{})
       |> Map.update(:maintenance_duration_minutes, nil, &normalize_duration/1)
 
     visible_services =
@@ -630,10 +637,15 @@ defmodule AshUITutorials.OperationsControlCenter do
       |> Map.fetch!(:runtime_process_catalog)
       |> filter_runtime_process_rows(Map.fetch!(attrs, :runtime_query))
 
+    {attrs, visible_services, visible_incidents, visible_runtime_process_rows} =
+      apply_experience_mode(attrs, visible_services, visible_incidents, visible_runtime_process_rows)
+
     attrs
     |> Map.put(:services, visible_services)
     |> Map.put(:incidents, visible_incidents)
     |> Map.put(:current_value, workspace_label(attrs))
+    |> Map.put(:review_status_model, review_status_model(attrs))
+    |> Map.put(:review_feedback_model, review_feedback_model(attrs))
     |> Map.put(:services_status_copy, services_status_copy(attrs, visible_services))
     |> Map.put(:incidents_status_copy, incidents_status_copy(attrs, visible_incidents))
     |> Map.put(:command_summary, command_summary(attrs))
@@ -665,6 +677,7 @@ defmodule AshUITutorials.OperationsControlCenter do
       include_healthy: true,
       incident_severity_filter: "all",
       incident_escalated_only: false,
+      experience_mode: "ready",
       command_query: "",
       operator_view: "triage",
       runbook_focus: gateway_runbook_context().runbook_focus,
@@ -991,6 +1004,155 @@ defmodule AshUITutorials.OperationsControlCenter do
     |> Map.put(:form_feedback_status, "idle")
   end
 
+  defp apply_experience_mode(attrs, visible_services, visible_incidents, visible_runtime_process_rows) do
+    case normalize_filter(attrs[:experience_mode]) do
+      "loading" ->
+        loading_attrs =
+          attrs
+          |> Map.put(:status, loading_status_copy(attrs[:selected_value]))
+          |> Map.put(:detail_title, loading_detail_title(attrs[:selected_value]))
+          |> Map.put(:detail_summary, loading_detail_summary(attrs[:selected_value]))
+          |> Map.put(:detail_status, "loading")
+
+        {loading_attrs, [], [], visible_runtime_process_rows}
+
+      "empty" ->
+        empty_attrs =
+          attrs
+          |> Map.put(:status, empty_status_copy(attrs[:selected_value]))
+          |> Map.put(:detail_title, empty_detail_title(attrs[:selected_value]))
+          |> Map.put(:detail_summary, empty_detail_summary(attrs[:selected_value]))
+          |> Map.put(:detail_status, "empty")
+
+        case attrs[:selected_value] do
+          "incidents" -> {empty_attrs, visible_services, [], visible_runtime_process_rows}
+          _other -> {empty_attrs, [], visible_incidents, visible_runtime_process_rows}
+        end
+
+      "error" ->
+        error_attrs =
+          attrs
+          |> Map.put(:status, error_status_copy(attrs[:selected_value]))
+          |> Map.put(:detail_title, error_detail_title(attrs[:selected_value]))
+          |> Map.put(:detail_summary, error_detail_summary(attrs[:selected_value]))
+          |> Map.put(:detail_status, "blocked")
+
+        {error_attrs, visible_services, visible_incidents, visible_runtime_process_rows}
+
+      _other ->
+        {Map.put(attrs, :experience_mode, "ready"), visible_services, visible_incidents, visible_runtime_process_rows}
+    end
+  end
+
+  defp review_status_model(attrs) do
+    case normalize_filter(attrs[:experience_mode]) do
+      "loading" ->
+        %{
+          "label" => "Refreshing seeded review",
+          "detail" => loading_status_copy(attrs[:selected_value]),
+          "tone" => "warning"
+        }
+
+      "empty" ->
+        %{
+          "label" => "Empty state in review",
+          "detail" => empty_status_copy(attrs[:selected_value]),
+          "tone" => "warning"
+        }
+
+      "error" ->
+        %{
+          "label" => "Support issue surfaced",
+          "detail" => error_status_copy(attrs[:selected_value]),
+          "tone" => "danger"
+        }
+
+      _other ->
+        %{
+          "label" => "Review surface ready",
+          "detail" => "The workspace is interactive, keyboard-focusable, and backed by the stable tutorial fixtures.",
+          "tone" => "success"
+        }
+    end
+  end
+
+  defp review_feedback_model(attrs) do
+    case normalize_filter(attrs[:experience_mode]) do
+      "loading" ->
+        %{
+          "title" => "Loading state is explicit",
+          "detail" => "The checkpoint keeps the surrounding shell visible while the current workspace rows pause in a loading posture.",
+          "tone" => "warning"
+        }
+
+      "empty" ->
+        %{
+          "title" => "Empty state stays useful",
+          "detail" => "The checklist, detail card, and widget-level empty copy remain visible so operators know how to recover from zero-result filters.",
+          "tone" => "warning"
+        }
+
+      "error" ->
+        %{
+          "title" => "Error state stays honest",
+          "detail" => "The tutorial keeps the chrome, focus order, and support copy visible instead of hiding the problem behind a blank screen.",
+          "tone" => "danger"
+        }
+
+      _other ->
+        %{
+          "title" => "Production polish is active",
+          "detail" => "This checkpoint keeps `live_ui` as the default host, adds stronger focus treatment, and makes keyboard, contrast, and alternate runtime expectations visible in the UI.",
+          "tone" => "info"
+        }
+    end
+  end
+
+  defp loading_status_copy("incidents"),
+    do: "The incidents workspace is deliberately showing a loading posture while the review shell stays available."
+
+  defp loading_status_copy(_selected_value),
+    do: "The services workspace is deliberately showing a loading posture while the review shell stays available."
+
+  defp loading_detail_title("incidents"), do: "Refreshing incident review"
+  defp loading_detail_title(_selected_value), do: "Refreshing services review"
+
+  defp loading_detail_summary("incidents"),
+    do: "The checkpoint pauses the incident rows on purpose so the chapter can teach loading copy, focus order, and recovery expectations."
+
+  defp loading_detail_summary(_selected_value),
+    do: "The checkpoint pauses the service rows on purpose so the chapter can teach loading copy, focus order, and recovery expectations."
+
+  defp empty_status_copy("incidents"),
+    do: "The incidents workspace is intentionally empty so the table-level empty state and support copy stay visible."
+
+  defp empty_status_copy(_selected_value),
+    do: "The services workspace is intentionally empty so the list-level empty state and support copy stay visible."
+
+  defp empty_detail_title("incidents"), do: "No matching incidents"
+  defp empty_detail_title(_selected_value), do: "No matching services"
+
+  defp empty_detail_summary("incidents"),
+    do: "The chapter uses an explicit empty review mode so readers can style and explain zero-result incident tables without guessing."
+
+  defp empty_detail_summary(_selected_value),
+    do: "The chapter uses an explicit empty review mode so readers can style and explain zero-result service lists without guessing."
+
+  defp error_status_copy("incidents"),
+    do: "A support issue is blocking the incident review lane, and the shell keeps that problem visible instead of collapsing into silence."
+
+  defp error_status_copy(_selected_value),
+    do: "A support issue is blocking the services review lane, and the shell keeps that problem visible instead of collapsing into silence."
+
+  defp error_detail_title("incidents"), do: "Incident review needs support"
+  defp error_detail_title(_selected_value), do: "Services review needs support"
+
+  defp error_detail_summary("incidents"),
+    do: "This tutorial state keeps the incident shell mounted, preserves the navigation path, and asks operators to escalate rather than pretending the table loaded."
+
+  defp error_detail_summary(_selected_value),
+    do: "This tutorial state keeps the services shell mounted, preserves the navigation path, and asks operators to escalate rather than pretending the list loaded."
+
   defp blank_to_phrase(value, fallback) when value in [nil, ""], do: fallback
   defp blank_to_phrase(value, _fallback), do: inspect(value)
 
@@ -1192,6 +1354,7 @@ defmodule AshUITutorials.OperationsControlCenter do
       :include_healthy,
       :incident_severity_filter,
       :incident_escalated_only,
+      :experience_mode,
       :command_query,
       :command_summary,
       :operator_view,
@@ -1264,6 +1427,8 @@ defmodule AshUITutorials.OperationsControlCenter do
       :actor_role,
       :actor_summary,
       :actor_policy_notice,
+      :review_status_model,
+      :review_feedback_model,
       :services_status_copy,
       :incidents_status_copy
     ]
@@ -1301,6 +1466,7 @@ defmodule AshUITutorials.OperationsControlCenter do
       attribute :include_healthy, :boolean, default: true
       attribute :incident_severity_filter, :string, default: "all"
       attribute :incident_escalated_only, :boolean, default: false
+      attribute :experience_mode, :string, default: "ready"
       attribute :command_query, :string, default: ""
       attribute :command_summary, :string, default: ""
       attribute :operator_view, :string, default: "triage"
@@ -1373,6 +1539,8 @@ defmodule AshUITutorials.OperationsControlCenter do
       attribute :actor_role, :string, default: ""
       attribute :actor_summary, :string, default: ""
       attribute :actor_policy_notice, :string, default: ""
+      attribute :review_status_model, :map, default: %{}
+      attribute :review_feedback_model, :map, default: %{}
       attribute :services_status_copy, :string, default: ""
       attribute :incidents_status_copy, :string, default: ""
     end
@@ -2051,6 +2219,19 @@ defmodule AshUITutorials.OperationsControlCenter do
       resource(AshUITutorials.OperationsControlCenter.Examples.CommandFocusIncidentButtonElement)
       resource(AshUITutorials.OperationsControlCenter.Examples.CommandOpenOperatorViewButtonElement)
       resource(AshUITutorials.OperationsControlCenter.Examples.CommandSummaryTextElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesOperationsControlCenterPanelElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsOperationsControlCenterPanelElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ReviewStateStatusElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ReviewStateInlineFeedbackElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.OperationsControlCenterGuidanceTextElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowServicesReadyStateButtonElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowServicesLoadingStateButtonElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowServicesEmptyStateButtonElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowServicesErrorStateButtonElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsReadyStateButtonElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsLoadingStateButtonElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsEmptyStateButtonElement)
+      resource(AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsErrorStateButtonElement)
       resource(AshUITutorials.OperationsControlCenter.Examples.ServicesFiltersGroupElement)
       resource(AshUITutorials.OperationsControlCenter.Examples.ServicesQueryFieldElement)
       resource(AshUITutorials.OperationsControlCenter.Examples.ServicesQueryInputElement)
@@ -2260,6 +2441,11 @@ defmodule AshUITutorials.OperationsControlCenter do
         destination_attribute(:parent_id)
       end
 
+      has_many :operations_control_center_panels,
+               AshUITutorials.OperationsControlCenter.Examples.ServicesOperationsControlCenterPanelElement do
+        destination_attribute(:parent_id)
+      end
+
       has_many :service_lists, AshUITutorials.OperationsControlCenter.Examples.ServicesListElement do
         destination_attribute(:parent_id)
       end
@@ -2313,6 +2499,13 @@ defmodule AshUITutorials.OperationsControlCenter do
         slot(:body)
         placement(:append)
         order(20)
+      end
+
+      relationship :operations_control_center_panels do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(25)
       end
 
       relationship :service_lists do
@@ -2767,6 +2960,462 @@ defmodule AshUITutorials.OperationsControlCenter do
         binding_type(:value)
         transform(%{})
         metadata(%{owner: "command_summary"})
+      end
+    end
+  end
+
+  defmodule Examples.ServicesOperationsControlCenterPanelElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    relationships do
+      has_many :ready_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowServicesReadyStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :loading_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowServicesLoadingStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :empty_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowServicesEmptyStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :error_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowServicesErrorStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :status_widgets,
+               AshUITutorials.OperationsControlCenter.Examples.ReviewStateStatusElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :feedback_widgets,
+               AshUITutorials.OperationsControlCenter.Examples.ReviewStateInlineFeedbackElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :guidance_texts,
+               AshUITutorials.OperationsControlCenter.Examples.OperationsControlCenterGuidanceTextElement do
+        destination_attribute(:parent_id)
+      end
+    end
+
+    ui_relationships do
+      relationship :ready_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :loading_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(10)
+      end
+
+      relationship :empty_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(20)
+      end
+
+      relationship :error_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(30)
+      end
+
+      relationship :status_widgets do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :feedback_widgets do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(10)
+      end
+
+      relationship :guidance_texts do
+        kind(:child)
+        slot(:footer)
+        placement(:append)
+        order(0)
+      end
+    end
+
+    ui_element do
+      type(:card)
+
+      props(%{
+        title: "Production polish walkthrough",
+        class: "ashui-example-panel ashui-tutorial-workspace-panel ashui-tutorial-polish-panel"
+      })
+
+      metadata(%{id: "services-operations-control-center-panel", section: "demo", slot: "body", position: 25})
+    end
+  end
+
+  defmodule Examples.IncidentsOperationsControlCenterPanelElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    relationships do
+      has_many :ready_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsReadyStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :loading_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsLoadingStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :empty_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsEmptyStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :error_buttons,
+               AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsErrorStateButtonElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :status_widgets,
+               AshUITutorials.OperationsControlCenter.Examples.ReviewStateStatusElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :feedback_widgets,
+               AshUITutorials.OperationsControlCenter.Examples.ReviewStateInlineFeedbackElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :guidance_texts,
+               AshUITutorials.OperationsControlCenter.Examples.OperationsControlCenterGuidanceTextElement do
+        destination_attribute(:parent_id)
+      end
+    end
+
+    ui_relationships do
+      relationship :ready_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :loading_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(10)
+      end
+
+      relationship :empty_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(20)
+      end
+
+      relationship :error_buttons do
+        kind(:child)
+        slot(:actions)
+        placement(:append)
+        order(30)
+      end
+
+      relationship :status_widgets do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(0)
+      end
+
+      relationship :feedback_widgets do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(10)
+      end
+
+      relationship :guidance_texts do
+        kind(:child)
+        slot(:footer)
+        placement(:append)
+        order(0)
+      end
+    end
+
+    ui_element do
+      type(:card)
+
+      props(%{
+        title: "Production polish walkthrough",
+        class: "ashui-example-panel ashui-tutorial-workspace-panel ashui-tutorial-polish-panel"
+      })
+
+      metadata(%{id: "incidents-operations-control-center-panel", section: "demo", slot: "body", position: 15})
+    end
+  end
+
+  defmodule Examples.ReviewStateStatusElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:"custom:status")
+
+      props(%{
+        title: "Review readiness",
+        description: "Make the current ready, loading, empty, or support-error state explicit before the operator trusts the workspace.",
+        class: "ashui-example-status-shell"
+      })
+
+      metadata(%{id: "review-state-status", section: "demo", slot: "body", position: 0})
+    end
+
+    ui_bindings do
+      binding :review_status_model do
+        source(%{resource: "WorkspaceState", field: :review_status_model, id: "tutorial-services-incidents-state"})
+        target("model")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "review_status_model"})
+      end
+    end
+  end
+
+  defmodule Examples.ReviewStateInlineFeedbackElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:"custom:inline_feedback")
+
+      props(%{
+        title: "Polish note",
+        description: "Explain how the shell should behave while the current workspace is ready, loading, empty, or blocked.",
+        class: "ashui-example-inline-feedback-shell"
+      })
+
+      metadata(%{id: "review-state-feedback", section: "demo", slot: "body", position: 10})
+    end
+
+    ui_bindings do
+      binding :review_feedback_model do
+        source(%{resource: "WorkspaceState", field: :review_feedback_model, id: "tutorial-services-incidents-state"})
+        target("model")
+        binding_type(:value)
+        transform(%{})
+        metadata(%{owner: "review_feedback_model"})
+      end
+    end
+  end
+
+  defmodule Examples.OperationsControlCenterGuidanceTextElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:text)
+
+      props(%{
+        content:
+          "Keyboard and accessibility review: keep the skip link, visible focus ring, descriptive status copy, and contrast-safe support text intact while you switch between the four review states.",
+        class: "ashui-tutorial-muted-copy"
+      })
+
+      metadata(%{id: "operations-control-center-guidance", section: "demo", slot: "footer", position: 0})
+    end
+  end
+
+  defmodule Examples.ShowServicesReadyStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Ready state", class: "ashui-example-primary-cta", variant: "primary"})
+      metadata(%{id: "services-ready-state", section: "demo", slot: "actions", position: 0})
+    end
+
+    ui_actions do
+      action :show_services_ready_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+
+        transform(%{
+          params: %{
+            selected_value: %{"from" => "static", "value" => "services"},
+            experience_mode: %{"from" => "static", "value" => "ready"},
+            detail_title: %{"from" => "static", "value" => "API Gateway"},
+            detail_summary: %{"from" => "static", "value" => "Ingress service handling public traffic and auth fan-out."},
+            detail_status: %{"from" => "static", "value" => "degraded"},
+            status: %{"from" => "static", "value" => "Services workspace restored to the polished ready state."}
+          }
+        })
+
+        metadata(%{intent: "show_services_ready_state", success_message: "Services review ready"})
+      end
+    end
+  end
+
+  defmodule Examples.ShowServicesLoadingStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Loading state", class: "ashui-example-secondary-cta", variant: "secondary"})
+      metadata(%{id: "services-loading-state", section: "demo", slot: "actions", position: 10})
+    end
+
+    ui_actions do
+      action :show_services_loading_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+        transform(%{params: %{selected_value: %{"from" => "static", "value" => "services"}, experience_mode: %{"from" => "static", "value" => "loading"}}})
+        metadata(%{intent: "show_services_loading_state", success_message: "Services loading state previewed"})
+      end
+    end
+  end
+
+  defmodule Examples.ShowServicesEmptyStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Empty state", class: "ashui-example-secondary-cta", variant: "secondary"})
+      metadata(%{id: "services-empty-state", section: "demo", slot: "actions", position: 20})
+    end
+
+    ui_actions do
+      action :show_services_empty_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+        transform(%{params: %{selected_value: %{"from" => "static", "value" => "services"}, experience_mode: %{"from" => "static", "value" => "empty"}}})
+        metadata(%{intent: "show_services_empty_state", success_message: "Services empty state previewed"})
+      end
+    end
+  end
+
+  defmodule Examples.ShowServicesErrorStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Support error", class: "ashui-example-secondary-cta", variant: "secondary"})
+      metadata(%{id: "services-error-state", section: "demo", slot: "actions", position: 30})
+    end
+
+    ui_actions do
+      action :show_services_error_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+        transform(%{params: %{selected_value: %{"from" => "static", "value" => "services"}, experience_mode: %{"from" => "static", "value" => "error"}}})
+        metadata(%{intent: "show_services_error_state", success_message: "Services support issue previewed"})
+      end
+    end
+  end
+
+  defmodule Examples.ShowIncidentsReadyStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Ready state", class: "ashui-example-primary-cta", variant: "primary"})
+      metadata(%{id: "incidents-ready-state", section: "demo", slot: "actions", position: 0})
+    end
+
+    ui_actions do
+      action :show_incidents_ready_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+
+        transform(%{
+          params: %{
+            selected_value: %{"from" => "static", "value" => "incidents"},
+            experience_mode: %{"from" => "static", "value" => "ready"},
+            detail_title: %{"from" => "static", "value" => "Gateway latency spike"},
+            detail_summary: %{"from" => "static", "value" => "Tail latency exceeded SLA for external requests in the last 12 minutes."},
+            detail_status: %{"from" => "static", "value" => "sev-1"},
+            status: %{"from" => "static", "value" => "Incidents workspace restored to the polished ready state."}
+          }
+        })
+
+        metadata(%{intent: "show_incidents_ready_state", success_message: "Incidents review ready"})
+      end
+    end
+  end
+
+  defmodule Examples.ShowIncidentsLoadingStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Loading state", class: "ashui-example-secondary-cta", variant: "secondary"})
+      metadata(%{id: "incidents-loading-state", section: "demo", slot: "actions", position: 10})
+    end
+
+    ui_actions do
+      action :show_incidents_loading_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+        transform(%{params: %{selected_value: %{"from" => "static", "value" => "incidents"}, experience_mode: %{"from" => "static", "value" => "loading"}}})
+        metadata(%{intent: "show_incidents_loading_state", success_message: "Incidents loading state previewed"})
+      end
+    end
+  end
+
+  defmodule Examples.ShowIncidentsEmptyStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Empty state", class: "ashui-example-secondary-cta", variant: "secondary"})
+      metadata(%{id: "incidents-empty-state", section: "demo", slot: "actions", position: 20})
+    end
+
+    ui_actions do
+      action :show_incidents_empty_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+        transform(%{params: %{selected_value: %{"from" => "static", "value" => "incidents"}, experience_mode: %{"from" => "static", "value" => "empty"}}})
+        metadata(%{intent: "show_incidents_empty_state", success_message: "Incidents empty state previewed"})
+      end
+    end
+  end
+
+  defmodule Examples.ShowIncidentsErrorStateButtonElement do
+    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+
+    ui_element do
+      type(:button)
+      props(%{label: "Support error", class: "ashui-example-secondary-cta", variant: "secondary"})
+      metadata(%{id: "incidents-error-state", section: "demo", slot: "actions", position: 30})
+    end
+
+    ui_actions do
+      action :show_incidents_error_state do
+        signal(:click)
+        source(%{id: "tutorial-services-incidents-state", resource: "WorkspaceState", action: "update"})
+        target("submit")
+        transform(%{params: %{selected_value: %{"from" => "static", "value" => "incidents"}, experience_mode: %{"from" => "static", "value" => "error"}}})
+        metadata(%{intent: "show_incidents_error_state", success_message: "Incidents support issue previewed"})
       end
     end
   end
@@ -6158,7 +6807,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       props(%{
         content:
-          "Meaningful Interaction Story: switch between admin, on-call, and viewer mounts, then persist a service query, move between topology scopes, metrics snapshots, and runtime lanes, and confirm that the same services screen still shows different review surfaces because role requirements live in the authored graph rather than in a one-off host conditional.",
+          "Meaningful Interaction Story: keep the services workspace mounted while you switch actors, step through ready/loading/empty/error states, and move between topology, metrics, and runtime review lanes. The point of the final checkpoint is to show that the polished shell still comes from the same authored graph instead of from a one-off host rewrite.",
         class: "ashui-example-code-surface"
       })
 
@@ -6174,7 +6823,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       props(%{
         content:
-          "Canonical Signal Preview: actor param -> LiveView current_user -> ScreenAccess/ElementAccess/BindingAccess; service filter change -> WorkspaceState.service_query/service_status_filter/include_healthy; topology click -> WorkspaceState.topology_scope/topology_tab_value/topology_tree_model/topology_canvas_layer/topology_scroll_focus/detail/status; metrics click -> WorkspaceState.metrics_dashboard_model/progress_metric/gauge_metric/sparkline_series/bar_chart_series/line_chart_series/detail/status; runtime click -> WorkspaceState.runtime_focus/runtime_supervision_model/runtime_process_catalog/runtime_support_notice/detail/status; hydrate -> filtered services list plus the role-aware services panels that survive policy checks.",
+          "Canonical Signal Preview: actor param -> LiveView current_user -> ScreenAccess/ElementAccess/BindingAccess; polish-state click -> WorkspaceState.experience_mode/review_status_model/review_feedback_model/detail/status; service filter change -> WorkspaceState.service_query/service_status_filter/include_healthy; topology click -> WorkspaceState.topology_scope/topology_tab_value/topology_tree_model/topology_canvas_layer/topology_scroll_focus/detail/status; metrics click -> WorkspaceState.metrics_dashboard_model/progress_metric/gauge_metric/sparkline_series/bar_chart_series/line_chart_series/detail/status; runtime click -> WorkspaceState.runtime_focus/runtime_supervision_model/runtime_process_catalog/runtime_support_notice/detail/status; hydrate -> filtered services list plus the role-aware services panels that survive policy checks.",
         class: "ashui-example-code-surface"
       })
 
@@ -6192,6 +6841,11 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       has_many :filter_groups,
                AshUITutorials.OperationsControlCenter.Examples.IncidentsFiltersGroupElement do
+        destination_attribute(:parent_id)
+      end
+
+      has_many :operations_control_center_panels,
+               AshUITutorials.OperationsControlCenter.Examples.IncidentsOperationsControlCenterPanelElement do
         destination_attribute(:parent_id)
       end
 
@@ -6252,6 +6906,13 @@ defmodule AshUITutorials.OperationsControlCenter do
         slot(:body)
         placement(:append)
         order(10)
+      end
+
+      relationship :operations_control_center_panels do
+        kind(:child)
+        slot(:body)
+        placement(:append)
+        order(15)
       end
 
       relationship :operator_form_panels do
@@ -9137,7 +9798,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       props(%{
         content:
-          "Meaningful Interaction Story: mount the incidents workspace as admin, on-call, and viewer, then narrow the incident table and watch the authored form, overlay, and notice surfaces change. Admin keeps the full audit path, on-call keeps the triage and guarded write paths, and viewer stays inside a read-only review surface without losing runbooks, diagnostics, or the incident timeline.",
+          "Meaningful Interaction Story: mount the incidents workspace as admin, on-call, and viewer, then walk through ready/loading/empty/error states before using the authored forms and guarded actions. The final checkpoint keeps the review shell stable even when the current incident table is empty or blocked.",
         class: "ashui-example-code-surface"
       })
 
@@ -9153,7 +9814,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       props(%{
         content:
-          "Canonical Signal Preview: actor param -> LiveView current_user -> policy-filtered forms, bindings, and notices; filter change -> WorkspaceState.incident_severity_filter/incident_escalated_only -> hydrated incidents table; file-input change -> WorkspaceState.attachment_filename -> filename echo; authorized form action click -> WorkspaceState.submit_operator_workflow(...) -> incident catalog, disabled flags, and feedback copy; authorized guard click -> WorkspaceState.preview_guarded_action(...) / confirm_guarded_action() -> overlay visibility, toast state, shared detail, and runbook context; viewer write attempt -> policy denial rather than host-side state mutation.",
+          "Canonical Signal Preview: actor param -> LiveView current_user -> policy-filtered forms, bindings, and notices; polish-state click -> WorkspaceState.experience_mode/review_status_model/review_feedback_model/detail/status; filter change -> WorkspaceState.incident_severity_filter/incident_escalated_only -> hydrated incidents table; file-input change -> WorkspaceState.attachment_filename -> filename echo; authorized form action click -> WorkspaceState.submit_operator_workflow(...) -> incident catalog, disabled flags, and feedback copy; authorized guard click -> WorkspaceState.preview_guarded_action(...) / confirm_guarded_action() -> overlay visibility, toast state, shared detail, and runbook context; viewer write attempt -> policy denial rather than host-side state mutation.",
         class: "ashui-example-code-surface"
       })
 
@@ -9353,11 +10014,12 @@ defmodule AshUITutorials.OperationsControlCenter do
       ~H"""
       <style><%= Phoenix.HTML.raw(@theme_css) %></style>
       <main class="ashui-example-shell">
+        <a href="#tutorial-workspace" class="ashui-tutorial-skip-link">Skip to workspace</a>
         <header class="ashui-tutorial-shell-header">
           <p class="ashui-tutorial-shell-kicker">Ash UI Tutorial</p>
           <h1 class="ashui-tutorial-shell-title"><%= @title %></h1>
           <p class="ashui-tutorial-shell-summary"><%= @summary %></p>
-          <nav class="ashui-tutorial-nav">
+          <nav class="ashui-tutorial-nav" aria-label="Primary workspace navigation">
             <a
               href={AshUITutorials.OperationsControlCenter.page_path("services", @current_actor, @example_runtime)}
               class={["ashui-tutorial-nav-link", @active_page == "services" && "is-active"]}
@@ -9371,7 +10033,7 @@ defmodule AshUITutorials.OperationsControlCenter do
               Incidents
             </a>
           </nav>
-          <section class="ashui-tutorial-actor-switcher">
+          <section class="ashui-tutorial-actor-switcher" aria-label="Actor preview">
             <p class="ashui-tutorial-shell-kicker">Actor Preview</p>
             <div class="ashui-tutorial-actor-links">
               <%= for actor <- @actor_profiles do %>
@@ -9388,8 +10050,14 @@ defmodule AshUITutorials.OperationsControlCenter do
               <% end %>
             </div>
           </section>
+          <section class="ashui-example-panel ashui-tutorial-shell-note" aria-label="Accessibility and runtime notes">
+            <p class="ashui-tutorial-shell-kicker">Production Polish</p>
+            <p class="ashui-tutorial-shell-summary">
+              `live_ui` stays the default runtime inside this host. Alternate runtime previews remain available, but the shell now makes keyboard focus, contrast, and support-state copy visible in the same review flow.
+            </p>
+          </section>
         </header>
-        <section class="ashui-tutorial-live-surface">
+        <section id="tutorial-workspace" class="ashui-tutorial-live-surface" tabindex="-1">
           <%= render_slot(@inner_block) %>
         </section>
       </main>
@@ -9487,6 +10155,23 @@ defmodule AshUITutorials.OperationsControlCenter do
             <p class="ashui-tutorial-muted-copy"><%= @rendered_runtime.description %></p>
           </div>
           <div class="ashui-tutorial-runtime-actions">
+            <p class="ashui-tutorial-muted-copy">
+              Start with `mix example.start` for the default `live_ui` shell, or switch the running preview here after boot.
+            </p>
+            <nav class="ashui-tutorial-runtime-links" aria-label="Runtime preview selection">
+              <%= for runtime <- @supported_runtimes do %>
+                <a
+                  href={AshUITutorials.OperationsControlCenter.runtime_path(@active_page, @current_actor, runtime)}
+                  class={[
+                    "ashui-tutorial-nav-link",
+                    "ashui-tutorial-runtime-link",
+                    @example_runtime == runtime && "is-active"
+                  ]}
+                >
+                  <%= runtime %>
+                </a>
+              <% end %>
+            </nav>
             <%= for runtime <- @supported_runtimes do %>
               <code class="ashui-tutorial-runtime-command">mix example.start <%= runtime %></code>
             <% end %>

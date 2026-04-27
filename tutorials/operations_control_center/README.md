@@ -3,14 +3,16 @@
 This is the maintained final tutorial application for the Operations Control
 Center series.
 
-It now tracks the Chapter 11 milestone from
-[`tutorials/code/11-roles-and-policies/`](../code/11-roles-and-policies/):
-the shared shell, persisted filters, command navigation, operator workflows,
-guarded overlay confirmations, runbook review, seeded diagnostics, topology
-review, metrics dashboards, runtime-introspection surfaces, and the new
-permission-aware actor mounts for `admin`, `on_call_operator`, and `viewer`.
-Later phases should keep advancing this directory, while the checkpoint apps
-under `tutorials/code/` remain frozen chapter snapshots.
+It now tracks the Chapter 12 milestone from
+[`tutorials/code/12-production-polish/`](../code/12-production-polish/): the
+shared shell, actor-aware mounts, authored services and incidents workspaces,
+runbook review, diagnostics, topology, metrics, runtime introspection, and the
+final production-polish pass with explicit ready/loading/empty/error review
+states.
+
+If you want the frozen chapter checkpoint, start in
+[`tutorials/code/12-production-polish/`](../code/12-production-polish/). If
+you want the maintained completed reference, stay here.
 
 ## Run
 
@@ -36,8 +38,7 @@ If the server is already running, the same runtime switch can be reviewed by
 visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 `/?runtime=desktop_ui`.
 
-You can also mount the maintained app for a specific actor profile by passing
-`actor` in the query string:
+You can still mount the maintained app for a specific actor profile:
 
 ```text
 /?actor=admin
@@ -45,38 +46,31 @@ You can also mount the maintained app for a specific actor profile by passing
 /?actor=viewer
 ```
 
-The runtime and actor switches can be combined, for example:
+## Allowed Differences From Chapter 12
 
-```text
-/?actor=viewer&runtime=elm_ui
-```
+This directory is intentionally kept very close to
+[`tutorials/code/12-production-polish/`](../code/12-production-polish/). The
+allowed differences are narrow and documented:
 
-## Current Surface
+- module and OTP app names use `AshUITutorials.OperationsControlCenter` and
+  `:ash_ui_tutorial_operations_control_center`
+- screen metadata identifies the maintained directory with
+  `tutorial_directory: "operations_control_center"`
+- shell ids and iframe titles use `operations-control-center-*`
+- this README and the top-level summary copy describe the maintained-final-app
+  role rather than the Chapter 12 checkpoint role
 
-- Main module:
+The authored screen graph, resource structure, routes, shell behavior, actor
+switching, runtime switching, and production-polish review states should remain
+aligned with the Chapter 12 checkpoint.
+
+## Traceability
+
+- Maintained final app module:
   [`AshUITutorials.OperationsControlCenter`](./lib/ash_ui_tutorials/operations_control_center.ex)
-- Current authoritative screens:
-  `tutorial/services-incidents/services` and
-  `tutorial/services-incidents/incidents`
-- Current story scope:
-  services review, incidents review, shared detail focus, persisted filters,
-  command navigation, operator forms, guarded actions, runbook markdown,
-  filename-only attachment capture, seeded diagnostics status/log/stream/process
-  review, service-topology drill-downs, large review surfaces, cluster
-  dashboards, sampled chart series, runtime-introspection panels, and the
-  actor-aware policy surface that later tutorial chapters will extend
+- Chapter 12 checkpoint module:
+  [`AshUITutorials.ProductionPolish`](../code/12-production-polish/lib/ash_ui_tutorials/production_polish.ex)
 
-## Current Surface
-
-- Main module:
-  [`AshUITutorials.OperationsControlCenter`](./lib/ash_ui_tutorials/operations_control_center.ex)
-- Current authoritative screens:
-  `tutorial/services-incidents/services` and
-  `tutorial/services-incidents/incidents`
-- Current story scope:
-  services review, incidents review, shared detail focus, persisted filters,
-  command navigation, operator forms, guarded actions, runbook markdown,
-  filename-only attachment capture, seeded diagnostics status/log/stream/process
-  review, service-topology drill-downs, large review surfaces, cluster
-  dashboards, sampled chart series, and the maintained shell that later
-  tutorial chapters will extend
+Keep the maintained app readable as a tutorial product. When possible, prefer a
+direct sync from the Chapter 12 checkpoint over extracting opaque shared helper
+layers.

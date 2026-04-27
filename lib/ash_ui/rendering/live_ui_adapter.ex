@@ -620,9 +620,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     event_prefix = Map.get(opts, :event_prefix, "ash_ui")
     variant = Map.get(iur["props"] || %{}, "variant", "primary")
     button_type = Map.get(iur["props"] || %{}, "type", "button")
+    disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", prop_class(iur)])
+    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
 
     event_attrs =
       if binding && button_type != "submit" do
@@ -636,7 +637,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       end
 
     """
-    <button type="#{button_type}" class="#{class_name}"#{style_attr(prop_style(iur))}#{event_attrs}>#{label}</button>
+    <button type="#{button_type}" class="#{class_name}"#{style_attr(prop_style(iur))}#{if(disabled?, do: " disabled", else: "")}#{event_attrs}>#{label}</button>
     """
   end
 

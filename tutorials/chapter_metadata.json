@@ -31,7 +31,7 @@
     "chapter_path": "tutorials/chapters/03-filtering-and-search.md",
     "code_path": "tutorials/code/03-filtering-and-search",
     "previous_code_path": "tutorials/code/02-services-and-incidents",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add persisted filter state, quick search, and command-based navigation.",
     "supporting_examples": ["command_palette", "menu", "select", "text_input"]
   },
@@ -43,7 +43,7 @@
     "chapter_path": "tutorials/chapters/04-operator-actions-and-forms.md",
     "code_path": "tutorials/code/04-operator-actions-and-forms",
     "previous_code_path": "tutorials/code/03-filtering-and-search",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Introduce form builders, workflow actions, and maintenance flows.",
     "supporting_examples": ["date_input", "field_group", "form_builder", "pick_list"]
   },
@@ -55,7 +55,7 @@
     "chapter_path": "tutorials/chapters/05-safe-overlays-and-guards.md",
     "code_path": "tutorials/code/05-safe-overlays-and-guards",
     "previous_code_path": "tutorials/code/04-operator-actions-and-forms",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add dialogs, confirmation flows, and post-action feedback for sensitive operations.",
     "supporting_examples": ["alert_dialog", "context_menu", "dialog", "toast"]
   },

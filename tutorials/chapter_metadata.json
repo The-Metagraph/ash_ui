@@ -79,7 +79,7 @@
     "chapter_path": "tutorials/chapters/07-live-diagnostics.md",
     "code_path": "tutorials/code/07-live-diagnostics",
     "previous_code_path": "tutorials/code/06-runbooks-and-attachments",
-    "status": "planned",
+    "status": "implemented",
     "summary": "Add live logs, stream widgets, and process-level health surfaces.",
     "supporting_examples": ["log_viewer", "process_monitor", "stream_widget", "status"]
   },

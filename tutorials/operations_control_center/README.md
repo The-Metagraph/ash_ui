@@ -3,12 +3,13 @@
 This is the maintained final tutorial application for the Operations Control
 Center series.
 
-It now tracks the Chapter 6 milestone from
-[`tutorials/code/06-runbooks-and-attachments/`](../code/06-runbooks-and-attachments/):
+It now tracks the Chapter 7 milestone from
+[`tutorials/code/07-live-diagnostics/`](../code/07-live-diagnostics/):
 the shared shell, persisted filters, command navigation, operator workflows,
-guarded overlay confirmations, and the first runbook plus attachment review
-surfaces. Later phases should keep advancing this directory, while the
-checkpoint apps under `tutorials/code/` remain frozen chapter snapshots.
+guarded overlay confirmations, the first runbook plus attachment review
+surfaces, and the first live-shaped diagnostics lane. Later phases should keep
+advancing this directory, while the checkpoint apps under `tutorials/code/`
+remain frozen chapter snapshots.
 
 ## Run
 
@@ -44,5 +45,5 @@ visiting `/?runtime=live_ui`, `/?runtime=elm_ui`, or
 - Current story scope:
   services review, incidents review, shared detail focus, persisted filters,
   command navigation, operator forms, guarded actions, runbook markdown,
-  filename-only attachment capture, and the maintained shell that later
-  tutorial chapters will extend
+  filename-only attachment capture, seeded diagnostics status/log/stream/process
+  review, and the maintained shell that later tutorial chapters will extend

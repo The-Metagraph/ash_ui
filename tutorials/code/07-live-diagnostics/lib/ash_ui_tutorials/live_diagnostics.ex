@@ -1,6 +1,6 @@
-defmodule AshUITutorials.OperationsControlCenter do
+defmodule AshUITutorials.LiveDiagnostics do
   @moduledoc """
-  Maintained final tutorial app for the Operations Control Center tutorial.
+  Standalone Chapter 7 checkpoint app for the Operations Control Center tutorial.
   """
 
   use Phoenix.Component
@@ -11,13 +11,13 @@ defmodule AshUITutorials.OperationsControlCenter do
   alias AshUI.Resource.Authority
   alias AshUI.Tutorials.Phase23, as: TutorialBaseline
 
-  @app :ash_ui_tutorial_operations_control_center
+  @app :ash_ui_tutorial_live_diagnostics
   @screen_names %{
     services: "tutorial/services-incidents/services",
     incidents: "tutorial/services-incidents/incidents"
   }
   @title "Operations Control Center"
-  @summary "Maintained final tutorial app, now aligned with the live-diagnostics milestone: persisted filters, command navigation, operator workflows, guarded confirmations, incident guidance artifacts, and seeded runtime diagnostics all live on the same services and incidents screens."
+  @summary "Standalone Chapter 7 checkpoint app: persisted filters, command navigation, operator workflows, guarded confirmations, incident guidance artifacts, and seeded runtime diagnostics all live on the same services and incidents screens."
   @story_text "Meaningful Interaction Story: filter services, narrow incidents, then acknowledge, assign, schedule maintenance, or trigger guarded resolve, restart, silence, and discard-note flows while the same incident workspace renders runbook guidance, evidence references, filename-only attachment capture, and live-shaped diagnostic surfaces through authored resources."
   @signal_text "Canonical Signal Preview: input change -> WorkspaceState.update(...) -> derived list/table props plus filename echo; form action click -> WorkspaceState.submit_operator_workflow(...) -> feedback and disabled states; guard action click -> WorkspaceState.preview_guarded_action(...) / confirm_guarded_action() -> persisted overlay state, toast feedback, and shared detail updates; diagnostics action click -> WorkspaceState.update(...) -> status, inline feedback, logs, stream entries, and process snapshots."
   @theme_css File.read!(Path.expand("../../assets/css/app.css", __DIR__))
@@ -57,17 +57,17 @@ defmodule AshUITutorials.OperationsControlCenter do
 
   def ui_storage do
     [
-      domain: AshUITutorials.OperationsControlCenter.UiStorageDomain,
+      domain: AshUITutorials.LiveDiagnostics.UiStorageDomain,
       resources: [
-        screen: AshUITutorials.OperationsControlCenter.UiScreen,
-        element: AshUITutorials.OperationsControlCenter.UiElement,
-        binding: AshUITutorials.OperationsControlCenter.UiBinding
+        screen: AshUITutorials.LiveDiagnostics.UiScreen,
+        element: AshUITutorials.LiveDiagnostics.UiElement,
+        binding: AshUITutorials.LiveDiagnostics.UiBinding
       ],
       repo: nil
     ]
   end
 
-  def runtime_domains, do: [AshUITutorials.OperationsControlCenter.RuntimeDomain]
+  def runtime_domains, do: [AshUITutorials.LiveDiagnostics.RuntimeDomain]
 
   def actor_profile(role) do
     Enum.find(TutorialBaseline.actor_profiles(), &(&1.role == role))
@@ -367,23 +367,23 @@ defmodule AshUITutorials.OperationsControlCenter do
 
   def reset! do
     reset_resource!(
-      AshUITutorials.OperationsControlCenter.Runtime.WorkspaceState,
-      AshUITutorials.OperationsControlCenter.RuntimeDomain
+      AshUITutorials.LiveDiagnostics.Runtime.WorkspaceState,
+      AshUITutorials.LiveDiagnostics.RuntimeDomain
     )
 
     reset_resource!(
-      AshUITutorials.OperationsControlCenter.UiBinding,
-      AshUITutorials.OperationsControlCenter.UiStorageDomain
+      AshUITutorials.LiveDiagnostics.UiBinding,
+      AshUITutorials.LiveDiagnostics.UiStorageDomain
     )
 
     reset_resource!(
-      AshUITutorials.OperationsControlCenter.UiElement,
-      AshUITutorials.OperationsControlCenter.UiStorageDomain
+      AshUITutorials.LiveDiagnostics.UiElement,
+      AshUITutorials.LiveDiagnostics.UiStorageDomain
     )
 
     reset_resource!(
-      AshUITutorials.OperationsControlCenter.UiScreen,
-      AshUITutorials.OperationsControlCenter.UiStorageDomain
+      AshUITutorials.LiveDiagnostics.UiScreen,
+      AshUITutorials.LiveDiagnostics.UiStorageDomain
     )
 
     :ok
@@ -395,15 +395,15 @@ defmodule AshUITutorials.OperationsControlCenter do
 
     {:ok, _state} =
       Ash.create(
-        AshUITutorials.OperationsControlCenter.Runtime.WorkspaceState,
+        AshUITutorials.LiveDiagnostics.Runtime.WorkspaceState,
         seed_state(),
-        domain: AshUITutorials.OperationsControlCenter.RuntimeDomain,
+        domain: AshUITutorials.LiveDiagnostics.RuntimeDomain,
         authorize?: false
       )
 
     {:ok, services_screen} =
       Authority.create(
-        AshUITutorials.OperationsControlCenter.Examples.ServicesScreen,
+        AshUITutorials.LiveDiagnostics.Examples.ServicesScreen,
         actor: actor,
         name: screen_name(:services),
         ui_storage: ui_storage()
@@ -411,7 +411,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
     {:ok, incidents_screen} =
       Authority.create(
-        AshUITutorials.OperationsControlCenter.Examples.IncidentsScreen,
+        AshUITutorials.LiveDiagnostics.Examples.IncidentsScreen,
         actor: actor,
         name: screen_name(:incidents),
         ui_storage: ui_storage()
@@ -775,8 +775,8 @@ defmodule AshUITutorials.OperationsControlCenter do
 
     def start(_type, _args) do
       children = [
-        {Phoenix.PubSub, name: AshUITutorials.OperationsControlCenter.PubSub},
-        AshUITutorials.OperationsControlCenter.Web.Endpoint
+        {Phoenix.PubSub, name: AshUITutorials.LiveDiagnostics.PubSub},
+        AshUITutorials.LiveDiagnostics.Web.Endpoint
       ]
 
       Supervisor.start_link(children, strategy: :one_for_one, name: __MODULE__.Supervisor)
@@ -787,13 +787,13 @@ defmodule AshUITutorials.OperationsControlCenter do
     use Ash.Domain, validate_config_inclusion?: false
 
     resources do
-      resource(AshUITutorials.OperationsControlCenter.Runtime.WorkspaceState)
+      resource(AshUITutorials.LiveDiagnostics.Runtime.WorkspaceState)
     end
   end
 
   defmodule Runtime.WorkspaceState do
     use Ash.Resource,
-      domain: AshUITutorials.OperationsControlCenter.RuntimeDomain,
+      domain: AshUITutorials.LiveDiagnostics.RuntimeDomain,
       authorizers: [Ash.Policy.Authorizer],
       data_layer: Ash.DataLayer.Ets
 
@@ -994,7 +994,7 @@ defmodule AshUITutorials.OperationsControlCenter do
     defp hydrate_changeset(changeset) do
       changeset
       |> state_attrs_from()
-      |> AshUITutorials.OperationsControlCenter.hydrate_state()
+      |> AshUITutorials.LiveDiagnostics.hydrate_state()
       |> apply_hydrated_state(changeset)
     end
 
@@ -1007,7 +1007,7 @@ defmodule AshUITutorials.OperationsControlCenter do
         |> apply_workflow_result(Ash.Changeset.get_argument(changeset, :workflow_intent))
 
       attrs
-      |> AshUITutorials.OperationsControlCenter.hydrate_state()
+      |> AshUITutorials.LiveDiagnostics.hydrate_state()
       |> apply_hydrated_state(changeset)
     end
 
@@ -1114,7 +1114,7 @@ defmodule AshUITutorials.OperationsControlCenter do
         |> apply_guard_preview(Ash.Changeset.get_argument(changeset, :guard_intent))
 
       attrs
-      |> AshUITutorials.OperationsControlCenter.hydrate_state()
+      |> AshUITutorials.LiveDiagnostics.hydrate_state()
       |> apply_hydrated_state(changeset)
     end
 
@@ -1125,7 +1125,7 @@ defmodule AshUITutorials.OperationsControlCenter do
         |> apply_guard_confirmation()
 
       attrs
-      |> AshUITutorials.OperationsControlCenter.hydrate_state()
+      |> AshUITutorials.LiveDiagnostics.hydrate_state()
       |> apply_hydrated_state(changeset)
     end
 
@@ -1334,15 +1334,15 @@ defmodule AshUITutorials.OperationsControlCenter do
     use Ash.Domain, validate_config_inclusion?: false
 
     resources do
-      resource(AshUITutorials.OperationsControlCenter.UiScreen)
-      resource(AshUITutorials.OperationsControlCenter.UiElement)
-      resource(AshUITutorials.OperationsControlCenter.UiBinding)
+      resource(AshUITutorials.LiveDiagnostics.UiScreen)
+      resource(AshUITutorials.LiveDiagnostics.UiElement)
+      resource(AshUITutorials.LiveDiagnostics.UiBinding)
     end
   end
 
   defmodule UiScreen do
     use Ash.Resource,
-      domain: AshUITutorials.OperationsControlCenter.UiStorageDomain,
+      domain: AshUITutorials.LiveDiagnostics.UiStorageDomain,
       authorizers: [Ash.Policy.Authorizer],
       data_layer: Ash.DataLayer.Ets
 
@@ -1364,11 +1364,11 @@ defmodule AshUITutorials.OperationsControlCenter do
     end
 
     relationships do
-      has_many :elements, AshUITutorials.OperationsControlCenter.UiElement do
+      has_many :elements, AshUITutorials.LiveDiagnostics.UiElement do
         destination_attribute(:screen_id)
       end
 
-      has_many :bindings, AshUITutorials.OperationsControlCenter.UiBinding do
+      has_many :bindings, AshUITutorials.LiveDiagnostics.UiBinding do
         destination_attribute(:screen_id)
       end
     end
@@ -1430,7 +1430,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
   defmodule UiElement do
     use Ash.Resource,
-      domain: AshUITutorials.OperationsControlCenter.UiStorageDomain,
+      domain: AshUITutorials.LiveDiagnostics.UiStorageDomain,
       authorizers: [Ash.Policy.Authorizer],
       data_layer: Ash.DataLayer.Ets
 
@@ -1452,12 +1452,12 @@ defmodule AshUITutorials.OperationsControlCenter do
     end
 
     relationships do
-      belongs_to :screen, AshUITutorials.OperationsControlCenter.UiScreen do
+      belongs_to :screen, AshUITutorials.LiveDiagnostics.UiScreen do
         attribute_type(:uuid)
         allow_nil?(true)
       end
 
-      has_many :bindings, AshUITutorials.OperationsControlCenter.UiBinding do
+      has_many :bindings, AshUITutorials.LiveDiagnostics.UiBinding do
         destination_attribute(:element_id)
       end
     end
@@ -1498,7 +1498,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
   defmodule UiBinding do
     use Ash.Resource,
-      domain: AshUITutorials.OperationsControlCenter.UiStorageDomain,
+      domain: AshUITutorials.LiveDiagnostics.UiStorageDomain,
       authorizers: [Ash.Policy.Authorizer],
       data_layer: Ash.DataLayer.Ets
 
@@ -1520,12 +1520,12 @@ defmodule AshUITutorials.OperationsControlCenter do
     end
 
     relationships do
-      belongs_to :element, AshUITutorials.OperationsControlCenter.UiElement do
+      belongs_to :element, AshUITutorials.LiveDiagnostics.UiElement do
         attribute_type(:uuid)
         allow_nil?(true)
       end
 
-      belongs_to :screen, AshUITutorials.OperationsControlCenter.UiScreen do
+      belongs_to :screen, AshUITutorials.LiveDiagnostics.UiScreen do
         attribute_type(:uuid)
         allow_nil?(true)
       end
@@ -1579,111 +1579,111 @@ defmodule AshUITutorials.OperationsControlCenter do
     use Ash.Domain, validate_config_inclusion?: false
 
     resources do
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesScreen)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesWorkspacePanelElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.WorkspaceMenuElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ShowServicesButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ShowOperatorViewButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.WorkspaceSelectionSummaryElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.CommandPaletteElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.CommandPaletteInputElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.CommandFocusGatewayButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.CommandFocusIncidentButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.CommandOpenOperatorViewButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.CommandSummaryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesFiltersGroupElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesQueryFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesQueryInputElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServiceStatusFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServiceStatusSelectElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncludeHealthyFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncludeHealthyCheckboxElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesListElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.SharedDetailCardElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.SharedDetailBadgeElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.SharedDetailTitleElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.SharedDetailSummaryElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesStatusTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesStoryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ServicesSignalTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsScreen)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsWorkspacePanelElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsFiltersGroupElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentSeverityFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentSeverityRadioElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentEscalatedFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentEscalatedSwitchElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OperatorFormsPanelElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OperatorWorkflowFormElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.NoteAndAssignmentGroupElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OperatorNoteFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OperatorNoteInputElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AssignmentTargetFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AssignmentTargetPickListElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.MaintenanceWindowGroupElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.MaintenanceDurationFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.MaintenanceDurationInputElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.MaintenanceDateFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.MaintenanceDateInputElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.MaintenanceTimeFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.MaintenanceTimeInputElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AcknowledgeIncidentButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AssignIncidentButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ScheduleMaintenanceButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.FormFeedbackBadgeElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.FormFeedbackTitleElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.FormFeedbackSummaryElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardedActionsPanelElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardedActionsMenuElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OpenResolveGuardButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OpenRestartGuardButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OpenSilenceGuardButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.OpenDiscardNoteGuardButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardSummaryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardOverlayElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardOverlayTitleTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardOverlaySummaryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ConfirmOverlayGuardButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.CancelGuardSurfaceButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ResolveGuardDialogElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ResolveGuardSummaryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ConfirmResolveGuardButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.RestartGuardAlertElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.RestartGuardSummaryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.ConfirmRestartGuardButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardResultToastElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardToastTitleTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.GuardToastSummaryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.DismissGuardToastButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsTableElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.RunbookReviewPanelElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.RunbookSplitPaneElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.RunbookFocusTitleElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.RunbookMarkdownViewerElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.LoadGatewayRunbookButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.LoadRollbackRunbookButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AttachmentEvidenceCardElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AttachmentPreviewTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AttachmentFileFieldElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AttachmentFileInputElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AttachmentReferenceLinkElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AttachmentImageElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.AttachmentSupportTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.RunbookStatusTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.LiveDiagnosticsPanelElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.LoadGatewayDiagnosticsButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.LoadSearchDiagnosticsButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.LoadPressureDiagnosticsButtonElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.DiagnosticsStatusElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.DiagnosticsInlineFeedbackElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.DiagnosticsLogViewerElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.DiagnosticsStreamWidgetElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.DiagnosticsProcessMonitorElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.DiagnosticsStatusTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsStatusTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsStoryTextElement)
-      resource(AshUITutorials.OperationsControlCenter.Examples.IncidentsSignalTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesScreen)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesWorkspacePanelElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.WorkspaceMenuElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ShowServicesButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ShowIncidentsButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ShowOperatorViewButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.WorkspaceSelectionSummaryElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.CommandPaletteElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.CommandPaletteInputElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.CommandFocusGatewayButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.CommandFocusIncidentButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.CommandOpenOperatorViewButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.CommandSummaryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesFiltersGroupElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesQueryFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesQueryInputElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServiceStatusFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServiceStatusSelectElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncludeHealthyFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncludeHealthyCheckboxElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesListElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.SharedDetailCardElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.SharedDetailBadgeElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.SharedDetailTitleElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.SharedDetailSummaryElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesStatusTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesStoryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ServicesSignalTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentsScreen)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentsWorkspacePanelElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentsFiltersGroupElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentSeverityFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentSeverityRadioElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentEscalatedFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentEscalatedSwitchElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OperatorFormsPanelElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OperatorWorkflowFormElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.NoteAndAssignmentGroupElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OperatorNoteFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OperatorNoteInputElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AssignmentTargetFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AssignmentTargetPickListElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.MaintenanceWindowGroupElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.MaintenanceDurationFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.MaintenanceDurationInputElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.MaintenanceDateFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.MaintenanceDateInputElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.MaintenanceTimeFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.MaintenanceTimeInputElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AcknowledgeIncidentButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AssignIncidentButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ScheduleMaintenanceButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.FormFeedbackBadgeElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.FormFeedbackTitleElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.FormFeedbackSummaryElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardedActionsPanelElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardedActionsMenuElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OpenResolveGuardButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OpenRestartGuardButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OpenSilenceGuardButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.OpenDiscardNoteGuardButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardSummaryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardOverlayElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardOverlayTitleTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardOverlaySummaryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ConfirmOverlayGuardButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.CancelGuardSurfaceButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ResolveGuardDialogElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ResolveGuardSummaryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ConfirmResolveGuardButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.RestartGuardAlertElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.RestartGuardSummaryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.ConfirmRestartGuardButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardResultToastElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardToastTitleTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.GuardToastSummaryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.DismissGuardToastButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentsTableElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.RunbookReviewPanelElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.RunbookSplitPaneElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.RunbookFocusTitleElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.RunbookMarkdownViewerElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.LoadGatewayRunbookButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.LoadRollbackRunbookButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AttachmentEvidenceCardElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AttachmentPreviewTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AttachmentFileFieldElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AttachmentFileInputElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AttachmentReferenceLinkElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AttachmentImageElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.AttachmentSupportTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.RunbookStatusTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.LiveDiagnosticsPanelElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.LoadGatewayDiagnosticsButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.LoadSearchDiagnosticsButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.LoadPressureDiagnosticsButtonElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.DiagnosticsStatusElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.DiagnosticsInlineFeedbackElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.DiagnosticsLogViewerElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.DiagnosticsStreamWidgetElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.DiagnosticsProcessMonitorElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.DiagnosticsStatusTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentsStatusTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentsStoryTextElement)
+      resource(AshUITutorials.LiveDiagnostics.Examples.IncidentsSignalTextElement)
     end
   end
 
@@ -1691,7 +1691,7 @@ defmodule AshUITutorials.OperationsControlCenter do
     defmacro __using__(_opts) do
       quote do
         use Ash.Resource,
-          domain: AshUITutorials.OperationsControlCenter.AuthoringDomain,
+          domain: AshUITutorials.LiveDiagnostics.AuthoringDomain,
           data_layer: Ash.DataLayer.Ets
 
         use AshUI.Resource.DSL.Element
@@ -1714,32 +1714,32 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesWorkspacePanelElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
-      has_many :menus, AshUITutorials.OperationsControlCenter.Examples.WorkspaceMenuElement do
+      has_many :menus, AshUITutorials.LiveDiagnostics.Examples.WorkspaceMenuElement do
         destination_attribute(:parent_id)
       end
 
       has_many :command_palettes,
-               AshUITutorials.OperationsControlCenter.Examples.CommandPaletteElement do
+               AshUITutorials.LiveDiagnostics.Examples.CommandPaletteElement do
         destination_attribute(:parent_id)
       end
 
       has_many :filter_groups,
-               AshUITutorials.OperationsControlCenter.Examples.ServicesFiltersGroupElement do
+               AshUITutorials.LiveDiagnostics.Examples.ServicesFiltersGroupElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :service_lists, AshUITutorials.OperationsControlCenter.Examples.ServicesListElement do
+      has_many :service_lists, AshUITutorials.LiveDiagnostics.Examples.ServicesListElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :detail_cards, AshUITutorials.OperationsControlCenter.Examples.SharedDetailCardElement do
+      has_many :detail_cards, AshUITutorials.LiveDiagnostics.Examples.SharedDetailCardElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :status_texts, AshUITutorials.OperationsControlCenter.Examples.ServicesStatusTextElement do
+      has_many :status_texts, AshUITutorials.LiveDiagnostics.Examples.ServicesStatusTextElement do
         destination_attribute(:parent_id)
       end
     end
@@ -1796,25 +1796,25 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.WorkspaceMenuElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
-      has_many :services_buttons, AshUITutorials.OperationsControlCenter.Examples.ShowServicesButtonElement do
+      has_many :services_buttons, AshUITutorials.LiveDiagnostics.Examples.ShowServicesButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :incidents_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.ShowIncidentsButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.ShowIncidentsButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :operator_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.ShowOperatorViewButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.ShowOperatorViewButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :selection_summaries,
-               AshUITutorials.OperationsControlCenter.Examples.WorkspaceSelectionSummaryElement do
+               AshUITutorials.LiveDiagnostics.Examples.WorkspaceSelectionSummaryElement do
         destination_attribute(:parent_id)
       end
     end
@@ -1863,7 +1863,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ShowServicesButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -1893,7 +1893,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ShowIncidentsButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -1923,7 +1923,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ShowOperatorViewButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -1954,7 +1954,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.WorkspaceSelectionSummaryElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -1974,31 +1974,31 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.CommandPaletteElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :search_inputs,
-               AshUITutorials.OperationsControlCenter.Examples.CommandPaletteInputElement do
+               AshUITutorials.LiveDiagnostics.Examples.CommandPaletteInputElement do
         destination_attribute(:parent_id)
       end
 
       has_many :gateway_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.CommandFocusGatewayButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.CommandFocusGatewayButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :incident_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.CommandFocusIncidentButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.CommandFocusIncidentButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :operator_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.CommandOpenOperatorViewButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.CommandOpenOperatorViewButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :summary_texts,
-               AshUITutorials.OperationsControlCenter.Examples.CommandSummaryTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.CommandSummaryTextElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2054,7 +2054,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.CommandPaletteInputElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:input)
@@ -2082,7 +2082,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.CommandFocusGatewayButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -2113,7 +2113,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.CommandFocusIncidentButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -2144,7 +2144,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.CommandOpenOperatorViewButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -2175,7 +2175,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.CommandSummaryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -2195,21 +2195,21 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesFiltersGroupElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :query_fields,
-               AshUITutorials.OperationsControlCenter.Examples.ServicesQueryFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.ServicesQueryFieldElement do
         destination_attribute(:parent_id)
       end
 
       has_many :status_fields,
-               AshUITutorials.OperationsControlCenter.Examples.ServiceStatusFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.ServiceStatusFieldElement do
         destination_attribute(:parent_id)
       end
 
       has_many :healthy_fields,
-               AshUITutorials.OperationsControlCenter.Examples.IncludeHealthyFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncludeHealthyFieldElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2251,11 +2251,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesQueryFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :inputs,
-               AshUITutorials.OperationsControlCenter.Examples.ServicesQueryInputElement do
+               AshUITutorials.LiveDiagnostics.Examples.ServicesQueryInputElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2284,7 +2284,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesQueryInputElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:input)
@@ -2312,11 +2312,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServiceStatusFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :selects,
-               AshUITutorials.OperationsControlCenter.Examples.ServiceStatusSelectElement do
+               AshUITutorials.LiveDiagnostics.Examples.ServiceStatusSelectElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2345,7 +2345,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServiceStatusSelectElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:select)
@@ -2372,11 +2372,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncludeHealthyFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :checkboxes,
-               AshUITutorials.OperationsControlCenter.Examples.IncludeHealthyCheckboxElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncludeHealthyCheckboxElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2405,7 +2405,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncludeHealthyCheckboxElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:checkbox)
@@ -2425,7 +2425,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesListElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:list)
@@ -2460,18 +2460,18 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.SharedDetailCardElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
-      has_many :badges, AshUITutorials.OperationsControlCenter.Examples.SharedDetailBadgeElement do
+      has_many :badges, AshUITutorials.LiveDiagnostics.Examples.SharedDetailBadgeElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :titles, AshUITutorials.OperationsControlCenter.Examples.SharedDetailTitleElement do
+      has_many :titles, AshUITutorials.LiveDiagnostics.Examples.SharedDetailTitleElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :summaries, AshUITutorials.OperationsControlCenter.Examples.SharedDetailSummaryElement do
+      has_many :summaries, AshUITutorials.LiveDiagnostics.Examples.SharedDetailSummaryElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2507,7 +2507,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.SharedDetailBadgeElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:badge)
@@ -2527,7 +2527,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.SharedDetailTitleElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -2547,7 +2547,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.SharedDetailSummaryElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -2567,7 +2567,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesStatusTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -2587,7 +2587,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesStoryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -2603,7 +2603,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ServicesSignalTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -2619,48 +2619,48 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentsWorkspacePanelElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
-      has_many :menus, AshUITutorials.OperationsControlCenter.Examples.WorkspaceMenuElement do
+      has_many :menus, AshUITutorials.LiveDiagnostics.Examples.WorkspaceMenuElement do
         destination_attribute(:parent_id)
       end
 
       has_many :filter_groups,
-               AshUITutorials.OperationsControlCenter.Examples.IncidentsFiltersGroupElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncidentsFiltersGroupElement do
         destination_attribute(:parent_id)
       end
 
       has_many :operator_form_panels,
-               AshUITutorials.OperationsControlCenter.Examples.OperatorFormsPanelElement do
+               AshUITutorials.LiveDiagnostics.Examples.OperatorFormsPanelElement do
         destination_attribute(:parent_id)
       end
 
       has_many :guarded_action_panels,
-               AshUITutorials.OperationsControlCenter.Examples.GuardedActionsPanelElement do
+               AshUITutorials.LiveDiagnostics.Examples.GuardedActionsPanelElement do
         destination_attribute(:parent_id)
       end
 
       has_many :incident_tables,
-               AshUITutorials.OperationsControlCenter.Examples.IncidentsTableElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncidentsTableElement do
         destination_attribute(:parent_id)
       end
 
       has_many :runbook_review_panels,
-               AshUITutorials.OperationsControlCenter.Examples.RunbookReviewPanelElement do
+               AshUITutorials.LiveDiagnostics.Examples.RunbookReviewPanelElement do
         destination_attribute(:parent_id)
       end
 
       has_many :live_diagnostics_panels,
-               AshUITutorials.OperationsControlCenter.Examples.LiveDiagnosticsPanelElement do
+               AshUITutorials.LiveDiagnostics.Examples.LiveDiagnosticsPanelElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :detail_cards, AshUITutorials.OperationsControlCenter.Examples.SharedDetailCardElement do
+      has_many :detail_cards, AshUITutorials.LiveDiagnostics.Examples.SharedDetailCardElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :status_texts, AshUITutorials.OperationsControlCenter.Examples.IncidentsStatusTextElement do
+      has_many :status_texts, AshUITutorials.LiveDiagnostics.Examples.IncidentsStatusTextElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2738,16 +2738,16 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentsFiltersGroupElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :severity_fields,
-               AshUITutorials.OperationsControlCenter.Examples.IncidentSeverityFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncidentSeverityFieldElement do
         destination_attribute(:parent_id)
       end
 
       has_many :escalated_fields,
-               AshUITutorials.OperationsControlCenter.Examples.IncidentEscalatedFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncidentEscalatedFieldElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2782,11 +2782,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentSeverityFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :radios,
-               AshUITutorials.OperationsControlCenter.Examples.IncidentSeverityRadioElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncidentSeverityRadioElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2815,7 +2815,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentSeverityRadioElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:radio)
@@ -2842,11 +2842,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentEscalatedFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :switches,
-               AshUITutorials.OperationsControlCenter.Examples.IncidentEscalatedSwitchElement do
+               AshUITutorials.LiveDiagnostics.Examples.IncidentEscalatedSwitchElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2875,7 +2875,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentEscalatedSwitchElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:switch)
@@ -2895,25 +2895,25 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OperatorFormsPanelElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
-      has_many :forms, AshUITutorials.OperationsControlCenter.Examples.OperatorWorkflowFormElement do
+      has_many :forms, AshUITutorials.LiveDiagnostics.Examples.OperatorWorkflowFormElement do
         destination_attribute(:parent_id)
       end
 
       has_many :feedback_badges,
-               AshUITutorials.OperationsControlCenter.Examples.FormFeedbackBadgeElement do
+               AshUITutorials.LiveDiagnostics.Examples.FormFeedbackBadgeElement do
         destination_attribute(:parent_id)
       end
 
       has_many :feedback_titles,
-               AshUITutorials.OperationsControlCenter.Examples.FormFeedbackTitleElement do
+               AshUITutorials.LiveDiagnostics.Examples.FormFeedbackTitleElement do
         destination_attribute(:parent_id)
       end
 
       has_many :feedback_summaries,
-               AshUITutorials.OperationsControlCenter.Examples.FormFeedbackSummaryElement do
+               AshUITutorials.LiveDiagnostics.Examples.FormFeedbackSummaryElement do
         destination_attribute(:parent_id)
       end
     end
@@ -2961,31 +2961,31 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OperatorWorkflowFormElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :note_groups,
-               AshUITutorials.OperationsControlCenter.Examples.NoteAndAssignmentGroupElement do
+               AshUITutorials.LiveDiagnostics.Examples.NoteAndAssignmentGroupElement do
         destination_attribute(:parent_id)
       end
 
       has_many :maintenance_groups,
-               AshUITutorials.OperationsControlCenter.Examples.MaintenanceWindowGroupElement do
+               AshUITutorials.LiveDiagnostics.Examples.MaintenanceWindowGroupElement do
         destination_attribute(:parent_id)
       end
 
       has_many :acknowledge_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.AcknowledgeIncidentButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.AcknowledgeIncidentButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :assign_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.AssignIncidentButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.AssignIncidentButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :maintenance_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.ScheduleMaintenanceButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.ScheduleMaintenanceButtonElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3035,16 +3035,16 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.NoteAndAssignmentGroupElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :note_fields,
-               AshUITutorials.OperationsControlCenter.Examples.OperatorNoteFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.OperatorNoteFieldElement do
         destination_attribute(:parent_id)
       end
 
       has_many :assignment_fields,
-               AshUITutorials.OperationsControlCenter.Examples.AssignmentTargetFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.AssignmentTargetFieldElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3079,11 +3079,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OperatorNoteFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :inputs,
-               AshUITutorials.OperationsControlCenter.Examples.OperatorNoteInputElement do
+               AshUITutorials.LiveDiagnostics.Examples.OperatorNoteInputElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3112,7 +3112,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OperatorNoteInputElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:input)
@@ -3140,11 +3140,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AssignmentTargetFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :pick_lists,
-               AshUITutorials.OperationsControlCenter.Examples.AssignmentTargetPickListElement do
+               AshUITutorials.LiveDiagnostics.Examples.AssignmentTargetPickListElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3173,7 +3173,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AssignmentTargetPickListElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:pick_list")
@@ -3204,21 +3204,21 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.MaintenanceWindowGroupElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :duration_fields,
-               AshUITutorials.OperationsControlCenter.Examples.MaintenanceDurationFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.MaintenanceDurationFieldElement do
         destination_attribute(:parent_id)
       end
 
       has_many :date_fields,
-               AshUITutorials.OperationsControlCenter.Examples.MaintenanceDateFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.MaintenanceDateFieldElement do
         destination_attribute(:parent_id)
       end
 
       has_many :time_fields,
-               AshUITutorials.OperationsControlCenter.Examples.MaintenanceTimeFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.MaintenanceTimeFieldElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3260,11 +3260,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.MaintenanceDurationFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :inputs,
-               AshUITutorials.OperationsControlCenter.Examples.MaintenanceDurationInputElement do
+               AshUITutorials.LiveDiagnostics.Examples.MaintenanceDurationInputElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3293,7 +3293,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.MaintenanceDurationInputElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:input)
@@ -3321,11 +3321,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.MaintenanceDateFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :inputs,
-               AshUITutorials.OperationsControlCenter.Examples.MaintenanceDateInputElement do
+               AshUITutorials.LiveDiagnostics.Examples.MaintenanceDateInputElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3354,7 +3354,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.MaintenanceDateInputElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:input)
@@ -3381,11 +3381,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.MaintenanceTimeFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :inputs,
-               AshUITutorials.OperationsControlCenter.Examples.MaintenanceTimeInputElement do
+               AshUITutorials.LiveDiagnostics.Examples.MaintenanceTimeInputElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3414,7 +3414,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.MaintenanceTimeInputElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:input)
@@ -3441,7 +3441,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AcknowledgeIncidentButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -3484,7 +3484,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AssignIncidentButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -3528,7 +3528,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ScheduleMaintenanceButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -3574,7 +3574,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.FormFeedbackBadgeElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:badge)
@@ -3594,7 +3594,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.FormFeedbackTitleElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -3614,7 +3614,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.FormFeedbackSummaryElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -3634,26 +3634,26 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardedActionsPanelElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
-      has_many :menus, AshUITutorials.OperationsControlCenter.Examples.GuardedActionsMenuElement do
+      has_many :menus, AshUITutorials.LiveDiagnostics.Examples.GuardedActionsMenuElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :overlays, AshUITutorials.OperationsControlCenter.Examples.GuardOverlayElement do
+      has_many :overlays, AshUITutorials.LiveDiagnostics.Examples.GuardOverlayElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :dialogs, AshUITutorials.OperationsControlCenter.Examples.ResolveGuardDialogElement do
+      has_many :dialogs, AshUITutorials.LiveDiagnostics.Examples.ResolveGuardDialogElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :alerts, AshUITutorials.OperationsControlCenter.Examples.RestartGuardAlertElement do
+      has_many :alerts, AshUITutorials.LiveDiagnostics.Examples.RestartGuardAlertElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :toasts, AshUITutorials.OperationsControlCenter.Examples.GuardResultToastElement do
+      has_many :toasts, AshUITutorials.LiveDiagnostics.Examples.GuardResultToastElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3708,31 +3708,31 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardedActionsMenuElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :resolve_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.OpenResolveGuardButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.OpenResolveGuardButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :restart_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.OpenRestartGuardButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.OpenRestartGuardButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :silence_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.OpenSilenceGuardButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.OpenSilenceGuardButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :discard_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.OpenDiscardNoteGuardButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.OpenDiscardNoteGuardButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :summary_texts,
-               AshUITutorials.OperationsControlCenter.Examples.GuardSummaryTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.GuardSummaryTextElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3789,7 +3789,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OpenResolveGuardButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -3809,7 +3809,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OpenRestartGuardButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -3829,7 +3829,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OpenSilenceGuardButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -3849,7 +3849,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.OpenDiscardNoteGuardButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -3869,7 +3869,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardSummaryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -3889,26 +3889,26 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardOverlayElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :title_texts,
-               AshUITutorials.OperationsControlCenter.Examples.GuardOverlayTitleTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.GuardOverlayTitleTextElement do
         destination_attribute(:parent_id)
       end
 
       has_many :summary_texts,
-               AshUITutorials.OperationsControlCenter.Examples.GuardOverlaySummaryTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.GuardOverlaySummaryTextElement do
         destination_attribute(:parent_id)
       end
 
       has_many :confirm_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.ConfirmOverlayGuardButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.ConfirmOverlayGuardButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :cancel_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.CancelGuardSurfaceButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.CancelGuardSurfaceButtonElement do
         destination_attribute(:parent_id)
       end
     end
@@ -3968,7 +3968,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardOverlayTitleTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -3988,7 +3988,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardOverlaySummaryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4008,7 +4008,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ConfirmOverlayGuardButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -4028,7 +4028,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.CancelGuardSurfaceButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -4057,21 +4057,21 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ResolveGuardDialogElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :summary_texts,
-               AshUITutorials.OperationsControlCenter.Examples.ResolveGuardSummaryTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.ResolveGuardSummaryTextElement do
         destination_attribute(:parent_id)
       end
 
       has_many :confirm_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.ConfirmResolveGuardButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.ConfirmResolveGuardButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :cancel_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.CancelGuardSurfaceButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.CancelGuardSurfaceButtonElement do
         destination_attribute(:parent_id)
       end
     end
@@ -4124,7 +4124,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ResolveGuardSummaryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4144,7 +4144,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ConfirmResolveGuardButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -4164,21 +4164,21 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.RestartGuardAlertElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :summary_texts,
-               AshUITutorials.OperationsControlCenter.Examples.RestartGuardSummaryTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.RestartGuardSummaryTextElement do
         destination_attribute(:parent_id)
       end
 
       has_many :confirm_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.ConfirmRestartGuardButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.ConfirmRestartGuardButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :cancel_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.CancelGuardSurfaceButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.CancelGuardSurfaceButtonElement do
         destination_attribute(:parent_id)
       end
     end
@@ -4231,7 +4231,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.RestartGuardSummaryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4251,7 +4251,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.ConfirmRestartGuardButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -4271,21 +4271,21 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardResultToastElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :title_texts,
-               AshUITutorials.OperationsControlCenter.Examples.GuardToastTitleTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.GuardToastTitleTextElement do
         destination_attribute(:parent_id)
       end
 
       has_many :summary_texts,
-               AshUITutorials.OperationsControlCenter.Examples.GuardToastSummaryTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.GuardToastSummaryTextElement do
         destination_attribute(:parent_id)
       end
 
       has_many :dismiss_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.DismissGuardToastButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.DismissGuardToastButtonElement do
         destination_attribute(:parent_id)
       end
     end
@@ -4338,7 +4338,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardToastTitleTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4358,7 +4358,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.GuardToastSummaryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4378,7 +4378,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.DismissGuardToastButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -4407,7 +4407,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentsTableElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:table)
@@ -4448,16 +4448,16 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.RunbookReviewPanelElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :split_panes,
-               AshUITutorials.OperationsControlCenter.Examples.RunbookSplitPaneElement do
+               AshUITutorials.LiveDiagnostics.Examples.RunbookSplitPaneElement do
         destination_attribute(:parent_id)
       end
 
       has_many :status_texts,
-               AshUITutorials.OperationsControlCenter.Examples.RunbookStatusTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.RunbookStatusTextElement do
         destination_attribute(:parent_id)
       end
     end
@@ -4491,31 +4491,31 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.RunbookSplitPaneElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :focus_titles,
-               AshUITutorials.OperationsControlCenter.Examples.RunbookFocusTitleElement do
+               AshUITutorials.LiveDiagnostics.Examples.RunbookFocusTitleElement do
         destination_attribute(:parent_id)
       end
 
       has_many :markdown_viewers,
-               AshUITutorials.OperationsControlCenter.Examples.RunbookMarkdownViewerElement do
+               AshUITutorials.LiveDiagnostics.Examples.RunbookMarkdownViewerElement do
         destination_attribute(:parent_id)
       end
 
       has_many :evidence_cards,
-               AshUITutorials.OperationsControlCenter.Examples.AttachmentEvidenceCardElement do
+               AshUITutorials.LiveDiagnostics.Examples.AttachmentEvidenceCardElement do
         destination_attribute(:parent_id)
       end
 
       has_many :gateway_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.LoadGatewayRunbookButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.LoadGatewayRunbookButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :rollback_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.LoadRollbackRunbookButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.LoadRollbackRunbookButtonElement do
         destination_attribute(:parent_id)
       end
     end
@@ -4571,7 +4571,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.RunbookFocusTitleElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4591,7 +4591,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.RunbookMarkdownViewerElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:markdown_viewer")
@@ -4617,7 +4617,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.LoadGatewayRunbookButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -4666,7 +4666,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.LoadRollbackRunbookButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -4713,30 +4713,30 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AttachmentEvidenceCardElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :preview_texts,
-               AshUITutorials.OperationsControlCenter.Examples.AttachmentPreviewTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.AttachmentPreviewTextElement do
         destination_attribute(:parent_id)
       end
 
       has_many :file_fields,
-               AshUITutorials.OperationsControlCenter.Examples.AttachmentFileFieldElement do
+               AshUITutorials.LiveDiagnostics.Examples.AttachmentFileFieldElement do
         destination_attribute(:parent_id)
       end
 
       has_many :reference_links,
-               AshUITutorials.OperationsControlCenter.Examples.AttachmentReferenceLinkElement do
+               AshUITutorials.LiveDiagnostics.Examples.AttachmentReferenceLinkElement do
         destination_attribute(:parent_id)
       end
 
-      has_many :images, AshUITutorials.OperationsControlCenter.Examples.AttachmentImageElement do
+      has_many :images, AshUITutorials.LiveDiagnostics.Examples.AttachmentImageElement do
         destination_attribute(:parent_id)
       end
 
       has_many :support_texts,
-               AshUITutorials.OperationsControlCenter.Examples.AttachmentSupportTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.AttachmentSupportTextElement do
         destination_attribute(:parent_id)
       end
     end
@@ -4791,7 +4791,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AttachmentPreviewTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4811,11 +4811,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AttachmentFileFieldElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :inputs,
-               AshUITutorials.OperationsControlCenter.Examples.AttachmentFileInputElement do
+               AshUITutorials.LiveDiagnostics.Examples.AttachmentFileInputElement do
         destination_attribute(:parent_id)
       end
     end
@@ -4844,7 +4844,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AttachmentFileInputElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:input)
@@ -4870,7 +4870,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AttachmentReferenceLinkElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:link")
@@ -4888,7 +4888,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AttachmentImageElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:image)
@@ -4904,7 +4904,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.AttachmentSupportTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4924,7 +4924,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.RunbookStatusTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -4944,51 +4944,51 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.LiveDiagnosticsPanelElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     relationships do
       has_many :gateway_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.LoadGatewayDiagnosticsButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.LoadGatewayDiagnosticsButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :search_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.LoadSearchDiagnosticsButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.LoadSearchDiagnosticsButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :pressure_buttons,
-               AshUITutorials.OperationsControlCenter.Examples.LoadPressureDiagnosticsButtonElement do
+               AshUITutorials.LiveDiagnostics.Examples.LoadPressureDiagnosticsButtonElement do
         destination_attribute(:parent_id)
       end
 
       has_many :status_surfaces,
-               AshUITutorials.OperationsControlCenter.Examples.DiagnosticsStatusElement do
+               AshUITutorials.LiveDiagnostics.Examples.DiagnosticsStatusElement do
         destination_attribute(:parent_id)
       end
 
       has_many :feedback_surfaces,
-               AshUITutorials.OperationsControlCenter.Examples.DiagnosticsInlineFeedbackElement do
+               AshUITutorials.LiveDiagnostics.Examples.DiagnosticsInlineFeedbackElement do
         destination_attribute(:parent_id)
       end
 
       has_many :log_viewers,
-               AshUITutorials.OperationsControlCenter.Examples.DiagnosticsLogViewerElement do
+               AshUITutorials.LiveDiagnostics.Examples.DiagnosticsLogViewerElement do
         destination_attribute(:parent_id)
       end
 
       has_many :stream_widgets,
-               AshUITutorials.OperationsControlCenter.Examples.DiagnosticsStreamWidgetElement do
+               AshUITutorials.LiveDiagnostics.Examples.DiagnosticsStreamWidgetElement do
         destination_attribute(:parent_id)
       end
 
       has_many :process_monitors,
-               AshUITutorials.OperationsControlCenter.Examples.DiagnosticsProcessMonitorElement do
+               AshUITutorials.LiveDiagnostics.Examples.DiagnosticsProcessMonitorElement do
         destination_attribute(:parent_id)
       end
 
       has_many :status_texts,
-               AshUITutorials.OperationsControlCenter.Examples.DiagnosticsStatusTextElement do
+               AshUITutorials.LiveDiagnostics.Examples.DiagnosticsStatusTextElement do
         destination_attribute(:parent_id)
       end
     end
@@ -5071,7 +5071,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.LoadGatewayDiagnosticsButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -5152,7 +5152,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.LoadSearchDiagnosticsButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -5233,7 +5233,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.LoadPressureDiagnosticsButtonElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:button)
@@ -5314,7 +5314,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.DiagnosticsStatusElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:status")
@@ -5340,7 +5340,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.DiagnosticsInlineFeedbackElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:inline_feedback")
@@ -5366,7 +5366,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.DiagnosticsLogViewerElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:log_viewer")
@@ -5392,7 +5392,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.DiagnosticsStreamWidgetElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:stream_widget")
@@ -5418,7 +5418,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.DiagnosticsProcessMonitorElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:"custom:process_monitor")
@@ -5444,7 +5444,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.DiagnosticsStatusTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -5464,7 +5464,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentsStatusTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -5484,7 +5484,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentsStoryTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -5500,7 +5500,7 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Examples.IncidentsSignalTextElement do
-    use AshUITutorials.OperationsControlCenter.ExampleElementBase
+    use AshUITutorials.LiveDiagnostics.ExampleElementBase
 
     ui_element do
       type(:text)
@@ -5517,7 +5517,7 @@ defmodule AshUITutorials.OperationsControlCenter do
 
   defmodule Examples.ServicesScreen do
     use Ash.Resource,
-      domain: AshUITutorials.OperationsControlCenter.AuthoringDomain,
+      domain: AshUITutorials.LiveDiagnostics.AuthoringDomain,
       data_layer: Ash.DataLayer.Ets
 
     use AshUI.Resource.DSL.Screen
@@ -5535,15 +5535,15 @@ defmodule AshUITutorials.OperationsControlCenter do
     end
 
     relationships do
-      has_many :panels, AshUITutorials.OperationsControlCenter.Examples.ServicesWorkspacePanelElement do
+      has_many :panels, AshUITutorials.LiveDiagnostics.Examples.ServicesWorkspacePanelElement do
         destination_attribute(:screen_id)
       end
 
-      has_many :story_texts, AshUITutorials.OperationsControlCenter.Examples.ServicesStoryTextElement do
+      has_many :story_texts, AshUITutorials.LiveDiagnostics.Examples.ServicesStoryTextElement do
         destination_attribute(:screen_id)
       end
 
-      has_many :signal_texts, AshUITutorials.OperationsControlCenter.Examples.ServicesSignalTextElement do
+      has_many :signal_texts, AshUITutorials.LiveDiagnostics.Examples.ServicesSignalTextElement do
         destination_attribute(:screen_id)
       end
     end
@@ -5577,15 +5577,15 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       metadata(%{
         title: "Services workspace",
-        tutorial_directory: "operations_control_center",
-        shell_id: "operations-control-center-services-shell"
+        tutorial_directory: "07-live-diagnostics",
+        shell_id: "live-diagnostics-services-shell"
       })
     end
   end
 
   defmodule Examples.IncidentsScreen do
     use Ash.Resource,
-      domain: AshUITutorials.OperationsControlCenter.AuthoringDomain,
+      domain: AshUITutorials.LiveDiagnostics.AuthoringDomain,
       data_layer: Ash.DataLayer.Ets
 
     use AshUI.Resource.DSL.Screen
@@ -5603,15 +5603,15 @@ defmodule AshUITutorials.OperationsControlCenter do
     end
 
     relationships do
-      has_many :panels, AshUITutorials.OperationsControlCenter.Examples.IncidentsWorkspacePanelElement do
+      has_many :panels, AshUITutorials.LiveDiagnostics.Examples.IncidentsWorkspacePanelElement do
         destination_attribute(:screen_id)
       end
 
-      has_many :story_texts, AshUITutorials.OperationsControlCenter.Examples.IncidentsStoryTextElement do
+      has_many :story_texts, AshUITutorials.LiveDiagnostics.Examples.IncidentsStoryTextElement do
         destination_attribute(:screen_id)
       end
 
-      has_many :signal_texts, AshUITutorials.OperationsControlCenter.Examples.IncidentsSignalTextElement do
+      has_many :signal_texts, AshUITutorials.LiveDiagnostics.Examples.IncidentsSignalTextElement do
         destination_attribute(:screen_id)
       end
     end
@@ -5645,15 +5645,15 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       metadata(%{
         title: "Incidents workspace",
-        tutorial_directory: "operations_control_center",
-        shell_id: "operations-control-center-incidents-shell"
+        tutorial_directory: "07-live-diagnostics",
+        shell_id: "live-diagnostics-incidents-shell"
       })
     end
   end
 
   defmodule ExampleSeeds do
-    def seed!(opts \\ []), do: AshUITutorials.OperationsControlCenter.seed!(opts)
-    def reset!, do: AshUITutorials.OperationsControlCenter.reset!()
+    def seed!(opts \\ []), do: AshUITutorials.LiveDiagnostics.seed!(opts)
+    def reset!, do: AshUITutorials.LiveDiagnostics.reset!()
   end
 
   defmodule Web.Router do
@@ -5667,7 +5667,7 @@ defmodule AshUITutorials.OperationsControlCenter do
       plug(:put_secure_browser_headers)
     end
 
-    scope "/", AshUITutorials.OperationsControlCenter.Web do
+    scope "/", AshUITutorials.LiveDiagnostics.Web do
       pipe_through(:browser)
       live("/", ServicesLive)
       live("/incidents", IncidentsLive)
@@ -5675,11 +5675,11 @@ defmodule AshUITutorials.OperationsControlCenter do
   end
 
   defmodule Web.Endpoint do
-    use Phoenix.Endpoint, otp_app: :ash_ui_tutorial_operations_control_center
+    use Phoenix.Endpoint, otp_app: :ash_ui_tutorial_live_diagnostics
 
     @session_options [
       store: :cookie,
-      key: "_ash_ui_tutorial_operations_control_center_key",
+      key: "_ash_ui_tutorial_live_diagnostics_key",
       signing_salt: "ashuitut23b"
     ]
 
@@ -5688,7 +5688,7 @@ defmodule AshUITutorials.OperationsControlCenter do
     plug(Plug.RequestId)
     plug(Plug.Telemetry, event_prefix: [:phoenix, :endpoint])
     plug(Plug.Session, @session_options)
-    plug(AshUITutorials.OperationsControlCenter.Web.Router)
+    plug(AshUITutorials.LiveDiagnostics.Web.Router)
   end
 
   defmodule Web.Components.TutorialShell do
@@ -5724,12 +5724,12 @@ defmodule AshUITutorials.OperationsControlCenter do
   defmodule Web.ServicesLive do
     use Phoenix.LiveView
 
-    alias AshUITutorials.OperationsControlCenter.Web.Components.TutorialShell
+    alias AshUITutorials.LiveDiagnostics.Web.Components.TutorialShell
     alias AshUI.LiveView.EventHandler
     alias AshUI.LiveView.Integration
 
     def mount(params, _session, socket) do
-      AshUITutorials.OperationsControlCenter.seed!()
+      AshUITutorials.LiveDiagnostics.seed!()
       mount_screen(socket, params, :services)
     end
 
@@ -5756,16 +5756,16 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       socket =
         socket
-        |> Phoenix.Component.assign(:current_user, AshUITutorials.OperationsControlCenter.current_user())
-        |> Phoenix.Component.assign(:ash_ui_storage, AshUITutorials.OperationsControlCenter.ui_storage())
-        |> Phoenix.Component.assign(:ash_ui_domains, AshUITutorials.OperationsControlCenter.runtime_domains())
-        |> Phoenix.Component.assign(:page_title, AshUITutorials.OperationsControlCenter.title())
-        |> Phoenix.Component.assign(:theme_css, AshUITutorials.OperationsControlCenter.theme_css())
+        |> Phoenix.Component.assign(:current_user, AshUITutorials.LiveDiagnostics.current_user())
+        |> Phoenix.Component.assign(:ash_ui_storage, AshUITutorials.LiveDiagnostics.ui_storage())
+        |> Phoenix.Component.assign(:ash_ui_domains, AshUITutorials.LiveDiagnostics.runtime_domains())
+        |> Phoenix.Component.assign(:page_title, AshUITutorials.LiveDiagnostics.title())
+        |> Phoenix.Component.assign(:theme_css, AshUITutorials.LiveDiagnostics.theme_css())
         |> Phoenix.Component.assign(:example_runtime, example_runtime)
-        |> Phoenix.Component.assign(:supported_runtimes, AshUITutorials.OperationsControlCenter.supported_runtimes())
+        |> Phoenix.Component.assign(:supported_runtimes, AshUITutorials.LiveDiagnostics.supported_runtimes())
         |> Phoenix.Component.assign(:active_page, Atom.to_string(screen_kind))
 
-      with {:ok, socket} <- Integration.mount_ui_screen(socket, AshUITutorials.OperationsControlCenter.screen_name(screen_kind), params),
+      with {:ok, socket} <- Integration.mount_ui_screen(socket, AshUITutorials.LiveDiagnostics.screen_name(screen_kind), params),
            {:ok, socket} <- EventHandler.wire_handlers(socket) do
         {:ok, refresh_rendered_ui(socket)}
       else
@@ -5778,19 +5778,19 @@ defmodule AshUITutorials.OperationsControlCenter do
       assigns =
         assigns
         |> Phoenix.Component.assign(:active_page, active_page)
-        |> Phoenix.Component.assign_new(:supported_runtimes, fn -> AshUITutorials.OperationsControlCenter.supported_runtimes() end)
-        |> Phoenix.Component.assign_new(:example_runtime, fn -> AshUITutorials.OperationsControlCenter.default_runtime() end)
+        |> Phoenix.Component.assign_new(:supported_runtimes, fn -> AshUITutorials.LiveDiagnostics.supported_runtimes() end)
+        |> Phoenix.Component.assign_new(:example_runtime, fn -> AshUITutorials.LiveDiagnostics.default_runtime() end)
         |> Phoenix.Component.assign_new(:rendered_runtime, fn ->
           %{
             content: assigns[:rendered_ui] || "",
-            description: AshUITutorials.OperationsControlCenter.runtime_description(AshUITutorials.OperationsControlCenter.default_runtime()),
+            description: AshUITutorials.LiveDiagnostics.runtime_description(AshUITutorials.LiveDiagnostics.default_runtime()),
             mode: :live_fragment,
-            runtime: AshUITutorials.OperationsControlCenter.default_runtime()
+            runtime: AshUITutorials.LiveDiagnostics.default_runtime()
           }
         end)
 
       ~H"""
-      <TutorialShell.tutorial_shell title={@page_title} summary={AshUITutorials.OperationsControlCenter.summary()} theme_css={@theme_css} active_page={@active_page}>
+      <TutorialShell.tutorial_shell title={@page_title} summary={AshUITutorials.LiveDiagnostics.summary()} theme_css={@theme_css} active_page={@active_page}>
         <section class="ashui-example-panel ashui-tutorial-runtime-panel">
           <div>
             <h2>Runtime preview: <%= @rendered_runtime.runtime %></h2>
@@ -5805,7 +5805,7 @@ defmodule AshUITutorials.OperationsControlCenter do
         <section class="ashui-tutorial-runtime-view">
           <%= case @rendered_runtime.mode do %>
             <% :html_document -> %>
-              <iframe class="ashui-tutorial-runtime-frame" sandbox="allow-same-origin" srcdoc={@rendered_runtime.content} title={"operations-control-center-#{@rendered_runtime.runtime}"} />
+              <iframe class="ashui-tutorial-runtime-frame" sandbox="allow-same-origin" srcdoc={@rendered_runtime.content} title={"live-diagnostics-#{@rendered_runtime.runtime}"} />
             <% :desktop_instructions -> %>
               <pre class="ashui-tutorial-runtime-pre"><%= @rendered_runtime.content %></pre>
             <% :live_fragment -> %>
@@ -5818,9 +5818,9 @@ defmodule AshUITutorials.OperationsControlCenter do
 
     defp refresh_rendered_ui(socket) do
       rendered_runtime =
-        AshUITutorials.OperationsControlCenter.rendered_runtime(
+        AshUITutorials.LiveDiagnostics.rendered_runtime(
           socket.assigns,
-          socket.assigns[:example_runtime] || AshUITutorials.OperationsControlCenter.default_runtime()
+          socket.assigns[:example_runtime] || AshUITutorials.LiveDiagnostics.default_runtime()
         )
 
       socket
@@ -5831,7 +5831,7 @@ defmodule AshUITutorials.OperationsControlCenter do
     defp runtime_from_params(params) do
       params["runtime"]
       |> fallback_runtime()
-      |> AshUITutorials.OperationsControlCenter.normalize_runtime!()
+      |> AshUITutorials.LiveDiagnostics.normalize_runtime!()
     end
 
     defp fallback_runtime(nil), do: System.get_env("ASH_UI_EXAMPLE_RUNTIME")
@@ -5841,12 +5841,12 @@ defmodule AshUITutorials.OperationsControlCenter do
   defmodule Web.IncidentsLive do
     use Phoenix.LiveView
 
-    alias AshUITutorials.OperationsControlCenter.Web.Components.TutorialShell
+    alias AshUITutorials.LiveDiagnostics.Web.Components.TutorialShell
     alias AshUI.LiveView.EventHandler
     alias AshUI.LiveView.Integration
 
     def mount(params, _session, socket) do
-      AshUITutorials.OperationsControlCenter.seed!()
+      AshUITutorials.LiveDiagnostics.seed!()
       mount_screen(socket, params, :incidents)
     end
 
@@ -5873,16 +5873,16 @@ defmodule AshUITutorials.OperationsControlCenter do
 
       socket =
         socket
-        |> Phoenix.Component.assign(:current_user, AshUITutorials.OperationsControlCenter.current_user())
-        |> Phoenix.Component.assign(:ash_ui_storage, AshUITutorials.OperationsControlCenter.ui_storage())
-        |> Phoenix.Component.assign(:ash_ui_domains, AshUITutorials.OperationsControlCenter.runtime_domains())
-        |> Phoenix.Component.assign(:page_title, AshUITutorials.OperationsControlCenter.title())
-        |> Phoenix.Component.assign(:theme_css, AshUITutorials.OperationsControlCenter.theme_css())
+        |> Phoenix.Component.assign(:current_user, AshUITutorials.LiveDiagnostics.current_user())
+        |> Phoenix.Component.assign(:ash_ui_storage, AshUITutorials.LiveDiagnostics.ui_storage())
+        |> Phoenix.Component.assign(:ash_ui_domains, AshUITutorials.LiveDiagnostics.runtime_domains())
+        |> Phoenix.Component.assign(:page_title, AshUITutorials.LiveDiagnostics.title())
+        |> Phoenix.Component.assign(:theme_css, AshUITutorials.LiveDiagnostics.theme_css())
         |> Phoenix.Component.assign(:example_runtime, example_runtime)
-        |> Phoenix.Component.assign(:supported_runtimes, AshUITutorials.OperationsControlCenter.supported_runtimes())
+        |> Phoenix.Component.assign(:supported_runtimes, AshUITutorials.LiveDiagnostics.supported_runtimes())
         |> Phoenix.Component.assign(:active_page, Atom.to_string(screen_kind))
 
-      with {:ok, socket} <- Integration.mount_ui_screen(socket, AshUITutorials.OperationsControlCenter.screen_name(screen_kind), params),
+      with {:ok, socket} <- Integration.mount_ui_screen(socket, AshUITutorials.LiveDiagnostics.screen_name(screen_kind), params),
            {:ok, socket} <- EventHandler.wire_handlers(socket) do
         {:ok, refresh_rendered_ui(socket)}
       else
@@ -5895,19 +5895,19 @@ defmodule AshUITutorials.OperationsControlCenter do
       assigns =
         assigns
         |> Phoenix.Component.assign(:active_page, active_page)
-        |> Phoenix.Component.assign_new(:supported_runtimes, fn -> AshUITutorials.OperationsControlCenter.supported_runtimes() end)
-        |> Phoenix.Component.assign_new(:example_runtime, fn -> AshUITutorials.OperationsControlCenter.default_runtime() end)
+        |> Phoenix.Component.assign_new(:supported_runtimes, fn -> AshUITutorials.LiveDiagnostics.supported_runtimes() end)
+        |> Phoenix.Component.assign_new(:example_runtime, fn -> AshUITutorials.LiveDiagnostics.default_runtime() end)
         |> Phoenix.Component.assign_new(:rendered_runtime, fn ->
           %{
             content: assigns[:rendered_ui] || "",
-            description: AshUITutorials.OperationsControlCenter.runtime_description(AshUITutorials.OperationsControlCenter.default_runtime()),
+            description: AshUITutorials.LiveDiagnostics.runtime_description(AshUITutorials.LiveDiagnostics.default_runtime()),
             mode: :live_fragment,
-            runtime: AshUITutorials.OperationsControlCenter.default_runtime()
+            runtime: AshUITutorials.LiveDiagnostics.default_runtime()
           }
         end)
 
       ~H"""
-      <TutorialShell.tutorial_shell title={@page_title} summary={AshUITutorials.OperationsControlCenter.summary()} theme_css={@theme_css} active_page={@active_page}>
+      <TutorialShell.tutorial_shell title={@page_title} summary={AshUITutorials.LiveDiagnostics.summary()} theme_css={@theme_css} active_page={@active_page}>
         <section class="ashui-example-panel ashui-tutorial-runtime-panel">
           <div>
             <h2>Runtime preview: <%= @rendered_runtime.runtime %></h2>
@@ -5922,7 +5922,7 @@ defmodule AshUITutorials.OperationsControlCenter do
         <section class="ashui-tutorial-runtime-view">
           <%= case @rendered_runtime.mode do %>
             <% :html_document -> %>
-              <iframe class="ashui-tutorial-runtime-frame" sandbox="allow-same-origin" srcdoc={@rendered_runtime.content} title={"operations-control-center-#{@rendered_runtime.runtime}"} />
+              <iframe class="ashui-tutorial-runtime-frame" sandbox="allow-same-origin" srcdoc={@rendered_runtime.content} title={"live-diagnostics-#{@rendered_runtime.runtime}"} />
             <% :desktop_instructions -> %>
               <pre class="ashui-tutorial-runtime-pre"><%= @rendered_runtime.content %></pre>
             <% :live_fragment -> %>
@@ -5935,9 +5935,9 @@ defmodule AshUITutorials.OperationsControlCenter do
 
     defp refresh_rendered_ui(socket) do
       rendered_runtime =
-        AshUITutorials.OperationsControlCenter.rendered_runtime(
+        AshUITutorials.LiveDiagnostics.rendered_runtime(
           socket.assigns,
-          socket.assigns[:example_runtime] || AshUITutorials.OperationsControlCenter.default_runtime()
+          socket.assigns[:example_runtime] || AshUITutorials.LiveDiagnostics.default_runtime()
         )
 
       socket
@@ -5948,7 +5948,7 @@ defmodule AshUITutorials.OperationsControlCenter do
     defp runtime_from_params(params) do
       params["runtime"]
       |> fallback_runtime()
-      |> AshUITutorials.OperationsControlCenter.normalize_runtime!()
+      |> AshUITutorials.LiveDiagnostics.normalize_runtime!()
     end
 
     defp fallback_runtime(nil), do: System.get_env("ASH_UI_EXAMPLE_RUNTIME")

@@ -36,18 +36,18 @@ Back to index: [README](./README.md)
       [x] 25.1.1.3 Subtask - Ensure uploaded or referenced artifacts are represented honestly, including any runtime constraints that remain narrower than the UI vocabulary suggests.
       [x] 25.1.1.4 Subtask - Add `tutorials/chapters/06-runbooks-and-attachments.md` with exact references to `tutorials/code/06-runbooks-and-attachments/`.
 
-  [ ] 25.2 Section - Chapter 7 Live Monitoring and Streaming Diagnostics
+  [x] 25.2 Section - Chapter 7 Live Monitoring and Streaming Diagnostics
     Add the first truly live operational review surfaces around logs, streams,
     and process-level health.
 
-    [ ] 25.2.1 Task - Implement live diagnostics checkpoints
+    [x] 25.2.1 Task - Implement live diagnostics checkpoints
     Teach operational telemetry and runtime review without leaving the tutorial
     application.
 
-      [ ] 25.2.1.1 Subtask - Implement `tutorials/code/07-live-diagnostics/` with `log_viewer`, `stream_widget`, and `process_monitor` surfaces tied to seeded service and incident contexts.
-      [ ] 25.2.1.2 Subtask - Use `inline_feedback`, `status`, and related support surfaces to show stream health, stale data, and transient diagnostic warnings clearly.
-      [ ] 25.2.1.3 Subtask - Keep the diagnostic chapter explicit about what is real streaming/runtime behavior versus what is seeded or simulated for tutorial clarity.
-      [ ] 25.2.1.4 Subtask - Add `tutorials/chapters/07-live-diagnostics.md` with exact references to `tutorials/code/07-live-diagnostics/`.
+      [x] 25.2.1.1 Subtask - Implement `tutorials/code/07-live-diagnostics/` with `log_viewer`, `stream_widget`, and `process_monitor` surfaces tied to seeded service and incident contexts.
+      [x] 25.2.1.2 Subtask - Use `inline_feedback`, `status`, and related support surfaces to show stream health, stale data, and transient diagnostic warnings clearly.
+      [x] 25.2.1.3 Subtask - Keep the diagnostic chapter explicit about what is real streaming/runtime behavior versus what is seeded or simulated for tutorial clarity.
+      [x] 25.2.1.4 Subtask - Add `tutorials/chapters/07-live-diagnostics.md` with exact references to `tutorials/code/07-live-diagnostics/`.
 
   [ ] 25.3 Section - Phase 25 Integration Tests
     Validate the richer detail and live-diagnostics chapters through one

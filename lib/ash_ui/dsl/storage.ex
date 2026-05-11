@@ -114,6 +114,7 @@ defmodule AshUI.DSL.Storage do
       "form_field",
       "form_builder",
       "text",
+      "inline_rich_text_heading",
       "label",
       "button",
       "input",

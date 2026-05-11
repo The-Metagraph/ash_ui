@@ -86,6 +86,10 @@ defmodule AshUI.DSL.StorageTest do
       assert Storage.valid_widget_type?("spacer") == true
     end
 
+    test "admits inline_rich_text_heading as a valid widget type" do
+      assert Storage.valid_widget_type?("inline_rich_text_heading") == true
+    end
+
     test "returns true for custom widget types" do
       assert Storage.valid_widget_type?("custom:my_widget") == true
     end
@@ -127,6 +131,7 @@ defmodule AshUI.DSL.StorageTest do
   describe "signal_references/1" do
     test "returns all signals in DSL" do
       signal = %{type: :bidirectional, target: "name", source: "User.name"}
+
       dsl = %{
         type: "row",
         props: %{},
@@ -152,6 +157,7 @@ defmodule AshUI.DSL.StorageTest do
     test "handles nested signals" do
       signal1 = %{type: :bidirectional, target: "name", source: "User.name"}
       signal2 = %{type: :event, target: "button", action: "save"}
+
       dsl = %{
         type: "row",
         props: %{},

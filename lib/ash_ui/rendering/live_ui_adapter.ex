@@ -352,6 +352,20 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "inline_rich_text_heading"} = iur, _opts) do
+    props = iur["props"] || %{}
+    level = normalize_heading_level(prop(props, "level", "h1"))
+    segments = normalize_segments(prop(props, "segments", []))
+
+    inner =
+      segments
+      |> Enum.map_join("", &render_segment/1)
+
+    """
+    <#{level} class="#{css_classes(["ash-inline-rich-text-heading", "ash-inline-rich-text-heading-#{level}", prop_class(iur)])}"#{style_attr(prop_style(iur))}>#{inner}</#{level}>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")
@@ -623,7 +637,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do
@@ -2441,4 +2461,47 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp event_name(prefix, :change), do: "#{prefix}_change"
 
   defp nil_or_empty?(value), do: value in [nil, ""]
+
+  @valid_heading_levels ~w(h1 h2 h3 h4 h5 h6)
+
+  defp normalize_heading_level(value) when is_atom(value),
+    do: normalize_heading_level(Atom.to_string(value))
+
+  defp normalize_heading_level(value) when is_binary(value) do
+    downcased = String.downcase(value)
+
+    if downcased in @valid_heading_levels do
+      downcased
+    else
+      "h1"
+    end
+  end
+
+  defp normalize_heading_level(_), do: "h1"
+
+  defp normalize_segments(segments) when is_list(segments) do
+    Enum.flat_map(segments, &normalize_segment/1)
+  end
+
+  defp normalize_segments(_), do: []
+
+  defp normalize_segment(%{"type" => type, "value" => value})
+       when is_binary(value) and type in ["text", "em"] do
+    [%{type: type, value: value}]
+  end
+
+  defp normalize_segment(%{type: type, value: value})
+       when is_binary(value) and type in [:text, :em] do
+    [%{type: Atom.to_string(type), value: value}]
+  end
+
+  defp normalize_segment({:em, value}) when is_binary(value), do: [%{type: "em", value: value}]
+
+  defp normalize_segment({:text, value}) when is_binary(value),
+    do: [%{type: "text", value: value}]
+
+  defp normalize_segment(_), do: []
+
+  defp render_segment(%{type: "em", value: value}), do: "<em>#{value}</em>"
+  defp render_segment(%{type: "text", value: value}), do: value
 end

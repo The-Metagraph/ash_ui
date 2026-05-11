@@ -306,6 +306,113 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert String.contains?(heex, "color: blue")
     end
 
+    test "generates a phoenix_form with phx-submit/phx-change events and submit button" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-1",
+        "props" => %{
+          "submit_event" => "submit",
+          "change_event" => "validate",
+          "submit_label" => "Send sign-in link",
+          "fields" => [
+            %{
+              "name" => "email",
+              "type" => "email",
+              "label" => "Work email",
+              "autocomplete" => "email",
+              "required" => true
+            }
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<form")
+      assert String.contains?(heex, "</form>")
+      assert String.contains?(heex, ~s(phx-submit="submit"))
+      assert String.contains?(heex, ~s(phx-change="validate"))
+      assert String.contains?(heex, "ash-phoenix-form")
+      assert String.contains?(heex, "ash-phoenix-form-field")
+      assert String.contains?(heex, "ash-phoenix-form-label")
+      assert String.contains?(heex, "ash-phoenix-form-input")
+      assert String.contains?(heex, "ash-phoenix-form-submit")
+      assert String.contains?(heex, "ash-phoenix-form-submit-primary")
+      assert String.contains?(heex, ~s(name="email"))
+      assert String.contains?(heex, ~s(type="email"))
+      assert String.contains?(heex, ~s(autocomplete="email"))
+      assert String.contains?(heex, " required")
+      assert String.contains?(heex, "Work email")
+      assert String.contains?(heex, "Send sign-in link")
+    end
+
+    test "phoenix_form supports password strategy shape with ghost variant" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-2",
+        "props" => %{
+          "submit_event" => "submit_password",
+          "change_event" => "validate_password",
+          "submit_label" => "Sign in with password",
+          "submit_variant" => "ghost",
+          "fields" => [
+            %{"name" => "email", "type" => "email", "label" => "Work email"},
+            %{
+              "name" => "password",
+              "type" => "password",
+              "label" => "Password",
+              "autocomplete" => "current-password"
+            }
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, ~s(type="email"))
+      assert String.contains?(heex, ~s(type="password"))
+      assert String.contains?(heex, ~s(autocomplete="current-password"))
+      assert String.contains?(heex, "ash-phoenix-form-submit-ghost")
+      assert String.contains?(heex, "Sign in with password")
+    end
+
+    test "phoenix_form uses sensible defaults when props omitted" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-defaults",
+        "props" => %{"fields" => []},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, ~s(phx-submit="submit"))
+      assert String.contains?(heex, ~s(phx-change="validate"))
+      assert String.contains?(heex, ">Submit</button>")
+      assert String.contains?(heex, "ash-phoenix-form-submit-primary")
+    end
+
+    test "phoenix_form produces no literal color or font-family values" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-pure",
+        "props" => %{
+          "fields" => [
+            %{"name" => "email", "type" => "email", "label" => "Email", "required" => true}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/font-family\s*:/i
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

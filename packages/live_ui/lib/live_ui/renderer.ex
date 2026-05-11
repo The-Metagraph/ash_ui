@@ -219,6 +219,31 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "phoenix_form"} = iur, opts) do
+    props = iur["props"] || %{}
+    submit_event = text_prop(props, ["submit_event"], "submit")
+    change_event = text_prop(props, ["change_event"], "validate")
+    submit_label = text_prop(props, ["submit_label"], "Submit")
+    submit_variant = text_prop(props, ["submit_variant"], "primary")
+    fields = Map.get(props, "fields") || Map.get(props, :fields) || []
+
+    fields_heex =
+      fields
+      |> Enum.map(&render_phoenix_form_field/1)
+      |> Enum.join("\n")
+
+    submit_class =
+      css_classes(["ash-phoenix-form-submit", "ash-phoenix-form-submit-#{submit_variant}"])
+
+    """
+    <form class="#{css_classes(["ash-phoenix-form", prop_class(iur)])}"#{style_attr(prop_style(iur))} phx-submit="#{submit_event}" phx-change="#{change_event}">
+      #{fields_heex}
+      <button type="submit" class="#{submit_class}">#{submit_label}</button>
+      #{generate_children(iur["children"], opts)}
+    </form>
+    """
+  end
+
   defp generate_heex(%{"type" => "form_builder"} = iur, opts) do
     """
     <form class="#{css_classes(["ash-form-builder", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
@@ -325,6 +350,39 @@ defmodule LiveUI.Renderer do
   defp generate_children(nil, _opts), do: ""
   defp generate_children([], _opts), do: ""
   defp generate_children(children, opts), do: Enum.map_join(children, &generate_heex(&1, opts))
+
+  defp render_phoenix_form_field(field) when is_map(field) do
+    name = phoenix_form_field_value(field, "name", "")
+    type = phoenix_form_field_value(field, "type", "text")
+    label = phoenix_form_field_value(field, "label", nil)
+    placeholder = phoenix_form_field_value(field, "placeholder", "")
+    autocomplete = phoenix_form_field_value(field, "autocomplete", nil)
+    value = phoenix_form_field_value(field, "value", "")
+    required? = !!phoenix_form_field_value(field, "required", false)
+    required_attr = if required?, do: " required", else: ""
+
+    label_heex =
+      if is_binary(label) and label != "" do
+        ~s(<label for="#{name}" class="ash-phoenix-form-label">#{label}</label>)
+      else
+        ""
+      end
+
+    """
+    <div class="ash-phoenix-form-field">
+      #{label_heex}
+      <input id="#{name}" name="#{name}" type="#{type}" class="ash-phoenix-form-input" value="#{value}" placeholder="#{placeholder}"#{attr("autocomplete", autocomplete)}#{required_attr} />
+    </div>
+    """
+  end
+
+  defp render_phoenix_form_field(_), do: ""
+
+  defp phoenix_form_field_value(field, key, default) when is_map(field) do
+    Map.get(field, key, Map.get(field, String.to_atom(key), default))
+  rescue
+    ArgumentError -> Map.get(field, key, default)
+  end
 
   defp render_text_input(iur, opts, css_base) do
     props = iur["props"] || %{}

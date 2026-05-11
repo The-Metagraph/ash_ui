@@ -314,6 +314,40 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "avatar"} = iur, _opts) do
+    props = iur["props"] || %{}
+    initials = prop(props, "initials")
+    image_src = prop(props, "image_src")
+    variant = prop(props, "variant", "neutral")
+    size = prop(props, "size", "medium")
+    shape = prop(props, "shape", "round")
+    aria_label = prop(props, "aria_label")
+
+    shape_class = if shape == "square", do: "ash-avatar-square", else: ""
+
+    size_class =
+      case size do
+        "small" -> "ash-avatar-small"
+        "large" -> "ash-avatar-large"
+        _ -> "ash-avatar-medium"
+      end
+
+    role_attr = if aria_label, do: " role=\"img\"", else: ""
+    aria_attr = if aria_label, do: " aria-label=\"#{aria_label}\"", else: ""
+
+    inner =
+      if image_src do
+        alt = aria_label || initials || ""
+        "<img src=\"#{image_src}\" class=\"ash-avatar-image\" alt=\"#{alt}\" />"
+      else
+        "<span aria-hidden=\"true\">#{initials}</span>"
+      end
+
+    """
+    <span class="#{css_classes(["ash-avatar", shape_class, size_class, prop_class(iur)])}" style="background-color: var(--avatar-#{variant}, var(--bg-2));" data-variant="#{variant}"#{role_attr}#{aria_attr}>#{inner}</span>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

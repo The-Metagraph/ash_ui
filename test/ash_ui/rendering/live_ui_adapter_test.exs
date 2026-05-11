@@ -912,6 +912,77 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "avatar widget rendering" do
+    test "renders initials with base class and data-variant" do
+      iur = avatar_iur("PC", nil, "pascal", "medium", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar"
+      assert heex =~ "ash-avatar-medium"
+      assert heex =~ ~s(data-variant="pascal")
+      assert heex =~ "PC"
+    end
+
+    test "renders img element when image_src provided" do
+      iur = avatar_iur(nil, "/uploads/avatar.jpg", "neutral", "medium", "round", "Matt DeCourcey")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(src="/uploads/avatar.jpg")
+      assert heex =~ "ash-avatar-image"
+    end
+
+    test "square shape applies ash-avatar-square class" do
+      iur = avatar_iur("PC", nil, "pascal", "medium", "square", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar-square"
+    end
+
+    test "round shape omits ash-avatar-square class" do
+      iur = avatar_iur("PC", nil, "neutral", "medium", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ "ash-avatar-square"
+    end
+
+    test "small size applies ash-avatar-small class" do
+      iur = avatar_iur("PC", nil, "neutral", "small", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar-small"
+    end
+
+    test "large size applies ash-avatar-large class" do
+      iur = avatar_iur("PC", nil, "neutral", "large", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar-large"
+    end
+
+    test "aria_label produces role=img and aria-label attributes" do
+      iur = avatar_iur("PC", nil, "pascal", "medium", "round", "Pascal Charbonneau")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(aria-label="Pascal Charbonneau")
+      assert heex =~ ~s(role="img")
+    end
+
+    test "background-color uses CSS variable with fallback" do
+      iur = avatar_iur("PC", nil, "codex", "medium", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "var(--avatar-codex"
+    end
+
+    test "no literal hex or rgb color values in rendered HTML" do
+      iur = avatar_iur("PC", nil, "pascal", "large", "square", "Pascal")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+    end
+  end
+
   describe "Phase 11 semantic widget rendering" do
     test "renders authored semantic widget props into visible HEEx" do
       {:ok, heex} = LiveUIAdapter.render(semantic_screen_iur())
@@ -932,6 +1003,24 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert heex =~ "Used to verify form_field survives the persistence bridge"
       assert heex =~ "phx-change=\"ash_ui_change\""
     end
+  end
+
+  defp avatar_iur(initials, image_src, variant, size, shape, aria_label) do
+    %{
+      "type" => "avatar",
+      "id" => "avatar-1",
+      "props" => %{
+        "initials" => initials,
+        "image_src" => image_src,
+        "variant" => variant,
+        "size" => size,
+        "shape" => shape,
+        "aria_label" => aria_label,
+        "class" => ""
+      },
+      "children" => [],
+      "metadata" => %{}
+    }
   end
 
   defp semantic_screen_iur do

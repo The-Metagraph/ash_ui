@@ -1047,4 +1047,104 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       "metadata" => %{}
     }
   end
+
+  describe "presence_dot widget rendering" do
+    test "renders span with ash-presence-dot class and data-state" do
+      iur = presence_dot_iur("live", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot"
+      assert heex =~ ~s(data-state="live")
+    end
+
+    test "state idle produces --presence-idle token in style" do
+      iur = presence_dot_iur("idle", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "var(--presence-idle"
+      assert heex =~ ~s(data-state="idle")
+    end
+
+    test "state warn produces --presence-warn token in style" do
+      iur = presence_dot_iur("warn", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "var(--presence-warn"
+    end
+
+    test "small size applies ash-presence-dot-small class" do
+      iur = presence_dot_iur("live", "small", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot-small"
+      refute heex =~ "ash-presence-dot-medium"
+      refute heex =~ "ash-presence-dot-large"
+    end
+
+    test "large size applies ash-presence-dot-large class" do
+      iur = presence_dot_iur("live", "large", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot-large"
+    end
+
+    test "medium size applies ash-presence-dot-medium class by default" do
+      iur = presence_dot_iur("live", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot-medium"
+    end
+
+    test "aria_label produces aria-label attribute and omits aria-hidden" do
+      iur = presence_dot_iur("live", "medium", "Active")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(aria-label="Active")
+      refute heex =~ ~s(aria-hidden="true")
+    end
+
+    test "no aria_label produces aria-hidden=true" do
+      iur = presence_dot_iur("live", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(aria-hidden="true")
+      refute heex =~ "aria-label="
+    end
+
+    test "rendered HTML contains no literal hex color values" do
+      for state <- ["live", "idle", "warn", "muted", "quiet"] do
+        iur = presence_dot_iur(state, "medium", nil)
+        {:ok, heex} = LiveUIAdapter.render(iur)
+
+        refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/,
+               "found literal hex color value in presence_dot HTML for state #{state}"
+      end
+    end
+  end
+
+  defp presence_dot_iur(state, size, aria_label) do
+    %{
+      "type" => "screen",
+      "id" => "test-screen",
+      "name" => "test",
+      "layout" => "column",
+      "children" => [
+        %{
+          "type" => "presence_dot",
+          "id" => "dot-1",
+          "name" => "dot",
+          "props" => %{
+            "state" => state,
+            "size" => size,
+            "aria_label" => aria_label,
+            "class" => ""
+          },
+          "children" => [],
+          "metadata" => %{}
+        }
+      ],
+      "bindings" => [],
+      "metadata" => %{}
+    }
+  end
 end

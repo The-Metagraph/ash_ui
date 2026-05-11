@@ -314,6 +314,27 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "presence_dot"} = iur, _opts) do
+    props = iur["props"] || %{}
+    state = Map.get(props, "state", "live")
+    size = Map.get(props, "size", "medium")
+    aria_label = Map.get(props, "aria_label")
+
+    size_class =
+      case size do
+        "small" -> "ash-presence-dot-small"
+        "large" -> "ash-presence-dot-large"
+        _ -> "ash-presence-dot-medium"
+      end
+
+    bg_style = state_css_var(state)
+    aria_attr = if aria_label, do: " aria-label=\"#{aria_label}\"", else: " aria-hidden=\"true\""
+
+    """
+    <span class="#{css_classes(["ash-presence-dot", size_class, prop_class(iur)])}" data-state="#{state}" style="#{bg_style}"#{aria_attr}></span>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -406,6 +427,16 @@ defmodule LiveUI.Renderer do
     |> Enum.reject(&(&1 in [nil, ""]))
     |> Enum.join(" ")
   end
+
+  defp state_css_var("live"), do: "background-color: var(--presence-live, var(--accent));"
+  defp state_css_var("idle"), do: "background-color: var(--presence-idle, var(--ink-faint));"
+
+  defp state_css_var("warn"),
+    do: "background-color: var(--presence-warn, var(--warn, var(--accent-strong)));"
+
+  defp state_css_var("muted"), do: "background-color: var(--presence-muted, var(--rule));"
+  defp state_css_var("quiet"), do: "background-color: var(--presence-quiet, var(--rule-faint));"
+  defp state_css_var(other), do: "background-color: var(--presence-#{other}, var(--ink-faint));"
 
   defp style_attr(nil), do: ""
   defp style_attr(""), do: ""

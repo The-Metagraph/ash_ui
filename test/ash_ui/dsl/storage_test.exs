@@ -94,6 +94,10 @@ defmodule AshUI.DSL.StorageTest do
       assert Storage.valid_widget_type?("invalid") == false
       assert Storage.valid_widget_type?("bad_widget") == false
     end
+
+    test "admits presence_dot as a valid widget type" do
+      assert Storage.valid_widget_type?("presence_dot") == true
+    end
   end
 
   describe "widget_types/1" do
@@ -127,6 +131,7 @@ defmodule AshUI.DSL.StorageTest do
   describe "signal_references/1" do
     test "returns all signals in DSL" do
       signal = %{type: :bidirectional, target: "name", source: "User.name"}
+
       dsl = %{
         type: "row",
         props: %{},
@@ -152,6 +157,7 @@ defmodule AshUI.DSL.StorageTest do
     test "handles nested signals" do
       signal1 = %{type: :bidirectional, target: "name", source: "User.name"}
       signal2 = %{type: :event, target: "button", action: "save"}
+
       dsl = %{
         type: "row",
         props: %{},

@@ -306,6 +306,62 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert String.contains?(heex, "color: blue")
     end
 
+    test "generates a disclosure closed by default with summary and body" do
+      iur = %{
+        "type" => "disclosure",
+        "id" => "disclosure-1",
+        "props" => %{"summary" => "Use a password instead"},
+        "children" => [
+          %{
+            "type" => "text",
+            "id" => "body-text",
+            "props" => %{"content" => "Password form body"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<details")
+      assert String.contains?(heex, "</details>")
+      assert String.contains?(heex, "ash-disclosure")
+      assert String.contains?(heex, "ash-disclosure-summary")
+      assert String.contains?(heex, "ash-disclosure-body")
+      assert String.contains?(heex, "Use a password instead")
+      assert String.contains?(heex, "Password form body")
+      refute heex =~ ~r/<details[^>]*\sopen/
+    end
+
+    test "disclosure adds the open attribute when open prop is true" do
+      iur = %{
+        "type" => "disclosure",
+        "id" => "disclosure-open",
+        "props" => %{"summary" => "Reveal", "open" => true},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~r/<details[^>]*\sopen/
+    end
+
+    test "disclosure produces no literal color or font-family values" do
+      iur = %{
+        "type" => "disclosure",
+        "id" => "disclosure-pure",
+        "props" => %{"summary" => "Reveal", "open" => true},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/font-family\s*:/i
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

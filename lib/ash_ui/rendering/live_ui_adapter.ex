@@ -352,6 +352,22 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "disclosure"} = iur, opts) do
+    props = iur["props"] || %{}
+    summary = text_prop(props, ["summary", "label", "title"], "")
+    open? = truthy_prop(props, "open", false)
+    open_attr = if open?, do: " open", else: ""
+
+    """
+    <details class="#{css_classes(["ash-disclosure", prop_class(iur)])}"#{open_attr}#{style_attr(prop_style(iur))}>
+      <summary class="ash-disclosure-summary">#{summary}</summary>
+      <div class="ash-disclosure-body">
+        #{generate_children(iur["children"], opts)}
+      </div>
+    </details>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")
@@ -623,7 +639,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do

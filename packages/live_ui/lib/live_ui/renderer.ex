@@ -125,6 +125,22 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "disclosure"} = iur, opts) do
+    props = iur["props"] || %{}
+    summary = text_prop(props, ["summary", "label", "title"], "")
+    open? = truthy_disclosure_prop(prop(props, "open", false))
+    open_attr = if open?, do: " open", else: ""
+
+    """
+    <details class="#{css_classes(["ash-disclosure", prop_class(iur)])}"#{open_attr}#{style_attr(prop_style(iur))}>
+      <summary class="ash-disclosure-summary">#{summary}</summary>
+      <div class="ash-disclosure-body">
+        #{generate_children(iur["children"], opts)}
+      </div>
+    </details>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")
@@ -387,6 +403,12 @@ defmodule LiveUI.Renderer do
   end
 
   defp text_prop(props, key, default), do: text_prop(props, [key], default)
+
+  defp truthy_disclosure_prop(value)
+       when value in [true, "true", "open", "visible", 1, "1", "yes"],
+       do: true
+
+  defp truthy_disclosure_prop(_), do: false
 
   defp normalize_item(item) when is_map(item), do: item
 

@@ -352,6 +352,30 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "kicker"} = iur, _opts) do
+    props = iur["props"] || %{}
+    items = Map.get(props, "items", [])
+    separator = Map.get(props, "separator", "·")
+
+    items_html =
+      items
+      |> Enum.with_index()
+      |> Enum.map_join("", fn {item, index} ->
+        sep_html =
+          if index > 0 and separator != "" do
+            "<li class=\"ash-kicker-separator\" aria-hidden=\"true\">#{separator}</li>"
+          else
+            ""
+          end
+
+        "#{sep_html}<li class=\"ash-kicker-item\">#{item}</li>"
+      end)
+
+    """
+    <ul class="#{css_classes(["ash-kicker", prop_class(iur)])}"#{style_attr(prop_style(iur))}>#{items_html}</ul>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")
@@ -623,7 +647,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do

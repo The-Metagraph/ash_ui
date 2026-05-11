@@ -912,6 +912,55 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "kicker widget rendering" do
+    test "renders items with separators between them" do
+      iur = %{
+        "type" => "kicker",
+        "id" => "kicker-1",
+        "props" => %{"items" => ["Operator sign-in", "Magic link"], "separator" => "·"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-kicker"
+      assert heex =~ "ash-kicker-item"
+      assert heex =~ "ash-kicker-separator"
+      assert heex =~ "Operator sign-in"
+      assert heex =~ "Magic link"
+      assert heex =~ "·"
+    end
+
+    test "single item renders without any separator" do
+      iur = %{
+        "type" => "kicker",
+        "id" => "kicker-single",
+        "props" => %{"items" => ["Solo label"], "separator" => "·"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "Solo label"
+      assert heex =~ "ash-kicker-item"
+      refute heex =~ "ash-kicker-separator"
+    end
+
+    test "custom separator string appears between items" do
+      iur = %{
+        "type" => "kicker",
+        "id" => "kicker-pipe",
+        "props" => %{"items" => ["Alpha", "Beta"], "separator" => "|"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-kicker-separator"
+      assert heex =~ "|"
+    end
+  end
+
   describe "Phase 11 semantic widget rendering" do
     test "renders authored semantic widget props into visible HEEx" do
       {:ok, heex} = LiveUIAdapter.render(semantic_screen_iur())

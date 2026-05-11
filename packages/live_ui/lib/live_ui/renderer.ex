@@ -125,6 +125,30 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "kicker"} = iur, _opts) do
+    props = iur["props"] || %{}
+    items = prop(props, "items", [])
+    separator = prop(props, "separator", "·")
+
+    items_html =
+      items
+      |> Enum.with_index()
+      |> Enum.map_join("", fn {item, index} ->
+        sep_html =
+          if index > 0 and separator != "" do
+            "<li class=\"ash-kicker-separator\" aria-hidden=\"true\">#{separator}</li>"
+          else
+            ""
+          end
+
+        "#{sep_html}<li class=\"ash-kicker-item\">#{item}</li>"
+      end)
+
+    """
+    <ul class="#{css_classes(["ash-kicker", prop_class(iur)])}"#{style_attr(prop_style(iur))}>#{items_html}</ul>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")

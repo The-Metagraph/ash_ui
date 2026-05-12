@@ -1047,4 +1047,80 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       "metadata" => %{}
     }
   end
+
+  describe "list_item_multi_column widget" do
+    defp limc_iur(props, children \\ []) do
+      %{
+        "type" => "list_item_multi_column",
+        "id" => "limc-1",
+        "props" => props,
+        "children" => children,
+        "metadata" => %{},
+        "bindings" => []
+      }
+    end
+
+    test "admission: storage accepts list_item_multi_column type" do
+      assert AshUI.DSL.Storage.valid_widget_type?("list_item_multi_column")
+    end
+
+    test "renders as <button> by default with ash-list-item-multi-column class" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"columns" => "1fr"}))
+
+      assert heex =~ "<button"
+      assert heex =~ "ash-list-item-multi-column"
+    end
+
+    test "grid-template-columns value appears in style attribute" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"columns" => "2fr 1fr 1fr"}))
+
+      assert heex =~ "grid-template-columns: 2fr 1fr 1fr"
+    end
+
+    test "phx-click reflects event prop" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"event" => "pick_item"}))
+
+      assert heex =~ ~s(phx-click="pick_item")
+    end
+
+    test "phx-value key reflects event_value_key prop with row_id value" do
+      {:ok, heex} =
+        LiveUIAdapter.render(limc_iur(%{"row_id" => "item-42", "event_value_key" => "item_id"}))
+
+      assert heex =~ ~s(phx-value-item_id="item-42")
+    end
+
+    test "data-active reflects active prop" do
+      {:ok, heex_false} = LiveUIAdapter.render(limc_iur(%{"active" => false}))
+      {:ok, heex_true} = LiveUIAdapter.render(limc_iur(%{"active" => true}))
+
+      assert heex_false =~ ~s(data-active="false")
+      assert heex_true =~ ~s(data-active="true")
+    end
+
+    test "renders as <a> when href prop is set" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"href" => "/docs/42"}))
+
+      assert heex =~ "<a"
+      assert heex =~ ~s(href="/docs/42")
+      refute heex =~ "<button"
+      refute heex =~ "phx-click"
+    end
+
+    test "children render inside the row element" do
+      children = [
+        %{
+          "type" => "text",
+          "id" => "c1",
+          "props" => %{"content" => "Col A"},
+          "children" => [],
+          "metadata" => %{}
+        }
+      ]
+
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"columns" => "1fr"}, children))
+
+      assert heex =~ "Col A"
+    end
+  end
 end

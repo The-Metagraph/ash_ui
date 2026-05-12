@@ -521,6 +521,35 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "list_item_multi_column"} = iur, opts) do
+    props = iur["props"] || %{}
+    columns = prop(props, "columns", "1fr")
+    row_id = prop(props, "row_id")
+    event = prop(props, "event", "select_row")
+    event_value_key = prop(props, "event_value_key", "row_id")
+    active = prop(props, "active", false)
+    href = prop(props, "href")
+    extra_class = prop(props, "class", "")
+    css = css_classes(["ash-list-item-multi-column", extra_class])
+    grid_style = merge_style("grid-template-columns: #{columns}", prop_style(iur))
+
+    if href do
+      """
+      <a class="#{css}"#{style_attr(grid_style)} href="#{href}" data-active="#{active}">
+        #{generate_children(iur["children"], opts)}
+      </a>
+      """
+    else
+      phx_value = if row_id, do: " phx-value-#{event_value_key}=\"#{row_id}\"", else: ""
+
+      """
+      <button class="#{css}"#{style_attr(grid_style)} data-active="#{active}" phx-click="#{event}"#{phx_value}>
+        #{generate_children(iur["children"], opts)}
+      </button>
+      """
+    end
+  end
+
   defp generate_heex(%{"type" => "table"} = iur, opts) do
     props = iur["props"] || %{}
     title = text_prop(props, ["title", "label"], "Table")
@@ -623,7 +652,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do

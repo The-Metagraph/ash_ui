@@ -125,6 +125,7 @@ defmodule AshUI.DSL.Storage do
       "select",
       "card",
       "list",
+      "list_item_multi_column",
       "table",
       "image",
       "icon",

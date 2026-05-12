@@ -219,6 +219,35 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "list_item_multi_column"} = iur, opts) do
+    props = iur["props"] || %{}
+    columns = prop(props, "columns", "1fr")
+    row_id = prop(props, "row_id")
+    event = prop(props, "event", "select_row")
+    event_value_key = prop(props, "event_value_key", "row_id")
+    active = prop(props, "active", false)
+    href = prop(props, "href")
+    extra_class = prop(props, "class", "")
+    css = css_classes(["ash-list-item-multi-column", extra_class])
+    grid_style = merge_style("grid-template-columns: #{columns}", prop_style(iur))
+
+    if href do
+      """
+      <a class="#{css}"#{style_attr(grid_style)} href="#{href}" data-active="#{active}">
+        #{generate_children(iur["children"], opts)}
+      </a>
+      """
+    else
+      phx_value = if row_id, do: " phx-value-#{event_value_key}=\"#{row_id}\"", else: ""
+
+      """
+      <button class="#{css}"#{style_attr(grid_style)} data-active="#{active}" phx-click="#{event}"#{phx_value}>
+        #{generate_children(iur["children"], opts)}
+      </button>
+      """
+    end
+  end
+
   defp generate_heex(%{"type" => "form_builder"} = iur, opts) do
     """
     <form class="#{css_classes(["ash-form-builder", prop_class(iur)])}"#{style_attr(prop_style(iur))}>

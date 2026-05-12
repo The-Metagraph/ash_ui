@@ -1047,4 +1047,103 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       "metadata" => %{}
     }
   end
+
+  describe "artifact_row widget" do
+    defp artifact_row_iur(props, children \\ []) do
+      %{
+        "type" => "artifact_row",
+        "id" => "ar-1",
+        "props" => props,
+        "children" => children,
+        "metadata" => %{},
+        "bindings" => []
+      }
+    end
+
+    test "admission: storage accepts artifact_row type" do
+      assert AshUI.DSL.Storage.valid_widget_type?("artifact_row")
+    end
+
+    test "renders as <button> by default with ash-artifact-row class" do
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "My Artifact"}))
+
+      assert heex =~ "<button"
+      assert heex =~ "ash-artifact-row"
+    end
+
+    test "title renders in ash-artifact-row-title span" do
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "AGREEMENT final.pdf"}))
+
+      assert heex =~ "ash-artifact-row-title"
+      assert heex =~ "AGREEMENT final.pdf"
+    end
+
+    test "meta renders in ash-artifact-row-meta span when non-empty" do
+      {:ok, heex} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "meta" => "STORED v3"}))
+
+      assert heex =~ "ash-artifact-row-meta"
+      assert heex =~ "STORED v3"
+    end
+
+    test "meta span is absent when meta prop is empty string" do
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "meta" => ""}))
+
+      refute heex =~ "ash-artifact-row-meta"
+    end
+
+    test "phx-click reflects event prop" do
+      {:ok, heex} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "event" => "open_artifact"}))
+
+      assert heex =~ ~s(phx-click="open_artifact")
+    end
+
+    test "phx-value key reflects event_value_key prop with row_id value" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          artifact_row_iur(%{"title" => "T", "row_id" => "ar-42", "event_value_key" => "doc_id"})
+        )
+
+      assert heex =~ ~s(phx-value-doc_id="ar-42")
+    end
+
+    test "data-active reflects active prop" do
+      {:ok, heex_false} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "active" => false}))
+
+      {:ok, heex_true} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "active" => true}))
+
+      assert heex_false =~ ~s(data-active="false")
+      assert heex_true =~ ~s(data-active="true")
+    end
+
+    test "renders as <a> when href prop is set, omitting phx-click" do
+      {:ok, heex} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "href" => "/artifacts/42"}))
+
+      assert heex =~ "<a"
+      assert heex =~ ~s(href="/artifacts/42")
+      refute heex =~ "<button"
+      refute heex =~ "phx-click"
+    end
+
+    test "trailing slot children render inside ash-artifact-row-trailing wrapper" do
+      children = [
+        %{
+          "type" => "text",
+          "id" => "badge-1",
+          "props" => %{"content" => "Origin"},
+          "children" => [],
+          "metadata" => %{}
+        }
+      ]
+
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "T"}, children))
+
+      assert heex =~ "ash-artifact-row-trailing"
+      assert heex =~ "Origin"
+    end
+  end
 end

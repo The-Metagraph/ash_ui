@@ -314,6 +314,53 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "artifact_row"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = Map.get(props, "title", "")
+    meta = Map.get(props, "meta", "")
+    row_id = Map.get(props, "row_id")
+    event = Map.get(props, "event", "select_artifact")
+    event_value_key = Map.get(props, "event_value_key", "row_id")
+    active = Map.get(props, "active", false)
+    href = Map.get(props, "href")
+    extra_class = Map.get(props, "class", "")
+    css = css_classes(["ash-artifact-row", extra_class])
+
+    meta_html =
+      if meta != "", do: "<span class=\"ash-artifact-row-meta\">#{meta}</span>", else: ""
+
+    trailing_html = generate_children(iur["children"] || [], opts)
+
+    trailing_wrapper =
+      if trailing_html != "",
+        do: "<div class=\"ash-artifact-row-trailing\">#{trailing_html}</div>",
+        else: ""
+
+    if href do
+      """
+      <a class="#{css}"#{style_attr(prop_style(iur))} href="#{href}" data-active="#{active}">
+        <div class="ash-artifact-row-content">
+          <span class="ash-artifact-row-title">#{title}</span>
+          #{meta_html}
+        </div>
+        #{trailing_wrapper}
+      </a>
+      """
+    else
+      phx_value = if row_id, do: " phx-value-#{event_value_key}=\"#{row_id}\"", else: ""
+
+      """
+      <button class="#{css}"#{style_attr(prop_style(iur))} data-active="#{active}" phx-click="#{event}"#{phx_value}>
+        <div class="ash-artifact-row-content">
+          <span class="ash-artifact-row-title">#{title}</span>
+          #{meta_html}
+        </div>
+        #{trailing_wrapper}
+      </button>
+      """
+    end
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

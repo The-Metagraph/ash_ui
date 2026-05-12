@@ -451,6 +451,91 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  # Ariston-local composite (per ADR 0021 §2). Renders a propose/accept block
+  # in the conversation thread — the substrate behind ariston-ui's data-first
+  # principle ("documents are projections of conversations"). When an operator
+  # or agent proposes a change to a Workspace.Block, the thread shows a
+  # proposal_card. In :pending state, action buttons (Accept / Reject) are
+  # rendered so the operator can act. In terminal states (:accepted, :rejected,
+  # :superseded) the card renders as a history record with a state badge only.
+  #
+  # Props:
+  #   - proposer        — string, author of the proposal (e.g. "Codex")
+  #   - timestamp       — string, when the proposal was made
+  #   - proposed_text   — string, the Block.text being proposed
+  #   - state           — "pending" | "accepted" | "rejected" | "superseded"
+  #   - accept_event    — phx-click event name for the Accept button (pending only)
+  #   - accept_value    — optional phx-value-id payload for the accept event
+  #   - accent_variant  — optional; drives a data-accent attribute for CSS theming
+  #                       (e.g. "pascal", "codex", "gemini", "mike")
+  #
+  # HTML mirrors `lib/ash_ui/rendering/live_ui_adapter.ex` — both paths must
+  # produce the same structure so ariston-ui CSS works on either render path.
+  defp generate_heex(%{"type" => "proposal_card"} = iur, _opts) do
+    props = iur["props"] || %{}
+    proposer = to_string(prop(props, "proposer") || "")
+    timestamp = to_string(prop(props, "timestamp") || "")
+    proposed_text = to_string(prop(props, "proposed_text") || "")
+    state = to_string(prop(props, "state") || "pending")
+    accept_event = prop(props, "accept_event")
+    accept_value = prop(props, "accept_value")
+    accent_variant = prop(props, "accent_variant")
+
+    # Derive the proposer initial for the avatar badge.
+    initial =
+      case String.trim(proposer) do
+        "" -> "?"
+        name -> name |> String.upcase() |> String.at(0) || "?"
+      end
+
+    # Optional accent variant drives a data attribute used for CSS theming.
+    accent_attr =
+      if accent_variant && accent_variant != "",
+        do: " data-accent=\"#{accent_variant}\"",
+        else: ""
+
+    # Avatar token: use accent_variant when present, else neutral.
+    avatar_token = if accent_variant && accent_variant != "", do: accent_variant, else: "neutral"
+
+    # State badge: shown in all states for at-a-glance recognition.
+    state_dot_style = state_css_var(state)
+
+    # Action buttons: only rendered in pending state.
+    action_buttons_html =
+      if state == "pending" do
+        accept_click = if accept_event && accept_event != "", do: accept_event, else: ""
+
+        accept_value_attr =
+          if accept_value && to_string(accept_value) != "",
+            do: " phx-value-id=\"#{accept_value}\"",
+            else: ""
+
+        """
+          <div class="proposal-card__actions">
+            <button class="proposal-card__btn proposal-card__btn--accept" style="background-color: var(--accent-strong, var(--accent));" phx-click="#{accept_click}"#{accept_value_attr}>Accept</button>
+            <button class="proposal-card__btn proposal-card__btn--reject" style="color: var(--ink-faint, var(--ink));" phx-click="reject_proposal"#{accept_value_attr}>Reject</button>
+          </div>
+        """
+      else
+        ""
+      end
+
+    """
+    <div class="#{css_classes(["proposal-card", "proposal-card--#{state}", prop_class(iur)])}" data-state="#{state}"#{accent_attr}>
+      <div class="proposal-card__header">
+        <span class="proposal-card__avatar ash-avatar ash-avatar-small" style="background-color: var(--avatar-#{avatar_token}, var(--bg-2));" data-variant="#{avatar_token}" aria-hidden="true">
+          <span aria-hidden="true">#{initial}</span>
+        </span>
+        <span class="proposal-card__proposer">#{proposer}</span>
+        <span class="proposal-card__timestamp">#{timestamp}</span>
+        <span class="proposal-card__state-badge" data-state="#{state}" style="#{state_dot_style}" aria-label="#{state}"></span>
+      </div>
+      <blockquote class="proposal-card__proposed-text">#{proposed_text}</blockquote>
+      #{action_buttons_html}
+    </div>
+    """
+  end
+
   # Track-B widgets bundled from PRs #79-#97.
 
   defp generate_heex(%{"type" => "inline_rich_text_heading"} = iur, _opts) do

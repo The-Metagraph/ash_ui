@@ -623,7 +623,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do
@@ -1806,6 +1812,40 @@ defmodule AshUI.Rendering.LiveUIAdapter do
         #{generate_children(footer_children, opts)}
       </div>
     </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "chat_composer"} = iur, opts) do
+    props = iur["props"] || %{}
+    name = Map.get(props, "name") || Map.get(props, :name, "message")
+    value = Map.get(props, "value") || Map.get(props, :value, "")
+    placeholder = Map.get(props, "placeholder") || Map.get(props, :placeholder, "Type a message")
+    rows = Map.get(props, "rows") || Map.get(props, :rows, 3)
+    disabled = Map.get(props, "disabled") || Map.get(props, :disabled, false)
+    send_event = Map.get(props, "send_event") || Map.get(props, :send_event, "send_message")
+
+    change_event =
+      Map.get(props, "change_event") || Map.get(props, :change_event, "change_message")
+
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+    disabled_attr = if disabled, do: " disabled", else: ""
+    children_html = generate_children(iur["children"], opts)
+    _event_prefix = event_prefix
+
+    class = css_classes(["ash-chat-composer", prop_class(iur)])
+
+    """
+    <div class="#{class}"#{style_attr(prop_style(iur))}>
+      <form class="ash-chat-composer-form" phx-change="#{change_event}">
+        <textarea class="ash-chat-composer-textarea" name="#{name}" rows="#{rows}" placeholder="#{placeholder}"#{disabled_attr}>#{value}</textarea>
+        <div class="ash-chat-composer-tool-row">
+          <div class="ash-chat-composer-tools-leading">#{children_html}</div>
+          <div class="ash-chat-composer-tools-trailing">
+            <button type="button" class="ash-chat-composer-send-btn" phx-click="#{send_event}"#{disabled_attr}>Send</button>
+          </div>
+        </div>
+      </form>
+    </div>
     """
   end
 

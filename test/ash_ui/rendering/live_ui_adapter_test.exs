@@ -306,6 +306,114 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert String.contains?(heex, "color: blue")
     end
 
+    test "generates inline_rich_text_heading with mixed text and em segments" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-1",
+        "props" => %{
+          "level" => "h1",
+          "segments" => [
+            %{"type" => "text", "value" => "The operator surface, "},
+            %{"type" => "em", "value" => "for the team that thinks in documents."}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<h1")
+      assert String.contains?(heex, "</h1>")
+      assert String.contains?(heex, "ash-inline-rich-text-heading")
+      assert String.contains?(heex, "ash-inline-rich-text-heading-h1")
+
+      assert String.contains?(
+               heex,
+               "The operator surface, <em>for the team that thinks in documents.</em>"
+             )
+    end
+
+    test "inline_rich_text_heading respects level prop for h2 through h6" do
+      for level <- ~w(h2 h3 h4 h5 h6) do
+        iur = %{
+          "type" => "inline_rich_text_heading",
+          "id" => "heading-#{level}",
+          "props" => %{
+            "level" => level,
+            "segments" => [%{"type" => "text", "value" => "x"}]
+          },
+          "children" => [],
+          "metadata" => %{}
+        }
+
+        {:ok, heex} = LiveUIAdapter.render(iur)
+        assert String.contains?(heex, "<#{level}"), "expected <#{level}> tag for level=#{level}"
+        assert String.contains?(heex, "</#{level}>")
+        assert String.contains?(heex, "ash-inline-rich-text-heading-#{level}")
+      end
+    end
+
+    test "inline_rich_text_heading falls back to h1 when level prop is missing or invalid" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-default",
+        "props" => %{
+          "segments" => [%{"type" => "text", "value" => "Default"}]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<h1")
+      assert String.contains?(heex, "Default")
+
+      bogus = put_in(iur, ["props", "level"], "h99")
+      {:ok, heex_bogus} = LiveUIAdapter.render(bogus)
+      assert String.contains?(heex_bogus, "<h1")
+    end
+
+    test "inline_rich_text_heading accepts atom-keyed segments" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-atom",
+        "props" => %{
+          "level" => "h2",
+          "segments" => [
+            %{type: :text, value: "Hello "},
+            %{type: :em, value: "world"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<h2")
+      assert String.contains?(heex, "Hello <em>world</em>")
+    end
+
+    test "inline_rich_text_heading produces no literal color or font-family values" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-pure",
+        "props" => %{
+          "level" => "h1",
+          "segments" => [
+            %{"type" => "text", "value" => "Hello "},
+            %{"type" => "em", "value" => "world"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/font-family\s*:/i
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

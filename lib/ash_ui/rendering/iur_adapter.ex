@@ -104,6 +104,7 @@ defmodule AshUI.Rendering.IURAdapter do
 
   # Map Ash element types to unified widget types
   defp map_element_type(:text), do: "text"
+  defp map_element_type(:inline_rich_text_heading), do: "inline_rich_text_heading"
   defp map_element_type(:button), do: "button"
   defp map_element_type(:textinput), do: "input"
   defp map_element_type(:textarea), do: "textarea"

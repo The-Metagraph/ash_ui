@@ -123,6 +123,11 @@ defmodule AshUI.Rendering.IURAdapter do
   defp map_element_type(:icon), do: "icon"
   defp map_element_type(:divider), do: "divider"
   defp map_element_type(:spacer), do: "spacer"
+  # Ariston-local composite widgets per ADR 0021 §2 carve-out.
+  defp map_element_type(:doc_block_numbered), do: "doc_block_numbered"
+  defp map_element_type(:chat_message_row), do: "chat_message_row"
+  defp map_element_type(:voice_pair_presence), do: "voice_pair_presence"
+  defp map_element_type(:proposal_card), do: "proposal_card"
   defp map_element_type(other), do: atom_to_string(other)
 
   defp atom_to_string(atom) when is_atom(atom), do: Atom.to_string(atom)

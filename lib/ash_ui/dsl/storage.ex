@@ -129,7 +129,17 @@ defmodule AshUI.DSL.Storage do
       "image",
       "icon",
       "divider",
-      "spacer"
+      "spacer",
+      # Ariston-local composite widgets per ADR 0021 §2 carve-out.
+      # Admitted here so a downstream consumer (ariston-ui) can declare
+      # `ui_element type: :<name>` from the resource DSL. Renderers in
+      # consumer apps are responsible for producing the actual HEEx;
+      # ash_ui's built-in renderers fall through to the catch-all
+      # `<div class="ash-widget ash-widget-<name>">` div.
+      "doc_block_numbered",
+      "chat_message_row",
+      "voice_pair_presence",
+      "proposal_card"
     ]
 
     type in valid_layouts or type in valid_widgets or String.starts_with?(type, "custom:")

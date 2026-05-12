@@ -314,6 +314,35 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  # Ariston-local composite (per ADR 0021 §2). Reads the synthesized
+  # `props.row` map populated by `IURHydration` when this element is the
+  # destination of a `ui_relationship ... repeat` directive. The widget
+  # renders the same HTML shape as `AristonUiWeb.Widgets.DocBlockNumbered`
+  # so the ariston-ui CSS picks it up. The block-mark glyph and styling
+  # come from tokens.css; no literal colors live here.
+  defp generate_heex(%{"type" => "doc_block_numbered"} = iur, _opts) do
+    props = iur["props"] || %{}
+    row = Map.get(props, "row") || %{}
+    block_id = to_string(Map.get(row, "id") || Map.get(props, "block_id") || iur["id"] || "")
+    text = to_string(Map.get(row, "text") || Map.get(props, "content") || "")
+    metadata = iur["metadata"] || %{}
+    composition = Map.get(metadata, "composition") || %{}
+    # `repeat_row_index` is 0-based on the clone; humans want 1-based.
+    raw_index = Map.get(composition, "repeat_row_index")
+    index = if is_integer(raw_index), do: raw_index + 1, else: Map.get(props, "index", 1)
+    is_active = Map.get(props, "is_active", false)
+
+    """
+    <section class="ariston-doc-block-numbered" data-block-id="#{block_id}" data-active="#{to_string(is_active)}">
+      <div class="ariston-doc-block-mark" aria-hidden="true">
+        <span class="ariston-doc-block-glyph">⊢</span>
+        <span class="ariston-doc-block-index">#{index}</span>
+      </div>
+      <div class="ariston-doc-block-body">#{text}</div>
+    </section>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

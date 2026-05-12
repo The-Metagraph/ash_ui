@@ -1809,6 +1809,31 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "redline_inline"} = iur, _opts) do
+    props = iur["props"] || %{}
+    state = prop(props, "state", "proposed")
+    segments = prop(props, "segments") || []
+
+    segments_html =
+      Enum.map_join(segments, fn segment ->
+        type = Map.get(segment, "type") || Map.get(segment, :type, "keep")
+        content = Map.get(segment, "content") || Map.get(segment, :content, "")
+        escaped = escape_html(content)
+
+        case {to_string(type), state} do
+          {"del", "accepted"} -> ""
+          {"ins", "rejected"} -> ""
+          {"del", _} -> "<del>#{escaped}</del>"
+          {"ins", _} -> "<ins>#{escaped}</ins>"
+          _ -> escaped
+        end
+      end)
+
+    """
+    <span class="#{css_classes(["ash-redline-inline", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-state="#{state}">#{segments_html}</span>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -2441,4 +2466,20 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp event_name(prefix, :change), do: "#{prefix}_change"
 
   defp nil_or_empty?(value), do: value in [nil, ""]
+
+  # Minimal HTML escaping for segment content in redline_inline.
+  # Replaces the five XML/HTML special characters so user-supplied text
+  # cannot inject raw markup into the rendered output.
+  defp escape_html(nil), do: ""
+
+  defp escape_html(content) when is_binary(content) do
+    content
+    |> String.replace("&", "&amp;")
+    |> String.replace("<", "&lt;")
+    |> String.replace(">", "&gt;")
+    |> String.replace("\"", "&quot;")
+    |> String.replace("'", "&#39;")
+  end
+
+  defp escape_html(content), do: escape_html(to_string(content))
 end

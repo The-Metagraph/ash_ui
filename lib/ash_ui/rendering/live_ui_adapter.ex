@@ -1809,6 +1809,28 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "code_block_syntax_highlighted"} = iur, _opts) do
+    props = iur["props"] || %{}
+    language = Map.get(props, "language") || Map.get(props, :language)
+    tokens = Map.get(props, "tokens") || Map.get(props, :tokens) || []
+
+    lang_attr = if language && language != "", do: " data-language=\"#{escape_html(language)}\"", else: ""
+
+    tokens_html =
+      Enum.map_join(tokens, fn token ->
+        type = Map.get(token, "type") || Map.get(token, :type, "text")
+        content = Map.get(token, "content") || Map.get(token, :content, "")
+        escaped = escape_html(content)
+        "<span data-token=\"#{type}\">#{escaped}</span>"
+      end)
+
+    class = css_classes(["ash-code-block-syntax-highlighted", prop_class(iur)])
+
+    """
+    <pre class="#{class}"#{lang_attr}#{style_attr(prop_style(iur))}><code>#{tokens_html}</code></pre>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -2441,4 +2463,20 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp event_name(prefix, :change), do: "#{prefix}_change"
 
   defp nil_or_empty?(value), do: value in [nil, ""]
+
+  # Minimal HTML escaping for token content in code_block_syntax_highlighted.
+  # Replaces the five XML/HTML special characters so user-supplied text
+  # cannot inject raw markup into the rendered output.
+  defp escape_html(nil), do: ""
+
+  defp escape_html(content) when is_binary(content) do
+    content
+    |> String.replace("&", "&amp;")
+    |> String.replace("<", "&lt;")
+    |> String.replace(">", "&gt;")
+    |> String.replace("\"", "&quot;")
+    |> String.replace("'", "&#39;")
+  end
+
+  defp escape_html(content), do: escape_html(to_string(content))
 end

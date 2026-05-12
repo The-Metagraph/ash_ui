@@ -1809,6 +1809,56 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "pipeline_stepper_horizontal"} = iur, opts) do
+    props = iur["props"] || %{}
+    steps = Map.get(props, "steps", [])
+    active_index = Map.get(props, "active_index", 0)
+    event = Map.get(props, "event", "select_step")
+    event_value_key = Map.get(props, "event_value_key", "step_index")
+    event_prefix = Map.get(opts, :event_prefix, "ash_ui")
+
+    steps_html =
+      steps
+      |> Enum.with_index()
+      |> Enum.map_join(fn {step, pos} ->
+        step = if is_map(step), do: step, else: %{}
+        label = Map.get(step, "label", Map.get(step, :label, ""))
+        step_index = Map.get(step, "index", Map.get(step, :index, pos))
+        state = step_state(pos, active_index)
+
+        connector_html =
+          if pos > 0 do
+            done_val = if pos <= active_index, do: "true", else: "false"
+            ~s(<div class="ash-pipeline-stepper-horizontal-connector" data-done="#{done_val}" aria-hidden="true"></div>)
+          else
+            ""
+          end
+
+        value_attr =
+          if event_value_key == "step_index" do
+            ""
+          else
+            ~s( phx-value-#{event_value_key}="#{step_index}")
+          end
+
+        connector_html <>
+          ~s(<button type="button" class="ash-pipeline-stepper-horizontal-step" data-state="#{state}" phx-click="#{event_name(event_prefix, :action)}" phx-value-step_index="#{step_index}"#{value_attr}>
+      <div class="ash-pipeline-stepper-horizontal-marker" aria-hidden="true"></div>
+      <span class="ash-pipeline-stepper-horizontal-label">#{label}</span>
+    </button>)
+      end)
+
+    """
+    <div class="#{css_classes(["ash-pipeline-stepper-horizontal", prop_class(iur)])}"#{style_attr(prop_style(iur))} role="list">
+      #{steps_html}
+    </div>
+    """
+  end
+
+  defp step_state(pos, active_index) when pos < active_index, do: "done"
+  defp step_state(pos, active_index) when pos == active_index, do: "active"
+  defp step_state(_pos, _active_index), do: "pending"
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

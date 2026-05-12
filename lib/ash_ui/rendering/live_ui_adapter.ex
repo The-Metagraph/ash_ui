@@ -1978,6 +1978,8 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     state = to_string(prop(props, "state") || "pending")
     accept_event = prop(props, "accept_event")
     accept_value = prop(props, "accept_value")
+    reject_event = prop(props, "reject_event")
+    reject_value = prop(props, "reject_value")
     accent_variant = prop(props, "accent_variant")
 
     # Derive the proposer initial for the avatar badge.
@@ -2003,16 +2005,32 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     action_buttons_html =
       if state == "pending" do
         accept_click = if accept_event && accept_event != "", do: accept_event, else: ""
+        # Symmetric with accept_event: callers can configure the reject phx-click name.
+        # Falls back to the conventional "reject_proposal" so existing consumers don't break.
+        reject_click =
+          cond do
+            reject_event && reject_event != "" -> reject_event
+            true -> "reject_proposal"
+          end
 
         accept_value_attr =
           if accept_value && to_string(accept_value) != "",
             do: " phx-value-id=\"#{accept_value}\"",
             else: ""
 
+        # reject_value falls back to accept_value to preserve current behavior
+        # (the existing code reused accept_value_attr on the reject button).
+        reject_value_resolved = if reject_value && to_string(reject_value) != "", do: reject_value, else: accept_value
+
+        reject_value_attr =
+          if reject_value_resolved && to_string(reject_value_resolved) != "",
+            do: " phx-value-id=\"#{reject_value_resolved}\"",
+            else: ""
+
         """
           <div class="proposal-card__actions">
             <button class="proposal-card__btn proposal-card__btn--accept" style="background-color: var(--accent-strong, var(--accent));" phx-click="#{accept_click}"#{accept_value_attr}>Accept</button>
-            <button class="proposal-card__btn proposal-card__btn--reject" style="color: var(--ink-faint, var(--ink));" phx-click="reject_proposal"#{accept_value_attr}>Reject</button>
+            <button class="proposal-card__btn proposal-card__btn--reject" style="color: var(--ink-faint, var(--ink));" phx-click="#{reject_click}"#{reject_value_attr}>Reject</button>
           </div>
         """
       else

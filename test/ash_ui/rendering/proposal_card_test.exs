@@ -136,6 +136,46 @@ defmodule AshUI.Rendering.ProposalCardTest do
     end
   end
 
+  # ── Reject button event configurability ───────────────────────────────────
+
+  describe "reject_event prop configurability" do
+    test "defaults Reject phx-click to 'reject_proposal' when reject_event is absent" do
+      # @full_iur does not set reject_event — should fall back to the convention.
+      {:ok, html} = LiveUIRenderer.render(screen_with(@full_iur))
+
+      assert html =~ ~s(phx-click="reject_proposal")
+    end
+
+    test "overrides Reject phx-click when reject_event is provided" do
+      iur = put_in(@full_iur, ["props", "reject_event"], "decline_proposal")
+      {:ok, html} = LiveUIRenderer.render(screen_with(iur))
+
+      assert html =~ ~s(phx-click="decline_proposal")
+      refute html =~ ~s(phx-click="reject_proposal")
+    end
+
+    test "Reject button uses accept_value when reject_value is absent (back-compat)" do
+      {:ok, html} = LiveUIRenderer.render(screen_with(@full_iur))
+
+      # Both Accept and Reject buttons should carry the same phx-value-id when
+      # reject_value isn't separately configured — preserves prior behavior.
+      assert html =~ ~s(phx-value-id="proposal-abc123")
+    end
+
+    test "Reject button uses reject_value when separately configured" do
+      iur =
+        @full_iur
+        |> put_in(["props", "reject_event"], "decline_proposal")
+        |> put_in(["props", "reject_value"], "proposal-zzz999")
+
+      {:ok, html} = LiveUIRenderer.render(screen_with(iur))
+
+      # Accept button keeps its accept_value, Reject button gets its own.
+      assert html =~ ~s(phx-click="decline_proposal" phx-value-id="proposal-zzz999")
+      assert html =~ ~s(phx-click="accept_proposal" phx-value-id="proposal-abc123")
+    end
+  end
+
   # ── Terminal states: no action buttons ────────────────────────────────────
 
   describe "accepted state" do

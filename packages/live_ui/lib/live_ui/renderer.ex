@@ -314,6 +314,53 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "workflow_stage_list_vertical"} = iur, _opts) do
+    props = iur["props"] || %{}
+    stages = Map.get(props, "stages", [])
+    active_index = Map.get(props, "active_index", 0)
+
+    indexed = Enum.with_index(stages)
+
+    items_html =
+      Enum.map_join(indexed, fn {stage, pos} ->
+        label =
+          if is_map(stage),
+            do: Map.get(stage, "label") || Map.get(stage, :label, ""),
+            else: to_string(stage)
+
+        node_index =
+          if is_map(stage),
+            do: Map.get(stage, "index") || Map.get(stage, :index) || pos + 1,
+            else: pos + 1
+
+        state =
+          cond do
+            pos < active_index -> "done"
+            pos == active_index -> "active"
+            true -> "pending"
+          end
+
+        connector =
+          if pos > 0 do
+            done = if pos <= active_index, do: "true", else: "false"
+
+            "<div class=\"ash-workflow-stage-list-vertical-connector\" data-done=\"#{done}\" aria-hidden=\"true\"></div>"
+          else
+            ""
+          end
+
+        aria_current = if state == "active", do: " aria-current=\"step\"", else: ""
+
+        "#{connector}<li class=\"ash-workflow-stage-list-vertical-item\" data-state=\"#{state}\"#{aria_current}><div class=\"ash-workflow-stage-list-vertical-node\" aria-hidden=\"true\">#{node_index}</div><span class=\"ash-workflow-stage-list-vertical-label\">#{label}</span></li>"
+      end)
+
+    """
+    <ol class="#{css_classes(["ash-workflow-stage-list-vertical", prop_class(iur)])}" aria-label="Workflow stages"#{style_attr(prop_style(iur))}>
+      #{items_html}
+    </ol>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

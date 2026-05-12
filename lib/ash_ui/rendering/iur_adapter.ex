@@ -123,6 +123,7 @@ defmodule AshUI.Rendering.IURAdapter do
   defp map_element_type(:icon), do: "icon"
   defp map_element_type(:divider), do: "divider"
   defp map_element_type(:spacer), do: "spacer"
+  defp map_element_type(:workflow_stage_list_vertical), do: "workflow_stage_list_vertical"
   defp map_element_type(other), do: atom_to_string(other)
 
   defp atom_to_string(atom) when is_atom(atom), do: Atom.to_string(atom)

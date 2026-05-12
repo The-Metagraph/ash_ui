@@ -314,6 +314,45 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "meter_thin"} = iur, _opts) do
+    props = iur["props"] || %{}
+    raw_value = Map.get(props, "value", Map.get(props, "percent", 0))
+    max_val = max(prop(props, "max", 100) || 100, 1)
+    label = text_prop(props, ["label", "text"])
+
+    pct =
+      cond do
+        is_float(raw_value) and raw_value >= 0.0 and raw_value < 1.0 ->
+          raw_value * 100
+
+        is_integer(raw_value) ->
+          raw_value / max_val * 100
+
+        is_float(raw_value) ->
+          raw_value / max_val * 100
+
+        true ->
+          0.0
+      end
+
+    pct = max(0.0, min(100.0, pct))
+    pct_str = if pct == trunc(pct), do: "#{trunc(pct)}", else: "#{Float.round(pct, 1)}"
+
+    label_html =
+      if label,
+        do: "<span class=\"ash-meter-thin-label\">#{label}</span>",
+        else: ""
+
+    """
+    <div class="#{css_classes(["ash-meter-thin", prop_class(iur)])}" role="progressbar" aria-valuenow="#{pct_str}" aria-valuemin="0" aria-valuemax="100"#{style_attr(prop_style(iur))}>
+      #{label_html}
+      <div class="ash-meter-thin-track">
+        <div class="ash-meter-thin-fill" style="width: #{pct_str}%"></div>
+      </div>
+    </div>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

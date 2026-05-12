@@ -623,7 +623,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do
@@ -1836,6 +1842,58 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  # Ariston-local composite (per ADR 0021 §2). Renders one row in a chat
+  # stream: avatar (left), meta line (author + timestamp + optional
+  # presence_dot), and a body bubble. CSS lives in the consumer (ariston-ui
+  # tokens.css / app.css); no inline colours here. Mirrors the clause in
+  # `packages/live_ui/lib/live_ui/renderer.ex` so both render paths produce
+  # the same HTML shape.
+  defp generate_heex(%{"type" => "chat_message_row"} = iur, _opts) do
+    props = iur["props"] || %{}
+    author = to_string(prop(props, "author") || "")
+    timestamp = to_string(prop(props, "timestamp") || "")
+    body = to_string(prop(props, "body") || "")
+    avatar_variant = to_string(prop(props, "avatar_variant") || "neutral")
+    presence = prop(props, "presence")
+
+    # Derive the single initial for the avatar badge from the author name.
+    initial =
+      case String.trim(author) do
+        "" -> "?"
+        name -> name |> String.upcase() |> String.at(0) || "?"
+      end
+
+    # presence_dot HTML — rendered only when a presence state is provided.
+    presence_html =
+      if presence do
+        state = to_string(presence)
+        bg_style = state_css_var(state)
+
+        "<span class=\"chat-message-row__presence ash-presence-dot ash-presence-dot-small\" data-state=\"#{state}\" style=\"#{bg_style}\" aria-hidden=\"true\"></span>"
+      else
+        ""
+      end
+
+    # Body lines: replace \n with <br> so multi-line messages render correctly.
+    body_html = String.replace(body, "\n", "<br>")
+
+    """
+    <article class="#{css_classes(["chat-message-row", "chat-message-row--#{avatar_variant}", prop_class(iur)])}">
+      <span class="chat-message-row__avatar ash-avatar ash-avatar-medium" style="background-color: var(--avatar-#{avatar_variant}, var(--bg-2));" data-variant="#{avatar_variant}" aria-hidden="true">
+        <span aria-hidden="true">#{initial}</span>
+      </span>
+      <div class="chat-message-row__content">
+        <div class="chat-message-row__meta">
+          <span class="chat-message-row__author">#{author}</span>
+          <span class="chat-message-row__timestamp">#{timestamp}</span>
+          #{presence_html}
+        </div>
+        <div class="chat-message-row__body">#{body_html}</div>
+      </div>
+    </article>
+    """
+  end
+
   # Track-B widgets bundled from PRs #79-#97.
 
   defp generate_heex(%{"type" => "inline_rich_text_heading"} = iur, _opts) do
@@ -2119,6 +2177,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
         connector_html =
           if pos > 0 do
             done_val = if pos <= active_index, do: "true", else: "false"
+
             ~s(<div class="ash-pipeline-stepper-horizontal-connector" data-done="#{done_val}" aria-hidden="true"></div>)
           else
             ""
@@ -2339,7 +2398,8 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     language = Map.get(props, "language") || Map.get(props, :language)
     tokens = Map.get(props, "tokens") || Map.get(props, :tokens) || []
 
-    lang_attr = if language && language != "", do: " data-language=\"#{escape_html(language)}\"", else: ""
+    lang_attr =
+      if language && language != "", do: " data-language=\"#{escape_html(language)}\"", else: ""
 
     tokens_html =
       Enum.map_join(tokens, fn token ->

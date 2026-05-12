@@ -314,6 +314,22 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "slide_over_panel"} = iur, opts) do
+    props = iur["props"] || %{}
+    open? = prop(props, "open", false) == true
+    width = text_prop(props, ["width"], "32rem")
+    aria_label = text_prop(props, ["aria_label", "aria-label", "label"], "Side panel")
+
+    style =
+      merge_style(["width: #{width}"], prop_style(iur))
+
+    """
+    <aside class="#{css_classes(["ash-slide-over-panel", prop_class(iur)])}" data-open="#{open?}" role="complementary" aria-label="#{aria_label}"#{style_attr(style)}>
+      #{generate_children(iur["children"], opts)}
+    </aside>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

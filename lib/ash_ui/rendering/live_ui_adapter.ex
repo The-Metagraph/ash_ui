@@ -623,7 +623,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do
@@ -1806,6 +1812,22 @@ defmodule AshUI.Rendering.LiveUIAdapter do
         #{generate_children(footer_children, opts)}
       </div>
     </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "slide_over_panel"} = iur, opts) do
+    props = iur["props"] || %{}
+    open? = truthy_prop(props, "open", false)
+    width = text_prop(props, ["width"], "32rem")
+    aria_label = text_prop(props, ["aria_label", "aria-label", "label"], "Side panel")
+
+    style =
+      merge_style(["width: #{width}"], prop_style(iur))
+
+    """
+    <aside class="#{css_classes(["ash-slide-over-panel", prop_class(iur)])}" data-open="#{open?}" role="complementary" aria-label="#{aria_label}"#{style_attr(style)}>
+      #{generate_children(iur["children"], opts)}
+    </aside>
     """
   end
 

@@ -103,6 +103,22 @@ defmodule DesktopUI.Renderer do
     }
   end
 
+  defp generate_widget(%{"type" => "segmented_button_group"} = widget) do
+    props = widget["props"] || %{}
+    options = Map.get(props, "options", [])
+    active = Map.get(props, "active")
+    event = Map.get(props, "event", "select_segment")
+
+    %{
+      "type" => "segmented_button_group",
+      "id" => widget["id"],
+      "options" => options,
+      "active" => active,
+      "event" => event,
+      "aria_label" => Map.get(props, "aria_label", "")
+    }
+  end
+
   defp generate_widget(%{"type" => type} = widget) do
     %{
       "type" => "container",

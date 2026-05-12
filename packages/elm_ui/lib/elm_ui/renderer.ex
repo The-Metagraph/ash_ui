@@ -48,6 +48,30 @@ defmodule ElmUI.Renderer do
     """
   end
 
+  defp generate_html(%{"type" => "segmented_button_group"} = iur, _opts) do
+    props = iur["props"] || %{}
+    options = Map.get(props, "options", [])
+    active = Map.get(props, "active")
+    event = Map.get(props, "event", "select_segment")
+    event_value_key = Map.get(props, "event_value_key", "value")
+    aria_label = Map.get(props, "aria_label", "")
+
+    options_html =
+      Enum.map_join(options, fn option ->
+        value = to_string(Map.get(option, "value", Map.get(option, :value, "")))
+        label = to_string(Map.get(option, "label", Map.get(option, :label, "")))
+        pressed = if value == to_string(active || ""), do: "true", else: "false"
+
+        "<button type=\"button\" class=\"ash-segmented-button-group-option\" aria-pressed=\"#{pressed}\" data-event=\"#{event}\" data-value-key=\"#{event_value_key}\" data-value=\"#{value}\">#{label}</button>"
+      end)
+
+    """
+    <div role="group" class="ash-segmented-button-group" data-widget-id="#{iur["id"]}" aria-label="#{aria_label}">
+      #{options_html}
+    </div>
+    """
+  end
+
   defp generate_html(%{"type" => type, "id" => id} = iur, _opts) do
     """
     <div class="ash-widget ash-widget-#{type}" data-widget-id="#{id}">

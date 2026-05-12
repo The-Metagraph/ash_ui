@@ -314,6 +314,32 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "segmented_button_group"} = iur, _opts) do
+    props = iur["props"] || %{}
+    options = prop(props, "options", [])
+    active = prop(props, "active")
+    event = prop(props, "event", "select_segment")
+    event_value_key = prop(props, "event_value_key", "value")
+    aria_label = prop(props, "aria_label", "")
+
+    options_html =
+      Enum.map_join(options, fn option ->
+        option = normalize_item(option)
+        value = text_prop(option, "value", "")
+        label = text_prop(option, "label", "")
+        pressed = if value == to_string(active || ""), do: "true", else: "false"
+        value_attr = " phx-value-#{event_value_key}=\"#{value}\""
+
+        "<button type=\"button\" class=\"ash-segmented-button-group-option\" aria-pressed=\"#{pressed}\" phx-click=\"#{event}\"#{value_attr}>#{label}</button>"
+      end)
+
+    """
+    <div role="group" class="#{css_classes(["ash-segmented-button-group", prop_class(iur)])}"#{style_attr(prop_style(iur))} aria-label="#{aria_label}">
+      #{options_html}
+    </div>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

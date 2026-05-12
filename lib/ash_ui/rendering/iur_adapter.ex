@@ -103,6 +103,7 @@ defmodule AshUI.Rendering.IURAdapter do
   end
 
   # Map Ash element types to unified widget types
+  defp map_element_type(:segmented_button_group), do: "segmented_button_group"
   defp map_element_type(:text), do: "text"
   defp map_element_type(:button), do: "button"
   defp map_element_type(:textinput), do: "input"

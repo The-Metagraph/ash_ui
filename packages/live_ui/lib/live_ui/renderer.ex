@@ -314,6 +314,25 @@ defmodule LiveUI.Renderer do
     """
   end
 
+  defp generate_heex(%{"type" => "event_callout"} = iur, opts) do
+    props = iur["props"] || %{}
+    tone = prop(props, "tone", "info")
+    kicker = text_prop(props, "kicker")
+    body_text = text_prop(props, ["text", "content", "body"])
+    action_children = iur["children"] || []
+
+    """
+    <section class="#{css_classes(["ash-event-callout", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-tone="#{tone}">
+      <div class="ash-event-callout-content">
+        #{if kicker, do: "<span class=\"ash-event-callout-kicker\">#{kicker}</span>", else: ""}
+        <div class="ash-event-callout-body">
+          #{if body_text, do: body_text, else: generate_children(action_children, opts)}
+        </div>
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">

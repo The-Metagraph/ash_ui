@@ -129,7 +129,8 @@ defmodule AshUI.DSL.Storage do
       "image",
       "icon",
       "divider",
-      "spacer"
+      "spacer",
+      "segmented_progress_bar"
     ]
 
     type in valid_layouts or type in valid_widgets or String.starts_with?(type, "custom:")

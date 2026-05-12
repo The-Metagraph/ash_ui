@@ -623,7 +623,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     disabled? = !!Map.get(iur["props"] || %{}, "disabled")
     binding = find_binding(opts, iur["id"], "event")
 
-    class_name = css_classes(["ash-button", "ash-button-#{variant}", disabled? && "is-disabled", prop_class(iur)])
+    class_name =
+      css_classes([
+        "ash-button",
+        "ash-button-#{variant}",
+        disabled? && "is-disabled",
+        prop_class(iur)
+      ])
 
     event_attrs =
       if binding && button_type != "submit" do
@@ -1809,6 +1815,49 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "segmented_progress_bar"} = iur, _opts) do
+    props = iur["props"] || %{}
+    segments = Map.get(props, "segments", [])
+    label = Map.get(props, "label")
+    aria_label = label || "Progress"
+    completed_pct = compute_completed_pct(segments)
+
+    label_html =
+      if label do
+        ~s(<span class="ash-segmented-progress-bar-label">#{label}</span>)
+      else
+        ""
+      end
+
+    segments_html =
+      Enum.map_join(segments, fn segment ->
+        segment = if is_map(segment), do: segment, else: %{}
+        state = Map.get(segment, "state", Map.get(segment, :state, "future"))
+        state_str = if is_atom(state), do: Atom.to_string(state), else: to_string(state)
+        weight = Map.get(segment, "weight", Map.get(segment, :weight, 1))
+        weight = if is_number(weight) and weight > 0, do: weight, else: 1
+        seg_label = Map.get(segment, "label", Map.get(segment, :label))
+
+        label_attrs =
+          if seg_label do
+            ~s( aria-label="#{seg_label}" title="#{seg_label}")
+          else
+            ""
+          end
+
+        ~s(<div class="ash-segmented-progress-bar-segment" data-state="#{state_str}" style="flex: #{weight}"#{label_attrs}></div>)
+      end)
+
+    """
+    <div class="#{css_classes(["ash-segmented-progress-bar", prop_class(iur)])}"#{style_attr(prop_style(iur))} role="progressbar" aria-label="#{aria_label}" aria-valuenow="#{completed_pct}" aria-valuemin="0" aria-valuemax="100">
+      #{label_html}
+      <div class="ash-segmented-progress-bar-track">
+        #{segments_html}
+      </div>
+    </div>
+    """
+  end
+
   defp generate_heex(iur, opts) do
     """
     <div class="#{css_classes(["ash-widget", "ash-widget-#{iur["type"]}", prop_class(iur)])}"#{style_attr(prop_style(iur))} data-widget-id="#{iur["id"]}">
@@ -1822,6 +1871,27 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp generate_children(children, opts) when is_list(children) do
     Enum.map_join(children, &generate_heex(&1, opts))
+  end
+
+  defp compute_completed_pct([]), do: 0
+
+  defp compute_completed_pct(segments) do
+    get_weight = fn seg ->
+      w = Map.get(seg, "weight", Map.get(seg, :weight, 1))
+      if is_number(w) and w > 0, do: w, else: 1
+    end
+
+    total = Enum.reduce(segments, 0, fn seg, acc -> acc + get_weight.(seg) end)
+
+    completed =
+      segments
+      |> Enum.filter(fn seg ->
+        s = Map.get(seg, "state", Map.get(seg, :state))
+        s == :completed or s == "completed"
+      end)
+      |> Enum.reduce(0, fn seg, acc -> acc + get_weight.(seg) end)
+
+    if total > 0, do: round(completed / total * 100), else: 0
   end
 
   # Extract event bindings from IUR

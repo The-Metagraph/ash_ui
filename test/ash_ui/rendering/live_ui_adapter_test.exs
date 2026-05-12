@@ -1047,4 +1047,696 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       "metadata" => %{}
     }
   end
+
+  # Track-B widget tests bundled from PRs #79-#97.
+
+  describe "inline_rich_text_heading widget rendering" do
+    test "generates inline_rich_text_heading with mixed text and em segments" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-1",
+        "props" => %{
+          "level" => "h1",
+          "segments" => [
+            %{"type" => "text", "value" => "The operator surface, "},
+            %{"type" => "em", "value" => "for the team that thinks in documents."}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<h1")
+      assert String.contains?(heex, "</h1>")
+      assert String.contains?(heex, "ash-inline-rich-text-heading")
+      assert String.contains?(heex, "ash-inline-rich-text-heading-h1")
+
+      assert String.contains?(
+               heex,
+               "The operator surface, <em>for the team that thinks in documents.</em>"
+             )
+    end
+
+    test "inline_rich_text_heading respects level prop for h2 through h6" do
+      for level <- ~w(h2 h3 h4 h5 h6) do
+        iur = %{
+          "type" => "inline_rich_text_heading",
+          "id" => "heading-#{level}",
+          "props" => %{
+            "level" => level,
+            "segments" => [%{"type" => "text", "value" => "x"}]
+          },
+          "children" => [],
+          "metadata" => %{}
+        }
+
+        {:ok, heex} = LiveUIAdapter.render(iur)
+        assert String.contains?(heex, "<#{level}"), "expected <#{level}> tag for level=#{level}"
+        assert String.contains?(heex, "</#{level}>")
+        assert String.contains?(heex, "ash-inline-rich-text-heading-#{level}")
+      end
+    end
+
+    test "inline_rich_text_heading falls back to h1 when level prop is missing or invalid" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-default",
+        "props" => %{
+          "segments" => [%{"type" => "text", "value" => "Default"}]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<h1")
+      assert String.contains?(heex, "Default")
+
+      bogus = put_in(iur, ["props", "level"], "h99")
+      {:ok, heex_bogus} = LiveUIAdapter.render(bogus)
+      assert String.contains?(heex_bogus, "<h1")
+    end
+
+    test "inline_rich_text_heading accepts atom-keyed segments" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-atom",
+        "props" => %{
+          "level" => "h2",
+          "segments" => [
+            %{type: :text, value: "Hello "},
+            %{type: :em, value: "world"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<h2")
+      assert String.contains?(heex, "Hello <em>world</em>")
+    end
+
+    test "inline_rich_text_heading produces no literal color or font-family values" do
+      iur = %{
+        "type" => "inline_rich_text_heading",
+        "id" => "heading-pure",
+        "props" => %{
+          "level" => "h1",
+          "segments" => [
+            %{"type" => "text", "value" => "Hello "},
+            %{"type" => "em", "value" => "world"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/font-family\s*:/i
+    end
+  end
+
+  describe "disclosure widget rendering" do
+    test "generates a disclosure closed by default with summary and body" do
+      iur = %{
+        "type" => "disclosure",
+        "id" => "disclosure-1",
+        "props" => %{"summary" => "Use a password instead"},
+        "children" => [
+          %{
+            "type" => "text",
+            "id" => "body-text",
+            "props" => %{"content" => "Password form body"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<details")
+      assert String.contains?(heex, "</details>")
+      assert String.contains?(heex, "ash-disclosure")
+      assert String.contains?(heex, "ash-disclosure-summary")
+      assert String.contains?(heex, "ash-disclosure-body")
+      assert String.contains?(heex, "Use a password instead")
+      assert String.contains?(heex, "Password form body")
+      refute heex =~ ~r/<details[^>]*\sopen/
+    end
+
+    test "disclosure adds the open attribute when open prop is true" do
+      iur = %{
+        "type" => "disclosure",
+        "id" => "disclosure-open",
+        "props" => %{"summary" => "Reveal", "open" => true},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~r/<details[^>]*\sopen/
+    end
+
+    test "disclosure produces no literal color or font-family values" do
+      iur = %{
+        "type" => "disclosure",
+        "id" => "disclosure-pure",
+        "props" => %{"summary" => "Reveal", "open" => true},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/font-family\s*:/i
+    end
+  end
+
+  describe "phoenix_form widget rendering" do
+    test "generates a phoenix_form with phx-submit/phx-change events and submit button" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-1",
+        "props" => %{
+          "submit_event" => "submit",
+          "change_event" => "validate",
+          "submit_label" => "Send sign-in link",
+          "fields" => [
+            %{
+              "name" => "email",
+              "type" => "email",
+              "label" => "Work email",
+              "autocomplete" => "email",
+              "required" => true
+            }
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "<form")
+      assert String.contains?(heex, "</form>")
+      assert String.contains?(heex, ~s(phx-submit="submit"))
+      assert String.contains?(heex, ~s(phx-change="validate"))
+      assert String.contains?(heex, "ash-phoenix-form")
+      assert String.contains?(heex, "ash-phoenix-form-field")
+      assert String.contains?(heex, "ash-phoenix-form-label")
+      assert String.contains?(heex, "ash-phoenix-form-input")
+      assert String.contains?(heex, "ash-phoenix-form-submit")
+      assert String.contains?(heex, "ash-phoenix-form-submit-primary")
+      assert String.contains?(heex, ~s(name="email"))
+      assert String.contains?(heex, ~s(type="email"))
+      assert String.contains?(heex, ~s(autocomplete="email"))
+      assert String.contains?(heex, " required")
+      assert String.contains?(heex, "Work email")
+      assert String.contains?(heex, "Send sign-in link")
+    end
+
+    test "phoenix_form supports password strategy shape with ghost variant" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-2",
+        "props" => %{
+          "submit_event" => "submit_password",
+          "change_event" => "validate_password",
+          "submit_label" => "Sign in with password",
+          "submit_variant" => "ghost",
+          "fields" => [
+            %{"name" => "email", "type" => "email", "label" => "Work email"},
+            %{
+              "name" => "password",
+              "type" => "password",
+              "label" => "Password",
+              "autocomplete" => "current-password"
+            }
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, ~s(type="email"))
+      assert String.contains?(heex, ~s(type="password"))
+      assert String.contains?(heex, ~s(autocomplete="current-password"))
+      assert String.contains?(heex, "ash-phoenix-form-submit-ghost")
+      assert String.contains?(heex, "Sign in with password")
+    end
+
+    test "phoenix_form uses sensible defaults when props omitted" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-defaults",
+        "props" => %{"fields" => []},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, ~s(phx-submit="submit"))
+      assert String.contains?(heex, ~s(phx-change="validate"))
+      assert String.contains?(heex, ">Submit</button>")
+      assert String.contains?(heex, "ash-phoenix-form-submit-primary")
+    end
+
+    test "phoenix_form produces no literal color or font-family values" do
+      iur = %{
+        "type" => "phoenix_form",
+        "id" => "form-pure",
+        "props" => %{
+          "fields" => [
+            %{"name" => "email", "type" => "email", "label" => "Email", "required" => true}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/font-family\s*:/i
+    end
+  end
+
+  describe "kicker widget rendering" do
+    test "renders items with separators between them" do
+      iur = %{
+        "type" => "kicker",
+        "id" => "kicker-1",
+        "props" => %{"items" => ["Operator sign-in", "Magic link"], "separator" => "·"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-kicker"
+      assert heex =~ "ash-kicker-item"
+      assert heex =~ "ash-kicker-separator"
+      assert heex =~ "Operator sign-in"
+      assert heex =~ "Magic link"
+      assert heex =~ "·"
+    end
+
+    test "single item renders without any separator" do
+      iur = %{
+        "type" => "kicker",
+        "id" => "kicker-single",
+        "props" => %{"items" => ["Solo label"], "separator" => "·"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "Solo label"
+      assert heex =~ "ash-kicker-item"
+      refute heex =~ "ash-kicker-separator"
+    end
+
+    test "custom separator string appears between items" do
+      iur = %{
+        "type" => "kicker",
+        "id" => "kicker-pipe",
+        "props" => %{"items" => ["Alpha", "Beta"], "separator" => "|"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-kicker-separator"
+      assert heex =~ "|"
+    end
+  end
+
+  describe "avatar widget rendering" do
+    test "renders initials with base class and data-variant" do
+      iur = avatar_iur("PC", nil, "pascal", "medium", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar"
+      assert heex =~ "ash-avatar-medium"
+      assert heex =~ ~s(data-variant="pascal")
+      assert heex =~ "PC"
+    end
+
+    test "renders img element when image_src provided" do
+      iur = avatar_iur(nil, "/uploads/avatar.jpg", "neutral", "medium", "round", "Matt DeCourcey")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(src="/uploads/avatar.jpg")
+      assert heex =~ "ash-avatar-image"
+    end
+
+    test "square shape applies ash-avatar-square class" do
+      iur = avatar_iur("PC", nil, "pascal", "medium", "square", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar-square"
+    end
+
+    test "round shape omits ash-avatar-square class" do
+      iur = avatar_iur("PC", nil, "neutral", "medium", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ "ash-avatar-square"
+    end
+
+    test "small size applies ash-avatar-small class" do
+      iur = avatar_iur("PC", nil, "neutral", "small", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar-small"
+    end
+
+    test "large size applies ash-avatar-large class" do
+      iur = avatar_iur("PC", nil, "neutral", "large", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-avatar-large"
+    end
+
+    test "aria_label produces role=img and aria-label attributes" do
+      iur = avatar_iur("PC", nil, "pascal", "medium", "round", "Pascal Charbonneau")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(aria-label="Pascal Charbonneau")
+      assert heex =~ ~s(role="img")
+    end
+
+    test "background-color uses CSS variable with fallback" do
+      iur = avatar_iur("PC", nil, "codex", "medium", "round", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "var(--avatar-codex"
+    end
+
+    test "no literal hex or rgb color values in rendered HTML" do
+      iur = avatar_iur("PC", nil, "pascal", "large", "square", "Pascal")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+    end
+  end
+
+  defp avatar_iur(initials, image_src, variant, size, shape, aria_label) do
+    %{
+      "type" => "avatar",
+      "id" => "avatar-1",
+      "props" => %{
+        "initials" => initials,
+        "image_src" => image_src,
+        "variant" => variant,
+        "size" => size,
+        "shape" => shape,
+        "aria_label" => aria_label,
+        "class" => ""
+      },
+      "children" => [],
+      "metadata" => %{}
+    }
+  end
+
+  describe "presence_dot widget rendering" do
+    test "renders span with ash-presence-dot class and data-state" do
+      iur = presence_dot_iur("live", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot"
+      assert heex =~ ~s(data-state="live")
+    end
+
+    test "state idle produces --presence-idle token in style" do
+      iur = presence_dot_iur("idle", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "var(--presence-idle"
+      assert heex =~ ~s(data-state="idle")
+    end
+
+    test "state warn produces --presence-warn token in style" do
+      iur = presence_dot_iur("warn", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "var(--presence-warn"
+    end
+
+    test "small size applies ash-presence-dot-small class" do
+      iur = presence_dot_iur("live", "small", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot-small"
+      refute heex =~ "ash-presence-dot-medium"
+      refute heex =~ "ash-presence-dot-large"
+    end
+
+    test "large size applies ash-presence-dot-large class" do
+      iur = presence_dot_iur("live", "large", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot-large"
+    end
+
+    test "medium size applies ash-presence-dot-medium class by default" do
+      iur = presence_dot_iur("live", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-presence-dot-medium"
+    end
+
+    test "aria_label produces aria-label attribute and omits aria-hidden" do
+      iur = presence_dot_iur("live", "medium", "Active")
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(aria-label="Active")
+      refute heex =~ ~s(aria-hidden="true")
+    end
+
+    test "no aria_label produces aria-hidden=true" do
+      iur = presence_dot_iur("live", "medium", nil)
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(aria-hidden="true")
+      refute heex =~ "aria-label="
+    end
+
+    test "rendered HTML contains no literal hex color values" do
+      for state <- ["live", "idle", "warn", "muted", "quiet"] do
+        iur = presence_dot_iur(state, "medium", nil)
+        {:ok, heex} = LiveUIAdapter.render(iur)
+
+        refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/,
+               "found literal hex color value in presence_dot HTML for state #{state}"
+      end
+    end
+  end
+
+  defp presence_dot_iur(state, size, aria_label) do
+    %{
+      "type" => "screen",
+      "id" => "test-screen",
+      "name" => "test",
+      "layout" => "column",
+      "children" => [
+        %{
+          "type" => "presence_dot",
+          "id" => "dot-1",
+          "name" => "dot",
+          "props" => %{
+            "state" => state,
+            "size" => size,
+            "aria_label" => aria_label,
+            "class" => ""
+          },
+          "children" => [],
+          "metadata" => %{}
+        }
+      ],
+      "bindings" => [],
+      "metadata" => %{}
+    }
+  end
+
+  describe "list_item_multi_column widget" do
+    defp limc_iur(props, children \\ []) do
+      %{
+        "type" => "list_item_multi_column",
+        "id" => "limc-1",
+        "props" => props,
+        "children" => children,
+        "metadata" => %{},
+        "bindings" => []
+      }
+    end
+
+    test "admission: storage accepts list_item_multi_column type" do
+      assert AshUI.DSL.Storage.valid_widget_type?("list_item_multi_column")
+    end
+
+    test "renders as <button> by default with ash-list-item-multi-column class" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"columns" => "1fr"}))
+
+      assert heex =~ "<button"
+      assert heex =~ "ash-list-item-multi-column"
+    end
+
+    test "grid-template-columns value appears in style attribute" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"columns" => "2fr 1fr 1fr"}))
+
+      assert heex =~ "grid-template-columns: 2fr 1fr 1fr"
+    end
+
+    test "phx-click reflects event prop" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"event" => "pick_item"}))
+
+      assert heex =~ ~s(phx-click="pick_item")
+    end
+
+    test "phx-value key reflects event_value_key prop with row_id value" do
+      {:ok, heex} =
+        LiveUIAdapter.render(limc_iur(%{"row_id" => "item-42", "event_value_key" => "item_id"}))
+
+      assert heex =~ ~s(phx-value-item_id="item-42")
+    end
+
+    test "data-active reflects active prop" do
+      {:ok, heex_false} = LiveUIAdapter.render(limc_iur(%{"active" => false}))
+      {:ok, heex_true} = LiveUIAdapter.render(limc_iur(%{"active" => true}))
+
+      assert heex_false =~ ~s(data-active="false")
+      assert heex_true =~ ~s(data-active="true")
+    end
+
+    test "renders as <a> when href prop is set" do
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"href" => "/docs/42"}))
+
+      assert heex =~ "<a"
+      assert heex =~ ~s(href="/docs/42")
+      refute heex =~ "<button"
+      refute heex =~ "phx-click"
+    end
+
+    test "children render inside the row element" do
+      children = [
+        %{
+          "type" => "text",
+          "id" => "c1",
+          "props" => %{"content" => "Col A"},
+          "children" => [],
+          "metadata" => %{}
+        }
+      ]
+
+      {:ok, heex} = LiveUIAdapter.render(limc_iur(%{"columns" => "1fr"}, children))
+
+      assert heex =~ "Col A"
+    end
+  end
+
+  describe "artifact_row widget" do
+    defp artifact_row_iur(props, children \\ []) do
+      %{
+        "type" => "artifact_row",
+        "id" => "ar-1",
+        "props" => props,
+        "children" => children,
+        "metadata" => %{},
+        "bindings" => []
+      }
+    end
+
+    test "admission: storage accepts artifact_row type" do
+      assert AshUI.DSL.Storage.valid_widget_type?("artifact_row")
+    end
+
+    test "renders as <button> by default with ash-artifact-row class" do
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "My Artifact"}))
+
+      assert heex =~ "<button"
+      assert heex =~ "ash-artifact-row"
+    end
+
+    test "title renders in ash-artifact-row-title span" do
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "AGREEMENT final.pdf"}))
+
+      assert heex =~ "ash-artifact-row-title"
+      assert heex =~ "AGREEMENT final.pdf"
+    end
+
+    test "meta renders in ash-artifact-row-meta span when non-empty" do
+      {:ok, heex} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "meta" => "STORED v3"}))
+
+      assert heex =~ "ash-artifact-row-meta"
+      assert heex =~ "STORED v3"
+    end
+
+    test "meta span is absent when meta prop is empty string" do
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "meta" => ""}))
+
+      refute heex =~ "ash-artifact-row-meta"
+    end
+
+    test "phx-click reflects event prop" do
+      {:ok, heex} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "event" => "open_artifact"}))
+
+      assert heex =~ ~s(phx-click="open_artifact")
+    end
+
+    test "phx-value key reflects event_value_key prop with row_id value" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          artifact_row_iur(%{"title" => "T", "row_id" => "ar-42", "event_value_key" => "doc_id"})
+        )
+
+      assert heex =~ ~s(phx-value-doc_id="ar-42")
+    end
+
+    test "data-active reflects active prop" do
+      {:ok, heex_false} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "active" => false}))
+
+      {:ok, heex_true} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "active" => true}))
+
+      assert heex_false =~ ~s(data-active="false")
+      assert heex_true =~ ~s(data-active="true")
+    end
+
+    test "renders as <a> when href prop is set, omitting phx-click" do
+      {:ok, heex} =
+        LiveUIAdapter.render(artifact_row_iur(%{"title" => "T", "href" => "/artifacts/42"}))
+
+      assert heex =~ "<a"
+      assert heex =~ ~s(href="/artifacts/42")
+      refute heex =~ "<button"
+      refute heex =~ "phx-click"
+    end
+
+    test "trailing slot children render inside ash-artifact-row-trailing wrapper" do
+      children = [
+        %{
+          "type" => "text",
+          "id" => "badge-1",
+          "props" => %{"content" => "Origin"},
+          "children" => [],
+          "metadata" => %{}
+        }
+      ]
+
+      {:ok, heex} = LiveUIAdapter.render(artifact_row_iur(%{"title" => "T"}, children))
+
+      assert heex =~ "ash-artifact-row-trailing"
+      assert heex =~ "Origin"
+    end
+  end
 end

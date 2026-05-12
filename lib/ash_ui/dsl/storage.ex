@@ -139,7 +139,27 @@ defmodule AshUI.DSL.Storage do
       "doc_block_numbered",
       "chat_message_row",
       "voice_pair_presence",
-      "proposal_card"
+      "proposal_card",
+      # Track-B widget admissions bundled from PRs #79-#97.
+      "inline_rich_text_heading",
+      "disclosure",
+      "phoenix_form",
+      "kicker",
+      "avatar",
+      "presence_dot",
+      "segmented_button_group",
+      "list_item_multi_column",
+      "artifact_row",
+      "sticky_frosted_header",
+      "pipeline_stepper_horizontal",
+      "segmented_progress_bar",
+      "workflow_stage_list_vertical",
+      "meter_thin",
+      "slide_over_panel",
+      "event_callout",
+      "redline_inline",
+      "code_block_syntax_highlighted",
+      "chat_composer"
     ]
 
     type in valid_layouts or type in valid_widgets or String.starts_with?(type, "custom:")

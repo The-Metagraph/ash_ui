@@ -225,4 +225,82 @@ defmodule AshUI.DSL.StorageTest do
       assert Map.has_key?(dsl.metadata, "updated_at")
     end
   end
+
+  describe "Track-B widget admissions (PRs #79-#97)" do
+    test "admits inline_rich_text_heading as a valid widget type" do
+      assert Storage.valid_widget_type?("inline_rich_text_heading") == true
+    end
+
+    test "admits disclosure as a valid widget type" do
+      assert Storage.valid_widget_type?("disclosure") == true
+    end
+
+    test "admits phoenix_form as a valid widget type" do
+      assert Storage.valid_widget_type?("phoenix_form") == true
+    end
+
+    test "admits kicker as a valid widget type" do
+      assert Storage.valid_widget_type?("kicker") == true
+    end
+
+    test "admits avatar as a valid widget type" do
+      assert Storage.valid_widget_type?("avatar") == true
+    end
+
+    test "admits presence_dot as a valid widget type" do
+      assert Storage.valid_widget_type?("presence_dot") == true
+    end
+
+    test "admits segmented_button_group as a valid widget type" do
+      assert Storage.valid_widget_type?("segmented_button_group") == true
+    end
+
+    test "admits list_item_multi_column as a valid widget type" do
+      assert Storage.valid_widget_type?("list_item_multi_column") == true
+    end
+
+    test "admits artifact_row as a valid widget type" do
+      assert Storage.valid_widget_type?("artifact_row") == true
+    end
+
+    test "admits sticky_frosted_header as a valid widget type" do
+      assert Storage.valid_widget_type?("sticky_frosted_header") == true
+    end
+
+    test "admits pipeline_stepper_horizontal as a valid widget type" do
+      assert Storage.valid_widget_type?("pipeline_stepper_horizontal") == true
+    end
+
+    test "admits segmented_progress_bar as a valid widget type" do
+      assert Storage.valid_widget_type?("segmented_progress_bar") == true
+    end
+
+    test "admits workflow_stage_list_vertical as a valid widget type" do
+      assert Storage.valid_widget_type?("workflow_stage_list_vertical") == true
+    end
+
+    test "admits meter_thin as a valid widget type" do
+      assert Storage.valid_widget_type?("meter_thin") == true
+    end
+
+    test "admits slide_over_panel as a valid widget type" do
+      assert Storage.valid_widget_type?("slide_over_panel") == true
+    end
+
+    test "admits event_callout as a valid widget type" do
+      assert Storage.valid_widget_type?("event_callout") == true
+    end
+
+    test "admits redline_inline as a valid widget type" do
+      assert Storage.valid_widget_type?("redline_inline") == true
+    end
+
+    test "admits code_block_syntax_highlighted as a valid widget type" do
+      assert Storage.valid_widget_type?("code_block_syntax_highlighted") == true
+    end
+
+    test "admits chat_composer as a valid widget type" do
+      assert Storage.valid_widget_type?("chat_composer") == true
+    end
+  end
 end

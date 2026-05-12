@@ -128,6 +128,26 @@ defmodule AshUI.Rendering.IURAdapter do
   defp map_element_type(:chat_message_row), do: "chat_message_row"
   defp map_element_type(:voice_pair_presence), do: "voice_pair_presence"
   defp map_element_type(:proposal_card), do: "proposal_card"
+  # Track-B widget admissions bundled from PRs #79-#97.
+  defp map_element_type(:inline_rich_text_heading), do: "inline_rich_text_heading"
+  defp map_element_type(:disclosure), do: "disclosure"
+  defp map_element_type(:phoenix_form), do: "phoenix_form"
+  defp map_element_type(:kicker), do: "kicker"
+  defp map_element_type(:avatar), do: "avatar"
+  defp map_element_type(:presence_dot), do: "presence_dot"
+  defp map_element_type(:segmented_button_group), do: "segmented_button_group"
+  defp map_element_type(:list_item_multi_column), do: "list_item_multi_column"
+  defp map_element_type(:artifact_row), do: "artifact_row"
+  defp map_element_type(:sticky_frosted_header), do: "sticky_frosted_header"
+  defp map_element_type(:pipeline_stepper_horizontal), do: "pipeline_stepper_horizontal"
+  defp map_element_type(:segmented_progress_bar), do: "segmented_progress_bar"
+  defp map_element_type(:workflow_stage_list_vertical), do: "workflow_stage_list_vertical"
+  defp map_element_type(:meter_thin), do: "meter_thin"
+  defp map_element_type(:slide_over_panel), do: "slide_over_panel"
+  defp map_element_type(:event_callout), do: "event_callout"
+  defp map_element_type(:redline_inline), do: "redline_inline"
+  defp map_element_type(:code_block_syntax_highlighted), do: "code_block_syntax_highlighted"
+  defp map_element_type(:chat_composer), do: "chat_composer"
   defp map_element_type(other), do: atom_to_string(other)
 
   defp atom_to_string(atom) when is_atom(atom), do: Atom.to_string(atom)

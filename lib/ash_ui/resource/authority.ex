@@ -173,7 +173,8 @@ defmodule AshUI.Resource.Authority do
     if authority_payload?(payload) do
       with :ok <- validate_section(payload, "screen"),
            :ok <- validate_nested_map(payload, "composition"),
-           :ok <- validate_elements(Map.get(payload, "elements") || Map.get(payload, :elements, [])),
+           :ok <-
+             validate_elements(Map.get(payload, "elements") || Map.get(payload, :elements, [])),
            :ok <- validate_composition(payload) do
         :ok
       end
@@ -286,12 +287,13 @@ defmodule AshUI.Resource.Authority do
   defp valid_module_reference?(_other), do: false
 
   defp build_composition(screen_module) do
-    with {:ok, edges} <- Info.composition_edges(screen_module) do
-      traverse_edges(edges, MapSet.new([screen_module]))
+    with {:ok, edges} <- Info.composition_edges(screen_module),
+         :ok <- validate_repeat_edges(edges, screen_module) do
+      traverse_edges(edges, screen_module, MapSet.new([screen_module]))
     end
   end
 
-  defp traverse_edges(edges, ancestry) do
+  defp traverse_edges(edges, parent_module, ancestry) do
     duplicates =
       edges
       |> Enum.group_by(& &1.destination)
@@ -306,7 +308,7 @@ defmodule AshUI.Resource.Authority do
         {placement_rank(edge.placement), edge.order, Atom.to_string(edge.name)}
       end)
       |> Enum.reduce_while({:ok, []}, fn edge, {:ok, acc} ->
-        case build_node(edge, ancestry) do
+        case build_node(edge, parent_module, ancestry) do
           {:ok, node} -> {:cont, {:ok, acc ++ [node]}}
           {:error, _reason} = error -> {:halt, error}
         end
@@ -318,14 +320,20 @@ defmodule AshUI.Resource.Authority do
   defp placement_rank("prepend"), do: 0
   defp placement_rank(_other), do: 1
 
-  defp build_node(edge, ancestry) do
+  defp build_node(edge, _parent_module, ancestry) do
     if MapSet.member?(ancestry, edge.destination) do
       {:error,
        {:cyclical_composition,
         Enum.map(MapSet.to_list(ancestry), &encode_module/1) ++ [encode_module(edge.destination)]}}
     else
       with {:ok, child_edges} <- Info.composition_edges(edge.destination),
-           {:ok, children} <- traverse_edges(child_edges, MapSet.put(ancestry, edge.destination)) do
+           :ok <- validate_repeat_edges(child_edges, edge.destination),
+           {:ok, children} <-
+             traverse_edges(
+               child_edges,
+               edge.destination,
+               MapSet.put(ancestry, edge.destination)
+             ) do
         {:ok,
          %{
            "module" => encode_module(edge.destination),
@@ -335,6 +343,70 @@ defmodule AshUI.Resource.Authority do
       end
     end
   end
+
+  # When a relationship declares `repeat: :some_binding_id`, that id must
+  # resolve to a `:list`-typed binding declared on the parent module
+  # (the screen or element that owns the relationship). The list-binding's
+  # runtime value becomes the per-row scope at hydration time.
+  defp validate_repeat_edges(edges, parent_module) do
+    parent_bindings = parent_binding_index(parent_module)
+
+    Enum.reduce_while(edges, :ok, fn edge, _acc ->
+      case Map.get(edge, :repeat) do
+        nil ->
+          {:cont, :ok}
+
+        repeat ->
+          key = repeat_lookup_key(repeat)
+
+          case Map.get(parent_bindings, key) do
+            nil ->
+              {:halt,
+               {:error,
+                {:unknown_repeat_binding, encode_module(parent_module), edge.name, repeat}}}
+
+            %{binding_type: type} when type not in [:list, "list"] ->
+              {:halt,
+               {:error,
+                {:invalid_repeat_binding_type, encode_module(parent_module), edge.name, repeat,
+                 type}}}
+
+            _binding ->
+              {:cont, :ok}
+          end
+      end
+    end)
+  end
+
+  defp parent_binding_index(parent_module) do
+    bindings =
+      case Info.resource_role(parent_module) do
+        :screen ->
+          case Info.screen_bindings(parent_module) do
+            {:ok, list} -> list
+            _ -> []
+          end
+
+        :element ->
+          case Info.element_bindings(parent_module) do
+            {:ok, list} -> list
+            _ -> []
+          end
+
+        _ ->
+          []
+      end
+
+    Map.new(bindings, fn binding ->
+      {repeat_lookup_key(Map.get(binding, :id)), binding}
+    end)
+  end
+
+  defp repeat_lookup_key(value) when is_atom(value) and not is_nil(value),
+    do: Atom.to_string(value)
+
+  defp repeat_lookup_key(value) when is_binary(value), do: value
+  defp repeat_lookup_key(_value), do: nil
 
   defp build_elements(composition_roots) do
     modules =
@@ -384,7 +456,8 @@ defmodule AshUI.Resource.Authority do
       "kind" => encode_value(edge.kind),
       "slot" => encode_value(edge.slot),
       "placement" => encode_value(edge.placement),
-      "order" => edge.order
+      "order" => edge.order,
+      "repeat" => encode_value(Map.get(edge, :repeat))
     }
   end
 

@@ -14,17 +14,17 @@ defmodule AshUI.Resources.Validations.Authoring do
   @screen_binding_targets ["title"]
   @list_widgets MapSet.new(["list", "table", "info_list", "select"])
   @action_widgets MapSet.new([
-    "button",
-    "input",
-    "textinput",
-    "textarea",
-    "select",
-    "checkbox",
-    "radio",
-    "switch",
-    "slider",
-    "form_builder"
-  ])
+                    "button",
+                    "input",
+                    "textinput",
+                    "textarea",
+                    "select",
+                    "checkbox",
+                    "radio",
+                    "switch",
+                    "slider",
+                    "form_builder"
+                  ])
   @signal_capabilities %{
     "button" => [:click, :submit],
     "input" => [:change, :input, :submit],
@@ -222,6 +222,7 @@ defmodule AshUI.Resources.Validations.Authoring do
     slot = Map.get(relationship, :slot, :default)
     placement = Map.get(relationship, :placement, :append)
     order = Map.get(relationship, :order)
+    repeat = Map.get(relationship, :repeat)
 
     validate_identifier!(name, "relationship name")
 
@@ -245,7 +246,21 @@ defmodule AshUI.Resources.Validations.Authoring do
             "relationship #{inspect(name)} order must be a non-negative integer when present, got: #{inspect(order)}"
     end
 
+    validate_repeat_directive!(repeat, name)
+
     relationship
+  end
+
+  defp validate_repeat_directive!(nil, _name), do: :ok
+
+  defp validate_repeat_directive!(repeat, _name)
+       when (is_binary(repeat) and repeat != "") or (is_atom(repeat) and not is_nil(repeat)) do
+    :ok
+  end
+
+  defp validate_repeat_directive!(repeat, name) do
+    raise ArgumentError,
+          "relationship #{inspect(name)} repeat must be a non-empty string or atom referencing a list binding id, got: #{inspect(repeat)}"
   end
 
   @doc """
@@ -291,8 +306,11 @@ defmodule AshUI.Resources.Validations.Authoring do
 
   def validate_inline_fragment!(fragment, label) when is_map(fragment) do
     case Storage.validate_write(fragment) do
-      :ok -> :ok
-      {:error, errors} -> raise ArgumentError, "#{label} must be valid unified_dsl: #{Enum.join(errors, ", ")}"
+      :ok ->
+        :ok
+
+      {:error, errors} ->
+        raise ArgumentError, "#{label} must be valid unified_dsl: #{Enum.join(errors, ", ")}"
     end
   end
 

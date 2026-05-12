@@ -32,17 +32,55 @@ defmodule AshUI.Resources.Validations.BindingSource do
   """
   @spec validate_source(term(), atom() | nil) :: :ok | {:error, String.t()}
   def validate_source(source, binding_type) do
-    with :ok <- validate_source_map(source),
-         :ok <- validate_required_resource(source),
-         :ok <- validate_shape(source, binding_type),
-         :ok <- validate_optional_identifier(source, "field"),
-         :ok <- validate_optional_identifier(source, "relationship"),
-         :ok <- validate_optional_identifier(source, "action") do
-      :ok
-    else
-      {:error, _message} = error -> error
+    cond do
+      row_scope_source?(source) ->
+        validate_row_scope_source(source, binding_type)
+
+      true ->
+        with :ok <- validate_source_map(source),
+             :ok <- validate_required_resource(source),
+             :ok <- validate_shape(source, binding_type),
+             :ok <- validate_optional_identifier(source, "field"),
+             :ok <- validate_optional_identifier(source, "relationship"),
+             :ok <- validate_optional_identifier(source, "action") do
+          :ok
+        else
+          {:error, _message} = error -> error
+        end
     end
   end
+
+  # `%{scope: :row, field: "..."}` sources are used inside repeat templates.
+  # They do not reference a resource — they reference whichever row the
+  # repeat-expansion is currently iterating over. The validator therefore
+  # short-circuits the resource requirement when the scope is `:row`.
+  defp row_scope_source?(source) when is_map(source) do
+    scope = Map.get(source, :scope) || Map.get(source, "scope")
+    scope in [:row, "row"]
+  end
+
+  defp row_scope_source?(_source), do: false
+
+  defp validate_row_scope_source(source, :value) do
+    field = source_value(source, "field")
+
+    if valid_identifier?(field) do
+      :ok
+    else
+      {:error, "row-scoped bindings must include a non-empty field"}
+    end
+  end
+
+  defp validate_row_scope_source(_source, :list) do
+    {:error, "row-scoped bindings are only valid for :value bindings"}
+  end
+
+  defp validate_row_scope_source(_source, :action) do
+    {:error, "row-scoped bindings are only valid for :value bindings"}
+  end
+
+  defp validate_row_scope_source(source, nil), do: validate_row_scope_source(source, :value)
+  defp validate_row_scope_source(_source, _type), do: :ok
 
   defp validate_source_map(source) when is_map(source), do: :ok
 

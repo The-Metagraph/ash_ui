@@ -12,7 +12,8 @@ defmodule AshUI.Resource.Info do
           kind: :child | :companion,
           slot: String.t(),
           placement: String.t(),
-          order: non_neg_integer()
+          order: non_neg_integer(),
+          repeat: String.t() | atom() | nil
         }
 
   @doc """
@@ -35,7 +36,8 @@ defmodule AshUI.Resource.Info do
   Returns true when a module exposes screen or element authoring authority.
   """
   @spec authoritative?(module()) :: boolean()
-  def authoritative?(module) when is_atom(module), do: resource_role(module) in [:screen, :element]
+  def authoritative?(module) when is_atom(module),
+    do: resource_role(module) in [:screen, :element]
 
   @doc """
   Returns the validated screen definition owned by a screen resource module.
@@ -152,6 +154,13 @@ defmodule AshUI.Resource.Info do
         Map.get(relationship_semantics, name) ||
           inferred_relationship_semantics(destination, relationship, index)
 
+      repeat = Map.get(semantics, :repeat)
+
+      if not is_nil(repeat) and type != :has_many do
+        raise ArgumentError,
+              "ui_relationship #{inspect(name)} declares repeat but the underlying Ash relationship is #{inspect(type)} — repeat requires a has_many relationship"
+      end
+
       %{
         name: name,
         destination: destination,
@@ -159,7 +168,8 @@ defmodule AshUI.Resource.Info do
         kind: semantics.kind,
         slot: semantics.slot,
         placement: semantics.placement,
-        order: semantics.order
+        order: semantics.order,
+        repeat: repeat
       }
     end
   end
@@ -196,7 +206,8 @@ defmodule AshUI.Resource.Info do
       kind: relationship_kind(relationship),
       slot: relationship_slot(metadata),
       placement: relationship_placement(metadata),
-      order: relationship_order(metadata, index)
+      order: relationship_order(metadata, index),
+      repeat: nil
     }
   end
 

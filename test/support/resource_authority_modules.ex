@@ -17,6 +17,10 @@ defmodule AshUI.Test.ResourceAuthorityDomain do
     resource(AshUI.Test.RelationshipSemanticsPanelElement)
     resource(AshUI.Test.RelationshipOnlyScreen)
     resource(AshUI.Test.RelationshipMixedScreen)
+    resource(AshUI.Test.RepeatRowElement)
+    resource(AshUI.Test.RepeatScreen)
+    resource(AshUI.Test.RepeatMissingBindingScreen)
+    resource(AshUI.Test.RepeatNonListBindingScreen)
   end
 end
 
@@ -482,4 +486,192 @@ defmodule AshUI.Test.RelationshipMixedScreen do
       signals: [],
       metadata: %{id: "mixed_shell", source: "screen"}
     }
+end
+
+# === Repeat (per-row) composition fixtures ===
+#
+# These fixtures exercise the `ui_relationship ... repeat <binding_id>`
+# directive. The template Element renders once per row of the resolved list
+# binding at hydration time. Row-scoped value bindings (`scope: :row, field:
+# "..."`) declared on the template project per-row field values onto the
+# clone.
+
+defmodule AshUI.Test.RepeatRowElement do
+  @moduledoc false
+
+  use AshUI.Test.ResourceAuthorityElementBase
+
+  ui_element do
+    type :text
+    props %{content: "Row placeholder"}
+    metadata %{id: "manuscript_block_template", section: "body", slot: "body", position: 0}
+  end
+
+  ui_bindings do
+    binding :row_title do
+      source %{scope: :row, field: "title"}
+      target "content"
+      binding_type :value
+      transform %{}
+      metadata %{owner: "row_template"}
+    end
+  end
+end
+
+defmodule AshUI.Test.RepeatScreen do
+  @moduledoc false
+
+  use Ash.Resource,
+    domain: AshUI.Test.ResourceAuthorityDomain,
+    data_layer: Ash.DataLayer.Ets
+
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_many :manuscript_blocks, AshUI.Test.RepeatRowElement do
+      destination_attribute(:screen_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :manuscript_blocks do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+      repeat :manuscript_block_rows
+    end
+  end
+
+  ui_screen do
+    layout :column
+    route "/repeat-fixture"
+    metadata %{title: "Repeat fixture"}
+  end
+
+  ui_screen_bindings do
+    binding :manuscript_block_rows do
+      source %{resource: "Demo.Doc", relationship: "blocks", id: "doc-1"}
+      target "screen.manuscript_block_rows"
+      binding_type :list
+      transform %{}
+      metadata %{scope: "screen"}
+    end
+  end
+end
+
+# Negative-path screen: declares `repeat :nonexistent_binding` on its only
+# repeat-bearing relationship but never authors that binding id. Payload
+# generation must error with `:unknown_repeat_binding`.
+defmodule AshUI.Test.RepeatMissingBindingScreen do
+  @moduledoc false
+
+  use Ash.Resource,
+    domain: AshUI.Test.ResourceAuthorityDomain,
+    data_layer: Ash.DataLayer.Ets
+
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_many :rows, AshUI.Test.RepeatRowElement do
+      destination_attribute(:screen_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :rows do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+      repeat :nonexistent_binding
+    end
+  end
+
+  ui_screen do
+    layout :column
+    route "/missing-binding"
+    metadata %{title: "Missing binding"}
+  end
+end
+
+# Negative-path screen: declares `repeat :a_value_binding` pointing at a
+# `:value`-typed binding instead of a `:list` binding. Payload generation
+# must error with `:invalid_repeat_binding_type`.
+defmodule AshUI.Test.RepeatNonListBindingScreen do
+  @moduledoc false
+
+  use Ash.Resource,
+    domain: AshUI.Test.ResourceAuthorityDomain,
+    data_layer: Ash.DataLayer.Ets
+
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_many :rows, AshUI.Test.RepeatRowElement do
+      destination_attribute(:screen_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :rows do
+      kind :child
+      slot :body
+      placement :append
+      order 0
+      repeat :a_value_binding
+    end
+  end
+
+  ui_screen do
+    layout :column
+    route "/non-list-binding"
+    metadata %{title: "Non-list binding"}
+  end
+
+  ui_screen_bindings do
+    binding :a_value_binding do
+      source %{resource: "Demo.Page", field: "title", id: "page-1"}
+      target "title"
+      binding_type :value
+      transform %{}
+      metadata %{scope: "screen"}
+    end
+  end
 end

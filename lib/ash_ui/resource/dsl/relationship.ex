@@ -22,7 +22,7 @@ defmodule AshUI.Resource.DSL.Relationship do
             semantics_block
             |> Helpers.extract_literal_entries!(
               __CALLER__,
-              [:kind, :slot, :placement, :order],
+              [:kind, :slot, :placement, :order, :repeat],
               "ui_relationship"
             )
             |> Map.new()

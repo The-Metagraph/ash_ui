@@ -1894,6 +1894,62 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  # Ariston-local composite (per ADR 0021 §2). Renders the "Mike : Codex
+  # listening" thin presence-strip row shown in the conversation focus area of
+  # the document-chat-workspace prototype. The prototype's `.voice-pair` li
+  # shows: an operator avatar+name badge (with a state dot via CSS ::after),
+  # a colon separator, the agent name, and a status label. We keep the same
+  # semantic HTML shape so ariston-ui CSS picks it up correctly.
+  #
+  # Props:
+  #   - participant_a  — operator name (e.g. "Mike")
+  #   - participant_b  — agent name (e.g. "Codex")
+  #   - state          — one of "listening", "idle", "muted", "active" (maps to
+  #                      existing presence_dot tokens via state_css_var/1)
+  #   - accent_variant — optional; drives a subtle accent token on the row
+  #                      (e.g. "pascal", "codex", "gemini", "mike")
+  #
+  # HTML mirrors `packages/live_ui/lib/live_ui/renderer.ex` — both paths must
+  # produce the same structure so ariston-ui CSS works on either render path.
+  defp generate_heex(%{"type" => "voice_pair_presence"} = iur, _opts) do
+    props = iur["props"] || %{}
+    participant_a = to_string(prop(props, "participant_a") || "")
+    participant_b = to_string(prop(props, "participant_b") || "")
+    state = to_string(prop(props, "state") || "idle")
+    accent_variant = prop(props, "accent_variant")
+
+    # Derive the single initial for the operator avatar badge.
+    initial_a =
+      case String.trim(participant_a) do
+        "" -> "?"
+        name -> name |> String.upcase() |> String.at(0) || "?"
+      end
+
+    # Presence dot on the operator badge: drives background-color via token.
+    dot_style = state_css_var(state)
+
+    # Optional accent variant drives a data attribute used for CSS theming.
+    accent_attr =
+      if accent_variant && accent_variant != "",
+        do: " data-accent=\"#{accent_variant}\"",
+        else: ""
+
+    """
+    <li class="#{css_classes(["voice-pair-presence", prop_class(iur)])}" data-state="#{state}"#{accent_attr}>
+      <span class="voice-pair-presence__operator">
+        <span class="voice-pair-presence__avatar ash-avatar ash-avatar-small" style="background-color: var(--avatar-#{if accent_variant && accent_variant != "", do: accent_variant, else: "neutral"}, var(--bg-2));" data-variant="#{if accent_variant && accent_variant != "", do: accent_variant, else: "neutral"}" aria-hidden="true">
+          <span aria-hidden="true">#{initial_a}</span>
+        </span>
+        <span class="voice-pair-presence__dot ash-presence-dot ash-presence-dot-small" data-state="#{state}" style="#{dot_style}" aria-hidden="true"></span>
+        <b class="voice-pair-presence__name-a">#{participant_a}</b>
+      </span>
+      <span class="voice-pair-presence__sep" aria-hidden="true">:</span>
+      <b class="voice-pair-presence__name-b">#{participant_b}</b>
+      <span class="voice-pair-presence__status">#{state}</span>
+    </li>
+    """
+  end
+
   # Track-B widgets bundled from PRs #79-#97.
 
   defp generate_heex(%{"type" => "inline_rich_text_heading"} = iur, _opts) do

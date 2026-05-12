@@ -126,6 +126,7 @@ defmodule AshUI.DSL.Storage do
       "card",
       "list",
       "artifact_row",
+      "sticky_frosted_header",
       "table",
       "image",
       "icon",

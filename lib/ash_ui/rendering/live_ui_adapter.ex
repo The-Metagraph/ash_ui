@@ -521,6 +521,31 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "sticky_frosted_header"} = iur, opts) do
+    props = iur["props"] || %{}
+    height = prop(props, "height", 64)
+    extra_class = prop(props, "class", "")
+    css = css_classes(["ash-sticky-frosted-header", extra_class])
+    children = iur["children"] || []
+    leading = Enum.at(children, 0)
+    title = Enum.at(children, 1)
+    trailing = Enum.at(children, 2)
+
+    """
+    <header class="#{css}"#{style_attr(merge_style(["height: #{height}px"], prop_style(iur)))}>
+      <div class="ash-sticky-frosted-header-leading">
+        #{if leading, do: generate_heex(leading, opts), else: ""}
+      </div>
+      <div class="ash-sticky-frosted-header-title">
+        #{if title, do: generate_heex(title, opts), else: ""}
+      </div>
+      <div class="ash-sticky-frosted-header-trailing">
+        #{if trailing, do: generate_heex(trailing, opts), else: ""}
+      </div>
+    </header>
+    """
+  end
+
   defp generate_heex(%{"type" => "artifact_row"} = iur, opts) do
     props = iur["props"] || %{}
     title = text_prop(props, "title", "")

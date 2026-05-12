@@ -118,6 +118,7 @@ defmodule AshUI.Rendering.IURAdapter do
   defp map_element_type(:stack), do: "stack"
   defp map_element_type(:card), do: "card"
   defp map_element_type(:list), do: "list"
+  defp map_element_type(:artifact_row), do: "artifact_row"
   defp map_element_type(:table), do: "table"
   defp map_element_type(:image), do: "image"
   defp map_element_type(:icon), do: "icon"

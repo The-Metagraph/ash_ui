@@ -136,27 +136,27 @@ This task connects row data to repeated child templates while preserving canonic
 - [x] 31.5.2.3 Subtask - Preserve canonical `list_repeat` metadata where renderer validation supports it.
 - [x] 31.5.2.4 Subtask - Expand repeat templates into concrete children for fallback renderers that require concrete trees.
 
-## [ ] 31.6 Section - Documentation, Examples, And Migration Guidance
+## [x] 31.6 Section - Documentation, Examples, And Migration Guidance
 
 This section updates public docs and examples so users know when to use canonical components versus custom extensions.
 
-### [ ] 31.6.1 Task - Update User And Developer Guides
+### [x] 31.6.1 Task - Update User And Developer Guides
 
 This task documents the supported catalog and the adoption boundary.
 
-- [ ] 31.6.1.1 Subtask - Add user guide coverage for canonical widget-component names, families, and aliases.
-- [ ] 31.6.1.2 Subtask - Add developer guide coverage for catalog ownership, canonical attributes, validation, and fallback rendering.
-- [ ] 31.6.1.3 Subtask - Document `custom:*` as an extension boundary for non-catalog application widgets.
-- [ ] 31.6.1.4 Subtask - Document migration from `phoenix_form`, `repeat`, `ui_relationship_repeat`, and older custom component names to canonical kinds.
+- [x] 31.6.1.1 Subtask - Add user guide coverage for canonical widget-component names, families, and aliases.
+- [x] 31.6.1.2 Subtask - Add developer guide coverage for catalog ownership, canonical attributes, validation, and fallback rendering.
+- [x] 31.6.1.3 Subtask - Document `custom:*` as an extension boundary for non-catalog application widgets.
+- [x] 31.6.1.4 Subtask - Document migration from `phoenix_form`, `repeat`, `ui_relationship_repeat`, and older custom component names to canonical kinds.
 
-### [ ] 31.6.2 Task - Add Component Examples
+### [x] 31.6.2 Task - Add Component Examples
 
 This task gives each component family at least one resource-authored example surface.
 
-- [ ] 31.6.2.1 Subtask - Add examples for content identity and disclosure components.
-- [ ] 31.6.2.2 Subtask - Add examples for form control, composer, row, and artifact components.
-- [ ] 31.6.2.3 Subtask - Add examples for workflow, progress, layer, callout, redline, and code components.
-- [ ] 31.6.2.4 Subtask - Add a list-repeat example using relationship-owned row templates.
+- [x] 31.6.2.1 Subtask - Add examples for content identity and disclosure components.
+- [x] 31.6.2.2 Subtask - Add examples for form control, composer, row, and artifact components.
+- [x] 31.6.2.3 Subtask - Add examples for workflow, progress, layer, callout, redline, and code components.
+- [x] 31.6.2.4 Subtask - Add a list-repeat example using relationship-owned row templates.
 
 ## [ ] 31.7 Section - Phase 31 Integration Tests
 

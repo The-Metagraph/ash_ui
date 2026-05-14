@@ -8,7 +8,7 @@ status: Active
 owners: Ash UI Team
 last_reviewed: 2026-05-14
 next_review: 2026-11-14
-related_reqs: [REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002, REQ-BIND-002, REQ-NAV-001, REQ-NAV-002, REQ-NAV-003, REQ-NAV-008, REQ-NAV-009, REQ-NAV-010]
+related_reqs: [REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002, REQ-BIND-002, REQ-NAV-001, REQ-NAV-002, REQ-NAV-003, REQ-NAV-008, REQ-NAV-009, REQ-NAV-010, REQ-WIDGET-001, REQ-WIDGET-004, REQ-WIDGET-005, REQ-WIDGET-006, REQ-WIDGET-007, REQ-WIDGET-008, REQ-WIDGET-009]
 related_scns: [SCN-041, SCN-061, SCN-101, SCN-141, SCN-144, SCN-145]
 related_guides: [DG-0001, DG-0002, DG-0004, UG-0003, UG-0005]
 diagram_required: true
@@ -132,6 +132,49 @@ Use `AshUI.Rendering.CanonicalIUR` for cross-boundary helpers such as:
 - extracting canonical navigation interactions
 - extracting Ash runtime binding maps preserved inside canonical bindings
 
+## Canonical Widget Component Catalog
+
+The Unified package owns the canonical widget-component vocabulary.
+`AshUI.WidgetComponents` is the local boundary that exposes the currently
+adopted catalog to resource admission, canonical conversion, examples, and
+tests. Keep catalog changes behind that wrapper so package-boundary tests can
+detect drift against `UnifiedUi.WidgetComponents`.
+
+The component adoption path has four checkpoints:
+
+1. `AshUI.DSL.Storage` and resource authoring validation admit the canonical
+   kind or supported alias.
+2. `AshUI.Rendering.IURAdapter` normalizes aliases and maps props into
+   component-owned canonical attribute namespaces.
+3. `UnifiedIUR.Normalize.element/1` and `UnifiedIUR.Validate.element/1`
+   validate the emitted `%UnifiedIUR.Element{}`.
+4. Runtime adapters preserve the component kind, render a native component when
+   available, or produce structured fallback diagnostics without silently
+   coercing cataloged components to `custom:*`.
+
+Current component attribute namespaces are:
+
+| Component family | Attribute namespace examples |
+|---|---|
+| Content, identity, and disclosure | `:heading`, `:disclosure`, `:kicker`, `:identity`, `:presence` |
+| Form control and composer | `:form`, `:selection`, `:composer` |
+| Row and artifact | `:row`, `:artifact` |
+| Workflow, progress, and status | `:workflow`, `:progress`, `:meter` |
+| Layer shell and callout | `:shell`, `:panel`, `:callout` |
+| Redline and code | `:redline`, `:code`, `:text_safety` |
+| Composition behavior | `:repeat` |
+
+Fallback renderers must keep the canonical kind visible in diagnostics or data
+attributes and must escape user-provided copy. They should not introduce literal
+colors, font families, or theme-owned tokens while doing so.
+
+`list_repeat` is the exception to normal visual-component handling. It is a
+relationship-owned repeat behavior. `ui_relationships` declares the list
+binding, the destination `list_repeat` element owns a `binding_type :list`
+binding, the compiler carries repeat metadata into props and composition
+metadata, and LiveView hydration expands row-scoped templates only when row data
+is present.
+
 ## Canonical Navigation Flow
 
 Resource DSL modules accept `navigation` inside `ui_actions` and
@@ -225,6 +268,7 @@ When changing a widget family, check all of these:
 - resource-authority payload generation
 - compiler lowering
 - canonical IUR conversion
+- component catalog alias normalization and attribute mapping
 - adapter output
 - style intent preservation for `props`, `variants`, and metadata
 - canonical struct validation through `UnifiedIUR.Normalize.element/1` and

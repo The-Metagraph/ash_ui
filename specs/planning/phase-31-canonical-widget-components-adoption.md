@@ -92,27 +92,27 @@ This task proves Ash UI's canonical output matches the upgraded Unified IUR comp
 - [x] 31.3.2.3 Subtask - Add negative validation coverage for required shapes on redline, code, slide-over, meter, segmented control, and repeat components.
 - [x] 31.3.2.4 Subtask - Preserve Ash resource identity and relationship metadata under Ash-owned metadata keys only.
 
-## [ ] 31.4 Section - Runtime Renderer Adapter Support
+## [x] 31.4 Section - Runtime Renderer Adapter Support
 
 This section ensures canonical component identity survives Live, Elm, and desktop rendering paths.
 
-### [ ] 31.4.1 Task - Preserve Native Renderer Dispatch
+### [x] 31.4.1 Task - Preserve Native Renderer Dispatch
 
 This task routes canonical component nodes to runtime packages without losing kind identity.
 
-- [ ] 31.4.1.1 Subtask - Verify Live renderer dispatch accepts `%UnifiedIUR.Element{}` component nodes.
-- [ ] 31.4.1.2 Subtask - Verify Elm renderer dispatch accepts `%UnifiedIUR.Element{}` component nodes.
-- [ ] 31.4.1.3 Subtask - Verify desktop renderer dispatch accepts `%UnifiedIUR.Element{}` component nodes.
-- [ ] 31.4.1.4 Subtask - Add structured unsupported-component diagnostics for runtime packages that lack a native component renderer.
+- [x] 31.4.1.1 Subtask - Verify Live renderer dispatch accepts `%UnifiedIUR.Element{}` component nodes.
+- [x] 31.4.1.2 Subtask - Verify Elm renderer dispatch accepts `%UnifiedIUR.Element{}` component nodes.
+- [x] 31.4.1.3 Subtask - Verify desktop renderer dispatch accepts `%UnifiedIUR.Element{}` component nodes.
+- [x] 31.4.1.4 Subtask - Add structured unsupported-component diagnostics for runtime packages that lack a native component renderer.
 
-### [ ] 31.4.2 Task - Add Semantic Fallback Rendering
+### [x] 31.4.2 Task - Add Semantic Fallback Rendering
 
 This task adds adapter fallback output for components where Ash UI needs compatibility rendering.
 
-- [ ] 31.4.2.1 Subtask - Add safe fallback rendering for content, identity, disclosure, row, artifact, callout, redline, code, and progress components.
-- [ ] 31.4.2.2 Subtask - Preserve accessibility labels, roles, selected states, open states, and progress values.
-- [ ] 31.4.2.3 Subtask - Escape user-provided text and token content in fallback renderers.
-- [ ] 31.4.2.4 Subtask - Avoid literal colors, font families, and theme-owned values in fallback output.
+- [x] 31.4.2.1 Subtask - Add safe fallback rendering for content, identity, disclosure, row, artifact, callout, redline, code, and progress components.
+- [x] 31.4.2.2 Subtask - Preserve accessibility labels, roles, selected states, open states, and progress values.
+- [x] 31.4.2.3 Subtask - Escape user-provided text and token content in fallback renderers.
+- [x] 31.4.2.4 Subtask - Avoid literal colors, font families, and theme-owned values in fallback output.
 
 ## [ ] 31.5 Section - List Repeat Composition Behavior
 

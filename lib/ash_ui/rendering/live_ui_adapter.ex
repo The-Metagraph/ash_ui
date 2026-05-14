@@ -402,6 +402,351 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "disclosure"} = iur, opts) do
+    props = iur["props"] || %{}
+    summary = escaped_text_prop(props, ["summary", "label", "title"], "Details")
+    open? = truthy_prop(props, "open?", truthy_prop(props, "open", false))
+
+    """
+    <details class="#{css_classes(["ash-disclosure", open? && "is-open", prop_class(iur)])}"#{if(open?, do: " open", else: "")}#{style_attr(prop_style(iur))}>
+      <summary class="ash-disclosure-summary">#{summary}</summary>
+      <div class="ash-disclosure-body">
+        #{generate_children(iur["children"], opts)}
+      </div>
+    </details>
+    """
+  end
+
+  defp generate_heex(%{"type" => "kicker"} = iur, _opts) do
+    props = iur["props"] || %{}
+    items = prop(props, "items", [])
+    separator = escaped_text_prop(props, "separator", "/")
+
+    content =
+      items
+      |> List.wrap()
+      |> Enum.map_join(~s(<span class="ash-kicker-separator">#{separator}</span>), fn item ->
+        ~s(<span class="ash-kicker-item">#{html_escape(item)}</span>)
+      end)
+
+    """
+    <p class="#{css_classes(["ash-kicker", prop_class(iur)])}"#{style_attr(prop_style(iur))}>#{content}</p>
+    """
+  end
+
+  defp generate_heex(%{"type" => "avatar"} = iur, _opts) do
+    props = iur["props"] || %{}
+    label = escaped_text_prop(props, ["label", "initials"], "Avatar")
+    initials = escaped_text_prop(props, "initials")
+    image_source = text_prop(props, ["image_source", "src", "url"])
+
+    content =
+      if image_source do
+        ~s(<img class="ash-avatar-image" src="#{html_attr(image_source)}" alt="#{label}" />)
+      else
+        ~s(<span class="ash-avatar-initials">#{initials || label}</span>)
+      end
+
+    """
+    <span class="#{css_classes(["ash-avatar", "ash-avatar-#{text_prop(props, "size", "medium")}", prop_class(iur)])}" role="img" aria-label="#{label}"#{style_attr(prop_style(iur))}>#{content}</span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "presence_dot"} = iur, _opts) do
+    props = iur["props"] || %{}
+    state = escaped_text_prop(props, ["state", "status"], "unknown")
+    label = escaped_text_prop(props, ["label"], state)
+
+    """
+    <span class="#{css_classes(["ash-presence-dot", "ash-presence-dot-#{state}", prop_class(iur)])}" role="img" aria-label="#{label}" data-state="#{state}"#{style_attr(prop_style(iur))}></span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "runtime_form_shell"} = iur, opts) do
+    props = iur["props"] || %{}
+    fields = prop(props, "fields", [])
+    submit_label = escaped_text_prop(props, "submit_label", "Submit")
+
+    fields_html =
+      Enum.map_join(List.wrap(fields), fn field ->
+        field = normalize_item(field)
+        name = escaped_text_prop(field, ["name", "id"], "field")
+        label = escaped_text_prop(field, ["label", "name"], name)
+
+        """
+        <label class="ash-runtime-form-field">
+          <span class="ash-runtime-form-label">#{label}</span>
+          <input class="ash-runtime-form-input" name="#{html_attr(name)}" />
+        </label>
+        """
+      end)
+
+    """
+    <form class="#{css_classes(["ash-runtime-form-shell", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{fields_html}
+      #{generate_children(iur["children"], opts)}
+      <button type="submit" class="ash-runtime-form-submit">#{submit_label}</button>
+    </form>
+    """
+  end
+
+  defp generate_heex(%{"type" => "segmented_button_group"} = iur, _opts) do
+    props = iur["props"] || %{}
+    options = prop(props, "options", [])
+    active_value = prop(props, "active_value", prop(props, "value"))
+
+    options_html =
+      Enum.map_join(List.wrap(options), fn option ->
+        option = normalize_item(option)
+        {label, value} = normalize_choice(option)
+        selected? = to_string(value) == to_string(active_value)
+
+        """
+        <button type="button" class="#{css_classes(["ash-segmented-button", selected? && "is-selected"])}" aria-pressed="#{selected?}" value="#{html_attr(value)}">#{html_escape(label)}</button>
+        """
+      end)
+
+    """
+    <div class="#{css_classes(["ash-segmented-button-group", prop_class(iur)])}" role="group"#{style_attr(prop_style(iur))}>
+      #{options_html}
+    </div>
+    """
+  end
+
+  defp generate_heex(%{"type" => "chat_composer"} = iur, opts) do
+    props = iur["props"] || %{}
+    placeholder = escaped_text_prop(props, "placeholder", "")
+    value = escaped_text_prop(props, ["value", "text", "content"], "")
+    rows = prop(props, "rows", 3)
+    send_label = escaped_text_prop(props, "send_label", "Send")
+
+    """
+    <form class="#{css_classes(["ash-chat-composer", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <textarea class="ash-chat-composer-input" rows="#{rows}" placeholder="#{placeholder}">#{value}</textarea>
+      <div class="ash-chat-composer-tools">#{generate_children(iur["children"], opts)}</div>
+      <button type="submit" class="ash-chat-composer-send">#{send_label}</button>
+    </form>
+    """
+  end
+
+  defp generate_heex(%{"type" => "list_item_multi_column"} = iur, opts) do
+    props = iur["props"] || %{}
+    active? = truthy_prop(props, "active?", truthy_prop(props, "active", false))
+    columns = prop(props, "column_template", [])
+
+    columns_html =
+      Enum.map_join(List.wrap(columns), fn column ->
+        column = normalize_item(column)
+        label = escaped_text_prop(column, ["label", "title", "id"], "")
+        ~s(<span class="ash-list-item-column">#{label}</span>)
+      end)
+
+    """
+    <article class="#{css_classes(["ash-list-item-multi-column", active? && "is-active", prop_class(iur)])}" data-row-id="#{html_attr(prop(props, "row_identity"))}"#{style_attr(prop_style(iur))}>
+      <div class="ash-list-item-columns">#{columns_html}</div>
+      #{generate_children(iur["children"], opts)}
+    </article>
+    """
+  end
+
+  defp generate_heex(%{"type" => "artifact_row"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = escaped_text_prop(props, ["title", "label"], "Artifact")
+    meta = escaped_text_prop(props, "meta")
+
+    """
+    <article class="#{css_classes(["ash-artifact-row", prop_class(iur)])}" data-row-id="#{html_attr(prop(props, "row_identity"))}"#{style_attr(prop_style(iur))}>
+      <div class="ash-artifact-row-main">
+        <p class="ash-artifact-row-title">#{title}</p>
+        #{if meta, do: "<p class=\"ash-artifact-row-meta\">#{meta}</p>", else: ""}
+      </div>
+      <div class="ash-artifact-row-trailing">#{generate_children(iur["children"], opts)}</div>
+    </article>
+    """
+  end
+
+  defp generate_heex(%{"type" => "pipeline_stepper_horizontal"} = iur, _opts) do
+    props = iur["props"] || %{}
+    steps = prop(props, "steps", [])
+    active_index = prop(props, "active_index", 0)
+
+    steps_html =
+      steps
+      |> List.wrap()
+      |> Enum.with_index()
+      |> Enum.map_join(fn {step, index} ->
+        step = normalize_item(step)
+        label = escaped_text_prop(step, ["label", "title", "id"], "Step")
+
+        state =
+          escaped_text_prop(
+            step,
+            "state",
+            if(index == active_index, do: "active", else: "pending")
+          )
+
+        ~s(<li class="ash-pipeline-step ash-pipeline-step-#{state}" aria-current="#{index == active_index}">#{label}</li>)
+      end)
+
+    """
+    <ol class="#{css_classes(["ash-pipeline-stepper-horizontal", prop_class(iur)])}"#{style_attr(prop_style(iur))}>#{steps_html}</ol>
+    """
+  end
+
+  defp generate_heex(%{"type" => "segmented_progress_bar"} = iur, _opts) do
+    props = iur["props"] || %{}
+    label = escaped_text_prop(props, "label", "Progress")
+    segments = List.wrap(prop(props, "segments", []))
+
+    total =
+      max(Enum.reduce(segments, 0, &(numeric_value(normalize_item(&1), "weight", 1) + &2)), 1)
+
+    segments_html =
+      Enum.map_join(segments, fn segment ->
+        segment = normalize_item(segment)
+        width = percentage(numeric_value(segment, "weight", 1), total)
+        state = escaped_text_prop(segment, "state", "neutral")
+
+        ~s(<span class="ash-segmented-progress-segment ash-segmented-progress-#{state}" style="width: #{width}%"></span>)
+      end)
+
+    """
+    <div class="#{css_classes(["ash-segmented-progress-bar", prop_class(iur)])}" role="progressbar" aria-label="#{label}"#{style_attr(prop_style(iur))}>#{segments_html}</div>
+    """
+  end
+
+  defp generate_heex(%{"type" => "workflow_stage_list_vertical"} = iur, _opts) do
+    props = iur["props"] || %{}
+    stages = List.wrap(prop(props, "stages", []))
+    active_index = prop(props, "active_index", 0)
+
+    stages_html =
+      stages
+      |> Enum.with_index()
+      |> Enum.map_join(fn {stage, index} ->
+        stage = normalize_item(stage)
+        label = escaped_text_prop(stage, ["label", "title", "id"], "Stage")
+
+        state =
+          escaped_text_prop(
+            stage,
+            "state",
+            if(index == active_index, do: "active", else: "pending")
+          )
+
+        ~s(<li class="ash-workflow-stage ash-workflow-stage-#{state}" aria-current="#{index == active_index}">#{label}</li>)
+      end)
+
+    """
+    <ol class="#{css_classes(["ash-workflow-stage-list-vertical", prop_class(iur)])}"#{style_attr(prop_style(iur))}>#{stages_html}</ol>
+    """
+  end
+
+  defp generate_heex(%{"type" => "meter_thin"} = iur, _opts) do
+    props = iur["props"] || %{}
+    current = numeric_value(props, "current", numeric_value(props, "value", 0))
+    minimum = numeric_value(props, "minimum", 0)
+    maximum = max(numeric_value(props, "maximum", 100), minimum + 1)
+    label = escaped_text_prop(props, "label", "Meter")
+
+    """
+    <label class="#{css_classes(["ash-meter-thin", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <span class="ash-meter-thin-label">#{label}</span>
+      <meter class="ash-meter-thin-value" min="#{minimum}" max="#{maximum}" value="#{current}"></meter>
+    </label>
+    """
+  end
+
+  defp generate_heex(%{"type" => "sticky_frosted_header"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = escaped_text_prop(props, ["title", "label"], "")
+
+    """
+    <header class="#{css_classes(["ash-sticky-frosted-header", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      #{if title != "", do: "<h2 class=\"ash-sticky-frosted-header-title\">#{title}</h2>", else: ""}
+      <div class="ash-sticky-frosted-header-actions">#{generate_children(iur["children"], opts)}</div>
+    </header>
+    """
+  end
+
+  defp generate_heex(%{"type" => "slide_over_panel"} = iur, opts) do
+    props = iur["props"] || %{}
+    label = escaped_text_prop(props, ["label", "title"], "Panel")
+    open? = truthy_prop(props, "open?", truthy_prop(props, "open", false))
+
+    """
+    <aside class="#{css_classes(["ash-slide-over-panel", open? && "is-open", !open? && "is-closed", prop_class(iur)])}" aria-label="#{label}" aria-hidden="#{!open?}"#{style_attr(prop_style(iur))}>
+      <header class="ash-slide-over-panel-header"><h2>#{label}</h2></header>
+      <div class="ash-slide-over-panel-body">#{generate_children(iur["children"], opts)}</div>
+    </aside>
+    """
+  end
+
+  defp generate_heex(%{"type" => "event_callout"} = iur, opts) do
+    props = iur["props"] || %{}
+    message = escaped_text_prop(props, ["message", "body", "content", "text"], "")
+    title = escaped_text_prop(props, "title")
+    eyebrow = escaped_text_prop(props, "eyebrow")
+    tone = escaped_text_prop(props, "tone", "info")
+
+    """
+    <aside class="#{css_classes(["ash-event-callout", "ash-event-callout-#{tone}", prop_class(iur)])}" role="note"#{style_attr(prop_style(iur))}>
+      #{if eyebrow, do: "<p class=\"ash-event-callout-eyebrow\">#{eyebrow}</p>", else: ""}
+      #{if title, do: "<h2 class=\"ash-event-callout-title\">#{title}</h2>", else: ""}
+      <p class="ash-event-callout-message">#{message}</p>
+      #{generate_children(iur["children"], opts)}
+    </aside>
+    """
+  end
+
+  defp generate_heex(%{"type" => "redline_inline"} = iur, _opts) do
+    props = iur["props"] || %{}
+    segments = List.wrap(prop(props, "segments", []))
+
+    content =
+      Enum.map_join(segments, fn segment ->
+        segment = normalize_item(segment)
+        state = text_prop(segment, "state", "keep")
+        text = html_escape(text_prop(segment, "text", ""))
+        tag = if state in ["delete", "rejected"], do: "del", else: "span"
+
+        ~s(<#{tag} class="ash-redline-inline-segment ash-redline-inline-#{state}">#{text}</#{tag}>)
+      end)
+
+    """
+    <span class="#{css_classes(["ash-redline-inline", prop_class(iur)])}"#{style_attr(prop_style(iur))}>#{content}</span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "code_block_syntax_highlighted"} = iur, _opts) do
+    props = iur["props"] || %{}
+    language = escaped_text_prop(props, "language", "text")
+    tokens = List.wrap(prop(props, "tokens", []))
+
+    code =
+      Enum.map_join(tokens, fn token ->
+        token = normalize_item(token)
+        type = escaped_text_prop(token, "type", "text")
+        text = html_escape(text_prop(token, "text", ""))
+        ~s(<span class="ash-code-token ash-code-token-#{type}">#{text}</span>)
+      end)
+
+    """
+    <pre class="#{css_classes(["ash-code-block-syntax-highlighted", prop_class(iur)])}" data-language="#{language}"#{style_attr(prop_style(iur))}><code>#{code}</code></pre>
+    """
+  end
+
+  defp generate_heex(%{"type" => "list_repeat"} = iur, opts) do
+    props = iur["props"] || %{}
+    binding_id = escaped_text_prop(props, ["binding_id", "repeat_binding"], "rows")
+
+    """
+    <div class="#{css_classes(["ash-list-repeat", prop_class(iur)])}" data-repeat-binding="#{binding_id}"#{style_attr(prop_style(iur))}>
+      #{generate_children(iur["children"], opts)}
+    </div>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")
@@ -2074,6 +2419,27 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp text_prop(props, key, default), do: text_prop(props, [key], default)
 
+  defp escaped_text_prop(props, keys, default \\ nil) do
+    case text_prop(props, keys, default) do
+      nil -> nil
+      value -> html_escape(value)
+    end
+  end
+
+  defp html_attr(value), do: html_escape(value)
+
+  defp html_escape(nil), do: ""
+
+  defp html_escape(value) do
+    value
+    |> to_string()
+    |> String.replace("&", "&amp;")
+    |> String.replace("<", "&lt;")
+    |> String.replace(">", "&gt;")
+    |> String.replace("\"", "&quot;")
+    |> String.replace("'", "&#39;")
+  end
+
   defp normalize_choice(option) when is_map(option) do
     {text_prop(option, ["label", "title", "value"], ""), prop(option, "value")}
   end
@@ -2538,6 +2904,6 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp normalize_segment(_), do: []
 
-  defp render_segment(%{type: "em", value: value}), do: "<em>#{value}</em>"
-  defp render_segment(%{type: "text", value: value}), do: value
+  defp render_segment(%{type: "em", value: value}), do: "<em>#{html_escape(value)}</em>"
+  defp render_segment(%{type: "text", value: value}), do: html_escape(value)
 end

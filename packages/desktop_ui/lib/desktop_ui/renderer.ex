@@ -29,73 +29,75 @@ defmodule DesktopUi.Renderer do
   """
   @spec supported_kinds() :: [atom()]
   def supported_kinds do
-    [
-      # Foundational (13)
-      :badge,
-      :button,
-      :command,
-      :content,
-      :hero,
-      :icon,
-      :image,
-      :label,
-      :link,
-      :separator,
-      :spacer,
-      :text,
-      :toggle,
-      # Input (10)
-      :checkbox,
-      :date_input,
-      :file_input,
-      :numeric_input,
-      :pick_list,
-      :radio_group,
-      :select,
-      :slider,
-      :text_input,
-      :time_input,
-      # Navigation (4)
-      :breadcrumbs,
-      :list,
-      :menu,
-      :tabs,
-      # Data (7)
-      :inspector,
-      :info_list,
-      :key_value,
-      :markdown_viewer,
-      :stat,
-      :table,
-      :tree_view,
-      # Feedback (6)
-      :alert_dialog,
-      :dialog,
-      :inline_feedback,
-      :progress,
-      :status,
-      :toast,
-      # Operational (7)
-      :cluster_dashboard,
-      :command_palette,
-      :log_viewer,
-      :process_monitor,
-      :stream_widget,
-      :supervision_tree_viewer,
-      :window_command,
-      # Visualization (5)
-      :bar_chart,
-      :canvas,
-      :gauge,
-      :line_chart,
-      :timeline,
-      # Layout & Structure (3)
-      :column,
-      :row,
-      :stack,
-      # Container (1)
-      :window
-    ]
+    # Foundational (13)
+    # Input (10)
+    # Navigation (4)
+    # Data (7)
+    # Feedback (6)
+    # Operational (7)
+    # Visualization (5)
+    # Layout & Structure (3)
+    # Container (1)
+    ([
+       :badge,
+       :button,
+       :command,
+       :content,
+       :hero,
+       :icon,
+       :image,
+       :label,
+       :link,
+       :separator,
+       :spacer,
+       :text,
+       :toggle,
+       :checkbox,
+       :date_input,
+       :file_input,
+       :numeric_input,
+       :pick_list,
+       :radio_group,
+       :select,
+       :slider,
+       :text_input,
+       :time_input,
+       :breadcrumbs,
+       :list,
+       :menu,
+       :tabs,
+       :inspector,
+       :info_list,
+       :key_value,
+       :markdown_viewer,
+       :stat,
+       :table,
+       :tree_view,
+       :alert_dialog,
+       :dialog,
+       :inline_feedback,
+       :progress,
+       :status,
+       :toast,
+       :cluster_dashboard,
+       :command_palette,
+       :log_viewer,
+       :process_monitor,
+       :stream_widget,
+       :supervision_tree_viewer,
+       :window_command,
+       :bar_chart,
+       :canvas,
+       :gauge,
+       :line_chart,
+       :timeline,
+       :column,
+       :row,
+       :stack,
+       :window
+     ] ++ UnifiedIUR.Widgets.Components.kinds())
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   @spec validation_state() :: atom()

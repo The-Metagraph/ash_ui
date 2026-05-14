@@ -187,12 +187,42 @@ defmodule AshUI.Rendering.CanonicalIUR do
     |> maybe_put(:label, text)
   end
 
+  defp merge_legacy_prop(acc, :component, value),
+    do: Map.put(acc, :component, normalize_map(value))
+
   defp merge_legacy_prop(acc, :layout, value), do: Map.merge(acc, normalize_map(value))
   defp merge_legacy_prop(acc, :button, value), do: Map.merge(acc, normalize_map(value))
   defp merge_legacy_prop(acc, :input, value), do: Map.merge(acc, normalize_map(value))
   defp merge_legacy_prop(acc, :state, value), do: Map.merge(acc, normalize_map(value))
   defp merge_legacy_prop(acc, :selection, value), do: Map.merge(acc, normalize_map(value))
   defp merge_legacy_prop(acc, :navigation, value), do: Map.merge(acc, normalize_map(value))
+
+  defp merge_legacy_prop(acc, key, value)
+       when key in [
+              :heading,
+              :disclosure,
+              :kicker,
+              :identity,
+              :presence,
+              :form,
+              :composer,
+              :row,
+              :artifact,
+              :workflow,
+              :progress,
+              :meter,
+              :shell,
+              :panel,
+              :callout,
+              :redline,
+              :code,
+              :repeat,
+              :accessibility,
+              :text_safety
+            ] do
+    Map.merge(acc, normalize_map(value))
+  end
+
   defp merge_legacy_prop(acc, key, value), do: Map.put(acc, key, value)
 
   defp encoded_attr(%Element{} = element, key, default) do

@@ -299,11 +299,21 @@ defmodule AshUI.Rendering.ElmUIAdapter do
 
   defp generate_html(%{"type" => type, "id" => id} = iur, _opts) do
     """
-    <div class="ash-widget ash-widget-#{type}" data-widget-id="#{id}">
+    <div class="ash-widget ash-widget-#{type}" data-widget-id="#{id}"#{component_diagnostic_attrs(iur)}>
       #{generate_children(iur["children"])}
     </div>
     """
   end
+
+  defp component_diagnostic_attrs(%{"props" => %{"component" => component}})
+       when is_map(component) do
+    kind = Map.get(component, "kind") || Map.get(component, :kind)
+    family = Map.get(component, "family") || Map.get(component, :family)
+
+    ~s( data-ash-ui-renderer-diagnostic="unsupported_component_fallback" data-component-kind="#{kind}" data-component-family="#{family}")
+  end
+
+  defp component_diagnostic_attrs(_iur), do: ""
 
   defp generate_seo_tags(seo_config) do
     """

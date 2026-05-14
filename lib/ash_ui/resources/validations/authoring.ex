@@ -4,6 +4,7 @@ defmodule AshUI.Resources.Validations.Authoring do
   """
 
   alias AshUI.DSL.Storage
+  alias AshUI.Navigation.Intent, as: NavigationIntent
   alias AshUI.Resources.Validations.BindingSource
 
   @allowed_screen_layouts [:default, :bare, :modal, :panel, :row, :column, :grid, :stack]
@@ -14,17 +15,17 @@ defmodule AshUI.Resources.Validations.Authoring do
   @screen_binding_targets ["title"]
   @list_widgets MapSet.new(["list", "table", "info_list", "select"])
   @action_widgets MapSet.new([
-    "button",
-    "input",
-    "textinput",
-    "textarea",
-    "select",
-    "checkbox",
-    "radio",
-    "switch",
-    "slider",
-    "form_builder"
-  ])
+                    "button",
+                    "input",
+                    "textinput",
+                    "textarea",
+                    "select",
+                    "checkbox",
+                    "radio",
+                    "switch",
+                    "slider",
+                    "form_builder"
+                  ])
   @signal_capabilities %{
     "button" => [:click, :submit],
     "input" => [:change, :input, :submit],
@@ -162,11 +163,12 @@ defmodule AshUI.Resources.Validations.Authoring do
   @doc """
   Validates that a screen definition only uses the allowed screen-scoped bindings.
   """
-  @spec validate_screen_authority!(map(), [map()]) :: :ok
-  def validate_screen_authority!(definition, bindings)
-      when is_map(definition) and is_list(bindings) do
+  @spec validate_screen_authority!(map(), [map()], [map()]) :: :ok
+  def validate_screen_authority!(definition, bindings, actions \\ [])
+      when is_map(definition) and is_list(bindings) and is_list(actions) do
     _ = definition
     Enum.each(bindings, &validate_screen_binding_locality!/1)
+    Enum.each(actions, &validate_screen_action_locality!/1)
     :ok
   end
 
@@ -179,6 +181,10 @@ defmodule AshUI.Resources.Validations.Authoring do
     signal = Map.get(action, :signal)
     source = Map.get(action, :source)
     target = Map.get(action, :target)
+    navigation = Map.get(action, :navigation)
+    source_context = Map.get(action, :source_context, %{})
+    payload_mapping = Map.get(action, :payload_mapping, %{})
+    binding_refs = Map.get(action, :binding_refs, [])
     transform = Map.get(action, :transform, %{})
     metadata = Map.get(action, :metadata, %{})
 
@@ -189,16 +195,39 @@ defmodule AshUI.Resources.Validations.Authoring do
             "action #{inspect(id)} signal must be one of #{inspect(@allowed_action_signals)}, got: #{inspect(signal)}"
     end
 
-    case BindingSource.validate_source(source, :action) do
-      :ok ->
-        :ok
+    if is_nil(source) and is_nil(navigation) do
+      raise ArgumentError,
+            "action #{inspect(id)} source is required unless navigation is declared"
+    end
 
-      {:error, message} ->
-        raise ArgumentError, "action #{inspect(id)} #{message}"
+    if source do
+      case BindingSource.validate_source(source, :action) do
+        :ok ->
+          :ok
+
+        {:error, message} ->
+          raise ArgumentError, "action #{inspect(id)} #{message}"
+      end
     end
 
     if not (is_nil(target) or (is_binary(target) and String.trim(target) != "")) do
       raise ArgumentError, "action #{inspect(id)} target must be a non-empty string when present"
+    end
+
+    unless is_nil(navigation) do
+      NavigationIntent.normalize!(navigation, label: "action #{inspect(id)} navigation")
+    end
+
+    unless is_map(source_context) do
+      raise ArgumentError, "action #{inspect(id)} source_context must be a map"
+    end
+
+    unless is_map(payload_mapping) do
+      raise ArgumentError, "action #{inspect(id)} payload_mapping must be a map"
+    end
+
+    unless is_list(binding_refs) do
+      raise ArgumentError, "action #{inspect(id)} binding_refs must be a list"
     end
 
     unless is_map(transform) do
@@ -291,8 +320,11 @@ defmodule AshUI.Resources.Validations.Authoring do
 
   def validate_inline_fragment!(fragment, label) when is_map(fragment) do
     case Storage.validate_write(fragment) do
-      :ok -> :ok
-      {:error, errors} -> raise ArgumentError, "#{label} must be valid unified_dsl: #{Enum.join(errors, ", ")}"
+      :ok ->
+        :ok
+
+      {:error, errors} ->
+        raise ArgumentError, "#{label} must be valid unified_dsl: #{Enum.join(errors, ", ")}"
     end
   end
 
@@ -355,6 +387,15 @@ defmodule AshUI.Resources.Validations.Authoring do
     else
       raise ArgumentError,
             "action #{inspect(Map.get(action, :id))} declares signal #{inspect(signal)} on #{inspect(widget_type)}, but supported signals are #{inspect(supported)}"
+    end
+  end
+
+  defp validate_screen_action_locality!(action) do
+    if Map.has_key?(action, :navigation) do
+      :ok
+    else
+      raise ArgumentError,
+            "screen-scoped action #{inspect(Map.get(action, :id))} must declare navigation intent"
     end
   end
 end

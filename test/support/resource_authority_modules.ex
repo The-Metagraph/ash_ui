@@ -13,6 +13,7 @@ defmodule AshUI.Test.ResourceAuthorityDomain do
     resource(AshUI.Test.ResourceAuthorityFormFieldElement)
     resource(AshUI.Test.ResourceAuthorityInputElement)
     resource(AshUI.Test.ResourceAuthorityButtonElement)
+    resource(AshUI.Test.ResourceAuthorityNavigationButtonElement)
     resource(AshUI.Test.RelationshipSemanticsBadgeElement)
     resource(AshUI.Test.RelationshipSemanticsPanelElement)
     resource(AshUI.Test.RelationshipOnlyScreen)
@@ -278,6 +279,27 @@ defmodule AshUI.Test.ResourceAuthorityButtonElement do
       }
 
       metadata %{intent: "save_profile"}
+    end
+  end
+end
+
+defmodule AshUI.Test.ResourceAuthorityNavigationButtonElement do
+  @moduledoc false
+
+  use AshUI.Test.ResourceAuthorityElementBase
+
+  ui_element do
+    type :button
+    props %{label: "Settings"}
+    variants [:secondary]
+    metadata %{id: "settings_button", section: "form", slot: "actions", position: 3}
+  end
+
+  ui_actions do
+    action :open_settings do
+      signal :click
+      navigation %{action: :navigate_to, screen: :settings, params: %{tab: :profile}}
+      metadata %{intent: "open_settings"}
     end
   end
 end

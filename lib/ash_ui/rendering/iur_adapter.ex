@@ -68,15 +68,17 @@ defmodule AshUI.Rendering.IURAdapter do
     Element.new(:composite, :screen,
       id: iur.id || generate_id(),
       metadata: convert_metadata(iur),
-      attributes: %{
-        screen:
-          compact_map(%{
-            name: iur.name,
-            layout: convert_layout(fetch(iur.attributes, :layout)),
-            version: iur.version
-          }),
-        bindings: Enum.map(iur.bindings, &convert_binding/1)
-      },
+      attributes:
+        %{
+          screen:
+            compact_map(%{
+              name: iur.name,
+              layout: convert_layout(fetch(iur.attributes, :layout)),
+              version: iur.version
+            }),
+          bindings: Enum.map(iur.bindings, &convert_binding/1)
+        }
+        |> Map.merge(interaction_attributes(%{actions: fetch(iur.attributes, :actions, [])})),
       children: Enum.map(iur.children, &convert_element/1)
     )
   end
@@ -302,14 +304,87 @@ defmodule AshUI.Rendering.IURAdapter do
   end
 
   defp interaction_attributes(props) do
-    props
-    |> fetch(:interactions, [])
-    |> List.wrap()
+    explicit_interactions =
+      props
+      |> fetch(:interactions, [])
+      |> List.wrap()
+
+    action_interactions =
+      props
+      |> fetch(:actions, [])
+      |> List.wrap()
+      |> Enum.map(&convert_action_interaction/1)
+
+    (explicit_interactions ++ action_interactions)
     |> Enum.reject(&is_nil/1)
     |> case do
       [] -> %{}
       interactions -> %{interactions: Enum.map(interactions, &UnifiedIUR.Interaction.new/1)}
     end
+  end
+
+  defp convert_action_interaction(action) when is_map(action) do
+    case fetch(action, :navigation) do
+      nil -> convert_generic_action_interaction(action)
+      navigation -> convert_navigation_action_interaction(action, navigation)
+    end
+  end
+
+  defp convert_action_interaction(_action), do: nil
+
+  defp convert_navigation_action_interaction(action, navigation) do
+    target_intent = AshUI.Navigation.Intent.normalize!(navigation, label: "canonical navigation")
+
+    signal =
+      UnifiedUi.Signal.new(%{
+        id: fetch(action, :id),
+        family: :navigation,
+        intent: fetch(action, :signal, :navigation),
+        source_context: fetch(action, :source_context, %{}),
+        target_intent: target_intent,
+        payload_mapping: fetch(action, :payload_mapping, fetch(action, :transform, %{})),
+        binding_refs: fetch(action, :binding_refs, []),
+        summary: fetch(action, :summary),
+        metadata: fetch(action, :metadata, %{})
+      })
+
+    descriptor = UnifiedUi.Signal.navigation_descriptor(signal)
+
+    UnifiedIUR.Interaction.new(%{
+      family: :navigation,
+      intent: fetch(target_intent, :action, fetch(action, :id)),
+      source:
+        %{
+          action_id: fetch(action, :id),
+          trigger: fetch(action, :signal),
+          context: signal.source_context
+        }
+        |> compact_map(),
+      target: %{navigation: descriptor},
+      payload:
+        %{
+          mapping: signal.payload_mapping,
+          binding_refs: signal.binding_refs
+        }
+        |> compact_map(),
+      metadata:
+        %{
+          ash_ui: fetch(action, :metadata, %{}),
+          summary: signal.summary
+        }
+        |> compact_map()
+    })
+  end
+
+  defp convert_generic_action_interaction(action) do
+    UnifiedIUR.Interaction.new(%{
+      family: fetch(action, :signal, :command),
+      intent: fetch(action, :id),
+      source: fetch(action, :source, %{}),
+      target: %{path: normalize_path(fetch(action, :target))},
+      payload: %{mapping: fetch(action, :transform, %{})},
+      metadata: fetch(action, :metadata, %{})
+    })
   end
 
   defp merge_converted_prop(acc, :style, value) when is_binary(value) and value != "" do

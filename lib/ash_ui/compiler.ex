@@ -352,7 +352,8 @@ defmodule AshUI.Compiler do
              attributes: %{
                "layout" => screen.layout,
                "route" => screen.route,
-               "unified_dsl" => screen.unified_dsl
+               "unified_dsl" => screen.unified_dsl,
+               "actions" => get_in(runtime_document, ["screen", "actions"]) || []
              },
              children: merged_children,
              bindings: bindings,
@@ -392,12 +393,22 @@ defmodule AshUI.Compiler do
       |> List.wrap()
       |> Enum.map(&compile_screen_binding(&1, screen.id, screen_module))
 
+    screen_actions =
+      document
+      |> get_in(["screen", "actions"])
+      |> List.wrap()
+      |> normalize_snapshot()
+
     Enum.reduce(Enum.with_index(roots), {[], screen_bindings}, fn {node, index},
                                                                   {children, bindings} ->
       {compiled, updated_bindings} =
         compile_authority_node(node, screen, element_index, [index], bindings)
 
       {children ++ [compiled], updated_bindings}
+    end)
+    |> then(fn {children, bindings} ->
+      {children,
+       bindings ++ compile_screen_action_bindings(screen_actions, screen.id, screen_module)}
     end)
   end
 
@@ -426,9 +437,14 @@ defmodule AshUI.Compiler do
       |> Map.get("bindings", [])
       |> Enum.map(&compile_element_binding(&1, screen.id, element_id, module_ref, kind))
 
-    action_bindings =
+    actions =
       element
       |> Map.get("actions", [])
+      |> normalize_snapshot()
+
+    action_bindings =
+      actions
+      |> Enum.reject(&navigation_action?/1)
       |> Enum.map(&compile_action_binding(&1, screen.id, element_id, module_ref, kind))
 
     metadata =
@@ -438,7 +454,11 @@ defmodule AshUI.Compiler do
       |> Map.put("authoring_module", module_ref)
       |> Map.put("composition", normalize_snapshot(relationship))
 
-    props = Map.get(dsl, "props", %{}) |> normalize_snapshot()
+    props =
+      dsl
+      |> Map.get("props", %{})
+      |> normalize_snapshot()
+      |> maybe_put_non_empty("actions", actions)
 
     compiled =
       IUR.new(kind_to_iur_type(kind),
@@ -506,6 +526,12 @@ defmodule AshUI.Compiler do
     |> Map.put("transform", normalize_snapshot(Map.get(binding, "transform", %{})))
   end
 
+  defp compile_screen_action_bindings(actions, screen_id, screen_module) do
+    actions
+    |> Enum.reject(&navigation_action?/1)
+    |> Enum.map(&compile_action_binding(&1, screen_id, nil, screen_module, :screen))
+  end
+
   defp compile_element_binding(binding, screen_id, element_id, module_ref, widget_type) do
     binding
     |> normalize_snapshot()
@@ -545,6 +571,12 @@ defmodule AshUI.Compiler do
     )
     |> Map.put("transform", normalize_snapshot(Map.get(action, "transform", %{})))
   end
+
+  defp navigation_action?(action) when is_map(action) do
+    Map.has_key?(action, "navigation") or Map.has_key?(action, :navigation)
+  end
+
+  defp navigation_action?(_action), do: false
 
   defp owner_metadata(binding_or_action, ownership) do
     binding_or_action
@@ -719,6 +751,9 @@ defmodule AshUI.Compiler do
     |> Base.encode16(case: :lower)
     |> binary_part(0, 12)
   end
+
+  defp maybe_put_non_empty(map, _key, value) when value in [nil, [], %{}], do: map
+  defp maybe_put_non_empty(map, key, value), do: Map.put(map, key, value)
 
   defp normalize_snapshot(value) when is_list(value) do
     cond do

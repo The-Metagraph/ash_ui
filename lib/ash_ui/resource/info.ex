@@ -35,7 +35,8 @@ defmodule AshUI.Resource.Info do
   Returns true when a module exposes screen or element authoring authority.
   """
   @spec authoritative?(module()) :: boolean()
-  def authoritative?(module) when is_atom(module), do: resource_role(module) in [:screen, :element]
+  def authoritative?(module) when is_atom(module),
+    do: resource_role(module) in [:screen, :element]
 
   @doc """
   Returns the validated screen definition owned by a screen resource module.
@@ -56,6 +57,24 @@ defmodule AshUI.Resource.Info do
     case resource_role(module) do
       :screen -> {:ok, module.__ash_ui_bindings__()}
       other -> {:error, {:invalid_screen_resource, module, other}}
+    end
+  end
+
+  @doc """
+  Returns the screen-scoped action declarations owned by a screen resource module.
+  """
+  @spec screen_actions(module()) :: {:ok, [map()]} | {:error, term()}
+  def screen_actions(module) when is_atom(module) do
+    case resource_role(module) do
+      :screen ->
+        if function_exported?(module, :__ash_ui_actions__, 0) do
+          {:ok, module.__ash_ui_actions__()}
+        else
+          {:ok, []}
+        end
+
+      other ->
+        {:error, {:invalid_screen_resource, module, other}}
     end
   end
 

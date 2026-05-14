@@ -99,6 +99,16 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Keep progress and meter values numeric and within the canonical minimum and maximum range."
+    },
+    invalid_selection_option: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent segmented controls with a non-empty list of options that each include a value and label."
+    },
+    invalid_repeat_binding: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent list_repeat with a list binding id, row scope, row field list, and template metadata."
     }
   }
 
@@ -430,6 +440,15 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{
+         kind: :segmented_button_group,
+         attributes: attributes
+       }) do
+    attributes
+    |> get_in([:selection, :options])
+    |> validate_selection_options([:attributes, :selection, :options])
+  end
+
   defp validate_component_contracts(%Element{kind: :meter_thin, attributes: attributes}) do
     meter = Map.get(attributes, :meter, %{})
     current = fetch(meter, :current)
@@ -452,7 +471,63 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :list_repeat, attributes: attributes}) do
+    repeat = Map.get(attributes, :repeat, %{})
+    binding_id = fetch(repeat, :binding_id)
+    row_scope = fetch(repeat, :row_scope)
+    row_fields = fetch(repeat, :row_fields)
+
+    maybe_add(
+      [],
+      blank?(binding_id) or blank?(row_scope) or not is_list(row_fields),
+      Error.new(
+        :invalid_repeat_binding,
+        "list_repeat requires binding_id, row_scope, and row_fields list",
+        path: [:attributes, :repeat],
+        details: %{binding_id: binding_id, row_scope: row_scope, row_fields: inspect(row_fields)}
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
+
+  defp validate_selection_options(options, path) when is_list(options) do
+    options
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {option, index} ->
+      value = fetch(option, :value)
+      label = fetch(option, :label)
+
+      maybe_add(
+        [],
+        blank?(value) or blank?(label),
+        Error.new(
+          :invalid_selection_option,
+          "segmented_button_group options must include value and label",
+          path: path ++ [index],
+          details: %{value: inspect(value), label: inspect(label)}
+        )
+      )
+    end)
+    |> maybe_add(
+      options == [],
+      Error.new(
+        :invalid_selection_option,
+        "segmented_button_group options must be a non-empty list",
+        path: path
+      )
+    )
+  end
+
+  defp validate_selection_options(_options, path) do
+    [
+      Error.new(
+        :invalid_selection_option,
+        "segmented_button_group options must be a list",
+        path: path
+      )
+    ]
+  end
 
   defp validate_redline_segments(segments, path) when is_list(segments) do
     segments

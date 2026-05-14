@@ -68,29 +68,29 @@ This task keeps migration-friendly aliases at the authoring boundary while emitt
 - [x] 31.2.2.3 Subtask - Add diagnostics that identify the alias and canonical replacement.
 - [x] 31.2.2.4 Subtask - Add tests proving aliases never appear as renderer-facing canonical kinds.
 
-## [ ] 31.3 Section - Canonical Conversion And Validation
+## [x] 31.3 Section - Canonical Conversion And Validation
 
 This section maps Ash UI component props and metadata into the canonical Unified IUR component shapes.
 
-### [ ] 31.3.1 Task - Map Component Attributes
+### [x] 31.3.1 Task - Map Component Attributes
 
 This task updates `AshUI.Rendering.IURAdapter` so each component family compiles to the correct canonical attribute namespace.
 
-- [ ] 31.3.1.1 Subtask - Map content identity and disclosure components: `inline_rich_text_heading`, `disclosure`, `kicker`, `avatar`, and `presence_dot`.
-- [ ] 31.3.1.2 Subtask - Map form control and composer components: `runtime_form_shell`, `segmented_button_group`, and `chat_composer`.
-- [ ] 31.3.1.3 Subtask - Map row and artifact components: `list_item_multi_column` and `artifact_row`.
-- [ ] 31.3.1.4 Subtask - Map workflow progress and status components: `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, and `meter_thin`.
-- [ ] 31.3.1.5 Subtask - Map layer shell and callout components: `sticky_frosted_header`, `slide_over_panel`, and `event_callout`.
-- [ ] 31.3.1.6 Subtask - Map redline and code components: `redline_inline` and `code_block_syntax_highlighted`.
+- [x] 31.3.1.1 Subtask - Map content identity and disclosure components: `inline_rich_text_heading`, `disclosure`, `kicker`, `avatar`, and `presence_dot`.
+- [x] 31.3.1.2 Subtask - Map form control and composer components: `runtime_form_shell`, `segmented_button_group`, and `chat_composer`.
+- [x] 31.3.1.3 Subtask - Map row and artifact components: `list_item_multi_column` and `artifact_row`.
+- [x] 31.3.1.4 Subtask - Map workflow progress and status components: `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, and `meter_thin`.
+- [x] 31.3.1.5 Subtask - Map layer shell and callout components: `sticky_frosted_header`, `slide_over_panel`, and `event_callout`.
+- [x] 31.3.1.6 Subtask - Map redline and code components: `redline_inline` and `code_block_syntax_highlighted`.
 
-### [ ] 31.3.2 Task - Validate Canonical Component Output
+### [x] 31.3.2 Task - Validate Canonical Component Output
 
 This task proves Ash UI's canonical output matches the upgraded Unified IUR component contracts.
 
-- [ ] 31.3.2.1 Subtask - Add canonical conversion tests for each component family.
-- [ ] 31.3.2.2 Subtask - Run component outputs through `UnifiedIUR.Normalize.element/1` and `UnifiedIUR.Validate.element/1`.
-- [ ] 31.3.2.3 Subtask - Add negative validation coverage for required shapes on redline, code, slide-over, meter, segmented control, and repeat components.
-- [ ] 31.3.2.4 Subtask - Preserve Ash resource identity and relationship metadata under Ash-owned metadata keys only.
+- [x] 31.3.2.1 Subtask - Add canonical conversion tests for each component family.
+- [x] 31.3.2.2 Subtask - Run component outputs through `UnifiedIUR.Normalize.element/1` and `UnifiedIUR.Validate.element/1`.
+- [x] 31.3.2.3 Subtask - Add negative validation coverage for required shapes on redline, code, slide-over, meter, segmented control, and repeat components.
+- [x] 31.3.2.4 Subtask - Preserve Ash resource identity and relationship metadata under Ash-owned metadata keys only.
 
 ## [ ] 31.4 Section - Runtime Renderer Adapter Support
 

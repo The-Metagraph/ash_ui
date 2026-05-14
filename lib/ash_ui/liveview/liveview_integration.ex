@@ -16,6 +16,7 @@ defmodule AshUI.LiveView.Integration do
   alias AshUI.LiveView.BindingRuntime
   alias AshUI.LiveView.IURHydration
   alias AshUI.LiveView.UpdateIntegration
+  alias AshUI.Rendering.CanonicalIUR
   alias AshUI.Rendering.IURAdapter
   alias AshUI.Runtime.BindingEvaluator
   alias AshUI.Telemetry
@@ -245,7 +246,7 @@ defmodule AshUI.LiveView.Integration do
   end
 
   defp load_screen_bindings(screen, user, socket, compiled_iur) when is_map(screen) do
-    compiled_bindings = Map.get(compiled_iur || %{}, "bindings", [])
+    compiled_bindings = compiled_runtime_bindings(compiled_iur)
 
     if compiled_bindings != [] do
       Enum.map(compiled_bindings, &normalize_compiled_binding(&1, screen.id))
@@ -253,6 +254,11 @@ defmodule AshUI.LiveView.Integration do
       load_persisted_screen_bindings(screen, user, socket)
     end
   end
+
+  defp compiled_runtime_bindings(nil), do: []
+  defp compiled_runtime_bindings(%UnifiedIUR.Element{} = iur), do: CanonicalIUR.ash_bindings(iur)
+  defp compiled_runtime_bindings(iur) when is_map(iur), do: Map.get(iur, "bindings", [])
+  defp compiled_runtime_bindings(_iur), do: []
 
   defp load_persisted_screen_bindings(screen, user, socket) when is_map(screen) do
     ui_storage = current_ui_storage(socket)

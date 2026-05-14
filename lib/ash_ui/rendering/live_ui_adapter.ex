@@ -19,8 +19,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   """
 
   alias AshUI.Compilation.IUR
+  alias AshUI.Rendering.CanonicalIUR
   alias AshUI.Rendering.IURAdapter
   alias AshUI.Telemetry
+  alias UnifiedIUR.Element
 
   @doc """
   Renders a canonical IUR to HEEx template string.
@@ -46,12 +48,15 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     metadata = render_metadata(canonical_iur, :live_ui)
     Telemetry.emit(:render, :start, %{count: 1}, metadata)
     force_fallback? = Keyword.get(opts, :force_fallback, false)
+    canonical? = CanonicalIUR.canonical?(canonical_iur)
 
     result =
-      if Code.ensure_loaded?(LiveUI.Renderer) and not force_fallback? do
+      if canonical? and available?() and not force_fallback? do
         call_live_ui_renderer(canonical_iur, opts)
       else
-        render_fallback(canonical_iur, opts)
+        canonical_iur
+        |> CanonicalIUR.to_legacy_map()
+        |> render_fallback(opts)
       end
 
     emit_render_telemetry(result, started_at, metadata)
@@ -83,7 +88,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   @spec render_ash_iur(IUR.t(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def render_ash_iur(%IUR{} = ash_iur, opts \\ []) do
     with {:ok, canonical_iur} <- IURAdapter.to_canonical(ash_iur, opts),
-         {:ok, heex} <- render(canonical_iur, opts) do
+         {:ok, heex} <- render(canonical_iur, Keyword.put_new(opts, :force_fallback, true)) do
       {:ok, heex}
     else
       error -> error
@@ -101,7 +106,15 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     * Event binding configuration map
   """
   @spec configure_event_bindings(map(), keyword()) :: map()
-  def configure_event_bindings(%{"type" => "screen"} = iur, opts \\ []) do
+  def configure_event_bindings(iur, opts \\ [])
+
+  def configure_event_bindings(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_event_bindings(opts)
+  end
+
+  def configure_event_bindings(%{"type" => "screen"} = iur, opts) do
     event_prefix = Keyword.get(opts, :event_prefix, "ash_ui")
 
     bindings = extract_event_bindings(iur, event_prefix)
@@ -124,7 +137,15 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     * Hook configuration list
   """
   @spec configure_hooks(map(), keyword()) :: [map()]
-  def configure_hooks(%{"type" => "screen"} = _iur, opts \\ []) do
+  def configure_hooks(iur, opts \\ [])
+
+  def configure_hooks(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_hooks(opts)
+  end
+
+  def configure_hooks(%{"type" => "screen"} = _iur, opts) do
     custom_hooks = Keyword.get(opts, :hooks, [])
     optimize_patches = Keyword.get(opts, :optimize_patches, true)
 
@@ -161,7 +182,15 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     * Assigns configuration map
   """
   @spec configure_assigns(map(), keyword()) :: map()
-  def configure_assigns(%{"type" => "screen"} = iur, opts \\ []) do
+  def configure_assigns(iur, opts \\ [])
+
+  def configure_assigns(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_assigns(opts)
+  end
+
+  def configure_assigns(%{"type" => "screen"} = iur, opts) do
     initial_assigns = Keyword.get(opts, :assigns, %{})
     bindings = Map.get(iur, "bindings", [])
 
@@ -192,7 +221,15 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     * Patch optimization configuration
   """
   @spec configure_patch_optimization(map(), keyword()) :: map()
-  def configure_patch_optimization(%{"type" => "screen"} = iur, opts \\ []) do
+  def configure_patch_optimization(iur, opts \\ [])
+
+  def configure_patch_optimization(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_patch_optimization(opts)
+  end
+
+  def configure_patch_optimization(%{"type" => "screen"} = iur, opts) do
     enabled = Keyword.get(opts, :optimize_patches, true)
     static_elements = extract_static_elements(iur)
 
@@ -206,16 +243,15 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   # Private Functions
 
   defp live_ui_renderer_module do
-    Module.concat(LiveUI, Renderer)
+    Module.concat(LiveUi, Renderer)
   end
 
   # Call actual LiveUI.Renderer if available
-  defp call_live_ui_renderer(canonical_iur, opts) do
-    renderer_module = live_ui_renderer_module()
-
+  defp call_live_ui_renderer(%Element{} = canonical_iur, opts) do
     try do
-      case renderer_module.render(canonical_iur, opts) do
-        {:ok, heex} -> {:ok, heex}
+      case LiveUi.Tooling.inspect_canonical(canonical_iur, opts) do
+        {:ok, %{html: heex}} -> {:ok, heex}
+        {:ok, %{"html" => heex}} -> {:ok, heex}
         {:error, reason} -> {:error, {:live_ui_error, reason}}
         other -> {:error, {:unexpected_response, other}}
       end
@@ -1962,9 +1998,9 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp render_metadata(canonical_iur, renderer) do
     %{
       renderer: renderer,
-      resource_id: Map.get(canonical_iur, "id"),
+      resource_id: CanonicalIUR.id(canonical_iur),
       resource_type: :screen,
-      screen_id: Map.get(canonical_iur, "id")
+      screen_id: CanonicalIUR.id(canonical_iur)
     }
   end
 

@@ -19,8 +19,10 @@ defmodule AshUI.Rendering.ElmUIAdapter do
   """
 
   alias AshUI.Compilation.IUR
+  alias AshUI.Rendering.CanonicalIUR
   alias AshUI.Rendering.IURAdapter
   alias AshUI.Telemetry
+  alias UnifiedIUR.Element
 
   @doc """
   Renders a canonical IUR to an Elm-backed web document.
@@ -45,12 +47,16 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     started_at = System.monotonic_time()
     metadata = render_metadata(canonical_iur, :elm_ui)
     Telemetry.emit(:render, :start, %{count: 1}, metadata)
+    canonical? = CanonicalIUR.canonical?(canonical_iur)
+    force_fallback? = Keyword.get(opts, :force_fallback, false)
 
     result =
-      if Code.ensure_loaded?(ElmUI.Renderer) do
+      if canonical? and available?() and not force_fallback? do
         call_elm_ui_renderer(canonical_iur, opts)
       else
-        render_fallback(canonical_iur, opts)
+        canonical_iur
+        |> CanonicalIUR.to_legacy_map()
+        |> render_fallback(opts)
       end
 
     emit_render_telemetry(result, started_at, metadata)
@@ -82,7 +88,7 @@ defmodule AshUI.Rendering.ElmUIAdapter do
   @spec render_ash_iur(IUR.t(), keyword()) :: {:ok, String.t()} | {:error, term()}
   def render_ash_iur(%IUR{} = ash_iur, opts \\ []) do
     with {:ok, canonical_iur} <- IURAdapter.to_canonical(ash_iur, opts),
-         {:ok, html} <- render(canonical_iur, opts) do
+         {:ok, html} <- render(canonical_iur, Keyword.put_new(opts, :force_fallback, true)) do
       {:ok, html}
     else
       error -> error
@@ -100,7 +106,15 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     * SEO configuration map with title, description, keywords, etc.
   """
   @spec configure_seo(map(), keyword()) :: map()
-  def configure_seo(%{"type" => "screen"} = iur, opts \\ []) do
+  def configure_seo(iur, opts \\ [])
+
+  def configure_seo(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_seo(opts)
+  end
+
+  def configure_seo(%{"type" => "screen"} = iur, opts) do
     seo_enabled = Keyword.get(opts, :seo_enabled, true)
     custom_title = Keyword.get(opts, :title)
     custom_description = Keyword.get(opts, :description)
@@ -126,7 +140,15 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     * Elm runtime configuration
   """
   @spec configure_elm_integration(map(), keyword()) :: map()
-  def configure_elm_integration(%{"type" => "screen"} = iur, opts \\ []) do
+  def configure_elm_integration(iur, opts \\ [])
+
+  def configure_elm_integration(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_elm_integration(opts)
+  end
+
+  def configure_elm_integration(%{"type" => "screen"} = iur, opts) do
     elm_module = Keyword.get(opts, :elm_module, "Main")
     assets_url = Keyword.get(opts, :assets_url, "/assets")
 
@@ -161,7 +183,15 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     * Asset configuration map
   """
   @spec configure_assets(map(), keyword()) :: map()
-  def configure_assets(%{"type" => "screen"} = _iur, opts \\ []) do
+  def configure_assets(iur, opts \\ [])
+
+  def configure_assets(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_assets(opts)
+  end
+
+  def configure_assets(%{"type" => "screen"} = _iur, opts) do
     assets_url = Keyword.get(opts, :assets_url, "/assets")
     include_css = Keyword.get(opts, :include_css, true)
     include_js = Keyword.get(opts, :include_js, true)
@@ -185,7 +215,15 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     * SSG configuration
   """
   @spec configure_ssg(map(), keyword()) :: map()
-  def configure_ssg(%{"type" => "screen"} = _iur, opts \\ []) do
+  def configure_ssg(iur, opts \\ [])
+
+  def configure_ssg(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_ssg(opts)
+  end
+
+  def configure_ssg(%{"type" => "screen"} = _iur, opts) do
     %{
       output_path: Keyword.get(opts, :output_path, "output"),
       generate_index: Keyword.get(opts, :generate_index, true),
@@ -198,15 +236,16 @@ defmodule AshUI.Rendering.ElmUIAdapter do
   # Private Functions
 
   defp elm_ui_renderer_module do
-    Module.concat(ElmUI, Renderer)
+    Module.concat(ElmUi, Renderer)
   end
 
   # Call actual ElmUI.Renderer if available
   defp call_elm_ui_renderer(canonical_iur, opts) do
     renderer_module = elm_ui_renderer_module()
+    render_root = elm_render_root(canonical_iur)
 
     try do
-      case renderer_module.render(canonical_iur, opts) do
+      case renderer_module.render(render_root, opts) do
         {:ok, html} -> {:ok, html}
         {:error, reason} -> {:error, {:elm_ui_error, reason}}
         other -> {:error, {:unexpected_response, other}}
@@ -215,6 +254,17 @@ defmodule AshUI.Rendering.ElmUIAdapter do
       error -> {:error, {:elm_ui_exception, error}}
     end
   end
+
+  defp elm_render_root(%Element{type: :composite, kind: :screen} = element) do
+    Element.new(:layout, :column,
+      id: "#{element.id}-content",
+      metadata: element.metadata,
+      attributes: %{layout: %{screen_id: element.id}},
+      children: element.children
+    )
+  end
+
+  defp elm_render_root(element), do: element
 
   # Fallback renderer when ElmUI is not available
   defp render_fallback(canonical_iur, opts) do
@@ -406,9 +456,9 @@ defmodule AshUI.Rendering.ElmUIAdapter do
   defp render_metadata(canonical_iur, renderer) do
     %{
       renderer: renderer,
-      resource_id: Map.get(canonical_iur, "id"),
+      resource_id: CanonicalIUR.id(canonical_iur),
       resource_type: :screen,
-      screen_id: Map.get(canonical_iur, "id")
+      screen_id: CanonicalIUR.id(canonical_iur)
     }
   end
 end

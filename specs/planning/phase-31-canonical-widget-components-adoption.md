@@ -46,27 +46,27 @@ This task prevents partial adoption or silent drift between Ash UI and the Unifi
 - [x] 31.1.2.3 Subtask - Add an explicit exclusion mechanism if Ash UI intentionally delays any upstream component.
 - [x] 31.1.2.4 Subtask - Fail package-boundary tests when a new upstream component appears without an Ash UI adoption decision.
 
-## [ ] 31.2 Section - Resource And Persisted DSL Admission
+## [x] 31.2 Section - Resource And Persisted DSL Admission
 
 This section admits canonical widget components into Ash UI's resource-first authoring and persisted payload validation paths.
 
-### [ ] 31.2.1 Task - Extend Widget Type Admission
+### [x] 31.2.1 Task - Extend Widget Type Admission
 
 This task updates persisted DSL and resource validation so cataloged component kinds are valid element types.
 
-- [ ] 31.2.1.1 Subtask - Update `AshUI.DSL.Storage.valid_widget_type?/1` to admit all canonical widget-component kinds.
-- [ ] 31.2.1.2 Subtask - Update `AshUI.Resources.Validations.Authoring.validate_element_definition!/1` paths if they require component-specific admission.
-- [ ] 31.2.1.3 Subtask - Ensure invalid component names still fail validation.
-- [ ] 31.2.1.4 Subtask - Preserve support for existing non-component widgets, layouts, and `custom:*` extensions.
+- [x] 31.2.1.1 Subtask - Update `AshUI.DSL.Storage.valid_widget_type?/1` to admit all canonical widget-component kinds.
+- [x] 31.2.1.2 Subtask - Update `AshUI.Resources.Validations.Authoring.validate_element_definition!/1` paths if they require component-specific admission.
+- [x] 31.2.1.3 Subtask - Ensure invalid component names still fail validation.
+- [x] 31.2.1.4 Subtask - Preserve support for existing non-component widgets, layouts, and `custom:*` extensions.
 
-### [ ] 31.2.2 Task - Normalize Compatibility Aliases
+### [x] 31.2.2 Task - Normalize Compatibility Aliases
 
 This task keeps migration-friendly aliases at the authoring boundary while emitting canonical component names downstream.
 
-- [ ] 31.2.2.1 Subtask - Normalize `phoenix_form` to `runtime_form_shell`.
-- [ ] 31.2.2.2 Subtask - Normalize `repeat` and `ui_relationship_repeat` to `list_repeat`.
-- [ ] 31.2.2.3 Subtask - Add diagnostics that identify the alias and canonical replacement.
-- [ ] 31.2.2.4 Subtask - Add tests proving aliases never appear as renderer-facing canonical kinds.
+- [x] 31.2.2.1 Subtask - Normalize `phoenix_form` to `runtime_form_shell`.
+- [x] 31.2.2.2 Subtask - Normalize `repeat` and `ui_relationship_repeat` to `list_repeat`.
+- [x] 31.2.2.3 Subtask - Add diagnostics that identify the alias and canonical replacement.
+- [x] 31.2.2.4 Subtask - Add tests proving aliases never appear as renderer-facing canonical kinds.
 
 ## [ ] 31.3 Section - Canonical Conversion And Validation
 

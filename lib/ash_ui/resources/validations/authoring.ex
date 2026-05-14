@@ -24,7 +24,10 @@ defmodule AshUI.Resources.Validations.Authoring do
                     "radio",
                     "switch",
                     "slider",
-                    "form_builder"
+                    "form_builder",
+                    "runtime_form_shell",
+                    "segmented_button_group",
+                    "chat_composer"
                   ])
   @signal_capabilities %{
     "button" => [:click, :submit],
@@ -36,7 +39,10 @@ defmodule AshUI.Resources.Validations.Authoring do
     "radio" => [:change, :input],
     "switch" => [:change, :toggle],
     "slider" => [:change, :input],
-    "form_builder" => [:submit]
+    "form_builder" => [:submit],
+    "runtime_form_shell" => [:submit],
+    "segmented_button_group" => [:change, :input],
+    "chat_composer" => [:change, :input, :submit]
   }
 
   @doc """
@@ -292,9 +298,12 @@ defmodule AshUI.Resources.Validations.Authoring do
   Normalizes widget identifiers to the string form used by storage validation.
   """
   @spec normalize_widget_type(term()) :: String.t() | nil
-  def normalize_widget_type(type) when is_atom(type), do: Atom.to_string(type)
-  def normalize_widget_type(type) when is_binary(type), do: type
-  def normalize_widget_type(_type), do: nil
+  def normalize_widget_type(type) do
+    case Storage.canonical_widget_type(type) do
+      {:ok, normalized_type} -> normalized_type
+      {:error, _diagnostic} -> nil
+    end
+  end
 
   @doc """
   Validates that a DSL child list contains only resource modules.

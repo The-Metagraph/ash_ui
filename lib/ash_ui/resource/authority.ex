@@ -45,6 +45,7 @@ defmodule AshUI.Resource.Authority do
     with :screen <- Info.resource_role(screen_module),
          {:ok, screen_definition} <- Info.screen_definition(screen_module),
          {:ok, screen_bindings} <- Info.screen_bindings(screen_module),
+         {:ok, screen_actions} <- Info.screen_actions(screen_module),
          {:ok, composition_roots} <- build_composition(screen_module),
          {:ok, elements} <- build_elements(composition_roots) do
       screen_metadata = build_metadata(screen_definition, Keyword.get(opts, :metadata, %{}))
@@ -63,7 +64,8 @@ defmodule AshUI.Resource.Authority do
              ),
            "metadata" => encode_value(screen_metadata),
            "inline_fragment" => encode_value(Map.get(screen_definition, :inline_fragment)),
-           "bindings" => Enum.map(screen_bindings, &encode_binding/1)
+           "bindings" => Enum.map(screen_bindings, &encode_binding/1),
+           "actions" => Enum.map(screen_actions, &encode_action/1)
          },
          "composition" => %{
            "roots" => composition_roots
@@ -173,7 +175,8 @@ defmodule AshUI.Resource.Authority do
     if authority_payload?(payload) do
       with :ok <- validate_section(payload, "screen"),
            :ok <- validate_nested_map(payload, "composition"),
-           :ok <- validate_elements(Map.get(payload, "elements") || Map.get(payload, :elements, [])),
+           :ok <-
+             validate_elements(Map.get(payload, "elements") || Map.get(payload, :elements, [])),
            :ok <- validate_composition(payload) do
         :ok
       end
@@ -469,6 +472,13 @@ defmodule AshUI.Resource.Authority do
         merge_declarations(
           Map.get(runtime_screen, "bindings", []),
           Map.get(stored_screen, "bindings", [])
+        )
+      )
+      |> Map.put(
+        "actions",
+        merge_declarations(
+          Map.get(runtime_screen, "actions", []),
+          Map.get(stored_screen, "actions", [])
         )
       )
       |> maybe_put("inline_fragment", Map.get(stored_screen, "inline_fragment"))

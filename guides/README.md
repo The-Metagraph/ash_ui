@@ -23,7 +23,7 @@ current AshUI architecture.
 |---|---|---|---|
 | [UG-0001](user/UG-0001-getting-started.md) | Getting Started with AshUI | Application Developers | Active |
 | [UG-0002](user/UG-0002-authoring-screens-elements-and-relationships.md) | Authoring Screens, Elements, and Relationships | Application Developers | Active |
-| [UG-0003](user/UG-0003-widget-types-properties-and-signals.md) | Widget Types, Properties, and Signals | Application Developers | Active |
+| [UG-0003](user/UG-0003-widget-types-properties-and-signals.md) | Widget Types, Styling, Properties, and Signals | Application Developers | Active |
 | [UG-0004](user/UG-0004-bindings-actions-and-forms.md) | Bindings, Actions, and Forms | Application Developers | Active |
 | [UG-0005](user/UG-0005-liveview-runtime-and-rendering.md) | LiveView Runtime and Rendering | Application Developers | Active |
 | [UG-0006](user/UG-0006-authorization-and-runtime-safety.md) | Authorization and Runtime Safety | Application Developers | Active |
@@ -38,7 +38,7 @@ Developer guides are written for contributors to the Ash UI framework itself.
 |---|---|---|---|
 | [DG-0001](developer/DG-0001-architecture-and-control-planes.md) | Architecture and Control Planes | Framework Developers | Active |
 | [DG-0002](developer/DG-0002-storage-resource-authority-and-configuration.md) | Storage, Resource Authority, and Configuration | Framework Developers | Active |
-| [DG-0003](developer/DG-0003-compiler-canonical-iur-and-renderers.md) | Compiler, Canonical IUR, and Renderers | Framework Developers | Active |
+| [DG-0003](developer/DG-0003-compiler-canonical-iur-and-renderers.md) | Compiler, Canonical IUR, Styling, and Renderers | Framework Developers | Active |
 | [DG-0004](developer/DG-0004-runtime-bindings-and-authorization.md) | Runtime, Bindings, and Authorization | Framework Developers | Active |
 | [DG-0005](developer/DG-0005-testing-conformance-and-governance.md) | Testing, Conformance, and Governance | Framework Developers | Active |
 | [DG-0006](developer/DG-0006-contribution-and-release-workflow.md) | Contribution and Release Workflow | Framework Developers | Active |

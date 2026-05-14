@@ -6,11 +6,11 @@ title: Bindings, Actions, and Forms
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-25
-next_review: 2026-10-25
-related_reqs: [REQ-BIND-001, REQ-BIND-002, REQ-BIND-003, REQ-BIND-007, REQ-BIND-008, REQ-BIND-010]
-related_scns: [SCN-006, SCN-007, SCN-009, SCN-010, SCN-011, SCN-021]
-related_guides: [UG-0002, UG-0003, UG-0005, UG-0006, DG-0004, DG-0005]
+last_reviewed: 2026-05-14
+next_review: 2026-11-14
+related_reqs: [REQ-BIND-001, REQ-BIND-002, REQ-BIND-003, REQ-BIND-007, REQ-BIND-008, REQ-BIND-010, REQ-NAV-004, REQ-NAV-005, REQ-NAV-006, REQ-NAV-007]
+related_scns: [SCN-006, SCN-007, SCN-009, SCN-010, SCN-011, SCN-021, SCN-142, SCN-143, SCN-145]
+related_guides: [UG-0002, UG-0003, UG-0005, UG-0006, DG-0003, DG-0004, DG-0005]
 diagram_required: true
 ---
 
@@ -120,6 +120,84 @@ Use whichever makes ownership clearer in your screen design. In practice:
 
 - use `ui_actions` for element-local signals such as button clicks
 - use explicit action bindings when a binding-shaped workflow reads more clearly in your app
+
+## Canonical Navigation Actions
+
+Navigation actions are resource-authored semantic intent. They are not host
+routes and they are not renderer-specific commands.
+
+Use `navigation` inside `ui_actions` when an element owns the trigger. Use
+`ui_screen_actions` when the screen owns a navigation trigger that is not local
+to one element. A navigation-only action may omit `source`; AshUI validates the
+navigation intent and compiles it into a canonical Unified IUR interaction.
+
+Supported navigation actions are:
+
+| Action | Meaning |
+|---|---|
+| `:navigate_to` | Move to a symbolic screen or destination |
+| `:replace_with` | Replace the current screen with a symbolic target |
+| `:go_back` | Ask the host runtime to go back |
+| `:go_forward` | Ask the host runtime to go forward |
+| `:open_modal` | Open a symbolic modal target |
+| `:close_modal` | Close the topmost modal or a named symbolic modal |
+
+Element-owned navigation example:
+
+```elixir
+defmodule MyApp.UI.SettingsButton do
+  use MyApp.UI.ElementBase
+
+  ui_element do
+    type :button
+    props %{label: "Settings", variant: "secondary"}
+    metadata %{id: "settings_button"}
+  end
+
+  ui_actions do
+    action :open_settings do
+      signal :click
+
+      navigation %{
+        action: :navigate_to,
+        screen: :settings,
+        params: %{tab: :profile}
+      }
+
+      summary "Open settings"
+    end
+  end
+end
+```
+
+Screen-owned modal example:
+
+```elixir
+ui_screen_actions do
+  action :open_confirm_delete do
+    signal :click
+
+    navigation %{
+      action: :open_modal,
+      modal: :confirm_delete,
+      params: %{record: :selected_user}
+    }
+  end
+
+  action :close_dialog do
+    signal :click
+    navigation %{action: :close_modal}
+  end
+end
+```
+
+Keep navigation targets symbolic. Do not put host runtime fields in navigation
+declarations, including `route`, `path`, `url`, `uri`, `router`, `helper`,
+`module`, `runtime_module`, `stack_id`, or `modal_stack_id`.
+
+Use `params`, `metadata`, `payload_mapping`, and `binding_refs` for portable
+payloads. The runtime adapter resolves symbolic screens and modals against the
+AshUI application graph at the boundary where the host can actually navigate.
 
 ## Form Authoring Pattern That Fits AshUI Today
 
@@ -238,7 +316,7 @@ not a binding issue.
 
 ## See Also
 
-- [UG-0003: Widget Types, Properties, and Signals](./UG-0003-widget-types-properties-and-signals.md)
+- [UG-0003: Widget Types, Styling, Properties, and Signals](./UG-0003-widget-types-properties-and-signals.md)
 - [UG-0005: LiveView Runtime and Rendering](./UG-0005-liveview-runtime-and-rendering.md)
 - [UG-0006: Authorization and Runtime Safety](./UG-0006-authorization-and-runtime-safety.md)
 - [Binding contract](../../specs/contracts/binding_contract.md)

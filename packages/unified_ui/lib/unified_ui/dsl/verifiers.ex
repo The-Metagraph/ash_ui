@@ -7,7 +7,8 @@ defmodule UnifiedUi.Dsl.Verifiers do
     ValidateCompositionPlacement,
     ValidateAuthoringInvariants,
     ValidateRequiredSections,
-    ValidateThemesAndSignals
+    ValidateThemesAndSignals,
+    ValidateWidgetComponents
   }
 
   @spec all() :: [module()]
@@ -16,6 +17,7 @@ defmodule UnifiedUi.Dsl.Verifiers do
       ValidateRequiredSections,
       ValidateAuthoringInvariants,
       ValidateCompositionPlacement,
+      ValidateWidgetComponents,
       ValidateThemesAndSignals
     ]
   end

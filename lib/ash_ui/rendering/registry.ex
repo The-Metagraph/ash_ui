@@ -197,19 +197,19 @@ defmodule AshUI.Rendering.Registry do
     %{
       liveview:
         detect_renderer(
-          LiveUI.Renderer,
+          LiveUi.Renderer,
           AshUI.Rendering.LiveUIAdapter,
           "Phoenix LiveView renderer (live_ui)"
         ),
       elm:
         detect_renderer(
-          ElmUI.Renderer,
+          ElmUi.Renderer,
           AshUI.Rendering.ElmUIAdapter,
           "Elm-backed web renderer (elm_ui)"
         ),
       desktop:
         detect_renderer(
-          DesktopUI.Renderer,
+          DesktopUi.Renderer,
           AshUI.Rendering.DesktopUIAdapter,
           "Native desktop renderer (desktop_ui)"
         )

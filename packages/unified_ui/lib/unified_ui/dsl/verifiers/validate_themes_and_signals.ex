@@ -40,6 +40,34 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateThemesAndSignals do
   ]
 
   @renderer_local_sources [:phoenix, :live_view, :elm, :dom, :js, :sdl]
+  @host_route_keys [
+    :route,
+    :path,
+    :url,
+    :uri,
+    :href,
+    :to,
+    :router,
+    :router_ref,
+    :route_helper,
+    :history,
+    :browser_history,
+    :push_patch,
+    :push_navigate,
+    "route",
+    "path",
+    "url",
+    "uri",
+    "href",
+    "to",
+    "router",
+    "router_ref",
+    "route_helper",
+    "history",
+    "browser_history",
+    "push_patch",
+    "push_navigate"
+  ]
   @allowed_state_keys MapSet.new(Style.component_states())
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
@@ -510,6 +538,7 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateThemesAndSignals do
                interaction.id,
                :payload_mapping
              ]),
+           :ok <- validate_navigation_interaction(module, interaction),
            :ok <-
              validate_binding_refs(module, interaction.id, interaction.binding_refs, context, [
                :signals,
@@ -544,6 +573,175 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateThemesAndSignals do
   end
 
   defp validate_interaction_target(_module, _interaction), do: :ok
+
+  defp validate_navigation_interaction(_module, %Signal{family: family})
+       when family != :navigation,
+       do: :ok
+
+  defp validate_navigation_interaction(module, %Signal{id: id, target_intent: target_intent}) do
+    with :ok <- validate_host_route_keys(module, id, target_intent),
+         :ok <- validate_navigation_target_shape(module, id, target_intent) do
+      :ok
+    end
+  end
+
+  defp validate_host_route_keys(_module, _id, values) when values in [%{}, nil], do: :ok
+
+  defp validate_host_route_keys(module, id, values) do
+    case find_host_route_key(values) do
+      nil ->
+        :ok
+
+      bad_key ->
+        dsl_error(
+          module,
+          [:signals, :interaction, id, :target_intent],
+          "canonical navigation must not declare host-route key #{inspect(bad_key)}; use symbolic :screen targets for top-level transitions or :destination for local navigation instead"
+        )
+    end
+  end
+
+  defp validate_navigation_target_shape(module, id, target_intent) do
+    action = target_fetch(target_intent, :action)
+    contract = Signal.navigation_action_contracts()[action]
+
+    cond do
+      contract != nil ->
+        with :ok <-
+               validate_navigation_required_fields(module, id, target_intent, action, contract),
+             :ok <-
+               validate_navigation_allowed_fields(module, id, target_intent, action, contract),
+             :ok <- validate_navigation_symbolic_targets(module, id, target_intent, contract) do
+          :ok
+        end
+
+      action != nil ->
+        dsl_error(
+          module,
+          [:signals, :interaction, id, :target_intent],
+          "unsupported navigation action #{inspect(action)}; expected one of #{inspect(Signal.navigation_actions())}"
+        )
+
+      Signal.navigation_target_kind(target_intent) == :local_destination ->
+        with :ok <- validate_navigation_allowed_fields(module, id, target_intent, nil, nil),
+             :ok <- validate_navigation_symbolic_destination(module, id, target_intent) do
+          :ok
+        end
+
+      true ->
+        dsl_error(
+          module,
+          [:signals, :interaction, id, :target_intent],
+          "navigation interaction must declare either a local destination pair (:binding and :destination) or a supported transition action #{inspect(Signal.navigation_actions())}"
+        )
+    end
+  end
+
+  defp validate_navigation_required_fields(module, id, target_intent, action, contract) do
+    missing =
+      Enum.reject(contract.required_fields, fn field ->
+        target_fetch(target_intent, field) != nil
+      end)
+
+    case missing do
+      [] ->
+        :ok
+
+      _missing ->
+        dsl_error(
+          module,
+          [:signals, :interaction, id, :target_intent],
+          "navigation action #{inspect(action)} requires fields #{inspect(contract.required_fields)}"
+        )
+    end
+  end
+
+  defp validate_navigation_allowed_fields(module, id, target_intent, action, contract) do
+    keys = target_keys(target_intent)
+
+    allowed_fields =
+      case {action, contract} do
+        {nil, nil} ->
+          [:binding, :destination]
+
+        {_action, %{required_fields: required_fields, optional_fields: optional_fields}} ->
+          [:action | required_fields ++ optional_fields]
+      end
+
+    case keys -- allowed_fields do
+      [] ->
+        :ok
+
+      disallowed ->
+        dsl_error(
+          module,
+          [:signals, :interaction, id, :target_intent],
+          "navigation target_intent uses unsupported fields #{inspect(disallowed)} for #{navigation_shape_label(action, contract)}"
+        )
+    end
+  end
+
+  defp validate_navigation_symbolic_targets(module, id, target_intent, contract) do
+    fields =
+      case contract.kind do
+        kind when kind in [:screen_transition, :replace_transition] -> [:screen]
+        :modal_transition -> [:modal]
+        :history_transition -> []
+      end
+
+    Enum.reduce_while(fields, :ok, fn field, :ok ->
+      case validate_symbolic_navigation_identifier(
+             module,
+             id,
+             field,
+             target_fetch(target_intent, field)
+           ) do
+        :ok -> {:cont, :ok}
+        error -> {:halt, error}
+      end
+    end)
+  end
+
+  defp validate_navigation_symbolic_destination(module, id, target_intent) do
+    validate_symbolic_navigation_identifier(
+      module,
+      id,
+      :destination,
+      target_fetch(target_intent, :destination)
+    )
+  end
+
+  defp validate_symbolic_navigation_identifier(_module, _id, _field, nil), do: :ok
+
+  defp validate_symbolic_navigation_identifier(module, id, field, value)
+       when is_atom(value) or is_binary(value) do
+    cond do
+      runtime_module_identifier?(value) ->
+        dsl_error(
+          module,
+          [:signals, :interaction, id, :target_intent, field],
+          "navigation #{field} must be a symbolic identifier and must not reference a runtime module"
+        )
+
+      url_like_identifier?(value) ->
+        dsl_error(
+          module,
+          [:signals, :interaction, id, :target_intent, field],
+          "navigation #{field} must be a symbolic identifier and must not use URL or path syntax"
+        )
+
+      true ->
+        :ok
+    end
+  end
+
+  defp validate_symbolic_navigation_identifier(module, id, field, value) do
+    dsl_error(
+      module,
+      [:signals, :interaction, id, :target_intent, field],
+      "navigation #{field} must be a symbolic identifier, got #{inspect(value)}"
+    )
+  end
 
   defp validate_runtime_local_keys(_module, values, _path) when values in [%{}, nil], do: :ok
 
@@ -751,6 +949,105 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateThemesAndSignals do
         nil
     end)
   end
+
+  defp find_host_route_key(values) when is_map(values) do
+    values
+    |> Enum.find_value(fn {key, value} ->
+      cond do
+        key in @host_route_keys ->
+          key
+
+        is_map(value) or is_list(value) ->
+          find_host_route_key(value)
+
+        true ->
+          nil
+      end
+    end)
+  end
+
+  defp find_host_route_key(values) when is_list(values) do
+    Enum.find_value(values, fn
+      {key, value} ->
+        cond do
+          key in @host_route_keys -> key
+          is_map(value) or is_list(value) -> find_host_route_key(value)
+          true -> nil
+        end
+
+      value when is_map(value) or is_list(value) ->
+        find_host_route_key(value)
+
+      _value ->
+        nil
+    end)
+  end
+
+  defp target_fetch(source, key) do
+    Map.get(source, key, Map.get(source, Atom.to_string(key)))
+  end
+
+  defp target_keys(values) when is_map(values) do
+    values
+    |> Map.keys()
+    |> Enum.map(&normalize_target_key/1)
+    |> Enum.uniq()
+  end
+
+  defp navigation_shape_label(nil, nil), do: "a local navigation destination"
+
+  defp navigation_shape_label(action, _contract),
+    do: "navigation action #{inspect(action)}"
+
+  defp runtime_module_identifier?(value) when is_atom(value) do
+    value
+    |> Atom.to_string()
+    |> String.starts_with?("Elixir.")
+  end
+
+  defp runtime_module_identifier?(_value), do: false
+
+  defp url_like_identifier?(value) when is_atom(value) do
+    value
+    |> Atom.to_string()
+    |> url_like_identifier?()
+  end
+
+  defp url_like_identifier?(value) when is_binary(value) do
+    String.starts_with?(value, "/") or
+      String.starts_with?(value, "http://") or
+      String.starts_with?(value, "https://")
+  end
+
+  defp url_like_identifier?(_value), do: false
+
+  defp normalize_target_key(key) when is_binary(key) do
+    case key do
+      "action" -> :action
+      "screen" -> :screen
+      "modal" -> :modal
+      "params" -> :params
+      "metadata" -> :metadata
+      "binding" -> :binding
+      "destination" -> :destination
+      "route" -> :route
+      "path" -> :path
+      "url" -> :url
+      "uri" -> :uri
+      "href" -> :href
+      "to" -> :to
+      "router" -> :router
+      "router_ref" -> :router_ref
+      "route_helper" -> :route_helper
+      "history" -> :history
+      "browser_history" -> :browser_history
+      "push_patch" -> :push_patch
+      "push_navigate" -> :push_navigate
+      other -> other
+    end
+  end
+
+  defp normalize_target_key(key), do: key
 
   defp ref_kind(:interaction_refs), do: "interactions"
   defp ref_kind(:binding_refs), do: "bindings"

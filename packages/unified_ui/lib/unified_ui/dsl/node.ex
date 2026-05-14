@@ -15,6 +15,13 @@ defmodule UnifiedUi.Dsl.Node do
           | :overlay
           | :display
           | :canvas
+          | :content_identity_and_disclosure
+          | :form_control_and_composer
+          | :row_and_artifact
+          | :workflow_progress_and_status
+          | :layer_shell_and_callout
+          | :redline_and_code
+          | :composition_behavior
 
   @type t :: %__MODULE__{
           __identifier__: atom() | nil,
@@ -140,11 +147,47 @@ defmodule UnifiedUi.Dsl.Node do
           divider_size: integer() | nil,
           divider_style: atom() | nil,
           operations: list() | nil,
+          level: atom() | nil,
+          segments: list() | nil,
+          separator: String.t() | nil,
+          initials: String.t() | nil,
+          image_source: String.t() | nil,
+          shape: atom() | nil,
+          state: atom() | nil,
+          open?: boolean() | nil,
+          active_value: term(),
+          selection_intent: atom() | nil,
+          fields: list() | nil,
+          submit_label: String.t() | nil,
+          change_intent: atom() | nil,
+          validation_state: atom() | nil,
+          send_label: String.t() | nil,
+          send_intent: atom() | nil,
+          row_identity: term(),
+          column_template: list() | nil,
+          active?: boolean() | nil,
+          link_target: String.t() | nil,
+          meta: term(),
+          steps: list() | nil,
+          active_index: integer() | nil,
+          completed_indices: list() | nil,
+          navigation_intent: atom() | nil,
+          aggregate_progress: map() | nil,
+          stages: list() | nil,
+          leading: list() | nil,
+          trailing: list() | nil,
+          language: atom() | String.t() | nil,
+          tokens: list() | nil,
+          text_safety: atom() | nil,
+          repeat_binding: atom() | nil,
+          row_scope: atom() | nil,
+          row_fields: list() | nil,
+          template_identity: atom() | nil,
+          identity_strategy: atom() | nil,
           children: [t()]
         }
 
   defstruct __identifier__: nil,
-            __spark_metadata__: nil,
             id: nil,
             family: nil,
             kind: nil,
@@ -267,6 +310,43 @@ defmodule UnifiedUi.Dsl.Node do
             divider_size: nil,
             divider_style: nil,
             operations: nil,
+            level: nil,
+            segments: nil,
+            separator: nil,
+            initials: nil,
+            image_source: nil,
+            shape: nil,
+            state: nil,
+            open?: nil,
+            active_value: nil,
+            selection_intent: nil,
+            fields: nil,
+            submit_label: nil,
+            change_intent: nil,
+            validation_state: nil,
+            send_label: nil,
+            send_intent: nil,
+            row_identity: nil,
+            column_template: nil,
+            active?: nil,
+            link_target: nil,
+            meta: nil,
+            steps: nil,
+            active_index: nil,
+            completed_indices: nil,
+            navigation_intent: nil,
+            aggregate_progress: nil,
+            stages: nil,
+            leading: nil,
+            trailing: nil,
+            language: nil,
+            tokens: nil,
+            text_safety: nil,
+            repeat_binding: nil,
+            row_scope: nil,
+            row_fields: nil,
+            template_identity: nil,
+            identity_strategy: nil,
             children: []
 
   @spec summary(t()) :: map()
@@ -275,6 +355,7 @@ defmodule UnifiedUi.Dsl.Node do
       id: node.id,
       family: node.family,
       kind: node.kind,
+      annotations: node.annotations,
       value: node.value,
       label: node.label,
       target: node.target,
@@ -291,6 +372,8 @@ defmodule UnifiedUi.Dsl.Node do
         end,
       interaction_refs: node.interaction_refs,
       binding_refs: node.binding_refs,
+      action_intent: summary_action_intent(node),
+      submit_intent: summary_submit_intent(node),
       role: node.role,
       presentation: node.presentation,
       summary: node.summary,
@@ -305,6 +388,8 @@ defmodule UnifiedUi.Dsl.Node do
       content_ref: node.content_ref,
       target_ref: node.target_ref,
       trigger_ref: node.trigger_ref,
+      modal?: summary_modal(node),
+      dismiss_intent: summary_dismiss_intent(node),
       placement: node.placement,
       base_ref: node.base_ref,
       layer_refs: node.layer_refs,
@@ -321,6 +406,43 @@ defmodule UnifiedUi.Dsl.Node do
       secondary_ref: node.secondary_ref,
       ratio: node.ratio,
       operations: node.operations,
+      level: node.level,
+      segments: node.segments,
+      separator: node.separator,
+      initials: node.initials,
+      image_source: node.image_source,
+      shape: node.shape,
+      state: node.state,
+      open?: node.open?,
+      active_value: node.active_value,
+      selection_intent: node.selection_intent,
+      fields: node.fields,
+      submit_label: node.submit_label,
+      change_intent: node.change_intent,
+      validation_state: node.validation_state,
+      send_label: node.send_label,
+      send_intent: node.send_intent,
+      row_identity: node.row_identity,
+      column_template: node.column_template,
+      active?: node.active?,
+      link_target: node.link_target,
+      meta: node.meta,
+      steps: node.steps,
+      active_index: node.active_index,
+      completed_indices: node.completed_indices,
+      navigation_intent: node.navigation_intent,
+      aggregate_progress: node.aggregate_progress,
+      stages: node.stages,
+      leading: node.leading,
+      trailing: node.trailing,
+      language: node.language,
+      tokens: node.tokens,
+      text_safety: node.text_safety,
+      repeat_binding: node.repeat_binding,
+      row_scope: node.row_scope,
+      row_fields: node.row_fields,
+      template_identity: node.template_identity,
+      identity_strategy: node.identity_strategy,
       current: node.current,
       minimum: node.minimum,
       maximum: node.maximum,
@@ -337,4 +459,29 @@ defmodule UnifiedUi.Dsl.Node do
     |> Enum.reject(fn {_key, value} -> value in [nil, []] end)
     |> Enum.into(%{})
   end
+
+  defp summary_submit_intent(%__MODULE__{kind: :runtime_form_shell, submit_intent: submit_intent}) do
+    submit_intent
+  end
+
+  defp summary_submit_intent(_node), do: nil
+
+  defp summary_action_intent(%__MODULE__{kind: kind, action_intent: action_intent})
+       when kind in [:list_item_multi_column, :artifact_row, :event_callout] do
+    action_intent
+  end
+
+  defp summary_action_intent(_node), do: nil
+
+  defp summary_modal(%__MODULE__{kind: :slide_over_panel, modal?: modal?}), do: modal?
+  defp summary_modal(_node), do: nil
+
+  defp summary_dismiss_intent(%__MODULE__{
+         kind: :slide_over_panel,
+         dismiss_intent: dismiss_intent
+       }) do
+    dismiss_intent
+  end
+
+  defp summary_dismiss_intent(_node), do: nil
 end

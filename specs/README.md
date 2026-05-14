@@ -9,6 +9,9 @@ compose primarily through related element resources, while upstream
 lowering semantics used inside those resources. This baseline is defined by
 [ADR-0005](./adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md)
 and the remediation phases in [planning/README.md](./planning/README.md).
+[ADR-0006](./adr/ADR-0006-canonical-iur-and-navigation-adoption.md) defines
+the planned adoption target for upgraded Unified IUR structs and canonical
+navigation intent.
 
 ## Directory Structure
 
@@ -30,7 +33,7 @@ specs/
 |---|---|---|
 | **Framework Control Plane** | Ash Framework integration, Resource definitions | UI.Element, UI.Screen, UI.Binding specs |
 | **Compilation Control Plane** | Resource → IUR compilation | Compiler, validation, normalization |
-| **Rendering Control Plane** | live_ui/elm_ui output | Renderer adapters, presentation layer |
+| **Rendering Control Plane** | live_ui/elm_ui/desktop_ui output | Renderer adapters, presentation layer |
 | **Runtime Control Plane** | Session management, lifecycle | LiveView mount/unmount, event handling |
 | **Extension Control Plane** | Custom widgets, plugins | Extension registry, admission |
 
@@ -43,6 +46,7 @@ specs/
 | `REQ-BIND-*` | UI.Binding semantics | `contracts/binding_contract.md` |
 | `REQ-COMP-*` | Resource → IUR compilation | `contracts/compilation_contract.md` |
 | `REQ-RENDER-*` | live_ui/elm_ui output | `contracts/rendering_contract.md` |
+| `REQ-NAV-*` | Canonical navigation and IUR adoption | `contracts/canonical_navigation_contract.md` |
 | `REQ-AUTH-*` | Ash Policy integration | `contracts/authorization_contract.md` |
 | `REQ-OBS-*` | Telemetry, events | `contracts/observability_contract.md` |
 | `REQ-EXT-*` | Extensions, plugins | `contracts/extension_contract.md` |

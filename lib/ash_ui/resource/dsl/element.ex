@@ -109,7 +109,18 @@ defmodule AshUI.Resource.DSL.Element do
         action_block
         |> Helpers.extract_literal_entries!(
           caller,
-          [:signal, :source, :target, :transform, :metadata],
+          [
+            :signal,
+            :source,
+            :target,
+            :navigation,
+            :source_context,
+            :payload_mapping,
+            :binding_refs,
+            :summary,
+            :transform,
+            :metadata
+          ],
           "ui_action"
         )
         |> Map.new()

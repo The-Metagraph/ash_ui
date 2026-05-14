@@ -7,6 +7,7 @@ defmodule AshUI.LiveView.IURHydration do
   """
 
   alias AshUI.LiveView.BindingRuntime
+  alias AshUI.Rendering.CanonicalIUR
 
   @type canonical_iur :: map()
   @type binding_state :: map()
@@ -16,6 +17,12 @@ defmodule AshUI.LiveView.IURHydration do
   props, keyed by `element_id` and binding target.
   """
   @spec hydrate(canonical_iur(), map() | [binding_state()]) :: canonical_iur()
+  def hydrate(%UnifiedIUR.Element{} = iur, bindings) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> hydrate(bindings)
+  end
+
   def hydrate(%{"type" => "screen"} = iur, bindings) do
     binding_states =
       bindings

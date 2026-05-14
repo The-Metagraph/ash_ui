@@ -80,8 +80,42 @@ defmodule UnifiedIUR.Validate do
       construct_family: :interoperability,
       guidance:
         "Keep runtime-native structs out of canonical IUR and translate them at runtime-library boundaries."
+    },
+    invalid_text_segment: %{
+      construct_family: :widget_components,
+      guidance: "Represent redline content as plain text segments with supported semantic states."
+    },
+    invalid_code_token: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent code content as plain text tokens with supported token types or the :text fallback."
+    },
+    missing_accessible_name: %{
+      construct_family: :accessibility,
+      guidance:
+        "Provide a portable label or accessibility label for component surfaces that need an accessible name."
+    },
+    invalid_progress_value: %{
+      construct_family: :widget_components,
+      guidance:
+        "Keep progress and meter values numeric and within the canonical minimum and maximum range."
     }
   }
+
+  @redline_states [:keep, :insert, :delete, :accepted, :rejected]
+  @code_token_types [
+    :text,
+    :keyword,
+    :identifier,
+    :string,
+    :number,
+    :comment,
+    :operator,
+    :punctuation,
+    :function,
+    :module,
+    :attribute
+  ]
 
   @spec element(Element.t()) :: :ok | {:error, [Error.t()]}
   def element(%Element{} = element) do
@@ -90,6 +124,7 @@ defmodule UnifiedIUR.Validate do
       |> Kernel.++(validate_element_shape(element))
       |> Kernel.++(validate_metadata(element.metadata))
       |> Kernel.++(validate_attachments(element.attributes))
+      |> Kernel.++(validate_component_contracts(element))
       |> Kernel.++(validate_runtime_local_values(element.attributes, [:attributes]))
       |> Kernel.++(validate_children(element.children))
 
@@ -366,6 +401,119 @@ defmodule UnifiedIUR.Validate do
 
   defp validate_interaction_scope(errors, _attributes), do: errors
 
+  defp validate_component_contracts(%Element{kind: :redline_inline, attributes: attributes}) do
+    attributes
+    |> get_in([:redline, :segments])
+    |> validate_redline_segments([:attributes, :redline, :segments])
+  end
+
+  defp validate_component_contracts(%Element{
+         kind: :code_block_syntax_highlighted,
+         attributes: attributes
+       }) do
+    attributes
+    |> get_in([:code, :tokens])
+    |> validate_code_tokens([:attributes, :code, :tokens])
+  end
+
+  defp validate_component_contracts(%Element{kind: :slide_over_panel, attributes: attributes}) do
+    label = get_in(attributes, [:panel, :label]) || get_in(attributes, [:accessibility, :label])
+
+    maybe_add(
+      [],
+      blank?(label),
+      Error.new(
+        :missing_accessible_name,
+        "slide_over_panel requires a label or accessibility label",
+        path: [:attributes, :panel, :label]
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{kind: :meter_thin, attributes: attributes}) do
+    meter = Map.get(attributes, :meter, %{})
+    current = fetch(meter, :current)
+    minimum = fetch(meter, :minimum, 0)
+    maximum = fetch(meter, :maximum, 100)
+
+    valid? =
+      is_number(current) and is_number(minimum) and is_number(maximum) and minimum <= current and
+        current <= maximum
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_progress_value,
+        "meter_thin current, minimum, and maximum must be numeric and in range",
+        path: [:attributes, :meter],
+        details: %{current: current, minimum: minimum, maximum: maximum}
+      )
+    )
+  end
+
+  defp validate_component_contracts(_element), do: []
+
+  defp validate_redline_segments(segments, path) when is_list(segments) do
+    segments
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {segment, index} ->
+      state = fetch(segment, :state)
+      text = fetch(segment, :text)
+
+      maybe_add(
+        [],
+        state not in @redline_states or not is_binary(text),
+        Error.new(
+          :invalid_text_segment,
+          "redline segment must include plain text and a supported state",
+          path: path ++ [index],
+          details: %{state: state, text: inspect(text)}
+        )
+      )
+    end)
+  end
+
+  defp validate_redline_segments(_segments, path) do
+    [
+      Error.new(
+        :invalid_text_segment,
+        "redline segments must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_code_tokens(tokens, path) when is_list(tokens) do
+    tokens
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {token, index} ->
+      type = fetch(token, :type, :text)
+      text = fetch(token, :text)
+
+      maybe_add(
+        [],
+        type not in @code_token_types or not is_binary(text),
+        Error.new(
+          :invalid_code_token,
+          "code token must include plain text and a supported token type",
+          path: path ++ [index],
+          details: %{type: type, text: inspect(text)}
+        )
+      )
+    end)
+  end
+
+  defp validate_code_tokens(_tokens, path) do
+    [
+      Error.new(
+        :invalid_code_token,
+        "code tokens must be a list",
+        path: path
+      )
+    ]
+  end
+
   defp validate_runtime_local_values(value, path) when is_list(value) do
     value
     |> Enum.with_index()
@@ -424,6 +572,19 @@ defmodule UnifiedIUR.Validate do
     |> Enum.chunk_every(length(prefix_parts), 1, :discard)
     |> Enum.any?(&(&1 == prefix_parts))
   end
+
+  defp fetch(source, key, default \\ nil)
+
+  defp fetch(source, key, default) when is_map(source) do
+    Map.get(source, key, Map.get(source, Atom.to_string(key), default))
+  end
+
+  defp fetch(source, key, default) when is_list(source),
+    do: source |> Enum.into(%{}) |> fetch(key, default)
+
+  defp fetch(_source, _key, default), do: default
+
+  defp blank?(value), do: value in [nil, ""]
 
   defp maybe_add(errors, true, error), do: errors ++ [error]
   defp maybe_add(errors, false, _error), do: errors

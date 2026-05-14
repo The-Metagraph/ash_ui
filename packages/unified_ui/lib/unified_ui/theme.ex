@@ -21,7 +21,6 @@ defmodule UnifiedUi.Theme do
         }
 
   defstruct __identifier__: nil,
-            __spark_metadata__: nil,
             id: nil,
             description: nil,
             authored_ref: nil,
@@ -43,7 +42,6 @@ defmodule UnifiedUi.Theme do
           }
 
     defstruct __identifier__: nil,
-              __spark_metadata__: nil,
               id: nil,
               color: nil,
               summary: nil
@@ -83,7 +81,6 @@ defmodule UnifiedUi.Theme do
           }
 
     defstruct __identifier__: nil,
-              __spark_metadata__: nil,
               id: nil,
               value: nil,
               summary: nil
@@ -138,7 +135,6 @@ defmodule UnifiedUi.Theme do
           }
 
     defstruct __identifier__: nil,
-              __spark_metadata__: nil,
               id: nil,
               value: nil,
               summary: nil
@@ -267,7 +263,6 @@ defmodule UnifiedUi.Theme do
           }
 
     defstruct __identifier__: nil,
-              __spark_metadata__: nil,
               id: nil,
               component: nil,
               variant: nil,

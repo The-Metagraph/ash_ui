@@ -202,6 +202,6 @@ Avoid:
 ## See Also
 
 - [UG-0001: Getting Started with AshUI](./UG-0001-getting-started.md)
-- [UG-0003: Widget Types, Properties, and Signals](./UG-0003-widget-types-properties-and-signals.md)
+- [UG-0003: Widget Types, Styling, Properties, and Signals](./UG-0003-widget-types-properties-and-signals.md)
 - [UG-0007: Data Surfaces and Composition Patterns](./UG-0007-data-surfaces-and-composition-patterns.md)
 - [Resource contract](../../specs/contracts/resource_contract.md)

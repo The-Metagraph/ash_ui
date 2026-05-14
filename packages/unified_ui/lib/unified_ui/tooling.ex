@@ -4,7 +4,7 @@ defmodule UnifiedUi.Tooling do
   and release review workflows.
   """
 
-  alias UnifiedUi.{Compiler, Examples, Export, Info}
+  alias UnifiedUi.{Compiler, Examples, Export, Info, Signals, WidgetComponents}
 
   @shared_specs [
     ".spec/specs/architecture.spec.md",
@@ -27,6 +27,37 @@ defmodule UnifiedUi.Tooling do
       ".spec/specs/unified-ui/widgets.spec.md",
       ".spec/specs/unified-ui/display_systems.spec.md"
     ],
+    content_identity_and_disclosure: [
+      ".spec/specs/unified-ui/widgets.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md"
+    ],
+    form_control_and_composer: [
+      ".spec/specs/unified-ui/widgets.spec.md",
+      ".spec/specs/unified-ui/signals.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md"
+    ],
+    row_and_artifact: [
+      ".spec/specs/unified-ui/widgets.spec.md",
+      ".spec/specs/unified-ui/signals.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md"
+    ],
+    workflow_progress_and_status: [
+      ".spec/specs/unified-ui/widgets.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md"
+    ],
+    layer_shell_and_callout: [
+      ".spec/specs/unified-ui/widgets.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md"
+    ],
+    redline_and_code: [
+      ".spec/specs/unified-ui/widgets.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md"
+    ],
+    composition_behavior: [
+      ".spec/specs/unified-ui/widgets.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md",
+      ".spec/specs/unified-ui/signals.spec.md"
+    ],
     layout: [".spec/specs/unified-ui/display_systems.spec.md"],
     display: [".spec/specs/unified-ui/display_systems.spec.md"],
     overlay: [".spec/specs/unified-ui/display_systems.spec.md"],
@@ -37,6 +68,18 @@ defmodule UnifiedUi.Tooling do
 
   @required_docs [
     "README.md",
+    "docs/README.md",
+    "docs/user/getting-started.md",
+    "docs/user/widget-catalog.md",
+    "docs/user/layouts-layers-and-display.md",
+    "docs/user/styling-and-themes.md",
+    "docs/user/bindings-and-interactions.md",
+    "docs/user/canonical-navigation.md",
+    "docs/developer/architecture-overview.md",
+    "docs/developer/dsl-section-model.md",
+    "docs/developer/compilation-pipeline.md",
+    "docs/developer/package-components.md",
+    "docs/developer/canonical-navigation.md",
     "guides/dsl_model.md",
     "guides/theming_and_signals.md",
     "guides/compiler_and_parity.md",
@@ -66,6 +109,22 @@ defmodule UnifiedUi.Tooling do
   @spec coverage_summary() :: String.t()
   def coverage_summary do
     coverage_report()
+    |> inspect_term()
+  end
+
+  @spec widget_component_catalog() :: map()
+  def widget_component_catalog do
+    %{
+      families: WidgetComponents.component_families(),
+      components: WidgetComponents.catalog(),
+      aliases: WidgetComponents.aliases(),
+      source_mapping: WidgetComponents.source_mapping()
+    }
+  end
+
+  @spec widget_component_catalog_summary() :: String.t()
+  def widget_component_catalog_summary do
+    widget_component_catalog()
     |> inspect_term()
   end
 
@@ -192,7 +251,9 @@ defmodule UnifiedUi.Tooling do
       "related examples: #{inspect(diagnostics.related_examples)}",
       "related specs: #{inspect(diagnostics.related_specs)}",
       "signal families: #{inspect(diagnostics.signal_coverage.families)}",
-      "binding names: #{inspect(diagnostics.signal_coverage.binding_names)}"
+      "binding names: #{inspect(diagnostics.signal_coverage.binding_names)}",
+      "navigation target kinds: #{inspect(diagnostics.signal_coverage.interaction_target_kinds)}",
+      "navigation descriptors: #{inspect(diagnostics.signal_coverage.navigation_descriptors, sort_maps: true)}"
     ]
     |> Enum.join("\n")
   end
@@ -311,6 +372,15 @@ defmodule UnifiedUi.Tooling do
         |> Enum.map(& &1.family)
         |> Enum.uniq()
         |> Enum.sort(),
+      interaction_target_kinds:
+        signal_catalog.interactions
+        |> Enum.map(fn interaction ->
+          {interaction.id, Signals.navigation_target_kind(interaction)}
+        end)
+        |> Enum.into(%{}),
+      navigation_descriptors: signal_catalog.navigation_descriptors,
+      navigation_actions: Signals.navigation_actions(),
+      navigation_contract: UnifiedUi.Reference.navigation_contract(),
       target_bindings:
         signal_catalog.interactions
         |> Enum.flat_map(fn interaction ->

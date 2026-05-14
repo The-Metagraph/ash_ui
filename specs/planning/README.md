@@ -7,6 +7,7 @@ The active architectural baseline is defined by:
 - `specs/topology.md`
 - `specs/contracts/*`
 - `specs/adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md`
+- `specs/adr/ADR-0006-canonical-iur-and-navigation-adoption.md`
 
 ## Phase Files
 1. [Phase 1 - Core Ash Resource Integration](./phase-01-core-ash-resource-integration.md): implement Ash Resources for storing unified-ui DSL definitions with Ash actions and policies.
@@ -38,6 +39,7 @@ The active architectural baseline is defined by:
 27. [Phase 27 - Tutorial Runtime Introspection and Permission-Aware Operations](./phase-27-tutorial-runtime-introspection-and-permission-aware-operations.md): implement the tutorial chapters for deeper runtime inspection and role-aware operational screens.
 28. [Phase 28 - Tutorial Production Polish and Final Application Consolidation](./phase-28-tutorial-production-polish-and-final-application-consolidation.md): implement the final tutorial chapter, responsive and accessibility cleanup, and the maintained final tutorial-app surface.
 29. [Phase 29 - Tutorial Publication, Governance, and End-to-End Validation](./phase-29-tutorial-publication-governance-and-end-to-end-validation.md): publish the tutorial as a maintained product surface with chapter-to-code validation, release readiness, and end-to-end proof.
+30. [Phase 30 - Canonical IUR And Navigation Adoption](./phase-30-canonical-iur-and-navigation-adoption.md): adopt the upgraded Unified package set, `%UnifiedIUR.Element{}` renderer boundary, and resource-authored canonical navigation intent.
 
 ## Shared Conventions
 - Numbering:
@@ -60,7 +62,10 @@ The active architectural baseline is defined by:
 - direct DSL composition is still allowed at the screen boundary where useful
 - upstream `unified_ui` provides embedded widget/layout/theming DSL constructs
   and lowering semantics
-- canonical renderer input remains `unified_iur`
+- canonical renderer input remains `unified_iur`, with `%UnifiedIUR.Element{}`
+  as the Phase 30 renderer-facing target
+- canonical navigation is semantic intent and must not include host routes,
+  URLs, router helpers, runtime modules, or modal stack identifiers
 - no backward-compatibility requirement applies to the superseded monolithic
   screen-document authority model
 
@@ -91,3 +96,9 @@ Phases 23-29 describe the next line: build a long-form `tutorials/`
 experience around one realistic Operations Control Center application, with a
 maintained final app under `tutorials/` and one standalone checkpoint app per
 chapter under `tutorials/code/`.
+
+Phase 30 describes the canonical navigation adoption line introduced by
+[ADR-0006](../adr/ADR-0006-canonical-iur-and-navigation-adoption.md). It
+coordinates the upgraded Unified package boundary, struct-based canonical IUR
+output, resource-authored navigation intent, runtime adapter realignment, and
+end-to-end conformance coverage.

@@ -1,6 +1,8 @@
 defmodule AshUI.Rendering.IURAdapterTest do
   use AshUI.DataCase, async: false
 
+  @moduletag :conformance
+
   alias AshUI.Compilation.IUR
   alias AshUI.Compiler
   alias AshUI.Rendering.IURAdapter
@@ -27,13 +29,14 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
 
-      assert canonical["type"] == "screen"
-      assert canonical["id"] == "test-screen-1"
-      assert canonical["name"] == "test_screen"
-      assert canonical["layout"] == "row"
-      assert is_list(canonical["children"])
-      assert length(canonical["children"]) == 1
-      assert :ok = UnifiedIUR.validate(canonical)
+      assert canonical.type == :composite
+      assert canonical.kind == :screen
+      assert canonical.id == "test-screen-1"
+      assert canonical.attributes.screen.name == "test_screen"
+      assert canonical.attributes.screen.layout == :row
+      assert is_list(canonical.children)
+      assert length(canonical.children) == 1
+      assert_valid_canonical(canonical)
     end
 
     test "converts element to canonical widget type" do
@@ -46,9 +49,10 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
 
-      [child] = canonical["children"]
-      assert child["type"] == "button"
-      assert child["props"]["label"] == "Click me"
+      [child] = canonical.children
+      assert child.element.type == :widget
+      assert child.element.kind == :button
+      assert child.element.attributes.content.text == "Click me"
     end
 
     test "converts layout to canonical layout type" do
@@ -61,7 +65,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
           )
 
         assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
-        assert canonical["layout"] == Atom.to_string(layout)
+        assert canonical.attributes.screen.layout == layout
       end)
     end
 
@@ -81,10 +85,10 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
 
-      [row] = canonical["children"]
-      assert row["type"] == "row"
+      [row] = canonical.children
+      assert row.element.kind == :row
 
-      assert length(row["children"]) == 2
+      assert length(row.element.children) == 2
     end
   end
 
@@ -107,13 +111,13 @@ defmodule AshUI.Rendering.IURAdapterTest do
   describe "element type mapping" do
     test "maps known element types correctly" do
       type_mappings = [
-        {:text, "text"},
-        {:button, "button"},
-        {:textinput, "input"},
-        {:textarea, "textarea"},
-        {:select, "select"},
-        {:row, "row"},
-        {:column, "column"}
+        {:text, :text},
+        {:button, :button},
+        {:textinput, :text_input},
+        {:textarea, :text_input},
+        {:select, :select},
+        {:row, :row},
+        {:column, :column}
       ]
 
       Enum.each(type_mappings, fn {ash_type, expected_canonical} ->
@@ -123,8 +127,8 @@ defmodule AshUI.Rendering.IURAdapterTest do
           )
 
         assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
-        [child] = canonical["children"]
-        assert child["type"] == expected_canonical
+        [child] = canonical.children
+        assert child.element.kind == expected_canonical
       end)
     end
   end
@@ -145,9 +149,9 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
 
-      [child] = canonical["children"]
-      assert child["props"]["label"] == "Submit"
-      assert child["props"]["disabled"] == false
+      [child] = canonical.children
+      assert child.element.attributes.content.text == "Submit"
+      assert child.element.attributes.button.disabled == false
     end
 
     test "preserves empty binding paths on authored form widgets" do
@@ -172,7 +176,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
         )
 
       assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
-      assert :ok = UnifiedIUR.validate(canonical)
+      assert_valid_canonical(canonical)
     end
 
     test "converts resource-authority semantic widgets without leaking renderer assumptions" do
@@ -188,21 +192,21 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert {:ok, ash_iur} = Compiler.compile(screen, ui_storage: ui_storage, use_cache: false)
       assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
-      assert :ok = UnifiedIUR.validate(canonical)
+      assert_valid_canonical(canonical)
 
-      types = collect_types(canonical)
+      kinds = collect_kinds(canonical)
 
-      assert "hero" in types
-      assert "stat" in types
-      assert "key_value" in types
-      assert "info_list" in types
-      assert "form_field" in types
+      assert :hero in kinds
+      assert :stat in kinds
+      assert :key_value in kinds
+      assert :info_list in kinds
+      assert :form_field in kinds
 
-      assert get_in(canonical, ["metadata", "ash_ui", "compiler_boundary"]) ==
+      assert get_in(canonical.metadata.extra, ["ash_ui", "ash_ui", "compiler_boundary"]) ==
                "AshUI resource graph -> AshUI runtime normalization"
 
-      refute Enum.any?(canonical["children"], fn child ->
-               match?(%{"ash_ui" => _}, child["metadata"])
+      refute Enum.any?(canonical.children, fn child ->
+               Map.has_key?(child.element.metadata.annotations, :ash_ui)
              end)
     end
   end
@@ -215,9 +219,20 @@ defmodule AshUI.Rendering.IURAdapterTest do
     end
   end
 
-  defp collect_types(%{"type" => type, "children" => children}) do
-    [type | Enum.flat_map(children || [], &collect_types/1)]
+  defp assert_valid_canonical(canonical) do
+    assert {:ok, %UnifiedIUR.Element{} = normalized} = UnifiedIUR.Normalize.element(canonical)
+    assert :ok = UnifiedIUR.Validate.element(normalized)
   end
 
-  defp collect_types(_other), do: []
+  defp collect_kinds(%UnifiedIUR.Element{kind: kind, children: children}) do
+    [kind | Enum.flat_map(children || [], &collect_kinds/1)]
+  end
+
+  defp collect_kinds(%UnifiedIUR.Element.Child{element: nil}), do: []
+
+  defp collect_kinds(%UnifiedIUR.Element.Child{element: element}) do
+    collect_kinds(element)
+  end
+
+  defp collect_kinds(_other), do: []
 end

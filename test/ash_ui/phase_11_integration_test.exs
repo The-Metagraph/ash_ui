@@ -28,11 +28,18 @@ defmodule AshUI.Phase11IntegrationTest do
 
       assert {:ok, iur} = Compiler.compile(screen, ui_storage: ui_storage, use_cache: false)
       assert {:ok, canonical} = IURAdapter.to_canonical(iur)
-      assert :ok = UnifiedIUR.validate(canonical)
+      assert {:ok, canonical} = UnifiedIUR.Normalize.element(canonical)
+      assert :ok = UnifiedIUR.Validate.element(canonical)
 
-      assert canonical["type"] == "screen"
+      assert canonical.type == :composite
+      assert canonical.kind == :screen
 
-      assert get_in(canonical, ["metadata", "ash_ui", "authoring_source", "module"]) ==
+      assert get_in(canonical.metadata.extra, [
+               "ash_ui",
+               "ash_ui",
+               "authoring_source",
+               "module"
+             ]) ==
                "Elixir.AshUI.Test.ResourceAuthorityScreen"
     end
 

@@ -13,6 +13,7 @@ defmodule AshUI.LiveView.EventHandler do
   alias AshUI.LiveView.UpdateIntegration
   alias AshUI.Runtime.ActionBinding
   alias AshUI.Runtime.BidirectionalBinding
+  alias AshUI.Runtime.Navigation
 
   @type event_result ::
           {:noreply, Phoenix.LiveView.Socket.t()} | {:reply, map(), Phoenix.LiveView.Socket.t()}
@@ -115,6 +116,9 @@ defmodule AshUI.LiveView.EventHandler do
       {:error, :unauthorized} ->
         socket = assign_flash(socket, :error, "You are not authorized to perform this action")
         {:reply, %{status: :error, reason: "unauthorized"}, socket}
+
+      {:error, :binding_not_found} ->
+        handle_navigation_event(event_params, socket)
 
       {:error, reason} ->
         Logger.error("Action execution failed: #{inspect(reason)}")
@@ -371,6 +375,22 @@ defmodule AshUI.LiveView.EventHandler do
       {:ok, result} -> {:ok, result}
       {:error, %{errors: [%{"message" => "Unauthorized"} | _]}} -> {:error, :unauthorized}
       {:error, reason} -> {:error, reason}
+    end
+  end
+
+  defp handle_navigation_event(event_params, socket) do
+    case Navigation.handle_event(event_params, socket) do
+      {:ok, result, socket} ->
+        {:reply, %{status: :ok, navigation: result.transport_summary}, socket}
+
+      {:error, :navigation_interaction_not_found} ->
+        socket = assign_flash(socket, :error, "Action failed: binding_not_found")
+        {:reply, %{status: :error, reason: "binding_not_found"}, socket}
+
+      {:error, reason} ->
+        Logger.error("Navigation execution failed: #{inspect(reason)}")
+        socket = assign_flash(socket, :error, "Navigation failed: #{inspect(reason)}")
+        {:reply, %{status: :error, reason: inspect(reason)}, socket}
     end
   end
 

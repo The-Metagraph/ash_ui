@@ -94,6 +94,23 @@ The matrix provides complete traceability from:
 | REQ-RENDER-011 | Extensibility | rendering/extensibility.md | - |
 | REQ-RENDER-012 | Observability | contracts/observability_contract.md | SCN-101 |
 
+## Navigation Control Plane
+
+### REQ-NAV-*: Canonical Navigation And IUR Adoption Contract
+
+| REQ | Description | Component Specs | Scenarios |
+|---|---|---|---|
+| REQ-NAV-001 | Coordinated Package Adoption | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-141 |
+| REQ-NAV-002 | Canonical Element Rendering Boundary | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-141 |
+| REQ-NAV-003 | Canonical Validation Surface | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-141 |
+| REQ-NAV-004 | Resource-Authored Navigation Intent | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-142 |
+| REQ-NAV-005 | Supported Canonical Navigation Actions | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-142 |
+| REQ-NAV-006 | Host Runtime Field Rejection | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-143 |
+| REQ-NAV-007 | Modal Stack Semantics | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-143 |
+| REQ-NAV-008 | Runtime Adapter Contract Alignment | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-144 |
+| REQ-NAV-009 | Interaction Transport Preservation | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-144 |
+| REQ-NAV-010 | Documentation And Migration Guidance | contracts/canonical_navigation_contract.md, guides/user/UG-0004-bindings-actions-and-forms.md, guides/user/UG-0005-liveview-runtime-and-rendering.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md | SCN-145 |
+
 ## Runtime Control Plane
 
 ### REQ-SCREEN-*: Screen Contract
@@ -150,10 +167,11 @@ The matrix provides complete traceability from:
 | Framework | 30 | 28 | 25 | 83% |
 | Compilation | 10 | 9 | 9 | 90% |
 | Rendering | 12 | 9 | 9 | 75% |
+| Navigation | 10 | 10 | 10 | 100% |
 | Runtime | 10 | 10 | 10 | 100% |
 | Extension | 6 | 4 | 4 | 67% |
 | Observability | 12 | 9 | 8 | 67% |
-| **TOTAL** | **80** | **69** | **65** | **81%** |
+| **TOTAL** | **90** | **79** | **75** | **83%** |
 
 ## Coverage Milestones
 
@@ -184,4 +202,5 @@ The matrix provides complete traceability from:
 - The scenario test matrix is enforced by `test/ash_ui/conformance_traceability_test.exs`
 - Phase 16 adds explicit traceability for element-resource authority and relationship-driven composition
 - Phase 22 adds explicit traceability for the maintained example suite, shared theme shell, and governance gates
+- Phase 30 adds explicit traceability for canonical IUR structs and resource-authored navigation intent
 - Coverage percentages should be updated whenever scenarios or conformance-tagged tests change

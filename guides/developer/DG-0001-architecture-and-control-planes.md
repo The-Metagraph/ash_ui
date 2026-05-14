@@ -141,6 +141,6 @@ That order maps well to the real implementation.
 ## See Also
 
 - [DG-0002: Storage, Resource Authority, and Configuration](./DG-0002-storage-resource-authority-and-configuration.md)
-- [DG-0003: Compiler, Canonical IUR, and Renderers](./DG-0003-compiler-canonical-iur-and-renderers.md)
+- [DG-0003: Compiler, Canonical IUR, Styling, and Renderers](./DG-0003-compiler-canonical-iur-and-renderers.md)
 - [DG-0004: Runtime, Bindings, and Authorization](./DG-0004-runtime-bindings-and-authorization.md)
 - [UG-0001: Getting Started with AshUI](../user/UG-0001-getting-started.md)

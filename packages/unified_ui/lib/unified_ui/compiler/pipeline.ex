@@ -351,12 +351,13 @@ defmodule UnifiedUi.Compiler.Pipeline do
 
   defp compile_interaction(interaction, binding_by_id) do
     interaction = Signal.new(interaction)
+    compiled_target = compile_target_intent(interaction, binding_by_id)
 
     Interaction.new(%{
       family: interaction.family,
       intent: interaction.intent,
       source: normalize_map(interaction.source_context),
-      target: compile_payload_map(interaction.target_intent, binding_by_id),
+      target: compiled_target,
       payload: compile_payload_map(interaction.payload_mapping, binding_by_id),
       metadata: %{
         summary: interaction.summary,
@@ -365,6 +366,39 @@ defmodule UnifiedUi.Compiler.Pipeline do
           Enum.map(interaction.binding_refs, &compile_binding_ref_value(&1, binding_by_id))
       }
     })
+  end
+
+  defp compile_target_intent(%Signal{} = interaction, binding_by_id) do
+    target_intent = compile_payload_map(interaction.target_intent, binding_by_id)
+
+    case {interaction.family, Signal.navigation_target_kind(interaction)} do
+      {:navigation, kind}
+      when kind in [
+             :screen_transition,
+             :replace_transition,
+             :history_transition,
+             :modal_transition
+           ] ->
+        %{
+          navigation:
+            %{}
+            |> maybe_put(:kind, kind)
+            |> maybe_put(:action, Map.get(target_intent, :action))
+            |> maybe_put(:screen, Map.get(target_intent, :screen))
+            |> maybe_put(:modal, Map.get(target_intent, :modal))
+            |> maybe_put(:params, compact_optional_map(Map.get(target_intent, :params)))
+            |> maybe_put(:metadata, compact_optional_map(Map.get(target_intent, :metadata)))
+            |> maybe_put(
+              :modal_stack,
+              compact_optional_map(
+                Signal.navigation_modal_stack_semantics()[Map.get(target_intent, :action)]
+              )
+            )
+        }
+
+      _other ->
+        target_intent
+    end
   end
 
   defp interaction_identifier(interaction) do
@@ -797,6 +831,176 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:width, :height])
           )
 
+        :inline_rich_text_heading ->
+          Widgets.Components.inline_rich_text_heading(
+            node.level || :h1,
+            normalize_list(node.segments),
+            common_opts(node, attachments)
+          )
+
+        :disclosure ->
+          Widgets.Components.disclosure(
+            node.summary || "",
+            lower_children(node, context, visited),
+            common_opts(node, attachments, [:open?])
+          )
+
+        :kicker ->
+          Widgets.Components.kicker(
+            List.wrap(node.items),
+            common_opts(node, attachments, [:separator])
+          )
+
+        :avatar ->
+          Widgets.Components.avatar(
+            common_opts(node, attachments, [
+              :initials,
+              :image_source,
+              :size,
+              :shape,
+              :accessibility_label,
+              :accessibility_description
+            ])
+          )
+
+        :presence_dot ->
+          Widgets.Components.presence_dot(
+            node.state || :quiet,
+            common_opts(node, attachments, [:size, :accessibility_label])
+          )
+
+        :segmented_button_group ->
+          Widgets.Components.segmented_button_group(
+            normalize_keyword_items(node.options),
+            common_opts(node, attachments, [:active_value, :selection_intent, :disabled?])
+          )
+
+        :runtime_form_shell ->
+          Widgets.Components.runtime_form_shell(
+            normalize_list(node.fields),
+            common_opts(node, attachments,
+              submit_label: node.submit_label,
+              submit_intent: node.submit_intent,
+              change_intent: node.change_intent,
+              validation_state: node.validation_state,
+              host_adapter_hints: normalize_annotation_hints(node.annotations)
+            )
+          )
+
+        :chat_composer ->
+          Widgets.Components.chat_composer(
+            lower_children(node, context, visited),
+            common_opts(node, attachments, [
+              :name,
+              :value,
+              :placeholder,
+              :rows,
+              :send_label,
+              :send_intent,
+              :change_intent,
+              :disabled?
+            ])
+          )
+
+        :list_item_multi_column ->
+          Widgets.Components.list_item_multi_column(
+            lower_children(node, context, visited),
+            common_opts(node, attachments, [
+              :row_identity,
+              :column_template,
+              :active?,
+              :link_target,
+              :action_intent
+            ])
+          )
+
+        :artifact_row ->
+          Widgets.Components.artifact_row(
+            node.title || "",
+            lower_children(node, context, visited),
+            common_opts(node, attachments, [
+              :row_identity,
+              :active?,
+              :link_target,
+              :action_intent,
+              :meta
+            ])
+          )
+
+        :pipeline_stepper_horizontal ->
+          Widgets.Components.pipeline_stepper_horizontal(
+            normalize_list(node.steps),
+            common_opts(node, attachments, [
+              :active_index,
+              :completed_indices,
+              :navigation_intent
+            ])
+          )
+
+        :segmented_progress_bar ->
+          Widgets.Components.segmented_progress_bar(
+            normalize_list(node.segments),
+            common_opts(node, attachments, [:aggregate_progress, :label])
+          )
+
+        :workflow_stage_list_vertical ->
+          Widgets.Components.workflow_stage_list_vertical(
+            normalize_list(node.stages),
+            common_opts(node, attachments, [:active_index])
+          )
+
+        :meter_thin ->
+          Widgets.Components.meter_thin(
+            node.current || 0,
+            common_opts(node, attachments, [:minimum, :maximum, :label, :state])
+          )
+
+        :sticky_frosted_header ->
+          Widgets.Components.sticky_frosted_header(
+            lower_children(node, context, visited),
+            common_opts(node, attachments, [:title, :leading, :trailing])
+          )
+
+        :slide_over_panel ->
+          Widgets.Components.slide_over_panel(
+            lower_children(node, context, visited),
+            common_opts(node, attachments, [
+              :open?,
+              :size,
+              :dismiss_intent,
+              :accessibility_label,
+              :accessibility_description
+            ])
+          )
+
+        :event_callout ->
+          Widgets.Components.event_callout(
+            node.message || "",
+            lower_children(node, context, visited),
+            common_opts(node, attachments, [
+              :tone,
+              :eyebrow,
+              :title,
+              :action_intent
+            ])
+          )
+
+        :redline_inline ->
+          Widgets.Components.redline_inline(
+            normalize_list(node.segments),
+            common_opts(node, attachments, [:text_safety])
+          )
+
+        :code_block_syntax_highlighted ->
+          Widgets.Components.code_block_syntax_highlighted(
+            node.language || :plain_text,
+            normalize_list(node.tokens),
+            common_opts(node, attachments, [:text_safety])
+          )
+
+        :list_repeat ->
+          lower_list_repeat(node, context, visited, attachments)
+
         other ->
           generic_element(element_type(node.family), other, node, attachments, %{
             authored: %{
@@ -815,7 +1019,8 @@ defmodule UnifiedUi.Compiler.Pipeline do
         [] -> Element.new(:widget, :empty_field_control, id: "#{node.id}-control")
       end
 
-    opts =
+    apply(Forms, constructor, [
+      control,
       common_opts(node, attachments,
         name: node.field_name,
         label: node.label,
@@ -823,11 +1028,7 @@ defmodule UnifiedUi.Compiler.Pipeline do
         path: node.value_path,
         default: node.default_value
       )
-
-    case constructor do
-      :field -> Forms.field(control, opts)
-      :form_field -> Forms.form_field(control, opts)
-    end
+    ])
   end
 
   defp lower_children(node, context, visited) do
@@ -859,6 +1060,233 @@ defmodule UnifiedUi.Compiler.Pipeline do
         divider_style: node.divider_style
       )
     )
+  end
+
+  defp lower_list_repeat(node, context, visited, attachments) do
+    template_node = List.first(node.children)
+    template = if(template_node, do: lower_node(template_node, context, visited))
+    binding = Map.get(context.binding_by_id, node.repeat_binding)
+    rows = repeat_rows(binding)
+
+    hydrated_children =
+      rows
+      |> Enum.with_index()
+      |> Enum.map(fn {row, index} ->
+        Element.Child.new(:default, hydrate_repeat_template(template, node, row, index))
+      end)
+
+    opts =
+      node
+      |> common_opts(attachments,
+        repeat_binding: node.repeat_binding,
+        binding_ref: compile_binding_ref_value(node.repeat_binding, context.binding_by_id),
+        row_scope: node.row_scope,
+        row_fields: node.row_fields || [],
+        template_identity: node.template_identity || template_identity(template),
+        identity_strategy: node.identity_strategy,
+        hydrated?: true,
+        row_count: length(rows),
+        template: template_summary(template)
+      )
+      |> Map.put(:children, hydrated_children)
+
+    Widgets.Components.list_repeat(template, opts)
+  end
+
+  defp repeat_rows(%IURBinding{default: rows}) when is_list(rows) do
+    Enum.map(rows, &normalize_repeat_row/1)
+  end
+
+  defp repeat_rows(_binding), do: []
+
+  defp normalize_repeat_row(row) when is_map(row), do: normalize_keyword_tree(row)
+
+  defp normalize_repeat_row(row) when is_list(row) do
+    if Keyword.keyword?(row), do: normalize_keyword_tree(row), else: %{value: row}
+  end
+
+  defp normalize_repeat_row(row), do: %{value: row}
+
+  defp hydrate_repeat_template(nil, _repeat_node, _row, _index), do: nil
+
+  defp hydrate_repeat_template(template, repeat_node, row, index) do
+    identity = repeat_identity_value(repeat_node, template, row, index)
+    hydrate_repeat_element(template, repeat_node, row, index, identity, [])
+  end
+
+  defp hydrate_repeat_element(nil, _repeat_node, _row, _index, _identity, _path), do: nil
+
+  defp hydrate_repeat_element(element, repeat_node, row, index, identity, path) do
+    id = repeat_instance_id(repeat_node, identity, element.id, path)
+
+    children =
+      element.children
+      |> Enum.with_index()
+      |> Enum.map(fn {child, child_index} ->
+        %{
+          child
+          | element:
+              hydrate_repeat_element(
+                child.element,
+                repeat_node,
+                row,
+                index,
+                identity,
+                path ++ [child_index]
+              )
+        }
+      end)
+
+    %{
+      element
+      | id: id,
+        attributes:
+          element.attributes
+          |> project_repeat_attributes(row, repeat_node)
+          |> put_repeat_instance_metadata(repeat_node, row, index)
+          |> retarget_interactions(id, row, repeat_node),
+        children: children
+    }
+  end
+
+  defp repeat_instance_id(repeat_node, identity, nil, path) do
+    path_id =
+      path
+      |> Enum.map_join("_", &to_string/1)
+      |> case do
+        "" -> "item"
+        value -> value
+      end
+
+    repeat_instance_id(repeat_node, identity, path_id, [])
+  end
+
+  defp repeat_instance_id(repeat_node, identity, original_id, _path) do
+    Enum.map_join([repeat_node.id, identity, original_id], ":", &to_string/1)
+  end
+
+  defp repeat_identity_value(%Node{identity_strategy: :index}, _template, _row, index), do: index
+
+  defp repeat_identity_value(%Node{identity_strategy: :stable_hash}, _template, row, _index) do
+    :erlang.phash2(row)
+  end
+
+  defp repeat_identity_value(_repeat_node, template, row, index) do
+    case template_row_identity(template) do
+      nil -> row_value(row, :id) || index
+      field when is_atom(field) or is_binary(field) -> row_value(row, field) || field
+      value -> value
+    end
+  end
+
+  defp template_identity(nil), do: nil
+  defp template_identity(%Element{id: id}), do: id
+
+  defp template_summary(nil), do: nil
+
+  defp template_summary(%Element{} = template) do
+    %{
+      id: template.id,
+      type: template.type,
+      kind: template.kind
+    }
+  end
+
+  defp template_row_identity(nil), do: nil
+
+  defp template_row_identity(%Element{attributes: attributes}) do
+    get_in(attributes, [:row, :row_identity]) ||
+      get_in(attributes, [:artifact, :row_identity])
+  end
+
+  defp project_repeat_attributes(attributes, row, repeat_node) do
+    attributes
+    |> project_repeat_group(:row, row, repeat_node)
+    |> project_repeat_group(:artifact, row, repeat_node)
+    |> project_repeat_group(:callout, row, repeat_node)
+  end
+
+  defp project_repeat_group(attributes, group, row, repeat_node) do
+    case Map.fetch(attributes, group) do
+      {:ok, value} -> Map.put(attributes, group, project_repeat_value(value, row, repeat_node))
+      :error -> attributes
+    end
+  end
+
+  defp project_repeat_value(value, row, repeat_node) when is_map(value) do
+    Map.new(value, fn {key, nested} ->
+      {key, project_repeat_value(nested, row, repeat_node)}
+    end)
+  end
+
+  defp project_repeat_value(value, row, repeat_node) when is_list(value) do
+    Enum.map(value, &project_repeat_value(&1, row, repeat_node))
+  end
+
+  defp project_repeat_value(value, row, repeat_node) when is_atom(value) or is_binary(value) do
+    if repeat_field?(repeat_node, value) do
+      row_value(row, value) || value
+    else
+      value
+    end
+  end
+
+  defp project_repeat_value(value, _row, _repeat_node), do: value
+
+  defp put_repeat_instance_metadata(attributes, repeat_node, row, index) do
+    Map.put(attributes, :repeat_instance, %{
+      source_repeat_id: repeat_node.id,
+      row_scope: repeat_node.row_scope || :row,
+      row_index: index,
+      values: select_repeat_values(row, repeat_node.row_fields || [])
+    })
+  end
+
+  defp retarget_interactions(attributes, id, row, repeat_node) do
+    case Map.fetch(attributes, :interactions) do
+      {:ok, interactions} ->
+        Map.put(
+          attributes,
+          :interactions,
+          Enum.map(interactions, &retarget_interaction(&1, id, row, repeat_node))
+        )
+
+      :error ->
+        attributes
+    end
+  end
+
+  defp retarget_interaction(%Interaction{} = interaction, id, row, repeat_node) do
+    %{
+      interaction
+      | source: Map.put(interaction.source, :element_id, id),
+        payload: project_repeat_value(interaction.payload, row, repeat_node)
+    }
+  end
+
+  defp retarget_interaction(interaction, _id, _row, _repeat_node), do: interaction
+
+  defp repeat_field?(%Node{row_fields: row_fields}, field) do
+    Enum.any?(List.wrap(row_fields), &(to_string(&1) == to_string(field)))
+  end
+
+  defp select_repeat_values(row, row_fields) do
+    row_fields
+    |> List.wrap()
+    |> Enum.reduce(%{}, fn field, acc ->
+      case row_value(row, field) do
+        nil -> acc
+        value -> Map.put(acc, field, value)
+      end
+    end)
+  end
+
+  defp row_value(row, field) when is_atom(field) do
+    Map.get(row, field, Map.get(row, Atom.to_string(field)))
+  end
+
+  defp row_value(row, field) when is_binary(field) do
+    Map.get(row, field)
   end
 
   defp overlay_message_content(node_id, message) do
@@ -949,11 +1377,18 @@ defmodule UnifiedUi.Compiler.Pipeline do
       |> Enum.reject(&is_nil/1)
 
     fallback =
-      []
-      |> maybe_prepend(default_action_interaction(node))
-      |> maybe_prepend(default_submit_interaction(node))
+      [
+        default_action_interaction(node),
+        default_submit_interaction(node),
+        default_change_interaction(node),
+        default_selection_interaction(node),
+        default_step_navigation_interaction(node),
+        default_send_interaction(node),
+        default_dismiss_interaction(node)
+      ]
+      |> Enum.reject(&is_nil/1)
 
-    explicit ++ Enum.reverse(fallback)
+    explicit ++ fallback
   end
 
   defp default_action_interaction(%Node{action_intent: nil}), do: nil
@@ -962,6 +1397,8 @@ defmodule UnifiedUi.Compiler.Pipeline do
     Interaction.click(
       intent: node.action_intent,
       element_id: node.id,
+      value: node.row_identity,
+      mapping: default_action_mapping(node),
       phase: :authored_default
     )
   end
@@ -972,9 +1409,77 @@ defmodule UnifiedUi.Compiler.Pipeline do
     Interaction.submit(
       intent: node.submit_intent,
       element_id: node.id,
+      mapping: default_submit_mapping(node),
       phase: :authored_default
     )
   end
+
+  defp default_change_interaction(%Node{change_intent: nil}), do: nil
+
+  defp default_change_interaction(node) do
+    Interaction.change(
+      intent: node.change_intent,
+      element_id: node.id,
+      mapping: default_change_mapping(node),
+      phase: :authored_default
+    )
+  end
+
+  defp default_selection_interaction(%Node{selection_intent: nil}), do: nil
+
+  defp default_selection_interaction(node) do
+    Interaction.selection(
+      intent: node.selection_intent,
+      element_id: node.id,
+      selection: node.active_value,
+      mapping: %{selected_value: :value},
+      phase: :authored_default
+    )
+  end
+
+  defp default_step_navigation_interaction(%Node{navigation_intent: nil}), do: nil
+
+  defp default_step_navigation_interaction(node) do
+    Interaction.navigation(
+      intent: node.navigation_intent,
+      element_id: node.id,
+      mapping: %{step_id: :id, step_index: :index},
+      phase: :authored_default
+    )
+  end
+
+  defp default_send_interaction(%Node{send_intent: nil}), do: nil
+
+  defp default_send_interaction(node) do
+    Interaction.submit(
+      intent: node.send_intent,
+      element_id: node.id,
+      mapping: %{message: :value},
+      phase: :authored_default
+    )
+  end
+
+  defp default_dismiss_interaction(%Node{dismiss_intent: nil}), do: nil
+
+  defp default_dismiss_interaction(node) do
+    Interaction.close(
+      intent: node.dismiss_intent,
+      element_id: node.id,
+      mapping: %{open?: false},
+      phase: :authored_default
+    )
+  end
+
+  defp default_action_mapping(%Node{row_identity: nil}), do: nil
+  defp default_action_mapping(%Node{kind: kind}) when kind in [:event_callout, :button], do: nil
+  defp default_action_mapping(_node), do: %{row_identity: :row_identity}
+
+  defp default_submit_mapping(%Node{kind: :runtime_form_shell}), do: %{fields: :field_values}
+  defp default_submit_mapping(_node), do: nil
+
+  defp default_change_mapping(%Node{kind: :runtime_form_shell}), do: %{fields: :field_values}
+  defp default_change_mapping(%Node{kind: :chat_composer}), do: %{message: :value}
+  defp default_change_mapping(_node), do: %{value: :value}
 
   defp compile_theme_attachment(node, context) do
     theme_id = node.theme_ref || context.default_theme
@@ -1033,6 +1538,7 @@ defmodule UnifiedUi.Compiler.Pipeline do
       id: node.id,
       description: node.summary || node.description,
       authored_ref: node.authored_ref,
+      annotations: node.annotations,
       tags: node.tags,
       style: attachments.style,
       theme: attachments.theme,
@@ -1321,6 +1827,28 @@ defmodule UnifiedUi.Compiler.Pipeline do
     Enum.map(series, &normalize_map/1)
   end
 
+  defp normalize_annotation_hints(value) when value in [nil, []], do: nil
+
+  defp normalize_annotation_hints(value) do
+    value
+    |> normalize_keyword_tree()
+    |> compact_optional_map()
+  end
+
+  defp normalize_keyword_tree(value) when is_map(value) do
+    Map.new(value, fn {key, nested} -> {key, normalize_keyword_tree(nested)} end)
+  end
+
+  defp normalize_keyword_tree(value) when is_list(value) do
+    if Keyword.keyword?(value) do
+      Map.new(value, fn {key, nested} -> {key, normalize_keyword_tree(nested)} end)
+    else
+      Enum.map(value, &normalize_keyword_tree/1)
+    end
+  end
+
+  defp normalize_keyword_tree(value), do: value
+
   defp normalize_number_points(points) when is_list(points), do: points
   defp normalize_number_points(_other), do: []
 
@@ -1356,9 +1884,9 @@ defmodule UnifiedUi.Compiler.Pipeline do
     |> Map.new()
   end
 
+  defp compact_optional_map(nil), do: nil
+  defp compact_optional_map(map), do: compact_map(map)
+
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
-
-  defp maybe_prepend(list, nil), do: list
-  defp maybe_prepend(list, value), do: [value | list]
 end

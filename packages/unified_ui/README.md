@@ -43,7 +43,23 @@ mix unified_ui.export --example themed_signal_workspace --format snapshot
 mix unified_ui.validate
 ```
 
-## Guides
+## User Guides
+
+- [Documentation Index](./docs/README.md)
+- [Getting Started](./docs/user/getting-started.md)
+- [Widget Catalog](./docs/user/widget-catalog.md)
+- [Layouts, Layers, and Display](./docs/user/layouts-layers-and-display.md)
+- [Styling and Themes](./docs/user/styling-and-themes.md)
+- [Bindings and Interactions](./docs/user/bindings-and-interactions.md)
+
+## Developer Guides
+
+- [Architecture Overview](./docs/developer/architecture-overview.md)
+- [DSL Section Model](./docs/developer/dsl-section-model.md)
+- [Compilation Pipeline](./docs/developer/compilation-pipeline.md)
+- [Package Components](./docs/developer/package-components.md)
+
+## Maintainer Guides
 
 - [DSL Model](./guides/dsl_model.md)
 - [Theming and Signals](./guides/theming_and_signals.md)

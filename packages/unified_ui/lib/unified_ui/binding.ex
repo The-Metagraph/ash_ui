@@ -26,7 +26,6 @@ defmodule UnifiedUi.Binding do
         }
 
   defstruct __identifier__: nil,
-            __spark_metadata__: nil,
             id: nil,
             path: [],
             scope: [],

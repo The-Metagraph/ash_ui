@@ -74,6 +74,13 @@ defmodule UnifiedIUR.Reference do
     |> snapshot_value()
   end
 
+  @spec snapshot_interaction(Interaction.t() | map() | keyword()) :: keyword()
+  def snapshot_interaction(input) do
+    input
+    |> Interaction.new()
+    |> snapshot_value()
+  end
+
   @spec equivalent?(Element.t() | map() | keyword(), Element.t() | map() | keyword()) :: boolean()
   def equivalent?(left, right) do
     snapshot(left) == snapshot(right)

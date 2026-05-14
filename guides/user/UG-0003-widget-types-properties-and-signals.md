@@ -1,13 +1,13 @@
-# UG-0003: Widget Types, Properties, and Signals
+# UG-0003: Widget Types, Styling, Properties, and Signals
 
 ---
 id: UG-0003
-title: Widget Types, Properties, and Signals
+title: Widget Types, Styling, Properties, and Signals
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-25
-next_review: 2026-10-25
+last_reviewed: 2026-05-14
+next_review: 2026-11-14
 related_reqs: [REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002]
 related_scns: [SCN-002, SCN-009, SCN-061, SCN-101]
 related_guides: [UG-0002, UG-0004, UG-0005, UG-0007, DG-0001]
@@ -16,12 +16,13 @@ diagram_required: false
 
 ## Overview
 
-AshUI currently has three different boundaries that matter when you talk about
-widgets:
+AshUI currently has four different boundaries that matter when you talk about
+widgets and styling:
 
 1. The public `ui_element type` vocabulary accepted by authoring validation
-2. The props that the shipped fallback LiveView adapter actually reads today
-3. The signal capabilities that AshUI allows for actions and bindings
+2. The semantic styling intent declared by resource-authored elements
+3. The props that the shipped fallback LiveView adapter actually reads today
+4. The signal capabilities that AshUI allows for actions and bindings
 
 Those boundaries do not fully overlap. This guide keeps them separate so you
 can design screens against what AshUI actually supports today.
@@ -97,6 +98,72 @@ Across many widgets, the fallback LiveView adapter also reads:
 - `style` when it is a string or a `%{extra: %{css: ...}}` shaped map
 
 These are renderer conveniences, not the same thing as stable semantic props.
+
+## Theme and Styling Model
+
+AshUI does not currently define a global theme resource. The supported model is
+resource-authored semantic intent plus host-owned CSS.
+
+Element resources declare intent in `ui_element` through:
+
+- `props[:class]` for host-defined semantic CSS hooks
+- `props[:variant]` when the selected renderer documents that it reads a
+  variant prop for the widget
+- `variants [...]` for semantic tags that should stay attached to the element
+  definition for tooling, review, or future renderer use
+- `props[:inline_style]` or `props[:style]` only for dynamic values that cannot
+  be expressed as semantic classes or variants
+
+Host applications own the concrete visual system: palette tokens, gradients,
+shell treatments, spacing rhythm, responsive layout, and CSS class definitions.
+The resource should say "primary CTA", "review panel", or "signal preview";
+the host CSS decides what those names look like.
+
+For example:
+
+```elixir
+ui_element do
+  type(:button)
+
+  props(%{
+    label: "Save profile",
+    class: "profile-primary-cta",
+    variant: "primary"
+  })
+
+  variants([:primary, :profile_action])
+  metadata(%{id: "save_profile_button"})
+end
+```
+
+In that shape:
+
+- `profile-primary-cta` must be defined by the host app CSS
+- `variant: "primary"` is a renderer-facing prop, not a guarantee that every
+  renderer will style it the same way
+- `variants([:primary, :profile_action])` records semantic tags on the authored
+  element, but the shipped fallback LiveView adapter mostly reads `props`
+- no palette, border radius, blur, or layout token is hard-coded into the
+  resource
+
+For example-suite apps, use the shared Ash HQ profiles from
+[examples/ash_hq_theme_baseline.md](../../examples/ash_hq_theme_baseline.md):
+`example_shell`, `example_panel`, `example_story`, `example_signal_preview`,
+`example_code_surface`, `example_primary_cta`, `example_secondary_cta`, and
+`example_status_notice`. App-local CSS may implement those names as classes,
+semantic variants, or a small combination of both.
+
+### Styling Decision Rules
+
+- Prefer semantic class hooks over one-off inline CSS.
+- Use `variants` when the style meaning should remain attached to the resource
+  even if a renderer ignores it today.
+- Use `props[:variant]` only when you are targeting renderer behavior that
+  reads that prop, such as the fallback LiveView button renderer.
+- Use `inline_style` for data-driven dimensions or measurements, such as chart
+  widths or bar heights.
+- Do not use `inline_style` to re-declare palette, backdrop, glass treatment,
+  spacing rhythm, or other theme rules that belong in host CSS.
 
 ## Signals and Binding Capabilities
 
@@ -227,6 +294,7 @@ stable built-in authoring types for general application work.
 ## See Also
 
 - [examples/README.md](../../examples/README.md)
+- [examples/ash_hq_theme_baseline.md](../../examples/ash_hq_theme_baseline.md)
 - [UG-0002: Authoring Screens, Elements, and Relationships](./UG-0002-authoring-screens-elements-and-relationships.md)
 - [UG-0004: Bindings, Actions, and Forms](./UG-0004-bindings-actions-and-forms.md)
 - [UG-0005: LiveView Runtime and Rendering](./UG-0005-liveview-runtime-and-rendering.md)

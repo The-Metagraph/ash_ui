@@ -19,8 +19,10 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
   """
 
   alias AshUI.Compilation.IUR
+  alias AshUI.Rendering.CanonicalIUR
   alias AshUI.Rendering.IURAdapter
   alias AshUI.Telemetry
+  alias UnifiedIUR.Element
 
   @doc """
   Renders a canonical IUR to desktop UI instructions.
@@ -46,12 +48,16 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     started_at = System.monotonic_time()
     metadata = render_metadata(canonical_iur, :desktop_ui)
     Telemetry.emit(:render, :start, %{count: 1}, metadata)
+    canonical? = CanonicalIUR.canonical?(canonical_iur)
+    force_fallback? = Keyword.get(opts, :force_fallback, false)
 
     result =
-      if Code.ensure_loaded?(DesktopUI.Renderer) do
+      if canonical? and available?() and not force_fallback? do
         call_desktop_ui_renderer(canonical_iur, opts)
       else
-        render_fallback(canonical_iur, opts)
+        canonical_iur
+        |> CanonicalIUR.to_legacy_map()
+        |> render_fallback(opts)
       end
 
     emit_render_telemetry(result, started_at, metadata)
@@ -83,7 +89,8 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
   @spec render_ash_iur(IUR.t(), keyword()) :: {:ok, map()} | {:error, term()}
   def render_ash_iur(%IUR{} = ash_iur, opts \\ []) do
     with {:ok, canonical_iur} <- IURAdapter.to_canonical(ash_iur, opts),
-         {:ok, instructions} <- render(canonical_iur, opts) do
+         {:ok, instructions} <-
+           render(canonical_iur, Keyword.put_new(opts, :force_fallback, true)) do
       {:ok, instructions}
     else
       error -> error
@@ -101,7 +108,15 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     * Window configuration map
   """
   @spec configure_window(map(), keyword()) :: map()
-  def configure_window(%{"type" => "screen"} = iur, opts \\ []) do
+  def configure_window(iur, opts \\ [])
+
+  def configure_window(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_window(opts)
+  end
+
+  def configure_window(%{"type" => "screen"} = iur, opts) do
     width = Keyword.get(opts, :window_width, 1280)
     height = Keyword.get(opts, :window_height, 720)
     resizable = Keyword.get(opts, :window_resizable, true)
@@ -133,7 +148,15 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     * Menu bar configuration
   """
   @spec configure_menu_bar(map(), keyword()) :: map()
-  def configure_menu_bar(%{"type" => "screen"} = _iur, opts \\ []) do
+  def configure_menu_bar(iur, opts \\ [])
+
+  def configure_menu_bar(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_menu_bar(opts)
+  end
+
+  def configure_menu_bar(%{"type" => "screen"} = _iur, opts) do
     enabled = Keyword.get(opts, :native_menu_bar, true)
     custom_items = Keyword.get(opts, :menu_items, [])
 
@@ -196,7 +219,15 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     * Platform configuration
   """
   @spec configure_platform(map(), keyword()) :: map()
-  def configure_platform(%{"type" => "screen"} = _iur, opts \\ []) do
+  def configure_platform(iur, opts \\ [])
+
+  def configure_platform(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_platform(opts)
+  end
+
+  def configure_platform(%{"type" => "screen"} = _iur, opts) do
     platform = Keyword.get(opts, :platform, :auto)
 
     %{
@@ -217,7 +248,15 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     * Event handling configuration
   """
   @spec configure_events(map(), keyword()) :: map()
-  def configure_events(%{"type" => "screen"} = iur, opts \\ []) do
+  def configure_events(iur, opts \\ [])
+
+  def configure_events(%Element{} = iur, opts) do
+    iur
+    |> CanonicalIUR.to_legacy_map()
+    |> configure_events(opts)
+  end
+
+  def configure_events(%{"type" => "screen"} = iur, opts) do
     bindings = Map.get(iur, "bindings", [])
 
     event_handlers =
@@ -241,7 +280,7 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
   # Private Functions
 
   defp desktop_ui_renderer_module do
-    Module.concat(DesktopUI, Renderer)
+    Module.concat(DesktopUi, Renderer)
   end
 
   # Call actual DesktopUI.Renderer if available
@@ -446,9 +485,9 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
   defp render_metadata(canonical_iur, renderer) do
     %{
       renderer: renderer,
-      resource_id: Map.get(canonical_iur, "id"),
+      resource_id: CanonicalIUR.id(canonical_iur),
       resource_type: :screen,
-      screen_id: Map.get(canonical_iur, "id")
+      screen_id: CanonicalIUR.id(canonical_iur)
     }
   end
 end

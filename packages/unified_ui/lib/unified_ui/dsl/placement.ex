@@ -84,7 +84,19 @@ defmodule UnifiedUi.Dsl.Placement do
     :file_input,
     :menu,
     :tabs,
-    :command_palette
+    :command_palette,
+    :inline_rich_text_heading,
+    :kicker,
+    :avatar,
+    :presence_dot,
+    :segmented_button_group,
+    :runtime_form_shell,
+    :pipeline_stepper_horizontal,
+    :segmented_progress_bar,
+    :workflow_stage_list_vertical,
+    :meter_thin,
+    :redline_inline,
+    :code_block_syntax_highlighted
   ]
 
   @advanced_leaf_kinds [
@@ -113,7 +125,19 @@ defmodule UnifiedUi.Dsl.Placement do
   ]
 
   @layout_kinds [:box, :row, :column, :grid, :stack]
-  @container_kinds [:content, :form_builder, :field_group]
+  @container_kinds [
+    :content,
+    :form_builder,
+    :field_group,
+    :disclosure,
+    :chat_composer,
+    :list_item_multi_column,
+    :artifact_row,
+    :sticky_frosted_header,
+    :slide_over_panel,
+    :event_callout,
+    :list_repeat
+  ]
 
   @spec section_boundaries() :: %{atom() => [atom()]}
   def section_boundaries do

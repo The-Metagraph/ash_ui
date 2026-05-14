@@ -24,27 +24,27 @@ Back to index: [README](./README.md)
 
 This phase adopts the expanded Unified UI widget-component catalog as first-class Ash UI authoring input while preserving resource authority. It adds catalog drift detection, admission and alias normalization, canonical conversion, renderer fallback behavior, list-repeat composition, documentation, and end-to-end conformance.
 
-## [ ] 31.1 Section - Catalog Boundary And Drift Detection
+## [x] 31.1 Section - Catalog Boundary And Drift Detection
 
 This section establishes the canonical component catalog as a package boundary before Ash UI admits the new component kinds.
 
-### [ ] 31.1.1 Task - Mirror The Unified Component Catalog
+### [x] 31.1.1 Task - Mirror The Unified Component Catalog
 
 This task records the component kinds, aliases, and families Ash UI must support from the upgraded Unified package set.
 
-- [ ] 31.1.1.1 Subtask - Add an Ash UI catalog helper or fixture that reads or mirrors `UnifiedUi.WidgetComponents.kinds/0`, aliases, and family metadata.
-- [ ] 31.1.1.2 Subtask - Include every canonical kind listed in `REQ-WIDGET-001` through `REQ-WIDGET-010`.
-- [ ] 31.1.1.3 Subtask - Mark `phoenix_form`, `repeat`, and `ui_relationship_repeat` as compatibility aliases.
-- [ ] 31.1.1.4 Subtask - Keep `inline_rich_text_heading` in the catalog as already-supported component coverage.
+- [x] 31.1.1.1 Subtask - Add an Ash UI catalog helper or fixture that reads or mirrors `UnifiedUi.WidgetComponents.kinds/0`, aliases, and family metadata.
+- [x] 31.1.1.2 Subtask - Include every canonical kind listed in `REQ-WIDGET-001` through `REQ-WIDGET-010`.
+- [x] 31.1.1.3 Subtask - Mark `phoenix_form`, `repeat`, and `ui_relationship_repeat` as compatibility aliases.
+- [x] 31.1.1.4 Subtask - Keep `inline_rich_text_heading` in the catalog as already-supported component coverage.
 
-### [ ] 31.1.2 Task - Add Package Boundary Tests
+### [x] 31.1.2 Task - Add Package Boundary Tests
 
 This task prevents partial adoption or silent drift between Ash UI and the Unified package catalog.
 
-- [ ] 31.1.2.1 Subtask - Add a package-boundary test comparing Ash UI's supported component set to `UnifiedUi.WidgetComponents.kinds/0`.
-- [ ] 31.1.2.2 Subtask - Add alias tests for `UnifiedUi.WidgetComponents.aliases/0` against Ash UI alias normalization.
-- [ ] 31.1.2.3 Subtask - Add an explicit exclusion mechanism if Ash UI intentionally delays any upstream component.
-- [ ] 31.1.2.4 Subtask - Fail package-boundary tests when a new upstream component appears without an Ash UI adoption decision.
+- [x] 31.1.2.1 Subtask - Add a package-boundary test comparing Ash UI's supported component set to `UnifiedUi.WidgetComponents.kinds/0`.
+- [x] 31.1.2.2 Subtask - Add alias tests for `UnifiedUi.WidgetComponents.aliases/0` against Ash UI alias normalization.
+- [x] 31.1.2.3 Subtask - Add an explicit exclusion mechanism if Ash UI intentionally delays any upstream component.
+- [x] 31.1.2.4 Subtask - Fail package-boundary tests when a new upstream component appears without an Ash UI adoption decision.
 
 ## [ ] 31.2 Section - Resource And Persisted DSL Admission
 

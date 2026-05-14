@@ -3,8 +3,18 @@ defmodule UnifiedIUR.Fixtures do
   Maintained reference fixtures for the canonical `UnifiedIUR` surface.
   """
 
-  alias UnifiedIUR.{Canvas, Container, Extension, Forms, Interoperability, Layer, Layout}
-  alias UnifiedIUR.Widgets.{Advanced, Data, Feedback, Foundational, Input, Navigation}
+  alias UnifiedIUR.{
+    Canvas,
+    Container,
+    Extension,
+    Forms,
+    Interaction,
+    Interoperability,
+    Layer,
+    Layout
+  }
+
+  alias UnifiedIUR.Widgets.{Advanced, Components, Data, Feedback, Foundational, Input, Navigation}
 
   @fixture_specs [
     %{
@@ -76,6 +86,98 @@ defmodule UnifiedIUR.Fixtures do
       ],
       parity_obligations: [:advanced_widgets, :canvas_constructs, :feedback_widgets],
       snapshot: "advanced--operations_center.snapshot"
+    },
+    %{
+      id: "components--accessibility_and_safety",
+      category: :components,
+      description:
+        "Expanded widget components with accessibility names, state semantics, and plain-text safety fixtures.",
+      semantics: [
+        "expanded widget component catalog coverage",
+        "redline and code plain-text safety",
+        "accessibility labels and progress state"
+      ],
+      parity_obligations: [:component_widgets, :accessibility_semantics, :text_safety],
+      snapshot: "components--accessibility_and_safety.snapshot"
+    }
+  ]
+
+  @navigation_fixture_specs [
+    %{
+      id: "screen_transition--settings_profile",
+      description:
+        "Canonical top-level screen transition targeting the settings screen with portable params.",
+      semantics: [
+        "screen transition action vocabulary",
+        "symbolic screen identifiers",
+        "portable params and payload mapping"
+      ],
+      snapshot: "fixtures/navigation/screen_transition--settings_profile.snapshot"
+    },
+    %{
+      id: "replace_transition--home",
+      description: "Canonical screen replacement that does not assume browser-route semantics.",
+      semantics: [
+        "replacement transition action vocabulary",
+        "symbolic screen identifiers",
+        "review-friendly replacement params"
+      ],
+      snapshot: "fixtures/navigation/replace_transition--home.snapshot"
+    },
+    %{
+      id: "history_transition--back",
+      description:
+        "Canonical targetless history traversal using portable action meaning without fake screen ids.",
+      semantics: [
+        "targetless history traversal",
+        "portable history transition meaning",
+        "metadata without browser-history APIs"
+      ],
+      snapshot: "fixtures/navigation/history_transition--back.snapshot"
+    },
+    %{
+      id: "modal_transition--settings_dialog",
+      description:
+        "Canonical modal transition carrying a symbolic modal target and portable params.",
+      semantics: [
+        "modal transition action vocabulary",
+        "symbolic modal identifiers",
+        "portable params and metadata"
+      ],
+      snapshot: "fixtures/navigation/modal_transition--settings_dialog.snapshot"
+    },
+    %{
+      id: "modal_stack--open_confirm_dialog",
+      description:
+        "Canonical stacked modal push opening a second symbolic modal from an existing modal flow.",
+      semantics: [
+        "modal stack push transition",
+        "second symbolic modal target",
+        "no renderer-local modal containment"
+      ],
+      snapshot: "fixtures/navigation/modal_stack--open_confirm_dialog.snapshot"
+    },
+    %{
+      id: "modal_stack--close_top",
+      description:
+        "Canonical targetless modal close that removes the topmost modal without a stack id.",
+      semantics: [
+        "targetless top-modal close",
+        "modal stack pop transition",
+        "no renderer-local stack identifiers"
+      ],
+      snapshot: "fixtures/navigation/modal_stack--close_top.snapshot"
+    },
+    %{
+      id: "modal_stack--close_named_settings",
+      description:
+        "Canonical named modal close using a symbolic modal target without structural nesting.",
+      semantics: [
+        "symbolic named modal close",
+        "modal stack close transition",
+        "no renderer-local modal hierarchy"
+      ],
+      snapshot: "fixtures/navigation/modal_stack--close_named_settings.snapshot"
     }
   ]
 
@@ -192,9 +294,159 @@ defmodule UnifiedIUR.Fixtures do
     "fixtures/#{id}.snapshot"
   end
 
+  @spec navigation_ids() :: [String.t()]
+  def navigation_ids do
+    Enum.map(@navigation_fixture_specs, & &1.id)
+  end
+
+  @spec navigation_catalog() :: [map()]
+  def navigation_catalog do
+    Enum.map(
+      @navigation_fixture_specs,
+      &Map.put(&1, :snapshot_path, navigation_snapshot_name(&1.id))
+    )
+  end
+
+  @spec navigation_fixture(String.t()) :: {:ok, map()} | :error
+  def navigation_fixture(id) when is_binary(id) do
+    case Enum.find(@navigation_fixture_specs, &(&1.id == id)) do
+      nil ->
+        :error
+
+      spec ->
+        {:ok,
+         spec
+         |> Map.put(:snapshot_path, navigation_snapshot_name(spec.id))
+         |> Map.put(:interaction, build_navigation_fixture(spec.id))}
+    end
+  end
+
+  @spec navigation_fixture!(String.t()) :: map()
+  def navigation_fixture!(id) do
+    case navigation_fixture(id) do
+      {:ok, fixture} -> fixture
+      :error -> raise ArgumentError, "unknown navigation fixture #{inspect(id)}"
+    end
+  end
+
+  @spec navigation_snapshot_name(String.t()) :: String.t()
+  def navigation_snapshot_name(id) do
+    "fixtures/navigation/#{id}.snapshot"
+  end
+
   @spec valid_id?(String.t()) :: boolean()
   def valid_id?(id) do
     String.match?(id, ~r/^[a-z0-9_]+--[a-z0-9_]+$/)
+  end
+
+  defp build_navigation_fixture("screen_transition--settings_profile") do
+    Interaction.navigation_transition(
+      intent: :open_settings_screen,
+      element_id: "settings-link",
+      scope: :screen,
+      action: :navigate_to,
+      screen: :settings,
+      params: %{tab: :profile},
+      mapping: %{origin: :workspace}
+    )
+  end
+
+  defp build_navigation_fixture("replace_transition--home") do
+    Interaction.navigation_transition(
+      intent: :replace_home_screen,
+      element_id: "home-link",
+      scope: :screen,
+      action: :replace_with,
+      screen: :home,
+      params: %{source: :command_palette},
+      mapping: %{source: :command_palette}
+    )
+  end
+
+  defp build_navigation_fixture("history_transition--back") do
+    Interaction.navigation_transition(
+      intent: :go_back_history,
+      element_id: "back-button",
+      scope: :screen,
+      action: :go_back,
+      metadata: %{source: :header},
+      mapping: %{source: :header}
+    )
+  end
+
+  defp build_navigation_fixture("modal_transition--settings_dialog") do
+    Interaction.navigation_transition(
+      intent: :open_settings_modal,
+      element_id: "settings-dialog-button",
+      scope: :screen,
+      action: :open_modal,
+      modal: :settings_dialog,
+      params: %{mode: :advanced},
+      metadata: %{surface: :workspace},
+      modal_stack: modal_stack_push(),
+      mapping: %{surface: :workspace}
+    )
+  end
+
+  defp build_navigation_fixture("modal_stack--open_confirm_dialog") do
+    Interaction.navigation_transition(
+      intent: :open_confirm_modal,
+      element_id: "confirm-settings-button",
+      scope: :modal,
+      action: :open_modal,
+      modal: :settings_confirm_dialog,
+      params: %{from: :settings_dialog},
+      metadata: %{previous_modal: :settings_dialog},
+      modal_stack: modal_stack_push(),
+      mapping: %{source: :settings_dialog}
+    )
+  end
+
+  defp build_navigation_fixture("modal_stack--close_top") do
+    Interaction.navigation_transition(
+      intent: :close_top_modal,
+      element_id: "close-top-modal-button",
+      scope: :modal,
+      action: :close_modal,
+      metadata: %{reason: :cancel},
+      modal_stack: modal_stack_close(),
+      mapping: %{reason: :cancel}
+    )
+  end
+
+  defp build_navigation_fixture("modal_stack--close_named_settings") do
+    Interaction.navigation_transition(
+      intent: :close_settings_modal,
+      element_id: "close-settings-modal-button",
+      scope: :modal,
+      action: :close_modal,
+      modal: :settings_dialog,
+      metadata: %{reason: :done},
+      modal_stack: modal_stack_close(),
+      mapping: %{reason: :done}
+    )
+  end
+
+  defp modal_stack_push do
+    %{
+      operation: :push,
+      target: :symbolic_modal,
+      target_required?: true,
+      named_target_allowed?: true,
+      containment_required?: false,
+      stack_effect: :push_modal
+    }
+  end
+
+  defp modal_stack_close do
+    %{
+      operation: :close,
+      target: :topmost_modal,
+      target_required?: false,
+      named_target_allowed?: true,
+      containment_required?: false,
+      stack_effect: :close_topmost_or_named_modal
+    }
   end
 
   defp build_fixture("foundational--workspace_chrome") do
@@ -641,6 +893,171 @@ defmodule UnifiedIUR.Fixtures do
       columns: 2,
       gap: 2,
       theme: :workspace
+    )
+  end
+
+  defp build_fixture("components--accessibility_and_safety") do
+    template =
+      Components.artifact_row("Repeated artifact", [], id: "repeat-template", row_identity: :id)
+
+    Layout.column(
+      [
+        {:content,
+         Components.inline_rich_text_heading(
+           :h2,
+           [
+             %{
+               type: :text,
+               value: "Unsafe-looking text is still text: <script>alert(1)</script>"
+             },
+             %{type: :emphasis, value: " portable"}
+           ],
+           id: "component-heading",
+           accessibility_label: "Component safety heading"
+         )},
+        {:content,
+         Components.disclosure(
+           "Advanced component details",
+           [Foundational.text("Disclosure body", id: "disclosure-body")],
+           id: "component-disclosure",
+           open?: true
+         )},
+        {:content,
+         Components.kicker(["Spec", "Runtime", "Safety"],
+           id: "component-kicker",
+           separator: "/"
+         )},
+        {:content,
+         Components.avatar(
+           id: "component-avatar",
+           initials: "PC",
+           accessibility_label: "Pascal Charbonneau"
+         )},
+        {:content,
+         Components.presence_dot(:active, id: "component-presence", accessibility_label: "Active")},
+        {:content,
+         Components.segmented_button_group(
+           [
+             %{value: :all, label: "All"},
+             %{value: :active, label: "Active"}
+           ],
+           id: "component-segmented",
+           active_value: :all,
+           selection_intent: :select_status
+         )},
+        {:content,
+         Components.runtime_form_shell(
+           [%{name: :email, type: :email, label: "Email"}],
+           id: "component-form",
+           submit_label: "Save",
+           submit_intent: :save,
+           change_intent: :validate,
+           validation_state: :valid
+         )},
+        {:content,
+         Components.chat_composer(
+           [Foundational.button("Attach", id: "composer-attach")],
+           id: "component-composer",
+           value: "Draft",
+           send_intent: :send_message,
+           change_intent: :change_message
+         )},
+        {:content,
+         Components.list_item_multi_column(
+           [Foundational.text("Row title", id: "row-title")],
+           id: "component-row",
+           row_identity: "row-1",
+           column_template: [%{id: :title, label: "Title"}],
+           active?: true,
+           action_intent: :open_row
+         )},
+        {:content,
+         Components.artifact_row(
+           "Artifact",
+           [Foundational.button("Open", id: "artifact-open")],
+           id: "component-artifact",
+           row_identity: "artifact-1",
+           meta: %{status: :accepted}
+         )},
+        {:content,
+         Components.pipeline_stepper_horizontal(
+           [
+             %{id: :draft, label: "Draft", state: :done},
+             %{id: :review, label: "Review", state: :active}
+           ],
+           id: "component-stepper",
+           active_index: 1,
+           completed_indices: [0],
+           navigation_intent: :select_step
+         )},
+        {:content,
+         Components.segmented_progress_bar(
+           [%{label: "Passing", weight: 8, state: :success}],
+           id: "component-progress",
+           aggregate_progress: %{current: 8, maximum: 9},
+           label: "Scenario health"
+         )},
+        {:content,
+         Components.workflow_stage_list_vertical(
+           [%{id: :authored, label: "Authored", state: :done}],
+           id: "component-stages"
+         )},
+        {:content, Components.meter_thin(82.5, id: "component-meter", label: "Coverage")},
+        {:content,
+         Components.sticky_frosted_header(
+           [Foundational.button("Save", id: "header-save")],
+           id: "component-header",
+           title: "Workspace",
+           leading: [:back]
+         )},
+        {:content,
+         Components.slide_over_panel(
+           [Foundational.text("Panel body", id: "panel-body")],
+           id: "component-panel",
+           accessibility_label: "Details panel",
+           open?: true,
+           size: :wide,
+           dismiss_intent: :close_panel
+         )},
+        {:content,
+         Components.event_callout(
+           "Deployment paused",
+           [Foundational.button("Inspect", id: "callout-inspect")],
+           id: "component-callout",
+           tone: :warning,
+           action_intent: :inspect_event
+         )},
+        {:content,
+         Components.redline_inline(
+           [
+             %{state: :keep, text: "Keep "},
+             %{state: :delete, text: "<b>old</b>"},
+             %{state: :insert, text: "<script>new()</script>"}
+           ],
+           id: "component-redline"
+         )},
+        {:content,
+         Components.code_block_syntax_highlighted(
+           :elixir,
+           [
+             %{type: :keyword, text: "defmodule"},
+             %{type: :text, text: " <Unsafe>"}
+           ],
+           id: "component-code"
+         )},
+        {:content,
+         Components.list_repeat(template,
+           id: "component-repeat",
+           repeat_binding: :artifact_rows,
+           row_scope: :artifact,
+           row_fields: [:id],
+           template_identity: :repeat_template,
+           hydrated?: true,
+           row_count: 0,
+           children: []
+         )}
+      ],
+      id: "component-safety-fixture"
     )
   end
 

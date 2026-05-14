@@ -3,9 +3,10 @@ defmodule UnifiedIUR.Export do
   Stable export helpers for canonical fixtures, snapshots, and diff reports.
   """
 
-  alias UnifiedIUR.{Fixtures, Inspect, Normalize, Reference, Validate}
+  alias UnifiedIUR.{Fixtures, Inspect, Interaction, Normalize, Reference, Validate}
 
   @type export_format :: :fixture | :snapshot | :diagnostics | :tree
+  @type navigation_export_format :: :fixture | :snapshot | :inspection
 
   @spec fixture(String.t(), export_format()) :: {:ok, String.t()} | :error
   def fixture(id, format \\ :fixture) when is_binary(id) do
@@ -41,10 +42,48 @@ defmodule UnifiedIUR.Export do
     end
   end
 
+  @spec navigation_fixture(String.t(), navigation_export_format()) :: {:ok, String.t()} | :error
+  def navigation_fixture(id, format \\ :fixture) when is_binary(id) do
+    case Fixtures.navigation_fixture(id) do
+      {:ok, fixture} ->
+        output =
+          case format do
+            :fixture ->
+              serialize_term(
+                id: fixture.id,
+                description: fixture.description,
+                semantics: fixture.semantics,
+                snapshot_path: fixture.snapshot_path,
+                snapshot: Reference.snapshot_interaction(fixture.interaction)
+              )
+
+            :snapshot ->
+              snapshot_interaction(fixture.interaction)
+
+            :inspection ->
+              fixture.interaction
+              |> Inspect.interaction()
+              |> serialize_term()
+          end
+
+        {:ok, output}
+
+      :error ->
+        :error
+    end
+  end
+
   @spec snapshot(UnifiedIUR.Element.t() | map() | keyword()) :: String.t()
   def snapshot(input) do
     input
     |> Reference.snapshot()
+    |> serialize_term()
+  end
+
+  @spec snapshot_interaction(Interaction.t() | map() | keyword()) :: String.t()
+  def snapshot_interaction(input) do
+    input
+    |> Reference.snapshot_interaction()
     |> serialize_term()
   end
 

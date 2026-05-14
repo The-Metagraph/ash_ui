@@ -7,6 +7,7 @@ defmodule UnifiedIUR.Inspect do
     Element,
     Extension,
     Fixtures,
+    Interaction,
     Interoperability,
     Normalize,
     Reference,
@@ -38,6 +39,23 @@ defmodule UnifiedIUR.Inspect do
     end
   end
 
+  @spec navigation_fixture(String.t()) :: {:ok, map()} | :error
+  def navigation_fixture(id) when is_binary(id) do
+    case Fixtures.navigation_fixture(id) do
+      {:ok, fixture} ->
+        {:ok,
+         fixture.interaction
+         |> interaction()
+         |> Map.put(:fixture_id, fixture.id)
+         |> Map.put(:description, fixture.description)
+         |> Map.put(:semantics, fixture.semantics)
+         |> Map.put(:snapshot_path, fixture.snapshot_path)}
+
+      :error ->
+        :error
+    end
+  end
+
   @spec element(Element.t() | map() | keyword()) :: inspection_report()
   def element(input) do
     element = Normalize.element!(input)
@@ -54,6 +72,21 @@ defmodule UnifiedIUR.Inspect do
       themes: themes(element),
       interactions: interactions(element),
       diagnostics: Validate.diagnostics(element)
+    }
+  end
+
+  @spec interaction(Interaction.t() | map() | keyword()) :: map()
+  def interaction(input) do
+    interaction = Interaction.new(input)
+
+    %{
+      family: interaction.family,
+      intent: interaction.intent,
+      source: interaction.source,
+      target: interaction.target,
+      navigation: Interaction.navigation_descriptor(interaction),
+      payload: interaction.payload,
+      metadata: interaction.metadata
     }
   end
 
@@ -118,13 +151,13 @@ defmodule UnifiedIUR.Inspect do
       element.attributes
       |> Map.get(:interactions, [])
       |> Enum.map(fn interaction ->
-        %{
+        interaction
+        |> interaction()
+        |> Map.merge(%{
           id: element.id,
           kind: element.kind,
-          family: interaction.family,
-          intent: interaction.intent,
-          interaction: interaction
-        }
+          interaction: Interaction.new(interaction)
+        })
       end)
     end)
   end

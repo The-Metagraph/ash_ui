@@ -7,6 +7,7 @@ defmodule UnifiedUi.Reference do
   alias UnifiedUi.Examples
   alias UnifiedUi.Signal
   alias UnifiedUi.Theme
+  alias UnifiedUi.WidgetComponents
 
   @spec supported_sections() :: [atom()]
   def supported_sections do
@@ -68,6 +69,26 @@ defmodule UnifiedUi.Reference do
     }
   end
 
+  @spec widget_component_families() :: %{WidgetComponents.family() => [atom()]}
+  def widget_component_families do
+    WidgetComponents.component_families()
+  end
+
+  @spec widget_component_catalog() :: [WidgetComponents.component()]
+  def widget_component_catalog do
+    WidgetComponents.catalog()
+  end
+
+  @spec widget_component_source_mapping() :: %{pos_integer() => map()}
+  def widget_component_source_mapping do
+    WidgetComponents.source_mapping()
+  end
+
+  @spec widget_component_aliases() :: %{atom() => atom()}
+  def widget_component_aliases do
+    WidgetComponents.aliases()
+  end
+
   @spec compiled_display_system_families() :: %{atom() => [atom()]}
   def compiled_display_system_families do
     %{
@@ -126,6 +147,26 @@ defmodule UnifiedUi.Reference do
   @spec signal_families() :: [Signal.family()]
   def signal_families do
     Signal.families()
+  end
+
+  @spec navigation_actions() :: [Signal.navigation_transition_action()]
+  def navigation_actions do
+    Signal.navigation_actions()
+  end
+
+  @spec navigation_contract() :: %{
+          transition_fields: [atom()],
+          local_navigation_fields: [atom()],
+          modal_stack: %{Signal.navigation_transition_action() => Signal.modal_stack_semantics()},
+          actions: %{Signal.navigation_transition_action() => Signal.navigation_action_contract()}
+        }
+  def navigation_contract do
+    %{
+      transition_fields: Signal.navigation_transition_fields(),
+      local_navigation_fields: Signal.local_navigation_fields(),
+      modal_stack: Signal.navigation_modal_stack_semantics(),
+      actions: Signal.navigation_action_contracts()
+    }
   end
 
   @spec compiled_signal_families() :: [UnifiedIUR.Interaction.family()]

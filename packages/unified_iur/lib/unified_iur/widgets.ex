@@ -3,7 +3,7 @@ defmodule UnifiedIUR.Widgets do
   Reference surface for canonical widget constructors exposed by `UnifiedIUR`.
   """
 
-  alias UnifiedIUR.Widgets.{Advanced, Data, Feedback, Foundational, Input, Navigation}
+  alias UnifiedIUR.Widgets.{Advanced, Components, Data, Feedback, Foundational, Input, Navigation}
 
   @foundational_kinds [
     :text,
@@ -46,6 +46,7 @@ defmodule UnifiedIUR.Widgets do
 
   @spec modules() :: %{
           advanced: module(),
+          components: module(),
           data: module(),
           feedback: module(),
           foundational: module(),
@@ -55,6 +56,7 @@ defmodule UnifiedIUR.Widgets do
   def modules do
     %{
       advanced: Advanced,
+      components: Components,
       foundational: Foundational,
       input: Input,
       navigation: Navigation,
@@ -91,5 +93,10 @@ defmodule UnifiedIUR.Widgets do
   @spec advanced_kinds() :: [atom()]
   def advanced_kinds do
     @advanced_kinds
+  end
+
+  @spec component_kinds() :: [atom()]
+  def component_kinds do
+    Components.kinds()
   end
 end

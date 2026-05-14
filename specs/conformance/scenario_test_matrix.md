@@ -71,6 +71,12 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-143 | Forbidden Host Runtime Navigation Fields | test/ash_ui/canonical_navigation_test.exs, test/ash_ui/phase_30_integration_test.exs |
 | SCN-144 | Runtime Adapter Navigation Transport | test/ash_ui/phase_30_runtime_adapter_test.exs, test/ash_ui/phase_30_integration_test.exs |
 | SCN-145 | Canonical Navigation Guide Coverage | test/ash_ui/phase_30_docs_conformance_test.exs |
+| SCN-161 | Canonical Widget Catalog Boundary | test/ash_ui/phase_31_package_boundary_test.exs, test/ash_ui/phase_31_integration_test.exs |
+| SCN-162 | Canonical Widget Admission And Aliases | test/ash_ui/phase_31_resource_admission_test.exs, test/ash_ui/phase_31_integration_test.exs |
+| SCN-163 | Canonical Widget Conversion And Runtime Adapters | test/ash_ui/phase_31_canonical_conversion_test.exs, test/ash_ui/phase_31_runtime_adapter_test.exs, test/ash_ui/phase_31_integration_test.exs |
+| SCN-164 | List Repeat Relationship Hydration | test/ash_ui/liveview/list_repeat_hydration_test.exs, test/ash_ui/phase_31_integration_test.exs |
+| SCN-165 | Canonical Widget Guide And Example Coverage | test/ash_ui/phase_31_docs_conformance_test.exs |
+| SCN-166 | Phase 31 Conformance And Drift Detection | test/ash_ui/phase_31_package_boundary_test.exs, test/ash_ui/phase_31_resource_admission_test.exs, test/ash_ui/phase_31_canonical_conversion_test.exs, test/ash_ui/phase_31_runtime_adapter_test.exs, test/ash_ui/liveview/list_repeat_hydration_test.exs, test/ash_ui/phase_31_docs_conformance_test.exs, test/ash_ui/phase_31_integration_test.exs |
 
 ## Notes
 
@@ -80,3 +86,4 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 - Phase 16 realigns the matrix around element-resource authority and relationship-driven composition.
 - Phase 22 adds explicit example-suite runtime, theme-shell, and governance traceability.
 - Phase 30 adds canonical IUR and navigation adoption traceability.
+- Phase 31 adds canonical widget-component catalog adoption traceability.

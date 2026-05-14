@@ -51,7 +51,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     canonical? = CanonicalIUR.canonical?(canonical_iur)
 
     result =
-      if canonical? and available?() and not force_fallback? do
+      if canonical? and available?() and not force_fallback? and not empty_screen?(canonical_iur) do
         call_live_ui_renderer(canonical_iur, opts)
       else
         canonical_iur
@@ -771,7 +771,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp generate_heex(%{"type" => "image"} = iur, _opts) do
     props = iur["props"] || %{}
-    src = text_prop(props, ["src", "url"], "")
+    src = text_prop(props, ["src", "source", "url"], "")
     alt = text_prop(props, ["alt", "label", "content"], "Image")
     caption = text_prop(props, ["caption", "description"])
 
@@ -781,6 +781,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       #{if caption, do: "<figcaption class=\"ash-image-caption\">#{caption}</figcaption>", else: ""}
     </figure>
     """
+  end
+
+  defp generate_heex(%{"type" => "link"} = iur, opts) do
+    generate_heex(%{iur | "type" => "custom:link"}, opts)
   end
 
   defp generate_heex(%{"type" => "badge"} = iur, opts) do
@@ -1102,6 +1106,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "radio_group"} = iur, opts) do
+    generate_heex(%{iur | "type" => "radio"}, opts)
+  end
+
   defp generate_heex(%{"type" => "switch"} = iur, opts) do
     props = iur["props"] || %{}
     checked? = !!Map.get(props, "checked")
@@ -1116,6 +1124,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       <span class="ash-switch-label">#{label}</span>
     </button>
     """
+  end
+
+  defp generate_heex(%{"type" => "toggle"} = iur, opts) do
+    generate_heex(%{iur | "type" => "switch"}, opts)
   end
 
   defp generate_heex(%{"type" => "select"} = iur, opts) do
@@ -1158,7 +1170,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp generate_heex(%{"type" => "custom:link"} = iur, _opts) do
     props = iur["props"] || %{}
-    href = text_prop(props, ["href", "to", "url"], "#")
+    href = text_prop(props, ["href", "to", "url", "target"], "#")
     label = text_prop(props, ["label", "text", "content"], href)
     target = text_prop(props, "target")
     rel = text_prop(props, "rel")
@@ -1166,6 +1178,10 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
     <a class="#{css_classes(["ash-link", prop_class(iur)])}" href="#{href}"#{attr("target", target)}#{attr("rel", rel)}#{style_attr(prop_style(iur))}>#{label}</a>
     """
+  end
+
+  defp generate_heex(%{"type" => "pick_list"} = iur, opts) do
+    generate_heex(%{iur | "type" => "custom:pick_list"}, opts)
   end
 
   defp generate_heex(%{"type" => "custom:pick_list"} = iur, opts) do
@@ -2412,7 +2428,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     Enum.reduce_while(keys, default, fn key, _acc ->
       case prop(props, key) do
         value when value in [nil, "", []] -> {:cont, default}
-        value -> {:halt, to_string(value)}
+        value -> {:halt, text_value(value)}
       end
     end)
   end
@@ -2439,6 +2455,33 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     |> String.replace("\"", "&quot;")
     |> String.replace("'", "&#39;")
   end
+
+  defp text_value(value) when is_binary(value), do: value
+  defp text_value(value) when is_atom(value) or is_number(value), do: to_string(value)
+
+  defp text_value(value) when is_list(value) do
+    Enum.map_join(value, " ", &text_value/1)
+  end
+
+  defp text_value(value) when is_map(value) do
+    case text_prop(value, [
+           "text",
+           "label",
+           "value",
+           "name",
+           "content",
+           "title",
+           "source",
+           "src",
+           "url"
+         ]) do
+      nil -> inspect(value)
+      "" -> inspect(value)
+      text -> text
+    end
+  end
+
+  defp text_value(value), do: to_string(value)
 
   defp normalize_choice(option) when is_map(option) do
     {text_prop(option, ["label", "title", "value"], ""), prop(option, "value")}
@@ -2863,6 +2906,9 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp event_name(prefix, :change), do: "#{prefix}_change"
 
   defp nil_or_empty?(value), do: value in [nil, ""]
+
+  defp empty_screen?(%Element{kind: :screen, children: []}), do: true
+  defp empty_screen?(_other), do: false
 
   @valid_heading_levels ~w(h1 h2 h3 h4 h5 h6)
 

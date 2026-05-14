@@ -164,18 +164,23 @@ defmodule AshUI.Rendering.CanonicalIUR do
         child
         |> to_legacy_map()
         |> Map.put("slot", slot)
+        |> put_legacy_slot_metadata(slot)
 
       %Child{slot: slot} ->
         %{"slot" => slot, "type" => "empty", "children" => []}
+        |> put_legacy_slot_metadata(slot)
     end)
   end
 
   defp legacy_props(%Element{} = element) do
-    element.attributes
+    attributes = element.attributes
+
+    attributes
     |> Map.drop([:bindings, :interactions, :style, :theme, :style_refs, :token_refs])
     |> Enum.reduce(%{}, fn {key, value}, acc ->
       merge_legacy_prop(acc, key, value)
     end)
+    |> Map.merge(common_legacy_props(attributes))
     |> stringify_keys()
   end
 
@@ -189,6 +194,9 @@ defmodule AshUI.Rendering.CanonicalIUR do
 
   defp merge_legacy_prop(acc, :component, value),
     do: Map.put(acc, :component, normalize_map(value))
+
+  defp merge_legacy_prop(acc, key, value) when key in [:icon, :image, :link],
+    do: Map.merge(acc, normalize_map(value))
 
   defp merge_legacy_prop(acc, :layout, value), do: Map.merge(acc, normalize_map(value))
   defp merge_legacy_prop(acc, :button, value), do: Map.merge(acc, normalize_map(value))
@@ -224,6 +232,42 @@ defmodule AshUI.Rendering.CanonicalIUR do
   end
 
   defp merge_legacy_prop(acc, key, value), do: Map.put(acc, key, value)
+
+  defp put_legacy_slot_metadata(child, slot) do
+    Map.update(child, "metadata", %{"slot" => to_string(slot)}, fn metadata ->
+      metadata
+      |> normalize_map()
+      |> Map.put_new("slot", to_string(slot))
+    end)
+  end
+
+  defp common_legacy_props(attributes) do
+    style = value(attributes, :style)
+
+    %{}
+    |> maybe_put(:class, style_extra(style, :class) || nested_attr_value(attributes, :class))
+    |> maybe_put(:style, encode_value(style))
+    |> maybe_put(
+      :inline_style,
+      style_extra(style, :css) || nested_attr_value(attributes, :inline_style)
+    )
+  end
+
+  defp nested_attr_value(attributes, key) do
+    string_key = to_string(key)
+
+    Enum.find_value(attributes, fn
+      {_attr_key, value} when is_map(value) -> value(value, key)
+      {attr_key, value} -> if attr_key == key or attr_key == string_key, do: value
+      _entry -> nil
+    end)
+  end
+
+  defp style_extra(style, key) do
+    style
+    |> value(:extra)
+    |> value(key)
+  end
 
   defp encoded_attr(%Element{} = element, key, default) do
     element

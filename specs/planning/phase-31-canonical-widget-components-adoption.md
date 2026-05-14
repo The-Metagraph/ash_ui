@@ -20,7 +20,7 @@ Back to index: [README](./README.md)
 - `custom:*` remains available for application-owned extensions that are outside the Unified catalog.
 - Runtime packages own native rendering; Ash UI fallback rendering is compatibility support, not component semantic ownership.
 
-[ ] 31 Phase 31 - Canonical Widget Components Adoption
+[x] 31 Phase 31 - Canonical Widget Components Adoption
 
 This phase adopts the expanded Unified UI widget-component catalog as first-class Ash UI authoring input while preserving resource authority. It adds catalog drift detection, admission and alias normalization, canonical conversion, renderer fallback behavior, list-repeat composition, documentation, and end-to-end conformance.
 
@@ -158,18 +158,18 @@ This task gives each component family at least one resource-authored example sur
 - [x] 31.6.2.3 Subtask - Add examples for workflow, progress, layer, callout, redline, and code components.
 - [x] 31.6.2.4 Subtask - Add a list-repeat example using relationship-owned row templates.
 
-## [ ] 31.7 Section - Phase 31 Integration Tests
+## [x] 31.7 Section - Phase 31 Integration Tests
 
 This final section proves canonical widget components work as one adoption path across package catalog, resource admission, canonical conversion, runtime rendering, docs, and examples.
 
-### [ ] 31.7.1 Task - Run End-To-End Component Adoption Scenarios
+### [x] 31.7.1 Task - Run End-To-End Component Adoption Scenarios
 
 This task validates Phase 31 as a complete integration instead of isolated component render clauses.
 
-- [ ] 31.7.1.1 Subtask - Verify the Ash UI supported component catalog matches `UnifiedUi.WidgetComponents`.
-- [ ] 31.7.1.2 Subtask - Verify every canonical component kind and alias is admitted at the resource and persisted DSL boundaries.
-- [ ] 31.7.1.3 Subtask - Verify every component family compiles into valid `%UnifiedIUR.Element{}` output.
-- [ ] 31.7.1.4 Subtask - Verify Live, Elm, and desktop adapter paths preserve or render representative component families.
-- [ ] 31.7.1.5 Subtask - Verify list-repeat declarations compile and hydrate through relationship-owned templates.
-- [ ] 31.7.1.6 Subtask - Verify docs and examples cover the catalog, aliases, fallback behavior, and extension boundary.
-- [ ] 31.7.1.7 Subtask - Run the targeted Phase 31 suite and governance validation before marking the phase complete.
+- [x] 31.7.1.1 Subtask - Verify the Ash UI supported component catalog matches `UnifiedUi.WidgetComponents`.
+- [x] 31.7.1.2 Subtask - Verify every canonical component kind and alias is admitted at the resource and persisted DSL boundaries.
+- [x] 31.7.1.3 Subtask - Verify every component family compiles into valid `%UnifiedIUR.Element{}` output.
+- [x] 31.7.1.4 Subtask - Verify Live, Elm, and desktop adapter paths preserve or render representative component families.
+- [x] 31.7.1.5 Subtask - Verify list-repeat declarations compile and hydrate through relationship-owned templates.
+- [x] 31.7.1.6 Subtask - Verify docs and examples cover the catalog, aliases, fallback behavior, and extension boundary.
+- [x] 31.7.1.7 Subtask - Run the targeted Phase 31 suite and governance validation before marking the phase complete.

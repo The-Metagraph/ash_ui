@@ -1143,6 +1143,116 @@ Each scenario includes:
 - Developer guides explain `%UnifiedIUR.Element{}` output, validation, and runtime adapter namespaces
 - Style guidance remains explicit about semantic resource intent versus host-owned theme implementation
 
+### Canonical Widget Component Scenarios (SCN-161 to SCN-170)
+
+#### SCN-161: Canonical Widget Catalog Boundary
+
+**Requirements**: REQ-WIDGET-001
+
+**Preconditions**:
+- The upgraded Unified UI widget-component catalog is available
+- Ash UI exposes the local `AshUI.WidgetComponents` boundary
+
+**Steps**:
+1. Compare Ash UI supported component kinds with `UnifiedUi.WidgetComponents.kinds/0`
+2. Compare Ash UI compatibility aliases with `UnifiedUi.WidgetComponents.aliases/0`
+3. Inspect component families through the Ash UI boundary
+
+**Expected Outcome**:
+- Ash UI mirrors the upstream catalog and aliases unless explicit exclusions are declared
+- Component families remain visible to tests, docs, and examples
+- Unknown names return the upstream diagnostic shape
+
+#### SCN-162: Canonical Widget Admission And Aliases
+
+**Requirements**: REQ-WIDGET-002, REQ-WIDGET-003
+
+**Preconditions**:
+- Resource-local element authoring and persisted DSL validation are available
+
+**Steps**:
+1. Validate every canonical component kind through `ui_element` validation
+2. Validate every canonical component kind through persisted DSL validation
+3. Resolve each compatibility alias through Ash UI canonical kind normalization
+
+**Expected Outcome**:
+- Cataloged components are accepted at resource and persisted DSL boundaries
+- `phoenix_form` normalizes to `runtime_form_shell`
+- `repeat` and `ui_relationship_repeat` normalize to `list_repeat`
+- Renderer-facing output uses canonical names
+
+#### SCN-163: Canonical Widget Conversion And Runtime Adapters
+
+**Requirements**: REQ-WIDGET-004, REQ-WIDGET-005, REQ-WIDGET-006, REQ-WIDGET-007
+
+**Preconditions**:
+- Ash UI can build internal IUR containing representative component families
+- Live, Elm, and desktop adapters are available
+
+**Steps**:
+1. Convert representative component families through `AshUI.Rendering.IURAdapter`
+2. Normalize and validate the canonical `%UnifiedIUR.Element{}` output
+3. Render the canonical root through Live, Elm, and desktop adapters
+4. Inspect fallback output for preserved component identity
+
+**Expected Outcome**:
+- Component attributes use the expected Unified IUR namespaces
+- Canonical validation passes
+- Runtime adapters preserve or render component identity
+- Fallback renderers emit structured diagnostics and safe text output
+
+#### SCN-164: List Repeat Relationship Hydration
+
+**Requirements**: REQ-WIDGET-008
+
+**Preconditions**:
+- A resource relationship declares repeat metadata
+- The destination repeat element owns a `binding_type :list` binding
+
+**Steps**:
+1. Build a resource-authority payload for the repeat screen
+2. Compile the payload through `AshUI.Compiler`
+3. Convert the compiled IUR through canonical IUR conversion
+4. Hydrate runtime list rows into the repeated row template
+
+**Expected Outcome**:
+- Repeat metadata is encoded in relationship composition
+- The compiled node remains `list_repeat`
+- Row-scoped props project row values into concrete children
+
+#### SCN-165: Canonical Widget Guide And Example Coverage
+
+**Requirements**: REQ-WIDGET-009
+
+**Preconditions**:
+- User guides, developer guides, and canonical component examples are present
+
+**Steps**:
+1. Inspect user guide coverage for canonical kinds and aliases
+2. Inspect developer guide coverage for catalog ownership, validation, and fallback behavior
+3. Inspect example coverage for each component family and relationship-owned list repeat
+
+**Expected Outcome**:
+- User guides list supported component names and aliases
+- Developer guides explain catalog ownership and fallback boundaries
+- Examples use canonical names instead of `custom:*` for cataloged components
+
+#### SCN-166: Phase 31 Conformance And Drift Detection
+
+**Requirements**: REQ-WIDGET-010
+
+**Preconditions**:
+- Phase 31 package, admission, conversion, runtime, repeat, docs, and integration tests exist
+
+**Steps**:
+1. Run the targeted Phase 31 test files
+2. Run specs governance
+3. Run guide governance
+4. Run example-suite validation
+
+**Expected Outcome**:
+- Catalog drift, admission drift, conversion drift, renderer drift, repeat drift, and docs drift are caught before release
+
 ## Scenario Index
 
 | SCN ID | Name | Requirements | Component |
@@ -1212,6 +1322,12 @@ Each scenario includes:
 | SCN-143 | Forbidden Host Runtime Navigation Fields | REQ-NAV-006, REQ-NAV-007 | Canonical Navigation |
 | SCN-144 | Runtime Adapter Navigation Transport | REQ-NAV-008, REQ-NAV-009 | Canonical Navigation |
 | SCN-145 | Canonical Navigation Guide Coverage | REQ-NAV-010 | Canonical Navigation |
+| SCN-161 | Canonical Widget Catalog Boundary | REQ-WIDGET-001 | Canonical Widgets |
+| SCN-162 | Canonical Widget Admission And Aliases | REQ-WIDGET-002, REQ-WIDGET-003 | Canonical Widgets |
+| SCN-163 | Canonical Widget Conversion And Runtime Adapters | REQ-WIDGET-004, REQ-WIDGET-005, REQ-WIDGET-006, REQ-WIDGET-007 | Canonical Widgets |
+| SCN-164 | List Repeat Relationship Hydration | REQ-WIDGET-008 | Canonical Widgets |
+| SCN-165 | Canonical Widget Guide And Example Coverage | REQ-WIDGET-009 | Canonical Widgets |
+| SCN-166 | Phase 31 Conformance And Drift Detection | REQ-WIDGET-010 | Canonical Widgets |
 
 ## Related Specifications
 

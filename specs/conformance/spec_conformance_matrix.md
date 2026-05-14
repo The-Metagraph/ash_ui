@@ -111,6 +111,23 @@ The matrix provides complete traceability from:
 | REQ-NAV-009 | Interaction Transport Preservation | contracts/canonical_navigation_contract.md, planning/phase-30-canonical-iur-and-navigation-adoption.md | SCN-144 |
 | REQ-NAV-010 | Documentation And Migration Guidance | contracts/canonical_navigation_contract.md, guides/user/UG-0004-bindings-actions-and-forms.md, guides/user/UG-0005-liveview-runtime-and-rendering.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md | SCN-145 |
 
+## Widget Component Control Plane
+
+### REQ-WIDGET-*: Canonical Widget Components Adoption Contract
+
+| REQ | Description | Component Specs | Scenarios |
+|---|---|---|---|
+| REQ-WIDGET-001 | Authoritative Catalog Source | contracts/canonical_widget_components_contract.md, planning/phase-31-canonical-widget-components-adoption.md | SCN-161 |
+| REQ-WIDGET-002 | Resource And Persisted DSL Admission | contracts/canonical_widget_components_contract.md, planning/phase-31-canonical-widget-components-adoption.md | SCN-162 |
+| REQ-WIDGET-003 | Alias Normalization | contracts/canonical_widget_components_contract.md, guides/user/UG-0008-migration-from-older-ash-ui-models.md | SCN-162 |
+| REQ-WIDGET-004 | Canonical Attribute Mapping | contracts/canonical_widget_components_contract.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md | SCN-163 |
+| REQ-WIDGET-005 | Component Validation | contracts/canonical_widget_components_contract.md, planning/phase-31-canonical-widget-components-adoption.md | SCN-163 |
+| REQ-WIDGET-006 | Renderer Adapter Preservation | contracts/canonical_widget_components_contract.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md | SCN-163 |
+| REQ-WIDGET-007 | Semantic Fallback Rendering | contracts/canonical_widget_components_contract.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md | SCN-163 |
+| REQ-WIDGET-008 | List Repeat Composition | contracts/canonical_widget_components_contract.md, examples/canonical_widget_components.md | SCN-164 |
+| REQ-WIDGET-009 | Documentation And Examples | contracts/canonical_widget_components_contract.md, guides/user/UG-0003-widget-types-properties-and-signals.md, guides/user/UG-0008-migration-from-older-ash-ui-models.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md, examples/canonical_widget_components.md | SCN-165 |
+| REQ-WIDGET-010 | Conformance And Drift Detection | contracts/canonical_widget_components_contract.md, planning/phase-31-canonical-widget-components-adoption.md | SCN-166 |
+
 ## Runtime Control Plane
 
 ### REQ-SCREEN-*: Screen Contract

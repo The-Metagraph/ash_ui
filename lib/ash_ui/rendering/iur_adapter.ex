@@ -10,6 +10,7 @@ defmodule AshUI.Rendering.IURAdapter do
   alias AshUI.Telemetry
   alias AshUI.WidgetComponents
   alias UnifiedIUR.{Binding, Element, Metadata, Normalize, Validate}
+  alias UnifiedIUR.Element.Child
 
   @doc """
   Converts an Ash IUR to canonical unified_iur Screen format.
@@ -80,7 +81,7 @@ defmodule AshUI.Rendering.IURAdapter do
           bindings: Enum.map(iur.bindings, &convert_binding/1)
         }
         |> Map.merge(interaction_attributes(%{actions: fetch(iur.attributes, :actions, [])})),
-      children: Enum.map(iur.children, &convert_element/1)
+      children: convert_children(iur.children)
     )
   end
 
@@ -97,8 +98,21 @@ defmodule AshUI.Rendering.IURAdapter do
       id: element.id || generate_id(),
       metadata: convert_metadata(element),
       attributes: convert_attributes(kind, props),
-      children: Enum.map(element.children, &convert_element/1)
+      children: convert_children(element.children)
     )
+  end
+
+  defp convert_children(children) do
+    Enum.map(children, fn child ->
+      Child.new(child_slot(child), convert_element(child))
+    end)
+  end
+
+  defp child_slot(%IUR{} = child) do
+    child.metadata
+    |> fetch(:composition, %{})
+    |> fetch(:slot, fetch(child.metadata, :slot, :default))
+    |> normalize_existing_atom()
   end
 
   defp map_element_kind(:textinput), do: :text_input
@@ -614,11 +628,15 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(kind, props), do: %{kind => Map.drop(props, attachment_prop_keys())}
 
   defp style_attributes(props) do
-    case fetch(props, :style) do
-      nil -> %{}
-      style when is_binary(style) -> %{style: %{extra: %{css: style}}}
-      style -> %{style: style}
-    end
+    style =
+      props
+      |> fetch(:style)
+      |> merge_style_extra(%{
+        class: fetch(props, :class),
+        css: fetch(props, :inline_style)
+      })
+
+    if style in [nil, %{}], do: %{}, else: %{style: style}
   end
 
   defp theme_attributes(props) do
@@ -943,6 +961,38 @@ defmodule AshUI.Rendering.IURAdapter do
 
       if value in [nil, ""], do: nil, else: value
     end)
+  end
+
+  defp merge_style_extra(style, extra) do
+    extra =
+      extra
+      |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
+      |> Map.new()
+
+    style =
+      case style do
+        nil -> %{}
+        "" -> %{}
+        value when is_binary(value) -> %{extra: %{css: value}}
+        value when is_list(value) -> Enum.into(value, %{})
+        value when is_map(value) -> Map.new(value)
+        value -> value
+      end
+
+    cond do
+      extra == %{} ->
+        style
+
+      is_map(style) ->
+        Map.update(style, :extra, extra, fn existing ->
+          existing
+          |> normalize_map()
+          |> Map.merge(extra)
+        end)
+
+      true ->
+        style
+    end
   end
 
   defp attachment_prop_keys do

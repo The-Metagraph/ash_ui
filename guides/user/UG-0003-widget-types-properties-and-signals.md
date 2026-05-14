@@ -9,7 +9,7 @@ owners: Ash UI Team
 last_reviewed: 2026-05-14
 next_review: 2026-11-14
 related_reqs: [REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002, REQ-WIDGET-001, REQ-WIDGET-002, REQ-WIDGET-003, REQ-WIDGET-008, REQ-WIDGET-009]
-related_scns: [SCN-002, SCN-009, SCN-061, SCN-101]
+related_scns: [SCN-002, SCN-009, SCN-061, SCN-101, SCN-165]
 related_guides: [UG-0002, UG-0004, UG-0005, UG-0007, DG-0001]
 diagram_required: false
 ---

@@ -114,27 +114,27 @@ This task adds adapter fallback output for components where Ash UI needs compati
 - [x] 31.4.2.3 Subtask - Escape user-provided text and token content in fallback renderers.
 - [x] 31.4.2.4 Subtask - Avoid literal colors, font families, and theme-owned values in fallback output.
 
-## [ ] 31.5 Section - List Repeat Composition Behavior
+## [x] 31.5 Section - List Repeat Composition Behavior
 
 This section adopts canonical `list_repeat` without introducing a parallel non-resource authoring model.
 
-### [ ] 31.5.1 Task - Add Relationship Repeat Declarations
+### [x] 31.5.1 Task - Add Relationship Repeat Declarations
 
 This task lets Ash resource relationships declare repeated row composition through a list binding.
 
-- [ ] 31.5.1.1 Subtask - Extend `ui_relationships` to declare the list binding used for repeat composition.
-- [ ] 31.5.1.2 Subtask - Validate repeat declarations against `has_many` relationships and `:list` bindings.
-- [ ] 31.5.1.3 Subtask - Reject repeat declarations on unsupported relationship shapes.
-- [ ] 31.5.1.4 Subtask - Encode repeat metadata in the resource authority payload.
+- [x] 31.5.1.1 Subtask - Extend `ui_relationships` to declare the list binding used for repeat composition.
+- [x] 31.5.1.2 Subtask - Validate repeat declarations against `has_many` relationships and `:list` bindings.
+- [x] 31.5.1.3 Subtask - Reject repeat declarations on unsupported relationship shapes.
+- [x] 31.5.1.4 Subtask - Encode repeat metadata in the resource authority payload.
 
-### [ ] 31.5.2 Task - Hydrate Row-Scoped Repeat Templates
+### [x] 31.5.2 Task - Hydrate Row-Scoped Repeat Templates
 
 This task connects row data to repeated child templates while preserving canonical repeat intent.
 
-- [ ] 31.5.2.1 Subtask - Support row-scoped binding sources for repeated templates.
-- [ ] 31.5.2.2 Subtask - Project row fields into repeated child props during hydration.
-- [ ] 31.5.2.3 Subtask - Preserve canonical `list_repeat` metadata where renderer validation supports it.
-- [ ] 31.5.2.4 Subtask - Expand repeat templates into concrete children for fallback renderers that require concrete trees.
+- [x] 31.5.2.1 Subtask - Support row-scoped binding sources for repeated templates.
+- [x] 31.5.2.2 Subtask - Project row fields into repeated child props during hydration.
+- [x] 31.5.2.3 Subtask - Preserve canonical `list_repeat` metadata where renderer validation supports it.
+- [x] 31.5.2.4 Subtask - Expand repeat templates into concrete children for fallback renderers that require concrete trees.
 
 ## [ ] 31.6 Section - Documentation, Examples, And Migration Guidance
 

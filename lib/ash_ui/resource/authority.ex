@@ -389,6 +389,7 @@ defmodule AshUI.Resource.Authority do
       "placement" => encode_value(edge.placement),
       "order" => edge.order
     }
+    |> maybe_put_non_empty("repeat", encode_value(Map.get(edge, :repeat)))
   end
 
   defp encode_binding(binding) do
@@ -537,4 +538,7 @@ defmodule AshUI.Resource.Authority do
 
   defp maybe_put(map, _key, nil), do: map
   defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp maybe_put_non_empty(map, _key, value) when value in [nil, [], %{}], do: map
+  defp maybe_put_non_empty(map, key, value), do: Map.put(map, key, value)
 end

@@ -47,11 +47,15 @@ defmodule AshUI.LiveView.IURHydration do
         apply_binding(acc, node, binding_state)
       end)
 
+    hydrated_children =
+      node
+      |> Map.get("children", [])
+      |> Enum.map(&hydrate_node(&1, binding_states))
+
     node
     |> Map.put("props", hydrated_props)
-    |> Map.update("children", [], fn children ->
-      Enum.map(children, &hydrate_node(&1, binding_states))
-    end)
+    |> Map.put("children", hydrated_children)
+    |> expand_list_repeat()
   end
 
   defp hydrate_node(node, binding_states) when is_map(node) do
@@ -72,7 +76,7 @@ defmodule AshUI.LiveView.IURHydration do
       is_nil(target) ->
         props
 
-      binding_type == :list and widget_type in ["list", "table"] ->
+      binding_type == :list and widget_type in ["list", "table", "list_repeat"] ->
         hydrate_collection_props(props, value)
 
       input_like_widget?(widget_type) and target in [name, node_id] ->
@@ -134,6 +138,154 @@ defmodule AshUI.LiveView.IURHydration do
   end
 
   defp hydrate_collection_props(props, value), do: Map.put(props, "items", value)
+
+  defp expand_list_repeat(%{"type" => "list_repeat", "props" => props} = node) do
+    case repeat_items(props) do
+      {:ok, items} ->
+        templates = Map.get(node, "children", [])
+        row_scope = Map.get(props, "row_scope") || "row"
+        row_fields = Map.get(props, "row_fields", [])
+
+        expanded_children =
+          items
+          |> Enum.with_index()
+          |> Enum.flat_map(fn {row, row_index} ->
+            templates
+            |> Enum.with_index()
+            |> Enum.map(fn {template, template_index} ->
+              materialize_repeat_template(
+                template,
+                row,
+                row_index,
+                template_index,
+                row_scope,
+                row_fields
+              )
+            end)
+          end)
+
+        updated_props =
+          props
+          |> Map.put("hydrated?", true)
+          |> Map.put("row_count", length(items))
+
+        node
+        |> Map.put("props", updated_props)
+        |> Map.put("children", expanded_children)
+
+      :none ->
+        node
+    end
+  end
+
+  defp expand_list_repeat(node), do: node
+
+  defp repeat_items(props) do
+    cond do
+      Map.has_key?(props, "items") and is_list(Map.get(props, "items")) ->
+        {:ok, Map.get(props, "items")}
+
+      is_map(Map.get(props, "collection")) and
+        Map.has_key?(Map.get(props, "collection"), "items") and
+          is_list(get_in(props, ["collection", "items"])) ->
+        {:ok, get_in(props, ["collection", "items"])}
+
+      true ->
+        :none
+    end
+  end
+
+  defp materialize_repeat_template(
+         template,
+         row,
+         row_index,
+         template_index,
+         row_scope,
+         row_fields
+       ) do
+    row_identity = row_value(row, "id") || row_value(row, "row_identity") || row_index
+
+    template
+    |> resolve_row_scoped_node(row, row_scope, row_fields)
+    |> put_repeat_child_id(row_identity, template_index)
+    |> put_repeat_metadata(row_index, row_identity)
+  end
+
+  defp resolve_row_scoped_node(%{} = node, row, row_scope, row_fields) do
+    node
+    |> Map.update("props", %{}, fn props ->
+      props
+      |> resolve_row_scoped_value(row, row_scope, row_fields)
+      |> stringify_map_keys()
+    end)
+    |> Map.update("children", [], fn children ->
+      Enum.map(children, &resolve_row_scoped_node(&1, row, row_scope, row_fields))
+    end)
+  end
+
+  defp resolve_row_scoped_node(node, _row, _row_scope, _row_fields), do: node
+
+  defp resolve_row_scoped_value(%{} = value, row, row_scope, row_fields) do
+    scope = Map.get(value, "scope") || Map.get(value, :scope)
+    field = Map.get(value, "field") || Map.get(value, :field)
+
+    if row_scope?(scope, row_scope) and repeat_row_field_allowed?(field, row_fields) do
+      row_value(row, field)
+    else
+      Map.new(value, fn {key, nested} ->
+        {key, resolve_row_scoped_value(nested, row, row_scope, row_fields)}
+      end)
+    end
+  end
+
+  defp resolve_row_scoped_value(value, row, row_scope, row_fields) when is_list(value) do
+    Enum.map(value, &resolve_row_scoped_value(&1, row, row_scope, row_fields))
+  end
+
+  defp resolve_row_scoped_value(value, _row, _row_scope, _row_fields), do: value
+
+  defp row_scope?(scope, row_scope), do: to_string(scope) == to_string(row_scope)
+
+  defp repeat_row_field_allowed?(field, row_fields) do
+    normalized_fields = Enum.map(List.wrap(row_fields), &to_string/1)
+    normalized_fields == [] or to_string(field) in normalized_fields
+  end
+
+  defp row_value(row, field) when is_map(row) do
+    Enum.find_value([field, to_string(field), safe_atom(field)], fn key ->
+      if Map.has_key?(row, key) do
+        {:value, Map.get(row, key)}
+      end
+    end)
+    |> case do
+      {:value, value} -> value
+      nil -> nil
+    end
+  end
+
+  defp row_value(_row, _field), do: nil
+
+  defp safe_atom(value) when is_atom(value), do: value
+
+  defp safe_atom(value) when is_binary(value) do
+    String.to_existing_atom(value)
+  rescue
+    ArgumentError -> value
+  end
+
+  defp safe_atom(value), do: value
+
+  defp put_repeat_child_id(%{} = node, row_identity, template_index) do
+    base_id = Map.get(node, "id") || "repeat-child"
+    Map.put(node, "id", "#{base_id}:row:#{row_identity}:#{template_index}")
+  end
+
+  defp put_repeat_metadata(%{} = node, row_index, row_identity) do
+    metadata = Map.get(node, "metadata", %{})
+    repeat = %{"row_index" => row_index, "row_identity" => row_identity}
+
+    Map.put(node, "metadata", Map.put(metadata, "repeat", repeat))
+  end
 
   defp target_path(target) when is_list(target), do: target
 

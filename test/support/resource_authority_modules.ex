@@ -18,6 +18,11 @@ defmodule AshUI.Test.ResourceAuthorityDomain do
     resource(AshUI.Test.RelationshipSemanticsPanelElement)
     resource(AshUI.Test.RelationshipOnlyScreen)
     resource(AshUI.Test.RelationshipMixedScreen)
+    resource(AshUI.Test.Phase31RepeatScreen)
+    resource(AshUI.Test.Phase31RepeatListElement)
+    resource(AshUI.Test.Phase31RepeatRowElement)
+    resource(AshUI.Test.Phase31InvalidHasOneRepeatScreen)
+    resource(AshUI.Test.Phase31InvalidMissingRepeatBindingScreen)
   end
 end
 
@@ -70,37 +75,38 @@ defmodule AshUI.Test.ResourceAuthorityHeroElement do
 
   ui_relationships do
     relationship :stats do
-      kind :child
-      slot :body
-      placement :append
-      order 0
+      kind(:child)
+      slot(:body)
+      placement(:append)
+      order(0)
     end
 
     relationship :meta_rows do
-      kind :child
-      slot :aside
-      placement :append
-      order 1
+      kind(:child)
+      slot(:aside)
+      placement(:append)
+      order(1)
     end
 
     relationship :details_companions do
-      kind :companion
-      slot :aside
-      placement :append
-      order 2
+      kind(:companion)
+      slot(:aside)
+      placement(:append)
+      order(2)
     end
   end
 
   ui_element do
-    type :hero
+    type(:hero)
 
-    props %{
+    props(%{
       eyebrow: "Resource authority",
       title: "Elements are the authoritative units",
-      message: "The screen composes related element resources instead of one monolithic screen document."
-    }
+      message:
+        "The screen composes related element resources instead of one monolithic screen document."
+    })
 
-    metadata %{id: "dashboard_hero", section: "hero", slot: "body", position: 0}
+    metadata(%{id: "dashboard_hero", section: "hero", slot: "body", position: 0})
   end
 end
 
@@ -110,19 +116,19 @@ defmodule AshUI.Test.ResourceAuthorityStatElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :stat
-    props %{title: "Current value", value: "unhydrated", message: "Owned by the stat element"}
-    variants [:primary]
-    metadata %{id: "current_value_stat", section: "hero", slot: "body", position: 0}
+    type(:stat)
+    props(%{title: "Current value", value: "unhydrated", message: "Owned by the stat element"})
+    variants([:primary])
+    metadata(%{id: "current_value_stat", section: "hero", slot: "body", position: 0})
   end
 
   ui_bindings do
     binding :current_value do
-      source %{resource: "Demo.User", field: "name", id: "user-1"}
-      target "value"
-      binding_type :value
-      transform %{}
-      metadata %{owner: "stat"}
+      source(%{resource: "Demo.User", field: "name", id: "user-1"})
+      target("value")
+      binding_type(:value)
+      transform(%{})
+      metadata(%{owner: "stat"})
     end
   end
 end
@@ -133,9 +139,9 @@ defmodule AshUI.Test.ResourceAuthorityKeyValueElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :key_value
-    props %{label: "Renderer path", value: "Ash UI -> Resource Authority"}
-    metadata %{id: "renderer_meta", section: "meta", slot: "aside", position: 1}
+    type(:key_value)
+    props(%{label: "Renderer path", value: "Ash UI -> Resource Authority"})
+    metadata(%{id: "renderer_meta", section: "meta", slot: "aside", position: 1})
   end
 end
 
@@ -145,16 +151,195 @@ defmodule AshUI.Test.ResourceAuthorityInfoListElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :info_list
+    type(:info_list)
 
-    props %{
+    props(%{
       items: [
         %{id: "ownership", label: "Ownership", value: "Element-local"},
         %{id: "bindings", label: "Bindings", value: "Declared on the owning resource"}
       ]
-    }
+    })
 
-    metadata %{id: "explainer_list", section: "meta", slot: "aside", position: 2}
+    metadata(%{id: "explainer_list", section: "meta", slot: "aside", position: 2})
+  end
+end
+
+defmodule AshUI.Test.Phase31RepeatRowElement do
+  @moduledoc false
+
+  use AshUI.Test.ResourceAuthorityElementBase
+
+  ui_element do
+    type(:artifact_row)
+
+    props(%{
+      row_identity: %{scope: :row, field: :id},
+      title: %{scope: :row, field: :title},
+      meta: %{status: %{scope: :row, field: :status}}
+    })
+
+    metadata(%{id: "phase31_artifact_row_template", section: "repeat", slot: "body", position: 0})
+  end
+end
+
+defmodule AshUI.Test.Phase31RepeatListElement do
+  @moduledoc false
+
+  use AshUI.Test.ResourceAuthorityElementBase
+
+  relationships do
+    has_many :row_templates, AshUI.Test.Phase31RepeatRowElement do
+      destination_attribute(:parent_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :row_templates do
+      kind(:child)
+      slot(:body)
+      placement(:append)
+      order(0)
+    end
+  end
+
+  ui_element do
+    type(:list_repeat)
+    props(%{row_fields: [:id, :title, :status]})
+    metadata(%{id: "phase31_artifact_repeat", section: "repeat", slot: "body", position: 0})
+  end
+
+  ui_bindings do
+    binding :artifact_rows do
+      source(%{resource: "Demo.Artifact", relationship: "artifacts"})
+      target("artifact_rows")
+      binding_type(:list)
+      transform(%{})
+      metadata(%{owner: "phase31-repeat"})
+    end
+  end
+end
+
+defmodule AshUI.Test.Phase31RepeatScreen do
+  @moduledoc false
+
+  use Ash.Resource,
+    domain: AshUI.Test.ResourceAuthorityDomain,
+    data_layer: Ash.DataLayer.Ets
+
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_many :repeat_regions, AshUI.Test.Phase31RepeatListElement do
+      destination_attribute(:screen_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :repeat_regions do
+      kind(:child)
+      slot(:body)
+      placement(:append)
+      order(0)
+      repeat(%{binding: :artifact_rows, row_scope: :row, row_fields: [:id, :title, :status]})
+    end
+  end
+
+  ui_screen do
+    layout(:column)
+    route("/phase-31-repeat")
+    metadata(%{title: "Phase 31 Repeat"})
+  end
+end
+
+defmodule AshUI.Test.Phase31InvalidHasOneRepeatScreen do
+  @moduledoc false
+
+  use Ash.Resource,
+    domain: AshUI.Test.ResourceAuthorityDomain,
+    data_layer: Ash.DataLayer.Ets
+
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_one :repeat_region, AshUI.Test.Phase31RepeatListElement do
+      destination_attribute(:screen_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :repeat_region do
+      kind(:child)
+      slot(:body)
+      repeat(:artifact_rows)
+    end
+  end
+
+  ui_screen do
+    layout(:column)
+  end
+end
+
+defmodule AshUI.Test.Phase31InvalidMissingRepeatBindingScreen do
+  @moduledoc false
+
+  use Ash.Resource,
+    domain: AshUI.Test.ResourceAuthorityDomain,
+    data_layer: Ash.DataLayer.Ets
+
+  use AshUI.Resource.DSL.Screen
+
+  ets do
+    private?(true)
+  end
+
+  attributes do
+    uuid_primary_key(:id)
+  end
+
+  actions do
+    defaults([:read])
+  end
+
+  relationships do
+    has_many :hero_elements, AshUI.Test.ResourceAuthorityHeroElement do
+      destination_attribute(:screen_id)
+    end
+  end
+
+  ui_relationships do
+    relationship :hero_elements do
+      kind(:child)
+      slot(:body)
+      repeat(:missing_rows)
+    end
+  end
+
+  ui_screen do
+    layout(:column)
   end
 end
 
@@ -179,31 +364,31 @@ defmodule AshUI.Test.ResourceAuthorityFormPanelElement do
 
   ui_relationships do
     relationship :fields do
-      kind :child
-      slot :body
-      placement :append
-      order 0
+      kind(:child)
+      slot(:body)
+      placement(:append)
+      order(0)
     end
 
     relationship :inputs do
-      kind :child
-      slot :body
-      placement :append
-      order 1
+      kind(:child)
+      slot(:body)
+      placement(:append)
+      order(1)
     end
 
     relationship :actions_companions do
-      kind :companion
-      slot :actions
-      placement :append
-      order 2
+      kind(:companion)
+      slot(:actions)
+      placement(:append)
+      order(2)
     end
   end
 
   ui_element do
-    type :card
-    props %{title: "Interactive profile editor"}
-    metadata %{id: "form_panel", section: "form", slot: "body", position: 10}
+    type(:card)
+    props(%{title: "Interactive profile editor"})
+    metadata(%{id: "form_panel", section: "form", slot: "body", position: 10})
   end
 end
 
@@ -213,15 +398,15 @@ defmodule AshUI.Test.ResourceAuthorityFormFieldElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :form_field
+    type(:form_field)
 
-    props %{
+    props(%{
       label: "Display name",
       name: "display_name",
       help: "Bound directly by the owning input element"
-    }
+    })
 
-    metadata %{id: "profile_field", section: "form", slot: "body", position: 0}
+    metadata(%{id: "profile_field", section: "form", slot: "body", position: 0})
   end
 end
 
@@ -231,25 +416,25 @@ defmodule AshUI.Test.ResourceAuthorityInputElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :input
+    type(:input)
 
-    props %{
+    props(%{
       name: "display_name",
       label: "Display name",
       placeholder: "Enter your name",
       type: "text"
-    }
+    })
 
-    metadata %{id: "display_name_input", section: "form", slot: "body", position: 1}
+    metadata(%{id: "display_name_input", section: "form", slot: "body", position: 1})
   end
 
   ui_bindings do
     binding :display_name_input do
-      source %{resource: "Demo.User", field: "name", id: "user-1"}
-      target "display_name"
-      binding_type :value
-      transform %{}
-      metadata %{owner: "input"}
+      source(%{resource: "Demo.User", field: "name", id: "user-1"})
+      target("display_name")
+      binding_type(:value)
+      transform(%{})
+      metadata(%{owner: "input"})
     end
   end
 end
@@ -260,25 +445,25 @@ defmodule AshUI.Test.ResourceAuthorityButtonElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :button
-    props %{label: "Save profile"}
-    variants [:primary]
-    metadata %{id: "save_profile_button", section: "form", slot: "actions", position: 2}
+    type(:button)
+    props(%{label: "Save profile"})
+    variants([:primary])
+    metadata(%{id: "save_profile_button", section: "form", slot: "actions", position: 2})
   end
 
   ui_actions do
     action :save_profile do
-      signal :click
-      source %{resource: "Demo.Profile", action: "save_profile", id: "user-1"}
-      target "submit"
+      signal(:click)
+      source(%{resource: "Demo.Profile", action: "save_profile", id: "user-1"})
+      target("submit")
 
-      transform %{
+      transform(%{
         params: %{
           display_name: %{"from" => "binding", "key" => "display_name"}
         }
-      }
+      })
 
-      metadata %{intent: "save_profile"}
+      metadata(%{intent: "save_profile"})
     end
   end
 end
@@ -289,17 +474,17 @@ defmodule AshUI.Test.ResourceAuthorityNavigationButtonElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :button
-    props %{label: "Settings"}
-    variants [:secondary]
-    metadata %{id: "settings_button", section: "form", slot: "actions", position: 3}
+    type(:button)
+    props(%{label: "Settings"})
+    variants([:secondary])
+    metadata(%{id: "settings_button", section: "form", slot: "actions", position: 3})
   end
 
   ui_actions do
     action :open_settings do
-      signal :click
-      navigation %{action: :navigate_to, screen: :settings, params: %{tab: :profile}}
-      metadata %{intent: "open_settings"}
+      signal(:click)
+      navigation(%{action: :navigate_to, screen: :settings, params: %{tab: :profile}})
+      metadata(%{intent: "open_settings"})
     end
   end
 end
@@ -337,26 +522,26 @@ defmodule AshUI.Test.ResourceAuthorityScreen do
 
   ui_relationships do
     relationship :hero_elements do
-      kind :child
-      slot :body
-      placement :append
-      order 0
+      kind(:child)
+      slot(:body)
+      placement(:append)
+      order(0)
     end
 
     relationship :form_panels do
-      kind :child
-      slot :body
-      placement :append
-      order 10
+      kind(:child)
+      slot(:body)
+      placement(:append)
+      order(10)
     end
   end
 
   ui_screen do
-    layout :column
-    route "/resource-authority"
-    metadata %{title: "Resource Authority Screen", priority: 14}
+    layout(:column)
+    route("/resource-authority")
+    metadata(%{title: "Resource Authority Screen", priority: 14})
 
-    inline_fragment %{
+    inline_fragment(%{
       type: "column",
       props: %{spacing: 16},
       children: [
@@ -370,16 +555,16 @@ defmodule AshUI.Test.ResourceAuthorityScreen do
       ],
       signals: [],
       metadata: %{id: "screen_shell", source: "screen"}
-    }
+    })
   end
 
   ui_screen_bindings do
     binding :screen_notice do
-      source %{resource: "Demo.Page", field: "notice", id: "page-1"}
-      target "flash.notice"
-      binding_type :value
-      transform %{default: "ready"}
-      metadata %{scope: "screen"}
+      source(%{resource: "Demo.Page", field: "notice", id: "page-1"})
+      target("flash.notice")
+      binding_type(:value)
+      transform(%{default: "ready"})
+      metadata(%{scope: "screen"})
     end
   end
 end
@@ -390,9 +575,9 @@ defmodule AshUI.Test.RelationshipSemanticsBadgeElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :badge
-    props %{label: "Leading"}
-    metadata %{id: "leading_badge", slot: "header", position: 0}
+    type(:badge)
+    props(%{label: "Leading"})
+    metadata(%{id: "leading_badge", slot: "header", position: 0})
   end
 end
 
@@ -402,9 +587,9 @@ defmodule AshUI.Test.RelationshipSemanticsPanelElement do
   use AshUI.Test.ResourceAuthorityElementBase
 
   ui_element do
-    type :card
-    props %{title: "Body panel"}
-    metadata %{id: "body_panel", slot: "body", position: 10}
+    type(:card)
+    props(%{title: "Body panel"})
+    metadata(%{id: "body_panel", slot: "body", position: 10})
   end
 end
 
@@ -445,34 +630,34 @@ defmodule AshUI.Test.RelationshipSemanticsBaseScreen do
 
       ui_relationships do
         relationship :leading_badges do
-          kind :companion
-          slot :header
-          placement :prepend
-          order 0
+          kind(:companion)
+          slot(:header)
+          placement(:prepend)
+          order(0)
         end
 
         relationship :body_panels do
-          kind :child
-          slot :body
-          placement :append
-          order 10
+          kind(:child)
+          slot(:body)
+          placement(:append)
+          order(10)
         end
       end
 
       ui_screen do
-        layout :column
-        route "/relationship-semantics"
-        metadata %{title: "Relationship Semantics", audience: "tests"}
-        inline_fragment unquote(inline_fragment)
+        layout(:column)
+        route("/relationship-semantics")
+        metadata(%{title: "Relationship Semantics", audience: "tests"})
+        inline_fragment(unquote(inline_fragment))
       end
 
       ui_screen_bindings do
         binding :screen_title do
-          source %{resource: "Demo.Page", field: "title", id: "screen-1"}
-          target "title"
-          binding_type :value
-          transform %{default: "Relationship Semantics"}
-          metadata %{scope: "screen"}
+          source(%{resource: "Demo.Page", field: "title", id: "screen-1"})
+          target("title")
+          binding_type(:value)
+          transform(%{default: "Relationship Semantics"})
+          metadata(%{scope: "screen"})
         end
       end
     end

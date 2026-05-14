@@ -13,7 +13,7 @@ defmodule AshUI.Resources.Validations.Authoring do
   @allowed_relationship_placements [:append, :prepend]
   @screen_binding_prefixes ["flash.", "screen.", "metadata."]
   @screen_binding_targets ["title"]
-  @list_widgets MapSet.new(["list", "table", "info_list", "select"])
+  @list_widgets MapSet.new(["list", "table", "info_list", "select", "list_repeat"])
   @action_widgets MapSet.new([
                     "button",
                     "input",
@@ -257,6 +257,7 @@ defmodule AshUI.Resources.Validations.Authoring do
     slot = Map.get(relationship, :slot, :default)
     placement = Map.get(relationship, :placement, :append)
     order = Map.get(relationship, :order)
+    repeat = Map.get(relationship, :repeat)
 
     validate_identifier!(name, "relationship name")
 
@@ -280,7 +281,13 @@ defmodule AshUI.Resources.Validations.Authoring do
             "relationship #{inspect(name)} order must be a non-negative integer when present, got: #{inspect(order)}"
     end
 
-    relationship
+    normalized_repeat = normalize_repeat_declaration!(name, repeat)
+
+    if is_nil(normalized_repeat) do
+      relationship
+    else
+      Map.put(relationship, :repeat, normalized_repeat)
+    end
   end
 
   @doc """
@@ -406,5 +413,82 @@ defmodule AshUI.Resources.Validations.Authoring do
       raise ArgumentError,
             "screen-scoped action #{inspect(Map.get(action, :id))} must declare navigation intent"
     end
+  end
+
+  defp normalize_repeat_declaration!(_relationship_name, nil), do: nil
+
+  defp normalize_repeat_declaration!(relationship_name, binding_id)
+       when is_atom(binding_id) or is_binary(binding_id) do
+    validate_identifier!(binding_id, "relationship #{inspect(relationship_name)} repeat binding")
+
+    %{
+      binding_id: binding_id,
+      row_scope: :row
+    }
+  end
+
+  defp normalize_repeat_declaration!(relationship_name, repeat) when is_map(repeat) do
+    binding_id =
+      repeat_value(repeat, :binding_id) ||
+        repeat_value(repeat, :binding) ||
+        repeat_value(repeat, :binding_ref)
+
+    row_scope = repeat_value(repeat, :row_scope) || :row
+    row_fields = repeat_value(repeat, :row_fields)
+    identity_strategy = repeat_value(repeat, :identity_strategy)
+    child_slot = repeat_value(repeat, :child_slot)
+
+    validate_identifier!(binding_id, "relationship #{inspect(relationship_name)} repeat binding")
+    validate_identifier!(row_scope, "relationship #{inspect(relationship_name)} repeat row_scope")
+
+    validate_optional_identifier!(
+      identity_strategy,
+      "relationship #{inspect(relationship_name)} repeat identity_strategy"
+    )
+
+    validate_optional_identifier!(
+      child_slot,
+      "relationship #{inspect(relationship_name)} repeat child_slot"
+    )
+
+    validate_repeat_row_fields!(relationship_name, row_fields)
+
+    %{
+      binding_id: binding_id,
+      row_scope: row_scope,
+      row_fields: row_fields,
+      identity_strategy: identity_strategy,
+      child_slot: child_slot
+    }
+    |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+    |> Map.new()
+  end
+
+  defp normalize_repeat_declaration!(relationship_name, repeat) do
+    raise ArgumentError,
+          "relationship #{inspect(relationship_name)} repeat must be a binding id or map, got: #{inspect(repeat)}"
+  end
+
+  defp validate_optional_identifier!(nil, _label), do: :ok
+
+  defp validate_optional_identifier!(value, label) do
+    validate_identifier!(value, label)
+  end
+
+  defp validate_repeat_row_fields!(_relationship_name, nil), do: :ok
+
+  defp validate_repeat_row_fields!(relationship_name, row_fields) when is_list(row_fields) do
+    Enum.each(row_fields, fn field ->
+      validate_identifier!(field, "relationship #{inspect(relationship_name)} repeat row field")
+    end)
+  end
+
+  defp validate_repeat_row_fields!(relationship_name, row_fields) do
+    raise ArgumentError,
+          "relationship #{inspect(relationship_name)} repeat row_fields must be a list when present, got: #{inspect(row_fields)}"
+  end
+
+  defp repeat_value(repeat, key) do
+    Map.get(repeat, key) || Map.get(repeat, Atom.to_string(key))
   end
 end

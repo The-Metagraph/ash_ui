@@ -12,7 +12,8 @@ defmodule AshUI.Resource.Info do
           kind: :child | :companion,
           slot: String.t(),
           placement: String.t(),
-          order: non_neg_integer()
+          order: non_neg_integer(),
+          repeat: map() | nil
         }
 
   @doc """
@@ -130,20 +131,21 @@ defmodule AshUI.Resource.Info do
       role when role in [:screen, :element] ->
         relationship_semantics = relationship_semantics(module)
 
-        relationships =
-          module
-          |> AshResourceInfo.relationships()
-          |> Enum.with_index()
-          |> Enum.reduce([], fn {relationship, index}, acc ->
-            case composition_edge(module, relationship, index, relationship_semantics) do
-              nil -> acc
-              edge -> acc ++ [edge]
-            end
-          end)
-
-        case unknown_relationship_semantics(module, relationship_semantics, relationships) do
-          [] -> {:ok, relationships}
-          unknown -> {:error, {:unknown_composition_relationships, module, unknown}}
+        with {:ok, relationships} <-
+               module
+               |> AshResourceInfo.relationships()
+               |> Enum.with_index()
+               |> Enum.reduce_while({:ok, []}, fn {relationship, index}, {:ok, acc} ->
+                 case composition_edge(module, relationship, index, relationship_semantics) do
+                   {:ok, nil} -> {:cont, {:ok, acc}}
+                   {:ok, edge} -> {:cont, {:ok, acc ++ [edge]}}
+                   {:error, reason} -> {:halt, {:error, reason}}
+                 end
+               end) do
+          case unknown_relationship_semantics(module, relationship_semantics, relationships) do
+            [] -> {:ok, relationships}
+            unknown -> {:error, {:unknown_composition_relationships, module, unknown}}
+          end
         end
 
       other ->
@@ -161,7 +163,7 @@ defmodule AshUI.Resource.Info do
     end
   end
 
-  defp composition_edge(_module, relationship, index, relationship_semantics) do
+  defp composition_edge(module, relationship, index, relationship_semantics) do
     destination = Map.get(relationship, :destination)
     type = Map.get(relationship, :type)
     name = Map.get(relationship, :name)
@@ -171,15 +173,21 @@ defmodule AshUI.Resource.Info do
         Map.get(relationship_semantics, name) ||
           inferred_relationship_semantics(destination, relationship, index)
 
-      %{
-        name: name,
-        destination: destination,
-        type: type,
-        kind: semantics.kind,
-        slot: semantics.slot,
-        placement: semantics.placement,
-        order: semantics.order
-      }
+      with :ok <- validate_repeat_semantics(module, relationship, destination, semantics) do
+        {:ok,
+         %{
+           name: name,
+           destination: destination,
+           type: type,
+           kind: semantics.kind,
+           slot: semantics.slot,
+           placement: semantics.placement,
+           order: semantics.order,
+           repeat: Map.get(semantics, :repeat)
+         }}
+      end
+    else
+      {:ok, nil}
     end
   end
 
@@ -215,9 +223,53 @@ defmodule AshUI.Resource.Info do
       kind: relationship_kind(relationship),
       slot: relationship_slot(metadata),
       placement: relationship_placement(metadata),
-      order: relationship_order(metadata, index)
+      order: relationship_order(metadata, index),
+      repeat: nil
     }
   end
+
+  defp validate_repeat_semantics(_module, _relationship, _destination, %{repeat: nil}), do: :ok
+
+  defp validate_repeat_semantics(module, relationship, destination, semantics) do
+    repeat = Map.get(semantics, :repeat)
+    name = Map.get(relationship, :name)
+    type = Map.get(relationship, :type)
+    binding_id = repeat_value(repeat, :binding_id)
+
+    cond do
+      is_nil(repeat) ->
+        :ok
+
+      type != :has_many ->
+        {:error, {:invalid_repeat_relationship, module, name, :requires_has_many}}
+
+      not destination_list_binding?(destination, binding_id) ->
+        {:error,
+         {:invalid_repeat_relationship, module, name, {:missing_list_binding, binding_id}}}
+
+      true ->
+        :ok
+    end
+  end
+
+  defp destination_list_binding?(destination, binding_id) do
+    with {:ok, bindings} <- element_bindings(destination) do
+      Enum.any?(bindings, fn binding ->
+        same_identifier?(Map.get(binding, :id), binding_id) and
+          Map.get(binding, :binding_type) == :list
+      end)
+    else
+      _other -> false
+    end
+  end
+
+  defp same_identifier?(left, right), do: to_string(left) == to_string(right)
+
+  defp repeat_value(repeat, key) when is_map(repeat) do
+    Map.get(repeat, key) || Map.get(repeat, Atom.to_string(key))
+  end
+
+  defp repeat_value(_repeat, _key), do: nil
 
   defp relationship_kind(relationship) do
     name = relationship |> Map.get(:name) |> to_string()

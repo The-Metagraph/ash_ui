@@ -8,6 +8,7 @@ The active architectural baseline is defined by:
 - `specs/contracts/*`
 - `specs/adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md`
 - `specs/adr/ADR-0006-canonical-iur-and-navigation-adoption.md`
+- `specs/adr/ADR-0007-canonical-widget-components-adoption.md`
 
 ## Phase Files
 1. [Phase 1 - Core Ash Resource Integration](./phase-01-core-ash-resource-integration.md): implement Ash Resources for storing unified-ui DSL definitions with Ash actions and policies.
@@ -40,6 +41,7 @@ The active architectural baseline is defined by:
 28. [Phase 28 - Tutorial Production Polish and Final Application Consolidation](./phase-28-tutorial-production-polish-and-final-application-consolidation.md): implement the final tutorial chapter, responsive and accessibility cleanup, and the maintained final tutorial-app surface.
 29. [Phase 29 - Tutorial Publication, Governance, and End-to-End Validation](./phase-29-tutorial-publication-governance-and-end-to-end-validation.md): publish the tutorial as a maintained product surface with chapter-to-code validation, release readiness, and end-to-end proof.
 30. [Phase 30 - Canonical IUR And Navigation Adoption](./phase-30-canonical-iur-and-navigation-adoption.md): adopt the upgraded Unified package set, `%UnifiedIUR.Element{}` renderer boundary, and resource-authored canonical navigation intent.
+31. [Phase 31 - Canonical Widget Components Adoption](./phase-31-canonical-widget-components-adoption.md): adopt the expanded Unified UI widget-component catalog as first-class Ash UI resource-authored component input.
 
 ## Shared Conventions
 - Numbering:
@@ -66,6 +68,8 @@ The active architectural baseline is defined by:
   as the Phase 30 renderer-facing target
 - canonical navigation is semantic intent and must not include host routes,
   URLs, router helpers, runtime modules, or modal stack identifiers
+- canonical widget components use the Unified catalog names at renderer-facing
+  boundaries, with `custom:*` reserved for non-catalog application extensions
 - no backward-compatibility requirement applies to the superseded monolithic
   screen-document authority model
 
@@ -102,3 +106,9 @@ Phase 30 describes the canonical navigation adoption line introduced by
 coordinates the upgraded Unified package boundary, struct-based canonical IUR
 output, resource-authored navigation intent, runtime adapter realignment, and
 end-to-end conformance coverage.
+
+Phase 31 describes the canonical widget-component adoption line introduced by
+[ADR-0007](../adr/ADR-0007-canonical-widget-components-adoption.md). It adopts
+the expanded Unified component catalog through Ash resource admission,
+canonical conversion, runtime adapter support, list-repeat composition, and
+documentation/conformance coverage.

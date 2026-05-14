@@ -43,8 +43,10 @@ defmodule AshUI.Phase15IntegrationTest do
 
       assert {:ok, original_canonical} = IURAdapter.to_canonical(original_iur)
       assert {:ok, drifted_canonical} = IURAdapter.to_canonical(drifted_iur)
-      assert :ok = UnifiedIUR.validate(original_canonical)
-      assert :ok = UnifiedIUR.validate(drifted_canonical)
+      assert {:ok, original_canonical} = UnifiedIUR.Normalize.element(original_canonical)
+      assert {:ok, drifted_canonical} = UnifiedIUR.Normalize.element(drifted_canonical)
+      assert :ok = UnifiedIUR.Validate.element(original_canonical)
+      assert :ok = UnifiedIUR.Validate.element(drifted_canonical)
       assert original_canonical == drifted_canonical
     end
 
@@ -71,7 +73,8 @@ defmodule AshUI.Phase15IntegrationTest do
             )
         )
 
-      socket = RuntimeFixtures.socket(current_user: build_admin(), ash_ui_domains: [RuntimeDomain])
+      socket =
+        RuntimeFixtures.socket(current_user: build_admin(), ash_ui_domains: [RuntimeDomain])
 
       assert {:ok, mounted_socket} = Integration.mount_ui_screen(socket, :bound_screen, %{})
 
@@ -79,7 +82,9 @@ defmodule AshUI.Phase15IntegrationTest do
                "owner_scope"
              ] == "element"
 
-      assert mounted_socket.assigns.ash_ui_bindings["display_name_input"].value == fixtures.user.name
+      assert mounted_socket.assigns.ash_ui_bindings["display_name_input"].value ==
+               fixtures.user.name
+
       assert is_map(mounted_socket.assigns.ash_ui_iur)
 
       assert {:noreply, changed_socket} =
@@ -93,7 +98,9 @@ defmodule AshUI.Phase15IntegrationTest do
                  mounted_socket
                )
 
-      assert changed_socket.assigns.ash_ui_bindings["display_name_input"].value == "Runtime Pascal"
+      assert changed_socket.assigns.ash_ui_bindings["display_name_input"].value ==
+               "Runtime Pascal"
+
       assert is_map(changed_socket.assigns.ash_ui_iur)
     end
 
@@ -107,7 +114,8 @@ defmodule AshUI.Phase15IntegrationTest do
           attrs: runtime_screen_attrs(screen_name, fixtures)
         )
 
-      socket = RuntimeFixtures.socket(current_user: build_admin(), ash_ui_domains: [RuntimeDomain])
+      socket =
+        RuntimeFixtures.socket(current_user: build_admin(), ash_ui_domains: [RuntimeDomain])
 
       assert {:ok, mounted_socket} = Integration.mount_ui_screen(socket, screen_name, %{})
 

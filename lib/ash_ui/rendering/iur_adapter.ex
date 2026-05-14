@@ -8,6 +8,7 @@ defmodule AshUI.Rendering.IURAdapter do
 
   alias AshUI.Compilation.IUR
   alias AshUI.Telemetry
+  alias UnifiedIUR.{Binding, Element, Metadata, Normalize, Validate}
 
   @doc """
   Converts an Ash IUR to canonical unified_iur Screen format.
@@ -19,25 +20,26 @@ defmodule AshUI.Rendering.IURAdapter do
     * `{:ok, canonical_iur}` - Successfully converted
     * `{:error, reason}` - Conversion failed
   """
-  @spec to_canonical(IUR.t(), keyword()) :: {:ok, map()} | {:error, term()}
+  @spec to_canonical(IUR.t(), keyword()) :: {:ok, Element.t()} | {:error, term()}
   def to_canonical(%IUR{} = ash_iur, opts \\ []) do
     telemetry? = Keyword.get(opts, :telemetry, true)
 
     case IUR.validate(ash_iur) do
       :ok ->
         try do
-          canonical = convert_iur(ash_iur)
-          :ok = maybe_validate_with_unified_iur(canonical)
+          with {:ok, canonical} <- ash_iur |> convert_iur() |> normalize_with_unified_iur() do
+            if telemetry? do
+              Telemetry.execute(
+                [:ash_ui, :rendering, :convert_success],
+                %{count: 1},
+                %{resource_id: ash_iur.id, resource_type: ash_iur.type, status: :ok}
+              )
+            end
 
-          if telemetry? do
-            Telemetry.execute(
-              [:ash_ui, :rendering, :convert_success],
-              %{count: 1},
-              %{resource_id: ash_iur.id, resource_type: ash_iur.type, status: :ok}
-            )
+            {:ok, canonical}
+          else
+            {:error, reason} -> emit_conversion_error(ash_iur, telemetry?, reason)
           end
-
-          {:ok, canonical}
         rescue
           error ->
             emit_conversion_error(ash_iur, telemetry?, error)
@@ -61,87 +63,257 @@ defmodule AshUI.Rendering.IURAdapter do
   def compatible?(%IUR{type: :screen}, :desktop_ui), do: true
   def compatible?(%IUR{}, _renderer), do: false
 
-  # Convert Ash IUR to canonical format
+  # Convert Ash IUR to canonical UnifiedIUR elements.
   defp convert_iur(%IUR{type: :screen} = iur) do
-    %{
-      "type" => "screen",
-      "id" => iur.id || generate_id(),
-      "name" => iur.name,
-      "layout" => convert_layout(iur.attributes["layout"]),
-      "children" => Enum.map(iur.children, &convert_element/1),
-      "bindings" => Enum.map(iur.bindings, &convert_binding/1),
-      "metadata" => iur.metadata,
-      "version" => iur.version
-    }
+    Element.new(:composite, :screen,
+      id: iur.id || generate_id(),
+      metadata: convert_metadata(iur),
+      attributes: %{
+        screen:
+          compact_map(%{
+            name: iur.name,
+            layout: convert_layout(fetch(iur.attributes, :layout)),
+            version: iur.version
+          }),
+        bindings: Enum.map(iur.bindings, &convert_binding/1)
+      },
+      children: Enum.map(iur.children, &convert_element/1)
+    )
   end
 
   defp convert_iur(%IUR{} = iur) do
-    %{
-      "type" => atom_to_string(iur.type),
-      "id" => iur.id || generate_id(),
-      "name" => iur.name,
-      "attributes" => iur.attributes,
-      "children" => Enum.map(iur.children, &convert_element/1),
-      "metadata" => iur.metadata,
-      "version" => iur.version
-    }
+    convert_element(iur)
   end
 
-  # Convert element type to unified widget type
   defp convert_element(%IUR{} = element) do
-    widget_type = map_element_type(element.type)
+    kind = map_element_kind(element.type)
+    type = map_element_type(kind)
     props = if map_size(element.props || %{}) > 0, do: element.props, else: element.attributes
 
-    %{
-      "type" => widget_type,
-      "id" => element.id || generate_id(),
-      "name" => element.name,
-      "props" => convert_props(props, element.type),
-      "children" => Enum.map(element.children, &convert_element/1),
-      "metadata" => element.metadata
-    }
+    Element.new(type, kind,
+      id: element.id || generate_id(),
+      metadata: convert_metadata(element),
+      attributes: convert_attributes(kind, props),
+      children: Enum.map(element.children, &convert_element/1)
+    )
   end
 
-  # Map Ash element types to unified widget types
-  defp map_element_type(:text), do: "text"
-  defp map_element_type(:inline_rich_text_heading), do: "inline_rich_text_heading"
-  defp map_element_type(:button), do: "button"
-  defp map_element_type(:textinput), do: "input"
-  defp map_element_type(:textarea), do: "textarea"
-  defp map_element_type(:select), do: "select"
-  defp map_element_type(:checkbox), do: "checkbox"
-  defp map_element_type(:radio), do: "radio"
-  defp map_element_type(:switch), do: "switch"
-  defp map_element_type(:slider), do: "slider"
-  defp map_element_type(:row), do: "row"
-  defp map_element_type(:column), do: "column"
-  defp map_element_type(:grid), do: "grid"
-  defp map_element_type(:stack), do: "stack"
-  defp map_element_type(:card), do: "card"
-  defp map_element_type(:list), do: "list"
-  defp map_element_type(:table), do: "table"
-  defp map_element_type(:image), do: "image"
-  defp map_element_type(:icon), do: "icon"
-  defp map_element_type(:divider), do: "divider"
-  defp map_element_type(:spacer), do: "spacer"
-  defp map_element_type(other), do: atom_to_string(other)
+  defp map_element_kind(:textinput), do: :text_input
+  defp map_element_kind(:textarea), do: :text_input
+  defp map_element_kind(:radio), do: :radio_group
+  defp map_element_kind(:switch), do: :toggle
+  defp map_element_kind(:divider), do: :separator
+  defp map_element_kind(:container), do: :content
+  defp map_element_kind(kind) when is_atom(kind), do: kind
 
-  defp atom_to_string(atom) when is_atom(atom), do: Atom.to_string(atom)
-  defp atom_to_string(other), do: to_string(other)
+  defp map_element_kind(kind) when is_binary(kind) do
+    kind
+    |> convert_camel_to_snake()
+    |> String.to_atom()
+    |> map_element_kind()
+  end
+
+  defp map_element_kind(kind), do: kind |> to_string() |> map_element_kind()
+
+  defp map_element_type(kind) when kind in [:fragment, :screen], do: :composite
+
+  defp map_element_type(kind) when kind in [:form_builder, :field_group, :field, :form_field],
+    do: :composite
+
+  defp map_element_type(kind) when kind in [:row, :column, :grid, :stack, :split_pane],
+    do: :layout
+
+  defp map_element_type(kind) when kind in [:viewport, :scroll_bar], do: :layout
+
+  defp map_element_type(kind)
+       when kind in [:overlay, :dialog, :toast, :alert_dialog, :context_menu],
+       do: :layer
+
+  defp map_element_type(_kind), do: :widget
 
   # Convert props with name transformations
-  defp convert_props(props, _element_type) when is_map(props) do
+  defp convert_props(props) when is_map(props) do
     Enum.reduce(props, %{}, fn {key, value}, acc ->
       merge_converted_prop(acc, convert_prop_name(key), value)
     end)
   end
 
-  defp convert_props(_, _), do: %{}
+  defp convert_props(_), do: %{}
 
-  defp merge_converted_prop(acc, "style", value) when is_binary(value) and value != "" do
-    acc
-    |> Map.put("style", %{"extra" => %{"css" => value}})
-    |> Map.put("inline_style", value)
+  defp convert_attributes(kind, props) do
+    props = convert_props(props)
+
+    kind
+    |> base_attributes(props)
+    |> Map.merge(style_attributes(props))
+    |> Map.merge(theme_attributes(props))
+    |> Map.merge(binding_attributes(props))
+    |> Map.merge(interaction_attributes(props))
+    |> compact_map()
+  end
+
+  defp base_attributes(kind, props) when kind in [:row, :column, :grid, :stack] do
+    %{layout: Map.drop(props, attachment_prop_keys())}
+  end
+
+  defp base_attributes(:text, props) do
+    %{content: %{text: first_present(props, [:content, :text, :label, :value])}}
+  end
+
+  defp base_attributes(:label, props) do
+    %{
+      content: %{text: first_present(props, [:content, :text, :label, :value])},
+      label: compact_map(%{for: fetch(props, :for)})
+    }
+  end
+
+  defp base_attributes(:button, props) do
+    %{
+      content: %{text: first_present(props, [:label, :content, :text, :value])},
+      button: Map.drop(props, [:label, :content, :text, :value] ++ attachment_prop_keys())
+    }
+  end
+
+  defp base_attributes(:link, props) do
+    %{
+      content: %{text: first_present(props, [:label, :content, :text, :value])},
+      link: compact_map(%{target: first_present(props, [:target, :href])})
+    }
+  end
+
+  defp base_attributes(:icon, props) do
+    %{
+      icon:
+        compact_map(%{
+          name: first_present(props, [:name, :icon]),
+          set: fetch(props, :set),
+          fallback_text: fetch(props, :fallback_text)
+        })
+    }
+  end
+
+  defp base_attributes(:image, props) do
+    %{
+      image:
+        compact_map(%{
+          source: first_present(props, [:source, :src, :url]),
+          alt_text: first_present(props, [:alt_text, :alt]),
+          fit: fetch(props, :fit)
+        })
+    }
+  end
+
+  defp base_attributes(:separator, props),
+    do: %{separator: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:spacer, props), do: %{spacer: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:content, props), do: %{container: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:text_input, props), do: %{input: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:numeric_input, props),
+    do: %{input: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:select, props), do: %{input: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:pick_list, props), do: %{input: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:slider, props), do: %{input: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:date_input, props), do: %{input: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:time_input, props), do: %{input: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:file_input, props), do: %{input: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:toggle, props), do: %{state: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:checkbox, props), do: %{state: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:radio_group, props),
+    do: %{selection: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:menu, props), do: %{navigation: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:tabs, props), do: %{navigation: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:command_palette, props),
+    do: %{command_palette: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:list, props), do: %{list: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:table, props), do: %{table: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:tree_view, props), do: %{tree: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:stat, props), do: %{stat: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:key_value, props),
+    do: %{key_value: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:info_list, props),
+    do: %{info_list: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:status, props), do: %{feedback: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:progress, props), do: %{progress: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:gauge, props), do: %{chart: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:inline_feedback, props),
+    do: %{feedback: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:dialog, props), do: %{dialog: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:alert_dialog, props),
+    do: %{alert_dialog: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:toast, props), do: %{toast: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:overlay, props), do: %{overlay: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:context_menu, props),
+    do: %{context_menu: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:viewport, props), do: %{viewport: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:scroll_bar, props),
+    do: %{scroll_bar: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:split_pane, props), do: %{split: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:canvas, props), do: %{canvas: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:form_builder, props), do: %{form: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(:field_group, props), do: %{group: Map.drop(props, attachment_prop_keys())}
+  defp base_attributes(kind, props), do: %{kind => Map.drop(props, attachment_prop_keys())}
+
+  defp style_attributes(props) do
+    case fetch(props, :style) do
+      nil -> %{}
+      style when is_binary(style) -> %{style: %{extra: %{css: style}}}
+      style -> %{style: style}
+    end
+  end
+
+  defp theme_attributes(props) do
+    %{}
+    |> maybe_put(:theme, fetch(props, :theme))
+    |> maybe_put(:theme_id, fetch(props, :theme_id))
+    |> maybe_put(:style_refs, fetch(props, :style_refs))
+    |> maybe_put(:token_refs, fetch(props, :token_refs))
+    |> maybe_put(:variant, fetch(props, :variant))
+    |> maybe_put(:state, fetch(props, :state))
+    |> maybe_put(:tone, fetch(props, :tone))
+  end
+
+  defp binding_attributes(props) do
+    props
+    |> fetch(:bindings, [])
+    |> List.wrap()
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> %{}
+      bindings -> %{bindings: Enum.map(bindings, &Binding.new/1)}
+    end
+  end
+
+  defp interaction_attributes(props) do
+    props
+    |> fetch(:interactions, [])
+    |> List.wrap()
+    |> Enum.reject(&is_nil/1)
+    |> case do
+      [] -> %{}
+      interactions -> %{interactions: Enum.map(interactions, &UnifiedIUR.Interaction.new/1)}
+    end
+  end
+
+  defp merge_converted_prop(acc, :style, value) when is_binary(value) and value != "" do
+    Map.put(acc, :style, %{extra: %{css: value}})
   end
 
   defp merge_converted_prop(acc, key, value) do
@@ -153,9 +325,15 @@ defmodule AshUI.Rendering.IURAdapter do
     key
     |> Atom.to_string()
     |> convert_camel_to_snake()
+    |> safe_existing_atom()
   end
 
-  defp convert_prop_name(key) when is_binary(key), do: key
+  defp convert_prop_name(key) when is_binary(key) do
+    key
+    |> convert_camel_to_snake()
+    |> safe_existing_atom()
+  end
+
   defp convert_prop_name(key), do: to_string(key)
 
   defp convert_camel_to_snake(name) do
@@ -165,6 +343,18 @@ defmodule AshUI.Rendering.IURAdapter do
   end
 
   defp convert_prop_value(value), do: value
+
+  defp convert_metadata(%IUR{} = iur) do
+    Metadata.new(%{
+      authored_ref: iur.id || iur.name,
+      annotations: compact_map(%{ash_ui_type: iur.type, ash_ui_name: iur.name}),
+      tags: [:ash_ui],
+      extra: %{
+        "ash_ui" => iur.metadata || %{},
+        "ash_ui_version" => iur.version
+      }
+    })
+  end
 
   defp emit_conversion_error(ash_iur, telemetry?, error) do
     if telemetry? do
@@ -183,51 +373,108 @@ defmodule AshUI.Rendering.IURAdapter do
     {:error, {:conversion_failed, error}}
   end
 
-  # Convert layout to canonical format
-  defp convert_layout(nil), do: "column"
-  defp convert_layout(:row), do: "row"
-  defp convert_layout(:column), do: "column"
-  defp convert_layout(:grid), do: "grid"
-  defp convert_layout(:stack), do: "stack"
-  defp convert_layout(other), do: atom_to_string(other)
+  defp convert_layout(nil), do: :column
+  defp convert_layout(:row), do: :row
+  defp convert_layout(:column), do: :column
+  defp convert_layout(:grid), do: :grid
+  defp convert_layout(:stack), do: :stack
+  defp convert_layout(other) when is_binary(other), do: safe_existing_atom(other)
+  defp convert_layout(other), do: other
 
-  # Convert binding to canonical signal format
   defp convert_binding(binding) when is_map(binding) do
-    signal_type = map_binding_type(binding["binding_type"])
+    binding_type = map_binding_type(fetch(binding, :binding_type))
 
-    %{
-      "id" => binding["id"],
-      "type" => signal_type,
-      "source" => convert_binding_source(binding["source"]),
-      "target" => binding["target"],
-      "transform" => binding["transform"] || %{},
-      "element_id" => binding["element_id"],
-      "metadata" => binding["metadata"] || %{}
-    }
+    Binding.new(%{
+      name: fetch(binding, :id, fetch(binding, :target)),
+      path: normalize_path(fetch(binding, :target)),
+      source: binding_type,
+      collection?: binding_type == :collection,
+      metadata:
+        binding
+        |> Map.new()
+        |> Map.put(:ash_ui_source, convert_binding_source(fetch(binding, :source)))
+        |> Map.put(:ash_ui_transform, fetch(binding, :transform, %{}))
+    })
   end
 
-  # Map binding types to signal types
-  defp map_binding_type("value"), do: "bidirectional"
-  defp map_binding_type("list"), do: "collection"
-  defp map_binding_type("action"), do: "event"
-  defp map_binding_type(:value), do: "bidirectional"
-  defp map_binding_type(:list), do: "collection"
-  defp map_binding_type(:action), do: "event"
-  defp map_binding_type(other), do: to_string(other)
+  defp convert_binding(binding), do: Binding.new(%{metadata: %{ash_ui_binding: inspect(binding)}})
 
-  # Convert binding source to canonical format
-  defp convert_binding_source(source) when is_map(source) do
-    source
-  end
+  defp map_binding_type("value"), do: :bidirectional
+  defp map_binding_type("list"), do: :collection
+  defp map_binding_type("action"), do: :event
+  defp map_binding_type(:value), do: :bidirectional
+  defp map_binding_type(:list), do: :collection
+  defp map_binding_type(:action), do: :event
+  defp map_binding_type(other) when is_binary(other), do: safe_existing_atom(other)
+  defp map_binding_type(other), do: other
 
+  defp convert_binding_source(source) when is_map(source), do: source
   defp convert_binding_source(source), do: %{"path" => to_string(source)}
 
-  # Generate unique ID
+  defp normalize_path(nil), do: []
+  defp normalize_path(path) when is_atom(path) or is_binary(path), do: [path]
+  defp normalize_path(path) when is_list(path), do: path
+
+  defp first_present(map, keys) do
+    keys
+    |> Enum.find_value(fn key ->
+      value = fetch(map, key)
+
+      if value in [nil, ""], do: nil, else: value
+    end)
+  end
+
+  defp attachment_prop_keys do
+    [
+      :style,
+      :theme,
+      :theme_id,
+      :style_refs,
+      :token_refs,
+      :variant,
+      :state,
+      :tone,
+      :bindings,
+      :binding,
+      :interactions,
+      :interaction
+    ]
+  end
+
+  defp fetch(map, key, default \\ nil)
+
+  defp fetch(map, key, default) when is_map(map),
+    do: Map.get(map, key, Map.get(map, to_string(key), default))
+
+  defp fetch(_other, _key, default), do: default
+
+  defp safe_existing_atom(value) when is_atom(value), do: value
+
+  defp safe_existing_atom(value) when is_binary(value) do
+    try do
+      String.to_existing_atom(value)
+    rescue
+      ArgumentError -> value
+    end
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
+
+  defp compact_map(map) do
+    map
+    |> Enum.reject(fn {_key, value} -> value in [nil, %{}, []] end)
+    |> Map.new()
+  end
+
   defp generate_id do
     UUID.uuid4()
   end
 
-  defp maybe_validate_with_unified_iur(canonical) do
-    UnifiedIUR.validate(canonical)
+  defp normalize_with_unified_iur(canonical) do
+    with {:ok, normalized} <- Normalize.element(canonical),
+         :ok <- Validate.element(normalized) do
+      {:ok, normalized}
+    end
   end
 end

@@ -6,11 +6,11 @@ title: LiveView Runtime and Rendering
 audience: Application Developers
 status: Active
 owners: Ash UI Team
-last_reviewed: 2026-04-25
-next_review: 2026-10-25
-related_reqs: [REQ-SCREEN-002, REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002]
-related_scns: [SCN-021, SCN-041, SCN-061, SCN-101]
-related_guides: [UG-0001, UG-0003, UG-0004, UG-0006, DG-0001]
+last_reviewed: 2026-05-14
+next_review: 2026-11-14
+related_reqs: [REQ-SCREEN-002, REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002, REQ-NAV-008, REQ-NAV-009]
+related_scns: [SCN-021, SCN-041, SCN-061, SCN-101, SCN-144]
+related_guides: [UG-0001, UG-0003, UG-0004, UG-0006, DG-0001, DG-0003]
 diagram_required: true
 ---
 
@@ -84,6 +84,12 @@ That gives you two important guarantees:
 - the renderer sees normalized widget and binding data
 - app authoring stays separate from renderer selection
 
+Current upgraded renderer paths use `%UnifiedIUR.Element{}` roots as the
+canonical boundary. AshUI still keeps a hydrated legacy projection in
+`socket.assigns.ash_ui_iur` for compatibility with existing LiveView helper
+code, but the preserved `socket.assigns.ash_ui_base_iur` value is the canonical
+root used for renderer dispatch and canonical navigation lookup.
+
 ## Event Routing in LiveView
 
 The current event handler understands these event names:
@@ -105,6 +111,29 @@ The fallback LiveView adapter currently emits:
 
 At runtime, AshUI routes those events by binding id, action id, target,
 element id, and signal.
+
+## Canonical Navigation at Runtime
+
+Navigation authored through `ui_actions` or `ui_screen_actions` is compiled into
+canonical interactions on the IUR tree. LiveView action handling first tries the
+Ash action-binding path. If no action binding is found, it falls through to the
+canonical navigation runtime.
+
+The navigation runtime reads `socket.assigns.ash_ui_base_iur`, finds a matching
+canonical navigation interaction by action id, element id, and signal, validates
+the transport descriptor, and then resolves symbolic targets through runtime
+assigns such as `:ash_ui_navigation_graph`, `:ash_ui_screens`, and
+`:ash_ui_modals`.
+
+On success, the socket receives:
+
+- `:ash_ui_navigation` with the resolved navigation command
+- `:ash_ui_navigation_history` with the latest command first
+
+That assignment is the boundary where the host LiveView can translate symbolic
+intent into `push_patch`, `redirect`, modal state, or another application-local
+navigation mechanism. Resource declarations still must not include route paths,
+router helpers, runtime modules, or modal stack identifiers.
 
 ## Renderer Reality Today
 

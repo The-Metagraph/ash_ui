@@ -66,6 +66,11 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-106 | Data Privacy Redaction | test/ash_ui/telemetry_test.exs |
 | SCN-121 | Extension Registration | test/ash_ui/compiler/phase_6_integration_test.exs |
 | SCN-122 | Extension Compilation | test/ash_ui/compiler/phase_6_integration_test.exs |
+| SCN-141 | Canonical Package And Element Boundary | test/ash_ui/rendering/iur_adapter_test.exs, test/ash_ui/phase_30_runtime_adapter_test.exs |
+| SCN-142 | Resource-Authored Navigation Intent | test/ash_ui/canonical_navigation_test.exs |
+| SCN-143 | Forbidden Host Runtime Navigation Fields | test/ash_ui/canonical_navigation_test.exs |
+| SCN-144 | Runtime Adapter Navigation Transport | test/ash_ui/phase_30_runtime_adapter_test.exs |
+| SCN-145 | Canonical Navigation Guide Coverage | test/ash_ui/phase_30_docs_conformance_test.exs |
 
 ## Notes
 
@@ -74,3 +79,4 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 - The conformance report consumes this matrix to summarize executable scenario coverage.
 - Phase 16 realigns the matrix around element-resource authority and relationship-driven composition.
 - Phase 22 adds explicit example-suite runtime, theme-shell, and governance traceability.
+- Phase 30 adds canonical IUR and navigation adoption traceability.

@@ -1053,6 +1053,96 @@ Each scenario includes:
 - Compiled output matches the extension contract
 - Extension lifecycle hooks execute without crashing compilation
 
+### Canonical Navigation Scenarios (SCN-141 to SCN-160)
+
+#### SCN-141: Canonical Package And Element Boundary
+
+**Requirements**: REQ-NAV-001, REQ-NAV-002, REQ-NAV-003
+
+**Preconditions**:
+- Upgraded Unified packages are available in the dependency graph
+- Ash UI has an internal screen IUR to convert
+
+**Steps**:
+1. Convert Ash UI internal IUR through `AshUI.Rendering.IURAdapter`
+2. Normalize the output with the upgraded Unified IUR API
+3. Validate the normalized `%UnifiedIUR.Element{}` root
+4. Dispatch the canonical root through upgraded runtime adapters
+
+**Expected Outcome**:
+- The output is a `%UnifiedIUR.Element{}` root
+- Canonical normalization and validation pass
+- Runtime adapters consume the canonical root without requiring legacy maps
+
+#### SCN-142: Resource-Authored Navigation Intent
+
+**Requirements**: REQ-NAV-004, REQ-NAV-005
+
+**Preconditions**:
+- An element or screen resource declares `navigation` in an action block
+
+**Steps**:
+1. Normalize the navigation intent
+2. Compile the action through canonical IUR conversion
+3. Inspect the generated canonical interaction
+
+**Expected Outcome**:
+- Supported canonical actions normalize successfully
+- Navigation-only actions are valid without Ash action sources
+- Canonical interactions preserve symbolic targets, params, payload mappings, and binding refs
+
+#### SCN-143: Forbidden Host Runtime Navigation Fields
+
+**Requirements**: REQ-NAV-006, REQ-NAV-007
+
+**Preconditions**:
+- A resource-authored navigation declaration includes host route or stack internals
+
+**Steps**:
+1. Normalize navigation intent containing a route or path field
+2. Normalize modal navigation intent containing a runtime stack identifier
+3. Compile modal close navigation without a stack identifier
+
+**Expected Outcome**:
+- Host route and path fields are rejected
+- Runtime modal stack identifiers are rejected
+- Modal close compiles as symbolic topmost or named modal intent
+
+#### SCN-144: Runtime Adapter Navigation Transport
+
+**Requirements**: REQ-NAV-008, REQ-NAV-009
+
+**Preconditions**:
+- A canonical IUR tree contains a navigation interaction
+- The LiveView socket has an Ash UI navigation graph
+
+**Steps**:
+1. Render the canonical root through Live, Elm, and desktop adapters
+2. Execute the navigation interaction through `AshUI.Runtime.Navigation`
+3. Handle a LiveView action event that falls through to canonical navigation
+
+**Expected Outcome**:
+- Renderer adapters accept `%UnifiedIUR.Element{}` roots
+- Symbolic targets resolve through the Ash UI graph
+- The socket records `:ash_ui_navigation` and `:ash_ui_navigation_history`
+
+#### SCN-145: Canonical Navigation Guide Coverage
+
+**Requirements**: REQ-NAV-010
+
+**Preconditions**:
+- User and developer guides are present
+
+**Steps**:
+1. Inspect user guide coverage for resource-authored navigation intent
+2. Inspect developer guide coverage for package boundaries and canonical renderer contracts
+3. Inspect style intent guidance for semantic classes, variants, and host-owned CSS
+
+**Expected Outcome**:
+- User guides explain supported navigation actions and forbidden host runtime fields
+- Developer guides explain `%UnifiedIUR.Element{}` output, validation, and runtime adapter namespaces
+- Style guidance remains explicit about semantic resource intent versus host-owned theme implementation
+
 ## Scenario Index
 
 | SCN ID | Name | Requirements | Component |
@@ -1117,6 +1207,11 @@ Each scenario includes:
 | SCN-106 | Data Privacy Redaction | REQ-OBS-012 | Telemetry |
 | SCN-121 | Extension Registration | REQ-EXT-001, REQ-EXT-005 | Extension Registry |
 | SCN-122 | Extension Compilation | REQ-EXT-002, REQ-EXT-003 | Extension Runtime |
+| SCN-141 | Canonical Package And Element Boundary | REQ-NAV-001, REQ-NAV-002, REQ-NAV-003 | Canonical Navigation |
+| SCN-142 | Resource-Authored Navigation Intent | REQ-NAV-004, REQ-NAV-005 | Canonical Navigation |
+| SCN-143 | Forbidden Host Runtime Navigation Fields | REQ-NAV-006, REQ-NAV-007 | Canonical Navigation |
+| SCN-144 | Runtime Adapter Navigation Transport | REQ-NAV-008, REQ-NAV-009 | Canonical Navigation |
+| SCN-145 | Canonical Navigation Guide Coverage | REQ-NAV-010 | Canonical Navigation |
 
 ## Related Specifications
 

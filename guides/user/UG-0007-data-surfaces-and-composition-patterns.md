@@ -150,6 +150,6 @@ composition is explicit, ordered, and relationship-driven.
 ## See Also
 
 - [UG-0002: Authoring Screens, Elements, and Relationships](./UG-0002-authoring-screens-elements-and-relationships.md)
-- [UG-0003: Widget Types, Properties, and Signals](./UG-0003-widget-types-properties-and-signals.md)
+- [UG-0003: Widget Types, Styling, Properties, and Signals](./UG-0003-widget-types-properties-and-signals.md)
 - [UG-0005: LiveView Runtime and Rendering](./UG-0005-liveview-runtime-and-rendering.md)
 - [Rendering contract](../../specs/contracts/rendering_contract.md)

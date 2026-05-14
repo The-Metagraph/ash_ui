@@ -1,6 +1,8 @@
 defmodule AshUI.CanonicalNavigationTest do
   use ExUnit.Case, async: true
 
+  @moduletag :conformance
+
   alias AshUI.Compilation.IUR
   alias AshUI.Navigation.Intent
   alias AshUI.Rendering.IURAdapter

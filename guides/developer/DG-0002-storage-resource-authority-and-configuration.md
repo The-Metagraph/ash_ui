@@ -141,6 +141,6 @@ Typical companion changes are:
 ## See Also
 
 - [DG-0001: Architecture and Control Planes](./DG-0001-architecture-and-control-planes.md)
-- [DG-0003: Compiler, Canonical IUR, and Renderers](./DG-0003-compiler-canonical-iur-and-renderers.md)
+- [DG-0003: Compiler, Canonical IUR, Styling, and Renderers](./DG-0003-compiler-canonical-iur-and-renderers.md)
 - [DG-0004: Runtime, Bindings, and Authorization](./DG-0004-runtime-bindings-and-authorization.md)
 - [UG-0002: Authoring Screens, Elements, and Relationships](../user/UG-0002-authoring-screens-elements-and-relationships.md)

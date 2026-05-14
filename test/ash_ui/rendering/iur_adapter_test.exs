@@ -1,6 +1,8 @@
 defmodule AshUI.Rendering.IURAdapterTest do
   use AshUI.DataCase, async: false
 
+  @moduletag :conformance
+
   alias AshUI.Compilation.IUR
   alias AshUI.Compiler
   alias AshUI.Rendering.IURAdapter

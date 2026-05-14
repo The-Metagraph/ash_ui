@@ -1,6 +1,8 @@
 defmodule AshUI.Phase30RuntimeAdapterTest do
   use ExUnit.Case, async: true
 
+  @moduletag :conformance
+
   alias AshUI.Compilation.IUR
   alias AshUI.LiveView.{EventHandler, IURHydration}
   alias AshUI.Rendering.{DesktopUIAdapter, ElmUIAdapter, IURAdapter, LiveUIAdapter}

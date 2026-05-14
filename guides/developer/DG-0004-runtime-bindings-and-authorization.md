@@ -140,7 +140,7 @@ These are user-visible quickly, even when unit tests still pass.
 
 ## See Also
 
-- [DG-0003: Compiler, Canonical IUR, and Renderers](./DG-0003-compiler-canonical-iur-and-renderers.md)
+- [DG-0003: Compiler, Canonical IUR, Styling, and Renderers](./DG-0003-compiler-canonical-iur-and-renderers.md)
 - [DG-0005: Testing, Conformance, and Governance](./DG-0005-testing-conformance-and-governance.md)
 - [UG-0004: Bindings, Actions, and Forms](../user/UG-0004-bindings-actions-and-forms.md)
 - [UG-0006: Authorization and Runtime Safety](../user/UG-0006-authorization-and-runtime-safety.md)

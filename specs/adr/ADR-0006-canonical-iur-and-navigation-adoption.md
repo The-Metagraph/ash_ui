@@ -4,7 +4,7 @@
 
 **Accepted**
 
-Implementation is planned in Phase 30. Until that phase is complete, ADR-0005 remains the active runtime baseline for shipped Ash UI behavior.
+Implemented by Phase 30. ADR-0005 remains the active resource-authority baseline for shipped Ash UI behavior.
 
 ## Context
 

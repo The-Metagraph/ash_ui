@@ -1,6 +1,8 @@
 defmodule AshUI.Phase30PackageBoundaryTest do
   use ExUnit.Case, async: true
 
+  @moduletag :conformance
+
   @navigation_actions [
     :navigate_to,
     :replace_with,

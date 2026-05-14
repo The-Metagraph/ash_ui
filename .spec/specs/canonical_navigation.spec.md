@@ -93,8 +93,10 @@ Required behavior:
 ### planned-tests
 
 - `mix test test/ash_ui/rendering/iur_adapter_test.exs`
+- `mix test test/ash_ui/phase_30_package_boundary_test.exs`
 - `mix test test/ash_ui/canonical_navigation_test.exs`
 - `mix test test/ash_ui/phase_30_runtime_adapter_test.exs`
+- `mix test test/ash_ui/phase_30_integration_test.exs`
 - `mix test test/ash_ui/phase_30_docs_conformance_test.exs`
 - `bash ./scripts/validate_guides_governance.sh`
 

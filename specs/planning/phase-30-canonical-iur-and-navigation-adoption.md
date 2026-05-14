@@ -18,7 +18,7 @@ Back to index: [README](./README.md)
 - Ash UI uses dependency declarations compatible with Ash, Spark, and Reactor already present in the application.
 - Runtime navigation declarations remain symbolic. Host routes, URLs, router helpers, runtime modules, and stack identifiers are not canonical Ash UI input.
 
-[ ] 30 Phase 30 - Canonical IUR And Navigation Adoption
+[x] 30 Phase 30 - Canonical IUR And Navigation Adoption
 
 This phase upgrades Ash UI to the upstream Unified canonical IUR and navigation model while preserving Ash resource authority. It replaces the legacy renderer-facing string map boundary with `%UnifiedIUR.Element{}` roots and introduces resource-authored semantic navigation declarations.
 
@@ -132,18 +132,18 @@ This task makes the canonical navigation adoption requirements traceable from sp
 - [x] 30.5.2.3 Subtask - Add negative tests for forbidden host and runtime fields.
 - [x] 30.5.2.4 Subtask - Add migration tests proving legacy map output is not accepted at the upgraded renderer boundary.
 
-## [ ] 30.6 Section - Phase 30 Integration Tests
+## [x] 30.6 Section - Phase 30 Integration Tests
 
 This final section proves the package upgrade, canonical IUR conversion, navigation DSL, and runtime adapters work together as one adoption path.
 
-### [ ] 30.6.1 Task - Run End-To-End Canonical IUR And Navigation Scenarios
+### [x] 30.6.1 Task - Run End-To-End Canonical IUR And Navigation Scenarios
 
 This task validates Phase 30 as a complete integration rather than isolated package or adapter changes.
 
-- [ ] 30.6.1.1 Subtask - Verify the upgraded Unified package set compiles under Ash UI with the resolved Spark dependency.
-- [ ] 30.6.1.2 Subtask - Verify a resource-authored screen compiles into a valid `%UnifiedIUR.Element{}` root.
-- [ ] 30.6.1.3 Subtask - Verify local destination navigation compiles and transports as canonical intent.
-- [ ] 30.6.1.4 Subtask - Verify screen transition, replacement, back, and forward navigation compile and transport as canonical intent.
-- [ ] 30.6.1.5 Subtask - Verify modal open and close navigation compile without runtime stack identifiers.
-- [ ] 30.6.1.6 Subtask - Verify Live, Elm, and desktop runtime adapters consume canonical element roots.
-- [ ] 30.6.1.7 Subtask - Verify forbidden host route, URL, helper, runtime module, and modal stack fields are rejected.
+- [x] 30.6.1.1 Subtask - Verify the upgraded Unified package set compiles under Ash UI with the resolved Spark dependency.
+- [x] 30.6.1.2 Subtask - Verify a resource-authored screen compiles into a valid `%UnifiedIUR.Element{}` root.
+- [x] 30.6.1.3 Subtask - Verify local destination navigation compiles and transports as canonical intent.
+- [x] 30.6.1.4 Subtask - Verify screen transition, replacement, back, and forward navigation compile and transport as canonical intent.
+- [x] 30.6.1.5 Subtask - Verify modal open and close navigation compile without runtime stack identifiers.
+- [x] 30.6.1.6 Subtask - Verify Live, Elm, and desktop runtime adapters consume canonical element roots.
+- [x] 30.6.1.7 Subtask - Verify forbidden host route, URL, helper, runtime module, and modal stack fields are rejected.

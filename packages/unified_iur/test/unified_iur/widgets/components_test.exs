@@ -13,7 +13,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :disclosure,
              :kicker,
              :avatar,
-             :presence_dot
+             :presence_dot,
+             :unread_badge
            ]
 
     assert Components.form_control_kinds() == [
@@ -62,6 +63,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     kicker = Components.kicker(["Spec", "ADR"], separator: "/")
     avatar = Components.avatar(initials: "PC", size: :small, accessibility_label: "Pascal")
     presence = Components.presence_dot(:active, size: :small)
+    unread_badge = Components.unread_badge(12, tone: :critical)
 
     assert %Element{
              kind: :inline_rich_text_heading,
@@ -82,6 +84,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     assert avatar.attributes.identity == %{initials: "PC", size: :small, shape: :round}
     assert avatar.attributes.accessibility == %{label: "Pascal"}
     assert presence.attributes.presence == %{state: :active, size: :small}
+    assert unread_badge.attributes.badge == %{count: 12, tone: :critical}
   end
 
   test "represents form controls, rows, artifacts, and composer children" do

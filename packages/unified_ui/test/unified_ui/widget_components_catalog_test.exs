@@ -20,7 +20,8 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :disclosure,
                :kicker,
                :avatar,
-               :presence_dot
+               :presence_dot,
+               :unread_badge
              ],
              form_control_and_composer: [
                :runtime_form_shell,
@@ -47,10 +48,12 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
   test "source mapping records every AshUi PR in order" do
     source_mapping = WidgetComponents.source_mapping()
 
-    assert Map.keys(source_mapping) == Enum.to_list(79..98)
+    assert Enum.sort(Map.keys(source_mapping)) == Enum.to_list(79..98) ++ [100]
     assert source_mapping[79].canonical_kind == :inline_rich_text_heading
     assert source_mapping[81].source_name == :phoenix_form
     assert source_mapping[81].canonical_kind == :runtime_form_shell
+    assert source_mapping[100].source_name == :unread_badge
+    assert source_mapping[100].canonical_kind == :unread_badge
     assert source_mapping[98].source_name == :ui_relationship_repeat
     assert source_mapping[98].canonical_kind == :list_repeat
   end

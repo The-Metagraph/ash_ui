@@ -869,6 +869,12 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:size, :accessibility_label])
           )
 
+        :unread_badge ->
+          Widgets.Components.unread_badge(
+            node.count || 0,
+            common_opts(node, attachments, %{tone: node.tone})
+          )
+
         :segmented_button_group ->
           Widgets.Components.segmented_button_group(
             normalize_keyword_items(node.options),

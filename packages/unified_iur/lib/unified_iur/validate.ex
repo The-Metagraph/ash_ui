@@ -489,6 +489,25 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :unread_badge, attributes: attributes}) do
+    badge = Map.get(attributes, :badge, %{})
+    count = fetch(badge, :count)
+    tone = fetch(badge, :tone, :default)
+
+    valid? = is_integer(count) and count >= 0 and tone in [:default, :critical]
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_badge_value,
+        "unread_badge count must be a non-negative integer and tone must be :default or :critical",
+        path: [:attributes, :badge],
+        details: %{count: count, tone: tone}
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_selection_options(options, path) when is_list(options) do

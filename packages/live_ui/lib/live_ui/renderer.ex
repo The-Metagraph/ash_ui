@@ -84,6 +84,26 @@ defmodule LiveUi.Renderer do
   attr(:runtime_state, :any, default: nil)
   attr(:event_target, :any, default: nil)
 
+  def render(%{element: %Element{kind: :unread_badge}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:count_text, unread_badge_count_text(assigns.element))
+      |> assign(:badge_tone, unread_badge_tone(assigns.element))
+      |> assign(:badge_label, unread_badge_label(assigns.element))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <span
+      id={element_id(@element, "unread-badge")}
+      data-live-ui-widget="unread-badge"
+      data-live-ui-tone={@badge_tone}
+      aria-label={@badge_label}
+      class={["live-ui-unread-badge", "live-ui-unread-badge-#{@badge_tone}", style_class(@element)]}
+      {@style_attrs}
+    ><%= @count_text %></span>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1405,6 +1425,48 @@ defmodule LiveUi.Renderer do
 
   defp state_boolean(%Element{} = element, key) do
     boolean_default(get_in(element.attributes, [:state, key]), false)
+  end
+
+  defp unread_badge_count(%Element{} = element) do
+    value = get_in(element.attributes, [:badge, :count])
+
+    cond do
+      is_integer(value) and value >= 0 ->
+        value
+
+      is_float(value) and value >= 0 ->
+        trunc(value)
+
+      is_binary(value) ->
+        case Integer.parse(value) do
+          {count, ""} when count >= 0 -> count
+          _ -> 0
+        end
+
+      true ->
+        0
+    end
+  end
+
+  defp unread_badge_count_text(%Element{} = element) do
+    case unread_badge_count(element) do
+      count when count > 99 -> "99+"
+      count -> Integer.to_string(count)
+    end
+  end
+
+  defp unread_badge_tone(%Element{} = element) do
+    case get_in(element.attributes, [:badge, :tone]) do
+      tone when tone in [:default, :critical] -> Atom.to_string(tone)
+      tone when is_binary(tone) and tone in ["default", "critical"] -> tone
+      _other -> style_tone(element) || "default"
+    end
+  end
+
+  defp unread_badge_label(%Element{} = element) do
+    count = unread_badge_count(element)
+    suffix = if count == 1, do: "item", else: "items"
+    "#{count} unread #{suffix}"
   end
 
   defp form_interaction_attrs(%Element{} = element, event_target) do

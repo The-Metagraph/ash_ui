@@ -92,6 +92,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :unread_badge,
+      family: :content_identity_and_disclosure,
+      source: %{system: :ash_ui, pr: 100, name: :unread_badge},
+      summary: "Compact unread-count pill with default and critical tones.",
+      aliases: []
+    },
+    %{
       kind: :segmented_button_group,
       family: :form_control_and_composer,
       source: %{system: :ash_ui, pr: 85, name: :segmented_button_group},

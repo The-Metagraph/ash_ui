@@ -115,6 +115,10 @@ defmodule AshUI.DSL.StorageTest do
       assert message =~ ":runtime_form_shell"
     end
 
+    test "admits sidebar_item as a valid widget type" do
+      assert Storage.valid_widget_type?("sidebar_item") == true
+    end
+
     test "returns true for custom widget types" do
       assert Storage.valid_widget_type?("custom:my_widget") == true
     end

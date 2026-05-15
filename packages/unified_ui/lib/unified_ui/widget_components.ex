@@ -120,6 +120,14 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :sidebar_item,
+      family: :row_and_artifact,
+      source: %{system: :ash_ui, pr: 102, name: :sidebar_item},
+      summary:
+        "Sidebar navigation row with glyph, state, optional meta, and unread badge composition.",
+      aliases: []
+    },
+    %{
       kind: :sticky_frosted_header,
       family: :layer_shell_and_callout,
       source: %{system: :ash_ui, pr: 88, name: :sticky_frosted_header},

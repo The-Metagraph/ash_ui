@@ -116,6 +116,25 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         link_target: [type: :string, required: false],
         action_intent: [type: :atom, required: false],
         summary: [type: :string, required: false]
+      ),
+      leaf(
+        :sidebar_item,
+        @row_artifact_family,
+        label: [type: :string, required: true],
+        glyph: [type: :string, required: false],
+        meta: [type: :any, required: false],
+        state: [type: {:in, [:default, :active, :blocked]}, required: false, default: :default],
+        item_kind: [
+          type: {:in, [:channel, :build, :dm, :draft, :repo]},
+          required: false,
+          default: :channel
+        ],
+        item_id: [type: :any, required: true],
+        link_target: [type: :string, required: false],
+        action_intent: [type: :atom, required: false],
+        unread_count: [type: :integer, required: false, default: 0],
+        badge_tone: [type: {:in, [:default, :critical]}, required: false, default: :default],
+        summary: [type: :string, required: false]
       )
     ]
   end

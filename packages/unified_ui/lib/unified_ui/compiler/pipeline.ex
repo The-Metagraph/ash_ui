@@ -933,6 +933,24 @@ defmodule UnifiedUi.Compiler.Pipeline do
             ])
           )
 
+        :sidebar_item ->
+          Widgets.Components.sidebar_item(
+            node.label || "",
+            common_opts(node, attachments,
+              glyph: node.glyph,
+              meta: node.meta,
+              state: node.state,
+              item_kind: node.item_kind,
+              item_id: node.item_id,
+              link_target: node.link_target,
+              action_intent: node.action_intent,
+              unread_count: node.unread_count,
+              badge_tone: node.badge_tone,
+              accessibility_label: node.accessibility_label,
+              accessibility_description: node.accessibility_description
+            )
+          )
+
         :pipeline_stepper_horizontal ->
           Widgets.Components.pipeline_stepper_horizontal(
             normalize_list(node.steps),

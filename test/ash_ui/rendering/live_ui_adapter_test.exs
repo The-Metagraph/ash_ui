@@ -445,6 +445,66 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       refute heex =~ ~r/\b\d+px\b/
     end
 
+    test "generates sidebar_item markup with phx-click wiring and composed unread_badge" do
+      iur = %{
+        "type" => "sidebar_item",
+        "id" => "item-phase-31-2",
+        "props" => %{
+          "label" => "build/phase-31.2",
+          "glyph" => "◇",
+          "meta" => "phase 31.2",
+          "kind" => "build",
+          "blocked" => true,
+          "event" => "select_sidebar_item",
+          "item_id" => "phase-31.2",
+          "event_value_key" => "item_id"
+        },
+        "children" => [
+          %{
+            "type" => "unread_badge",
+            "id" => "badge-phase-31-2",
+            "props" => %{"count" => 12, "tone" => "critical"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-sidebar-item"
+      assert heex =~ "ash-sidebar-item-blocked"
+      assert heex =~ "ash-sidebar-item-build"
+      assert heex =~ ~s(phx-click="select_sidebar_item")
+      assert heex =~ ~s(phx-value-item_id="phase-31.2")
+      assert heex =~ "build/phase-31.2"
+      assert heex =~ "phase 31.2"
+      assert heex =~ "ash-unread-badge-critical"
+    end
+
+    test "sidebar_item produces no literal color or spacing values" do
+      iur = %{
+        "type" => "sidebar_item",
+        "id" => "item-pure",
+        "props" => %{
+          "label" => "metagraph-team",
+          "glyph" => "#",
+          "kind" => "channel",
+          "active" => true,
+          "event" => "select_sidebar_item",
+          "item_id" => "metagraph-team",
+          "event_value_key" => "item_id"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

@@ -173,6 +173,7 @@ defmodule UnifiedUi.AdvancedWidgetFamiliesTest do
              :chat_composer,
              :list_item_multi_column,
              :artifact_row,
+             :sidebar_item,
              :pipeline_stepper_horizontal,
              :segmented_progress_bar,
              :workflow_stage_list_vertical,

@@ -41,7 +41,8 @@ defmodule UnifiedIUR.Widgets.Components do
 
   @row_artifact_kinds [
     :list_item_multi_column,
-    :artifact_row
+    :artifact_row,
+    :sidebar_item
   ]
 
   @workflow_kinds [
@@ -291,6 +292,31 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:meta, option(opts, :meta))
       },
       Map.put(opts, :children, children)
+    )
+  end
+
+  @spec sidebar_item(String.t(), opts()) :: Element.t()
+  def sidebar_item(label, opts \\ []) when is_binary(label) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :sidebar_item,
+      :row_and_artifact,
+      %{
+        sidebar_item:
+          %{
+            label: label,
+            state: option(opts, :state, :default),
+            item_kind: option(opts, :item_kind, :channel)
+          }
+          |> maybe_put(:glyph, option(opts, :glyph))
+          |> maybe_put(:meta, option(opts, :meta))
+          |> maybe_put(:item_id, option(opts, :item_id, option(opts, :row_identity)))
+          |> maybe_put(:link_target, option(opts, :link_target))
+          |> maybe_put(:action_intent, option(opts, :action_intent))
+          |> maybe_put(:unread_count, normalize_unread_count(option(opts, :unread_count)))
+      },
+      Map.put(opts, :children, compose_sidebar_item_children(opts))
     )
   end
 
@@ -548,6 +574,54 @@ defmodule UnifiedIUR.Widgets.Components do
     |> maybe_put(:link_target, option(opts, :link_target))
     |> maybe_put(:action_intent, option(opts, :action_intent))
   end
+
+  defp compose_sidebar_item_children(opts) do
+    base_children = option(opts, :children, [])
+    unread_count = normalize_unread_count(option(opts, :unread_count))
+
+    cond do
+      unread_count < 1 ->
+        base_children
+
+      has_unread_badge_child?(base_children) ->
+        base_children
+
+      true ->
+        badge_tone =
+          option(opts, :badge_tone, if(unread_count > 5, do: :critical, else: :default))
+
+        badge_label =
+          option(
+            opts,
+            :badge_label,
+            "#{unread_count} unread #{if unread_count == 1, do: "item", else: "items"}"
+          )
+
+        base_children ++
+          [
+            Element.Child.new(
+              :trailing,
+              unread_badge(unread_count,
+                tone: badge_tone,
+                accessibility_label: badge_label,
+                id: option(opts, :badge_id)
+              )
+            )
+          ]
+    end
+  end
+
+  defp has_unread_badge_child?(children) do
+    Enum.any?(children, fn
+      %Element.Child{element: %Element{kind: :unread_badge}} -> true
+      %Element{kind: :unread_badge} -> true
+      {:trailing, %Element{kind: :unread_badge}} -> true
+      _other -> false
+    end)
+  end
+
+  defp normalize_unread_count(value) when is_integer(value), do: value
+  defp normalize_unread_count(_value), do: 0
 
   defp normalize_metadata(opts) do
     opts

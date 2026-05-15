@@ -84,6 +84,14 @@ defmodule UnifiedIUR.ValidateTest do
     invalid_meter = Components.meter_thin(120, minimum: 0, maximum: 100)
     invalid_badge = Components.unread_badge(-1, tone: :urgent)
 
+    invalid_sidebar_item =
+      Components.sidebar_item("",
+        item_id: nil,
+        state: :muted,
+        item_kind: :unknown,
+        unread_count: -1
+      )
+
     assert {:error, [panel_error]} = Validate.element(missing_panel_name)
     assert panel_error.code == :missing_accessible_name
 
@@ -92,6 +100,9 @@ defmodule UnifiedIUR.ValidateTest do
 
     assert {:error, [badge_error]} = Validate.element(invalid_badge)
     assert badge_error.code == :invalid_badge_value
+
+    assert {:error, [sidebar_item_error]} = Validate.element(invalid_sidebar_item)
+    assert sidebar_item_error.code == :invalid_sidebar_item
   end
 
   test "validates segmented control and list repeat required shapes" do

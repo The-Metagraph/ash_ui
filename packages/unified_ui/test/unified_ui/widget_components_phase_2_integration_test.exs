@@ -43,6 +43,17 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
         change_intent(:validate_settings)
       end
 
+      sidebar_item :build_item do
+        label("build/widget-adr")
+        glyph("◇")
+        meta("accepted")
+        state(:blocked)
+        item_kind(:build)
+        item_id("adr-1")
+        action_intent(:open_artifact)
+        unread_count(2)
+      end
+
       slide_over_panel :details_panel do
         accessibility_label("Details")
         open?(true)
@@ -88,7 +99,8 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
           :redline_inline,
           :code_block_syntax_highlighted,
           :list_repeat,
-          :artifact_row
+          :artifact_row,
+          :sidebar_item
         ] do
       assert kind in listing.compiled.widget_kinds
       assert snapshot =~ to_string(kind)

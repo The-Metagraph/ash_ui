@@ -109,6 +109,11 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Represent list_repeat with a list binding id, row scope, row field list, and template metadata."
+    },
+    invalid_sidebar_item: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar items with a non-empty label, supported state and item_kind, stable item_id, and either a link target or action intent."
     }
   }
 
@@ -508,6 +513,44 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :sidebar_item, attributes: attributes}) do
+    item = Map.get(attributes, :sidebar_item, %{})
+    label = fetch(item, :label)
+    state = fetch(item, :state, :default)
+    item_kind = fetch(item, :item_kind, :channel)
+    item_id = fetch(item, :item_id)
+    link_target = fetch(item, :link_target)
+    action_intent = fetch(item, :action_intent)
+    unread_count = fetch(item, :unread_count, 0)
+
+    valid? =
+      is_binary(label) and label != "" and
+        state in [:default, :active, :blocked] and
+        item_kind in [:channel, :build, :dm, :draft, :repo] and
+        valid_identity?(item_id) and
+        valid_sidebar_destination?(link_target, action_intent) and
+        is_integer(unread_count) and unread_count >= 0
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_item,
+        "sidebar_item requires a non-empty label, supported state and item_kind, stable item_id, and either a link_target or action_intent",
+        path: [:attributes, :sidebar_item],
+        details: %{
+          label: label,
+          state: state,
+          item_kind: item_kind,
+          item_id: inspect(item_id),
+          link_target: link_target,
+          action_intent: action_intent,
+          unread_count: unread_count
+        }
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_selection_options(options, path) when is_list(options) do
@@ -546,6 +589,15 @@ defmodule UnifiedIUR.Validate do
         path: path
       )
     ]
+  end
+
+  defp valid_identity?(value) when is_binary(value), do: value != ""
+  defp valid_identity?(value) when is_atom(value), do: true
+  defp valid_identity?(value) when is_integer(value), do: true
+  defp valid_identity?(value), do: not is_nil(value)
+
+  defp valid_sidebar_destination?(link_target, action_intent) do
+    (is_binary(link_target) and link_target != "") or is_atom(action_intent)
   end
 
   defp validate_redline_segments(segments, path) when is_list(segments) do

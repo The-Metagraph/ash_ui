@@ -73,6 +73,30 @@ defmodule LiveUi.RendererTest do
     assert html =~ "99+"
   end
 
+  test "renderer maps sidebar_item canonical components into native navigation markup" do
+    element =
+      Components.sidebar_item("build/phase-31.2",
+        id: "build-sidebar-item",
+        glyph: "◇",
+        meta: "phase 31.2",
+        state: :blocked,
+        item_kind: :build,
+        item_id: "phase-31.2",
+        link_target: "/builds/phase-31.2",
+        unread_count: 12
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="sidebar-item")
+    assert html =~ ~s(data-live-ui-kind="build")
+    assert html =~ ~s(data-live-ui-state="blocked")
+    assert html =~ ~s(href="/builds/phase-31.2")
+    assert html =~ "build/phase-31.2"
+    assert html =~ "phase 31.2"
+    assert html =~ ~s(data-live-ui-widget="unread-badge")
+  end
+
   test "runtime can mount canonical unified_iur input through the shared screen host" do
     element =
       Layout.column([

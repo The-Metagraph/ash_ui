@@ -92,6 +92,7 @@ defmodule UnifiedUi.Dsl.Placement do
     :unread_badge,
     :segmented_button_group,
     :runtime_form_shell,
+    :sidebar_item,
     :pipeline_stepper_horizontal,
     :segmented_progress_bar,
     :workflow_stage_list_vertical,

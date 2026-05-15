@@ -23,7 +23,11 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :chat_composer
            ]
 
-    assert Components.row_artifact_kinds() == [:list_item_multi_column, :artifact_row]
+    assert Components.row_artifact_kinds() == [
+             :list_item_multi_column,
+             :artifact_row,
+             :sidebar_item
+           ]
 
     assert Components.workflow_kinds() == [
              :pipeline_stepper_horizontal,
@@ -129,6 +133,17 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         meta: %{status: :accepted}
       )
 
+    sidebar_item =
+      Components.sidebar_item("build/phase-31.2",
+        glyph: "◇",
+        meta: "phase 31.2",
+        state: :blocked,
+        item_kind: :build,
+        item_id: "phase-31.2",
+        action_intent: :open_build,
+        unread_count: 12
+      )
+
     assert segmented.attributes.selection == %{
              presentation: :segmented_button_group,
              multiple?: false,
@@ -172,6 +187,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              title: "ADR",
              meta: %{status: :accepted}
            }
+
+    assert sidebar_item.attributes.sidebar_item == %{
+             label: "build/phase-31.2",
+             glyph: "◇",
+             meta: "phase 31.2",
+             state: :blocked,
+             item_kind: :build,
+             item_id: "phase-31.2",
+             action_intent: :open_build,
+             unread_count: 12
+           }
+
+    assert [%{slot: :trailing, element: %Element{kind: :unread_badge}}] = sidebar_item.children
   end
 
   test "represents workflow, layer, callout, redline, and code components" do

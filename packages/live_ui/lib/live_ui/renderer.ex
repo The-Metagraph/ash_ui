@@ -104,6 +104,72 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  def render(%{element: %Element{kind: :sidebar_item}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:sidebar_state, sidebar_item_state(assigns.element))
+      |> assign(:sidebar_kind, sidebar_item_kind(assigns.element))
+      |> assign(:sidebar_label, sidebar_item_label(assigns.element))
+      |> assign(:sidebar_glyph, sidebar_item_glyph(assigns.element))
+      |> assign(:sidebar_meta, sidebar_item_meta(assigns.element))
+      |> assign(:sidebar_link, sidebar_item_link(assigns.element))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <%= if @sidebar_link do %>
+      <a
+        id={element_id(@element, "sidebar-item")}
+        href={@sidebar_link}
+        data-live-ui-widget="sidebar-item"
+        data-live-ui-kind={@sidebar_kind}
+        data-live-ui-state={@sidebar_state}
+        aria-current={if @sidebar_state == "active", do: "page", else: nil}
+        class={[
+          "live-ui-sidebar-item",
+          "live-ui-sidebar-item-#{@sidebar_state}",
+          "live-ui-sidebar-item-#{@sidebar_kind}",
+          style_class(@element)
+        ]}
+        {@style_attrs}
+      >
+        <span :if={@sidebar_glyph} class="live-ui-sidebar-item-glyph" aria-hidden="true"><%= @sidebar_glyph %></span>
+        <span class="live-ui-sidebar-item-label"><%= @sidebar_label %></span>
+        <span :if={@sidebar_meta} class="live-ui-sidebar-item-meta"><%= @sidebar_meta %></span>
+        <span :if={child_elements(@element, :trailing) != []} class="live-ui-sidebar-item-trailing">
+          <%= for child <- child_elements(@element, :trailing) do %>
+            <.render element={child} event_target={@event_target} />
+          <% end %>
+        </span>
+      </a>
+    <% else %>
+      <button
+        type="button"
+        id={element_id(@element, "sidebar-item")}
+        data-live-ui-widget="sidebar-item"
+        data-live-ui-kind={@sidebar_kind}
+        data-live-ui-state={@sidebar_state}
+        aria-current={if @sidebar_state == "active", do: "page", else: nil}
+        class={[
+          "live-ui-sidebar-item",
+          "live-ui-sidebar-item-#{@sidebar_state}",
+          "live-ui-sidebar-item-#{@sidebar_kind}",
+          style_class(@element)
+        ]}
+        {@style_attrs}
+      >
+        <span :if={@sidebar_glyph} class="live-ui-sidebar-item-glyph" aria-hidden="true"><%= @sidebar_glyph %></span>
+        <span class="live-ui-sidebar-item-label"><%= @sidebar_label %></span>
+        <span :if={@sidebar_meta} class="live-ui-sidebar-item-meta"><%= @sidebar_meta %></span>
+        <span :if={child_elements(@element, :trailing) != []} class="live-ui-sidebar-item-trailing">
+          <%= for child <- child_elements(@element, :trailing) do %>
+            <.render element={child} event_target={@event_target} />
+          <% end %>
+        </span>
+      </button>
+    <% end %>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1467,6 +1533,43 @@ defmodule LiveUi.Renderer do
     count = unread_badge_count(element)
     suffix = if count == 1, do: "item", else: "items"
     "#{count} unread #{suffix}"
+  end
+
+  defp sidebar_item_state(%Element{} = element) do
+    element
+    |> get_in([Access.key(:attributes, %{}), :sidebar_item, :state])
+    |> case do
+      state when state in [:default, :active, :blocked] -> Atom.to_string(state)
+      _other -> "default"
+    end
+  end
+
+  defp sidebar_item_kind(%Element{} = element) do
+    element
+    |> get_in([Access.key(:attributes, %{}), :sidebar_item, :item_kind])
+    |> case do
+      kind when kind in [:channel, :build, :dm, :draft, :repo] -> Atom.to_string(kind)
+      _other -> "channel"
+    end
+  end
+
+  defp sidebar_item_label(%Element{} = element) do
+    string_value(get_in(element.attributes, [:sidebar_item, :label]), "")
+  end
+
+  defp sidebar_item_glyph(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_item, :glyph]))
+  end
+
+  defp sidebar_item_meta(%Element{} = element) do
+    case get_in(element.attributes, [:sidebar_item, :meta]) do
+      nil -> nil
+      meta -> to_string(meta)
+    end
+  end
+
+  defp sidebar_item_link(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_item, :link_target]))
   end
 
   defp form_interaction_attrs(%Element{} = element, event_target) do

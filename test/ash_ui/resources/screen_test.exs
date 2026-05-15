@@ -22,6 +22,7 @@ defmodule AshUI.Resources.ScreenTest do
                      route: "/test"
                    )
                )
+
       assert screen.name == "test_screen"
       assert screen.layout == :row
       assert screen.route == "/test"
@@ -51,6 +52,7 @@ defmodule AshUI.Resources.ScreenTest do
         AshUI.Data.create(Screen,
           attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :column)
         )
+
       {:ok, updated} = AshUI.Data.update(screen, attrs: %{layout: :grid})
 
       assert updated.layout == :grid
@@ -66,6 +68,7 @@ defmodule AshUI.Resources.ScreenTest do
         AshUI.Data.create(Screen,
           attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :row)
         )
+
       assert :ok = AshUI.Data.destroy(screen)
 
       assert [] = AshUI.Data.read!(Screen, filter: [name: "destroy_test"])
@@ -74,19 +77,22 @@ defmodule AshUI.Resources.ScreenTest do
 
   describe "Screen name uniqueness" do
     test "prevents duplicate screen names" do
-      attrs = %{
-        name: "unique_test"
-      }
+      # Use a globally-unique name suffix so this test cannot collide
+      # with leftover data from prior runs or with other tests inserting
+      # the same fixed value (per Ash usage rules — fixed identity
+      # values cause deadlocks + cross-test isolation breakage).
+      name = "unique_test_#{System.unique_integer([:positive])}"
 
       {:ok, _screen} =
         AshUI.Data.create(Screen,
-          attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :row)
+          attrs: ScreenDocumentFixtures.resource_screen_attrs(name, layout: :row)
         )
 
       assert {:error, error} =
                AshUI.Data.create(Screen,
-                 attrs: ScreenDocumentFixtures.resource_screen_attrs(attrs.name, layout: :row)
+                 attrs: ScreenDocumentFixtures.resource_screen_attrs(name, layout: :row)
                )
+
       assert Exception.message(error) =~ "constraint error"
     end
   end

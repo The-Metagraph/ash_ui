@@ -21,6 +21,36 @@ defmodule AshUI.DSL.Storage do
           transform: term() | nil
         }
 
+  @valid_layouts ["screen", "row", "column", "grid", "stack", "fragment", "container"]
+
+  @valid_widgets [
+    "hero",
+    "badge",
+    "stat",
+    "key_value",
+    "info_list",
+    "form_field",
+    "form_builder",
+    "text",
+    "inline_rich_text_heading",
+    "label",
+    "button",
+    "input",
+    "textarea",
+    "checkbox",
+    "radio",
+    "switch",
+    "slider",
+    "select",
+    "card",
+    "list",
+    "table",
+    "image",
+    "icon",
+    "divider",
+    "spacer"
+  ]
+
   @doc """
   Defines the unified_dsl attribute for Ash Resources.
 
@@ -101,39 +131,61 @@ defmodule AshUI.DSL.Storage do
       AshUI.DSL.Storage.valid_widget_type?("text") # => true
       AshUI.DSL.Storage.valid_widget_type?("invalid") # => false
   """
-  @spec valid_widget_type?(String.t()) :: boolean()
-  def valid_widget_type?(type) when is_binary(type) do
-    valid_layouts = ["screen", "row", "column", "grid", "stack", "fragment", "container"]
+  @spec valid_widget_type?(String.t() | atom()) :: boolean()
+  def valid_widget_type?(type) do
+    match?({:ok, _canonical_type}, canonical_widget_type(type))
+  end
 
-    valid_widgets = [
-      "hero",
-      "badge",
-      "stat",
-      "key_value",
-      "info_list",
-      "form_field",
-      "form_builder",
-      "text",
-      "inline_rich_text_heading",
-      "label",
-      "button",
-      "input",
-      "textarea",
-      "checkbox",
-      "radio",
-      "switch",
-      "slider",
-      "select",
-      "card",
-      "list",
-      "table",
-      "image",
-      "icon",
-      "divider",
-      "spacer"
-    ]
+  @doc """
+  Resolves a widget type to the canonical string stored in persisted DSL.
 
-    type in valid_layouts or type in valid_widgets or String.starts_with?(type, "custom:")
+  Existing layouts, built-in widgets, and `custom:*` extension names resolve to
+  themselves. Canonical Unified UI widget components and Ash UI compatibility
+  aliases resolve through `AshUI.WidgetComponents`.
+  """
+  @spec canonical_widget_type(String.t() | atom()) ::
+          {:ok, String.t()} | {:error, AshUI.WidgetComponents.name_diagnostic()}
+  def canonical_widget_type(type) when is_atom(type) do
+    type
+    |> Atom.to_string()
+    |> canonical_widget_type()
+  end
+
+  def canonical_widget_type(type) when is_binary(type) do
+    cond do
+      type in @valid_layouts ->
+        {:ok, type}
+
+      type in @valid_widgets ->
+        {:ok, type}
+
+      String.starts_with?(type, "custom:") ->
+        {:ok, type}
+
+      true ->
+        case AshUI.WidgetComponents.canonical_kind(type) do
+          {:ok, kind} -> {:ok, Atom.to_string(kind)}
+          {:error, diagnostic} -> {:error, diagnostic}
+        end
+    end
+  end
+
+  def canonical_widget_type(type) do
+    {:error,
+     %{
+       status: :unknown,
+       name: type,
+       message:
+         "#{inspect(type)} is not a valid widget type, canonical widget-component kind, or Ash UI compatibility alias."
+     }}
+  end
+
+  @doc """
+  Returns a diagnostic for canonical component names and compatibility aliases.
+  """
+  @spec widget_type_diagnostic(String.t() | atom()) :: AshUI.WidgetComponents.name_diagnostic()
+  def widget_type_diagnostic(type) do
+    AshUI.WidgetComponents.name_diagnostic(type)
   end
 
   @doc """

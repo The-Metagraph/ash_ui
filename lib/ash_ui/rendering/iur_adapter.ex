@@ -8,7 +8,9 @@ defmodule AshUI.Rendering.IURAdapter do
 
   alias AshUI.Compilation.IUR
   alias AshUI.Telemetry
+  alias AshUI.WidgetComponents
   alias UnifiedIUR.{Binding, Element, Metadata, Normalize, Validate}
+  alias UnifiedIUR.Element.Child
 
   @doc """
   Converts an Ash IUR to canonical unified_iur Screen format.
@@ -79,7 +81,7 @@ defmodule AshUI.Rendering.IURAdapter do
           bindings: Enum.map(iur.bindings, &convert_binding/1)
         }
         |> Map.merge(interaction_attributes(%{actions: fetch(iur.attributes, :actions, [])})),
-      children: Enum.map(iur.children, &convert_element/1)
+      children: convert_children(iur.children)
     )
   end
 
@@ -96,8 +98,21 @@ defmodule AshUI.Rendering.IURAdapter do
       id: element.id || generate_id(),
       metadata: convert_metadata(element),
       attributes: convert_attributes(kind, props),
-      children: Enum.map(element.children, &convert_element/1)
+      children: convert_children(element.children)
     )
+  end
+
+  defp convert_children(children) do
+    Enum.map(children, fn child ->
+      Child.new(child_slot(child), convert_element(child))
+    end)
+  end
+
+  defp child_slot(%IUR{} = child) do
+    child.metadata
+    |> fetch(:composition, %{})
+    |> fetch(:slot, fetch(child.metadata, :slot, :default))
+    |> normalize_existing_atom()
   end
 
   defp map_element_kind(:textinput), do: :text_input
@@ -106,7 +121,13 @@ defmodule AshUI.Rendering.IURAdapter do
   defp map_element_kind(:switch), do: :toggle
   defp map_element_kind(:divider), do: :separator
   defp map_element_kind(:container), do: :content
-  defp map_element_kind(kind) when is_atom(kind), do: kind
+
+  defp map_element_kind(kind) when is_atom(kind) do
+    case WidgetComponents.canonical_kind(kind) do
+      {:ok, canonical_kind} -> canonical_kind
+      {:error, _diagnostic} -> kind
+    end
+  end
 
   defp map_element_kind(kind) when is_binary(kind) do
     kind
@@ -152,6 +173,339 @@ defmodule AshUI.Rendering.IURAdapter do
     |> Map.merge(binding_attributes(props))
     |> Map.merge(interaction_attributes(props))
     |> compact_map()
+  end
+
+  defp base_attributes(:inline_rich_text_heading = kind, props) do
+    component_attributes(
+      kind,
+      :content_identity_and_disclosure,
+      %{
+        heading:
+          compact_map(%{
+            level: normalize_existing_atom(first_present(props, [:level, :heading_level]) || :h2),
+            segments: normalize_heading_segments(props)
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:disclosure = kind, props) do
+    component_attributes(
+      kind,
+      :content_identity_and_disclosure,
+      %{
+        disclosure:
+          compact_map(%{
+            summary: first_present(props, [:summary, :label, :title]),
+            open?: first_present(props, [:open?, :open]) || false
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:kicker = kind, props) do
+    component_attributes(
+      kind,
+      :content_identity_and_disclosure,
+      %{
+        kicker: %{
+          items: normalize_string_list(first_present(props, [:items, :labels, :content, :text])),
+          separator: first_present(props, [:separator]) || "/"
+        }
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:avatar = kind, props) do
+    component_attributes(
+      kind,
+      :content_identity_and_disclosure,
+      %{
+        identity:
+          compact_map(%{
+            initials: first_present(props, [:initials, :fallback, :label]),
+            image_source: first_present(props, [:image_source, :image, :src, :url]),
+            size: normalize_existing_atom(first_present(props, [:size]) || :medium),
+            shape: normalize_existing_atom(first_present(props, [:shape]) || :round)
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:presence_dot = kind, props) do
+    component_attributes(
+      kind,
+      :content_identity_and_disclosure,
+      %{
+        presence: %{
+          state: normalize_existing_atom(first_present(props, [:state, :status]) || :unknown),
+          size: normalize_existing_atom(first_present(props, [:size]) || :medium)
+        }
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:runtime_form_shell = kind, props) do
+    component_attributes(
+      kind,
+      :form_control_and_composer,
+      %{
+        form:
+          compact_map(%{
+            fields: normalize_maps(fetch(props, :fields, [])),
+            submit_label: first_present(props, [:submit_label, :label]),
+            submit_intent: first_present(props, [:submit_intent, :submit_action]),
+            change_intent: first_present(props, [:change_intent, :change_action]),
+            validation_state: normalize_existing_atom(fetch(props, :validation_state)),
+            host_adapter_hints: normalize_optional_map(fetch(props, :host_adapter_hints))
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:segmented_button_group = kind, props) do
+    component_attributes(
+      kind,
+      :form_control_and_composer,
+      %{
+        selection:
+          compact_map(%{
+            presentation: :segmented_button_group,
+            multiple?: false,
+            options: normalize_options(fetch(props, :options, [])),
+            active_value: first_present(props, [:active_value, :value, :selected]),
+            selection_intent: first_present(props, [:selection_intent, :change_intent])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:chat_composer = kind, props) do
+    component_attributes(
+      kind,
+      :form_control_and_composer,
+      %{
+        composer:
+          compact_map(%{
+            name: first_present(props, [:name]),
+            value: first_present(props, [:value, :text, :content]),
+            placeholder: first_present(props, [:placeholder]),
+            rows: fetch(props, :rows, 3),
+            send_label: first_present(props, [:send_label]) || "Send",
+            send_intent: first_present(props, [:send_intent, :submit_intent]),
+            change_intent: first_present(props, [:change_intent])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:list_item_multi_column = kind, props) do
+    component_attributes(
+      kind,
+      :row_and_artifact,
+      %{
+        row:
+          common_row_attrs(props)
+          |> maybe_put(:column_template, normalize_maps(fetch(props, :column_template, [])))
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:artifact_row = kind, props) do
+    component_attributes(
+      kind,
+      :row_and_artifact,
+      %{
+        artifact:
+          common_row_attrs(props)
+          |> maybe_put(:title, first_present(props, [:title, :label, :name]))
+          |> maybe_put(:meta, fetch(props, :meta))
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:pipeline_stepper_horizontal = kind, props) do
+    component_attributes(
+      kind,
+      :workflow_progress_and_status,
+      %{
+        workflow:
+          compact_map(%{
+            presentation: :pipeline_stepper_horizontal,
+            steps: normalize_maps(fetch(props, :steps, [])),
+            active_index: fetch(props, :active_index, 0),
+            completed_indices: fetch(props, :completed_indices, []),
+            navigation_intent: first_present(props, [:navigation_intent])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:segmented_progress_bar = kind, props) do
+    component_attributes(
+      kind,
+      :workflow_progress_and_status,
+      %{
+        progress:
+          compact_map(%{
+            presentation: :segmented_progress_bar,
+            segments: normalize_maps(fetch(props, :segments, [])),
+            aggregate:
+              normalize_optional_map(first_present(props, [:aggregate_progress, :aggregate])),
+            label: first_present(props, [:label])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:workflow_stage_list_vertical = kind, props) do
+    component_attributes(
+      kind,
+      :workflow_progress_and_status,
+      %{
+        workflow:
+          compact_map(%{
+            presentation: :workflow_stage_list_vertical,
+            stages: normalize_maps(fetch(props, :stages, [])),
+            active_index: fetch(props, :active_index, 0)
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:meter_thin = kind, props) do
+    component_attributes(
+      kind,
+      :workflow_progress_and_status,
+      %{
+        meter:
+          compact_map(%{
+            current: first_present(props, [:current, :value]) || 0,
+            minimum: fetch(props, :minimum, 0),
+            maximum: fetch(props, :maximum, 100),
+            label: first_present(props, [:label]),
+            state: normalize_existing_atom(fetch(props, :state))
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:sticky_frosted_header = kind, props) do
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        shell:
+          compact_map(%{
+            position: :sticky,
+            visual_effect: :frosted,
+            title: first_present(props, [:title, :label]),
+            leading: fetch(props, :leading, []),
+            trailing: fetch(props, :trailing, [])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:slide_over_panel = kind, props) do
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        panel:
+          compact_map(%{
+            modal?: false,
+            open?: first_present(props, [:open?, :open]) || false,
+            size: normalize_existing_atom(first_present(props, [:size]) || :medium),
+            label: first_present(props, [:label, :accessibility_label, :title]),
+            dismiss_intent: first_present(props, [:dismiss_intent, :close_intent])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:event_callout = kind, props) do
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        callout:
+          compact_map(%{
+            message: first_present(props, [:message, :body, :content, :text]),
+            tone: normalize_existing_atom(first_present(props, [:tone]) || :info),
+            eyebrow: first_present(props, [:eyebrow, :kicker]),
+            title: first_present(props, [:title]),
+            action_intent: first_present(props, [:action_intent])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:redline_inline = kind, props) do
+    component_attributes(
+      kind,
+      :redline_and_code,
+      %{
+        redline: %{segments: normalize_redline_segments(fetch(props, :segments, []))},
+        text_safety: %{content: normalize_existing_atom(fetch(props, :text_safety, :plain_text))}
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:code_block_syntax_highlighted = kind, props) do
+    component_attributes(
+      kind,
+      :redline_and_code,
+      %{
+        code: %{
+          language: first_present(props, [:language, :lang]) || :text,
+          tokens: normalize_code_tokens(fetch(props, :tokens, []))
+        },
+        text_safety: %{content: normalize_existing_atom(fetch(props, :text_safety, :plain_text))}
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:list_repeat = kind, props) do
+    component_attributes(
+      kind,
+      :composition_behavior,
+      %{
+        repeat:
+          compact_map(%{
+            binding_id: first_present(props, [:repeat_binding, :binding_id, :binding]),
+            row_scope: first_present(props, [:row_scope]) || :row,
+            row_fields: fetch(props, :row_fields, []),
+            identity_strategy: first_present(props, [:identity_strategy]) || :row_identity,
+            child_slot: first_present(props, [:child_slot]) || :default,
+            hydrated?: first_present(props, [:hydrated?, :hydrated]) || false,
+            row_count: fetch(props, :row_count, 0),
+            binding_ref: normalize_optional_map(fetch(props, :binding_ref)),
+            template_identity: first_present(props, [:template_identity]),
+            template: normalize_optional_map(fetch(props, :template))
+          })
+      },
+      props
+    )
   end
 
   defp base_attributes(kind, props) when kind in [:row, :column, :grid, :stack] do
@@ -274,11 +628,15 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(kind, props), do: %{kind => Map.drop(props, attachment_prop_keys())}
 
   defp style_attributes(props) do
-    case fetch(props, :style) do
-      nil -> %{}
-      style when is_binary(style) -> %{style: %{extra: %{css: style}}}
-      style -> %{style: style}
-    end
+    style =
+      props
+      |> fetch(:style)
+      |> merge_style_extra(%{
+        class: fetch(props, :class),
+        css: fetch(props, :inline_style)
+      })
+
+    if style in [nil, %{}], do: %{}, else: %{style: style}
   end
 
   defp theme_attributes(props) do
@@ -490,6 +848,112 @@ defmodule AshUI.Rendering.IURAdapter do
   defp normalize_path(path) when is_atom(path) or is_binary(path), do: [path]
   defp normalize_path(path) when is_list(path), do: path
 
+  defp component_attributes(kind, family, kind_attributes, props) do
+    %{component: %{family: family, kind: kind}}
+    |> Map.merge(kind_attributes)
+    |> maybe_put(:accessibility, component_accessibility(props))
+  end
+
+  defp component_accessibility(props) do
+    props
+    |> fetch(:accessibility, %{})
+    |> normalize_map()
+    |> maybe_put(:label, first_present(props, [:accessibility_label, :aria_label]))
+    |> maybe_put(
+      :description,
+      first_present(props, [:accessibility_description, :aria_description])
+    )
+  end
+
+  defp common_row_attrs(props) do
+    %{}
+    |> maybe_put(:row_identity, first_present(props, [:row_identity, :id]))
+    |> maybe_put(:active?, first_present(props, [:active?, :active]))
+    |> maybe_put(:link_target, first_present(props, [:link_target, :href, :target]))
+    |> maybe_put(:action_intent, first_present(props, [:action_intent, :intent]))
+  end
+
+  defp normalize_heading_segments(props) do
+    case fetch(props, :segments) do
+      segments when is_list(segments) ->
+        normalize_maps(segments)
+
+      _other ->
+        case first_present(props, [:content, :text, :label, :value]) do
+          nil -> []
+          text -> [%{type: :text, value: text}]
+        end
+    end
+  end
+
+  defp normalize_string_list(nil), do: []
+  defp normalize_string_list(value) when is_binary(value), do: [value]
+  defp normalize_string_list(value) when is_list(value), do: value
+  defp normalize_string_list(value), do: [to_string(value)]
+
+  defp normalize_options(options) when is_list(options) do
+    Enum.map(options, fn option ->
+      option
+      |> normalize_map()
+      |> Map.update(:disabled?, nil, & &1)
+    end)
+  end
+
+  defp normalize_options(options), do: options
+
+  defp normalize_maps(values) when is_list(values) do
+    Enum.map(values, &normalize_map/1)
+  end
+
+  defp normalize_maps(values), do: values
+
+  defp normalize_optional_map(nil), do: nil
+
+  defp normalize_optional_map(value) do
+    normalize_map(value)
+  end
+
+  defp normalize_redline_segments(segments) when is_list(segments) do
+    Enum.map(segments, fn segment ->
+      segment
+      |> normalize_map()
+      |> update_existing_atom_value(:state)
+    end)
+  end
+
+  defp normalize_redline_segments(segments), do: segments
+
+  defp normalize_code_tokens(tokens) when is_list(tokens) do
+    Enum.map(tokens, fn token ->
+      token
+      |> normalize_map()
+      |> update_existing_atom_value(:type)
+    end)
+  end
+
+  defp normalize_code_tokens(tokens), do: tokens
+
+  defp update_existing_atom_value(map, key) when is_map(map) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> Map.put(map, key, normalize_existing_atom(value))
+      :error -> map
+    end
+  end
+
+  defp normalize_map(nil), do: %{}
+  defp normalize_map(value) when is_map(value), do: Map.new(value)
+  defp normalize_map(value) when is_list(value), do: Enum.into(value, %{})
+  defp normalize_map(value), do: %{value: value}
+
+  defp normalize_existing_atom(nil), do: nil
+  defp normalize_existing_atom(value) when is_atom(value), do: value
+
+  defp normalize_existing_atom(value) when is_binary(value) do
+    safe_existing_atom(value)
+  end
+
+  defp normalize_existing_atom(value), do: value
+
   defp first_present(map, keys) do
     keys
     |> Enum.find_value(fn key ->
@@ -497,6 +961,38 @@ defmodule AshUI.Rendering.IURAdapter do
 
       if value in [nil, ""], do: nil, else: value
     end)
+  end
+
+  defp merge_style_extra(style, extra) do
+    extra =
+      extra
+      |> Enum.reject(fn {_key, value} -> value in [nil, ""] end)
+      |> Map.new()
+
+    style =
+      case style do
+        nil -> %{}
+        "" -> %{}
+        value when is_binary(value) -> %{extra: %{css: value}}
+        value when is_list(value) -> Enum.into(value, %{})
+        value when is_map(value) -> Map.new(value)
+        value -> value
+      end
+
+    cond do
+      extra == %{} ->
+        style
+
+      is_map(style) ->
+        Map.update(style, :extra, extra, fn existing ->
+          existing
+          |> normalize_map()
+          |> Map.merge(extra)
+        end)
+
+      true ->
+        style
+    end
   end
 
   defp attachment_prop_keys do

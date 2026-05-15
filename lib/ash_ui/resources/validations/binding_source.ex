@@ -35,6 +35,7 @@ defmodule AshUI.Resources.Validations.BindingSource do
     with :ok <- validate_source_map(source),
          :ok <- validate_required_resource(source),
          :ok <- validate_shape(source, binding_type),
+         :ok <- validate_optional_identifier(source, "scope"),
          :ok <- validate_optional_identifier(source, "field"),
          :ok <- validate_optional_identifier(source, "relationship"),
          :ok <- validate_optional_identifier(source, "action") do
@@ -51,7 +52,7 @@ defmodule AshUI.Resources.Validations.BindingSource do
   end
 
   defp validate_required_resource(source) do
-    if valid_identifier?(source_value(source, "resource")) do
+    if row_scoped_source?(source) or valid_identifier?(source_value(source, "resource")) do
       :ok
     else
       {:error, "source must include a non-empty resource reference"}
@@ -61,11 +62,19 @@ defmodule AshUI.Resources.Validations.BindingSource do
   defp validate_shape(_source, nil), do: :ok
 
   defp validate_shape(source, :value) do
-    if valid_identifier?(source_value(source, "field")) or
-         valid_identifier?(source_value(source, "relationship")) do
-      :ok
-    else
-      {:error, "value bindings must include a field or relationship"}
+    cond do
+      row_scoped_source?(source) and valid_identifier?(source_value(source, "field")) ->
+        :ok
+
+      valid_identifier?(source_value(source, "field")) or
+          valid_identifier?(source_value(source, "relationship")) ->
+        :ok
+
+      row_scoped_source?(source) ->
+        {:error, "row-scoped value bindings must include a field"}
+
+      true ->
+        {:error, "value bindings must include a field or relationship"}
     end
   end
 
@@ -80,6 +89,14 @@ defmodule AshUI.Resources.Validations.BindingSource do
   end
 
   defp validate_shape(_source, _binding_type), do: :ok
+
+  defp row_scoped_source?(source) do
+    case source_value(source, "scope") do
+      :row -> true
+      "row" -> true
+      _other -> false
+    end
+  end
 
   defp validate_optional_identifier(source, key) do
     value = source_value(source, key)

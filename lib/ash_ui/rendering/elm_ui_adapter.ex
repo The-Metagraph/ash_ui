@@ -51,7 +51,7 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     force_fallback? = Keyword.get(opts, :force_fallback, false)
 
     result =
-      if canonical? and available?() and not force_fallback? do
+      if canonical? and available?() and not force_fallback? and native_elm_render?(canonical_iur) do
         call_elm_ui_renderer(canonical_iur, opts)
       else
         canonical_iur
@@ -247,7 +247,7 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     try do
       case renderer_module.render(render_root, opts) do
         {:ok, html} -> {:ok, html}
-        {:error, reason} -> {:error, {:elm_ui_error, reason}}
+        {:error, reason} -> handle_elm_ui_error(canonical_iur, opts, reason)
         other -> {:error, {:unexpected_response, other}}
       end
     rescue
@@ -265,6 +265,42 @@ defmodule AshUI.Rendering.ElmUIAdapter do
   end
 
   defp elm_render_root(element), do: element
+
+  defp handle_elm_ui_error(canonical_iur, opts, reason) do
+    if elm_fallback_reason?(reason) do
+      canonical_iur
+      |> CanonicalIUR.to_legacy_map()
+      |> render_fallback(opts)
+    else
+      {:error, {:elm_ui_error, reason}}
+    end
+  end
+
+  defp elm_fallback_reason?(%{code: :unsupported_kind}), do: true
+  defp elm_fallback_reason?(%{reason: :empty_screen}), do: true
+  defp elm_fallback_reason?(_reason), do: false
+
+  defp native_elm_render?(%Element{} = element) do
+    not empty_screen?(element) and
+      (canonical_component_tree?(element) or CanonicalIUR.navigation_interactions(element) != [])
+  end
+
+  defp native_elm_render?(_other), do: false
+
+  defp canonical_component_tree?(%Element{} = element) do
+    component_attributes?(element.attributes) or
+      Enum.any?(element.children, fn
+        %Element.Child{element: %Element{} = child} -> canonical_component_tree?(child)
+        _other -> false
+      end)
+  end
+
+  defp component_attributes?(attributes) when is_map(attributes) do
+    component = Map.get(attributes, :component) || Map.get(attributes, "component")
+    is_map(component) and (Map.has_key?(component, :kind) or Map.has_key?(component, "kind"))
+  end
+
+  defp component_attributes?(_attributes), do: false
 
   # Fallback renderer when ElmUI is not available
   defp render_fallback(canonical_iur, opts) do
@@ -299,11 +335,21 @@ defmodule AshUI.Rendering.ElmUIAdapter do
 
   defp generate_html(%{"type" => type, "id" => id} = iur, _opts) do
     """
-    <div class="ash-widget ash-widget-#{type}" data-widget-id="#{id}">
+    <div class="ash-widget ash-widget-#{type}" data-widget-id="#{id}"#{component_diagnostic_attrs(iur)}>
       #{generate_children(iur["children"])}
     </div>
     """
   end
+
+  defp component_diagnostic_attrs(%{"props" => %{"component" => component}})
+       when is_map(component) do
+    kind = Map.get(component, "kind") || Map.get(component, :kind)
+    family = Map.get(component, "family") || Map.get(component, :family)
+
+    ~s( data-ash-ui-renderer-diagnostic="unsupported_component_fallback" data-component-kind="#{kind}" data-component-family="#{family}")
+  end
+
+  defp component_diagnostic_attrs(_iur), do: ""
 
   defp generate_seo_tags(seo_config) do
     """
@@ -461,4 +507,7 @@ defmodule AshUI.Rendering.ElmUIAdapter do
       screen_id: CanonicalIUR.id(canonical_iur)
     }
   end
+
+  defp empty_screen?(%Element{kind: :screen, children: []}), do: true
+  defp empty_screen?(_other), do: false
 end

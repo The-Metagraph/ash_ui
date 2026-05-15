@@ -90,6 +90,31 @@ defmodule AshUI.DSL.StorageTest do
       assert Storage.valid_widget_type?("inline_rich_text_heading") == true
     end
 
+    test "admits every canonical Unified UI widget component kind" do
+      for kind <- AshUI.WidgetComponents.kinds() do
+        assert Storage.valid_widget_type?(Atom.to_string(kind))
+      end
+    end
+
+    test "admits compatibility aliases for canonical widget components" do
+      for {alias_name, canonical_kind} <- AshUI.WidgetComponents.aliases() do
+        assert Storage.valid_widget_type?(Atom.to_string(alias_name))
+        assert Storage.canonical_widget_type(alias_name) == {:ok, Atom.to_string(canonical_kind)}
+      end
+    end
+
+    test "reports compatibility alias diagnostics with canonical replacements" do
+      assert %{
+               status: :alias,
+               name: :phoenix_form,
+               canonical: :runtime_form_shell,
+               message: message
+             } = Storage.widget_type_diagnostic(:phoenix_form)
+
+      assert message =~ "compatibility alias"
+      assert message =~ ":runtime_form_shell"
+    end
+
     test "returns true for custom widget types" do
       assert Storage.valid_widget_type?("custom:my_widget") == true
     end

@@ -8,8 +8,8 @@ status: Active
 owners: Ash UI Team
 last_reviewed: 2026-05-14
 next_review: 2026-11-14
-related_reqs: [REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002]
-related_scns: [SCN-002, SCN-009, SCN-061, SCN-101]
+related_reqs: [REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002, REQ-WIDGET-001, REQ-WIDGET-002, REQ-WIDGET-003, REQ-WIDGET-008, REQ-WIDGET-009]
+related_scns: [SCN-002, SCN-009, SCN-061, SCN-101, SCN-165]
 related_guides: [UG-0002, UG-0004, UG-0005, UG-0007, DG-0001]
 diagram_required: false
 ---
@@ -84,10 +84,34 @@ These are the types currently accepted by `ui_element` validation.
 | `switch` | Toggle input | `checked`, `label` or `text` or `content` |
 | `slider` | Range input | no dedicated fallback widget markup |
 
+### Canonical Widget Components
+
+AshUI also admits the expanded Unified UI canonical widget-component catalog.
+Use these canonical names in `ui_element type`; aliases are accepted only at
+authoring boundaries and normalize before renderer-facing output.
+
+| Family | Canonical component kinds | Compatibility aliases |
+|---|---|---|
+| Content, identity, and disclosure | `inline_rich_text_heading`, `disclosure`, `kicker`, `avatar`, `presence_dot` | none |
+| Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer` | `phoenix_form` -> `runtime_form_shell` |
+| Row and artifact | `list_item_multi_column`, `artifact_row` | none |
+| Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin` | none |
+| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout` | none |
+| Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
+| Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
+
+`list_repeat` is not a visual list shell. It is a composition behavior for
+relationship-owned row templates. Declare the repeat list binding through
+`ui_relationships`, keep the row template as an element resource, and use
+row-scoped values such as `%{scope: :row, field: :title}` inside the template
+props.
+
 You can also author `custom:*` types. They are accepted as widget types, but the
 shipped validation/runtime does not automatically give them built-in signal
 semantics. Some explicitly supported custom surfaces do have dedicated fallback
 renderer behavior, but that does not make them public built-in widget types.
+Do not use `custom:*` for a component listed in the canonical catalog; use the
+canonical kind and let AshUI normalize any supported alias.
 
 ## Shared Styling Props the Fallback Adapter Reads
 
@@ -193,6 +217,7 @@ If you declare a signal outside this matrix, authoring validation raises.
 | `list` | Collection-capable and now renders a dedicated fallback collection surface |
 | `table` | Collection-capable and now renders a dedicated fallback tabular surface |
 | `select` | Collection-capable for option loading |
+| `list_repeat` | Collection-capable repeat behavior for relationship-owned row templates |
 
 ### Widgets That Accept `binding_type :action`
 
@@ -207,6 +232,9 @@ The current action-binding-capable widgets are:
 - `switch`
 - `slider`
 - `form_builder`
+- `runtime_form_shell`
+- `segmented_button_group`
+- `chat_composer`
 
 ## Compatibility and Normalization Notes
 
@@ -218,6 +246,9 @@ AshUI internally normalizes some upstream names:
 | `radio_group` | `radio` |
 | `toggle` | `switch` |
 | `separator` | `divider` |
+| `phoenix_form` | `runtime_form_shell` |
+| `repeat` | `list_repeat` |
+| `ui_relationship_repeat` | `list_repeat` |
 
 Two important edge cases:
 
@@ -289,11 +320,13 @@ stable built-in authoring types for general application work.
 - Use `hero`, `stat`, `key_value`, and `info_list` when you want predictable shipped fallback rendering.
 - Use `list`, `table`, `image`, `icon`, `radio`, `switch`, `label`, and `form_builder` when the shipped fallback renderer is sufficient and your props stay within the currently documented surface.
 - Use `slider` only if your chosen renderer path supports it or a generic wrapper is acceptable.
-- Use `custom:*` when you are deliberately extending the renderer boundary or building an explicitly example-only shell, not when you need a built-in interactive widget.
+- Use canonical widget components when your surface is in the Unified UI catalog.
+- Use `custom:*` when you are deliberately extending the renderer boundary or building an explicitly example-only shell, not when you need a built-in interactive widget or cataloged component.
 
 ## See Also
 
 - [examples/README.md](../../examples/README.md)
+- [Canonical widget component examples](../../examples/canonical_widget_components.md)
 - [examples/ash_hq_theme_baseline.md](../../examples/ash_hq_theme_baseline.md)
 - [UG-0002: Authoring Screens, Elements, and Relationships](./UG-0002-authoring-screens-elements-and-relationships.md)
 - [UG-0004: Bindings, Actions, and Forms](./UG-0004-bindings-actions-and-forms.md)

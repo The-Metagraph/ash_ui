@@ -458,6 +458,7 @@ defmodule AshUI.Compiler do
       dsl
       |> Map.get("props", %{})
       |> normalize_snapshot()
+      |> merge_repeat_relationship_props(relationship)
       |> maybe_put_non_empty("actions", actions)
 
     compiled =
@@ -481,6 +482,26 @@ defmodule AshUI.Compiler do
       fragment when is_map(fragment) ->
         [compile_inline_fragment(fragment, compiled_children, ["screen_inline"])]
     end
+  end
+
+  defp merge_repeat_relationship_props(props, relationship) do
+    repeat = Map.get(relationship, "repeat") || Map.get(relationship, :repeat)
+
+    if is_map(repeat) do
+      props
+      |> Map.put("repeat_binding", repeat_value(repeat, "binding_id"))
+      |> maybe_put_non_empty("row_scope", repeat_value(repeat, "row_scope"))
+      |> maybe_put_non_empty("row_fields", repeat_value(repeat, "row_fields"))
+      |> maybe_put_non_empty("identity_strategy", repeat_value(repeat, "identity_strategy"))
+      |> maybe_put_non_empty("child_slot", repeat_value(repeat, "child_slot"))
+      |> maybe_put_non_empty("binding_ref", repeat)
+    else
+      props
+    end
+  end
+
+  defp repeat_value(repeat, key) do
+    Map.get(repeat, key) || Map.get(repeat, String.to_atom(key))
   end
 
   defp compile_inline_fragment(%{} = fragment, extra_children, path) do

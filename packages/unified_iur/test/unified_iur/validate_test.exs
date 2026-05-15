@@ -89,4 +89,15 @@ defmodule UnifiedIUR.ValidateTest do
     assert {:error, [meter_error]} = Validate.element(invalid_meter)
     assert meter_error.code == :invalid_progress_value
   end
+
+  test "validates segmented control and list repeat required shapes" do
+    invalid_segmented = Components.segmented_button_group([%{label: "Missing value"}])
+    invalid_repeat = Components.list_repeat(nil, row_fields: [:id])
+
+    assert {:error, [segmented_error]} = Validate.element(invalid_segmented)
+    assert segmented_error.code == :invalid_selection_option
+
+    assert {:error, [repeat_error]} = Validate.element(invalid_repeat)
+    assert repeat_error.code == :invalid_repeat_binding
+  end
 end

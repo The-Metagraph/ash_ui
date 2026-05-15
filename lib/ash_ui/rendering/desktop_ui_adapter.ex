@@ -52,7 +52,7 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     force_fallback? = Keyword.get(opts, :force_fallback, false)
 
     result =
-      if canonical? and available?() and not force_fallback? do
+      if canonical? and available?() and not force_fallback? and not empty_screen?(canonical_iur) do
         call_desktop_ui_renderer(canonical_iur, opts)
       else
         canonical_iur
@@ -290,13 +290,31 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     try do
       case renderer_module.render(canonical_iur, opts) do
         {:ok, instructions} -> {:ok, instructions}
-        {:error, reason} -> {:error, {:desktop_ui_error, reason}}
+        {:error, reason} -> handle_desktop_ui_error(canonical_iur, opts, reason)
         other -> {:error, {:unexpected_response, other}}
       end
     rescue
       error -> {:error, {:desktop_ui_exception, error}}
     end
   end
+
+  defp handle_desktop_ui_error(canonical_iur, opts, reason) do
+    if desktop_fallback_reason?(reason) do
+      canonical_iur
+      |> CanonicalIUR.to_legacy_map()
+      |> render_fallback(opts)
+    else
+      {:error, {:desktop_ui_error, reason}}
+    end
+  end
+
+  defp desktop_fallback_reason?(%{code: :unsupported_kind}), do: true
+
+  defp desktop_fallback_reason?(%{reason: reason})
+       when reason in [:empty_screen, :unsupported_canonical_construct],
+       do: true
+
+  defp desktop_fallback_reason?(_reason), do: false
 
   # Fallback renderer when DesktopUI is not available
   defp render_fallback(canonical_iur, opts) do
@@ -417,13 +435,29 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
   end
 
   defp generate_widget(widget) do
-    %{
+    widget_map = %{
       "type" => "container",
       "id" => widget["id"],
       "widget_type" => widget["type"],
       "children" => generate_content(widget["children"])
     }
+
+    case component_diagnostic(widget) do
+      nil -> widget_map
+      diagnostic -> Map.put(widget_map, "diagnostic", diagnostic)
+    end
   end
+
+  defp component_diagnostic(%{"props" => %{"component" => component}}) when is_map(component) do
+    %{
+      "code" => "unsupported_component_fallback",
+      "component_kind" => Map.get(component, "kind") || Map.get(component, :kind),
+      "component_family" => Map.get(component, "family") || Map.get(component, :family),
+      "message" => "Desktop fallback preserved canonical component identity."
+    }
+  end
+
+  defp component_diagnostic(_widget), do: nil
 
   # Platform detection
   defp detect_platform(:auto), do: :os.type() |> elem(1) |> detect_platform_from_os()
@@ -490,4 +524,7 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
       screen_id: CanonicalIUR.id(canonical_iur)
     }
   end
+
+  defp empty_screen?(%Element{kind: :screen, children: []}), do: true
+  defp empty_screen?(_other), do: false
 end

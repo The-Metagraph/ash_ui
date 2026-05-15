@@ -11,7 +11,9 @@ lowering semantics used inside those resources. This baseline is defined by
 and the remediation phases in [planning/README.md](./planning/README.md).
 [ADR-0006](./adr/ADR-0006-canonical-iur-and-navigation-adoption.md) defines
 the planned adoption target for upgraded Unified IUR structs and canonical
-navigation intent.
+navigation intent. [ADR-0007](./adr/ADR-0007-canonical-widget-components-adoption.md)
+defines the planned adoption target for the expanded Unified UI canonical
+widget-component catalog.
 
 ## Directory Structure
 
@@ -47,6 +49,7 @@ specs/
 | `REQ-COMP-*` | Resource → IUR compilation | `contracts/compilation_contract.md` |
 | `REQ-RENDER-*` | live_ui/elm_ui output | `contracts/rendering_contract.md` |
 | `REQ-NAV-*` | Canonical navigation and IUR adoption | `contracts/canonical_navigation_contract.md` |
+| `REQ-WIDGET-*` | Canonical widget-component catalog adoption | `contracts/canonical_widget_components_contract.md` |
 | `REQ-AUTH-*` | Ash Policy integration | `contracts/authorization_contract.md` |
 | `REQ-OBS-*` | Telemetry, events | `contracts/observability_contract.md` |
 | `REQ-EXT-*` | Extensions, plugins | `contracts/extension_contract.md` |

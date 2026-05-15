@@ -110,7 +110,8 @@ defmodule AshUI.LiveView.EventHandler do
     with {:ok, binding} <- find_action_binding(action_id, element_id, signal, socket),
          context <- build_event_context(socket, binding),
          {:ok, result} <- execute_action(binding, event_data, socket, context),
-         socket <- handle_action_result(result, socket) do
+         socket <- handle_action_result(result, socket),
+         socket <- refresh_bindings_after_action(socket) do
       {:reply, %{status: :ok}, socket}
     else
       {:error, :unauthorized} ->
@@ -385,7 +386,7 @@ defmodule AshUI.LiveView.EventHandler do
 
       {:error, :navigation_interaction_not_found} ->
         socket = assign_flash(socket, :error, "Action failed: binding_not_found")
-        {:reply, %{status: :error, reason: "binding_not_found"}, socket}
+        {:reply, %{status: :error, reason: inspect(:binding_not_found)}, socket}
 
       {:error, reason} ->
         Logger.error("Navigation execution failed: #{inspect(reason)}")
@@ -403,6 +404,13 @@ defmodule AshUI.LiveView.EventHandler do
       :error ->
         socket = assign_flash(socket, :error, result.message || "Action failed")
         socket
+    end
+  end
+
+  defp refresh_bindings_after_action(socket) do
+    case refresh_bindings(socket) do
+      {:noreply, refreshed_socket} -> refreshed_socket
+      _other -> socket
     end
   end
 

@@ -8,6 +8,8 @@ defmodule LiveUi.Renderer do
   alias LiveUi.Style, as: NativeStyle
   alias UnifiedIUR.{Binding, Element, Interaction}
 
+  @component_kinds UnifiedIUR.Widgets.Components.kinds()
+
   @spec accepts() :: module()
   def accepts, do: Element
 
@@ -18,67 +20,88 @@ defmodule LiveUi.Renderer do
 
   @spec supported_kinds() :: [atom()]
   def supported_kinds do
-    [
-      :alert_dialog,
-      :bar_chart,
-      :box,
-      :button,
-      :canvas,
-      :checkbox,
-      :cluster_dashboard,
-      :column,
-      :command_palette,
-      :content,
-      :context_menu,
-      :date_input,
-      :dialog,
-      :field,
-      :field_group,
-      :file_input,
-      :form_builder,
-      :gauge,
-      :grid,
-      :icon,
-      :image,
-      :inline_feedback,
-      :label,
-      :line_chart,
-      :link,
-      :list,
-      :log_viewer,
-      :markdown_viewer,
-      :menu,
-      :numeric_input,
-      :overlay,
-      :pick_list,
-      :process_monitor,
-      :progress,
-      :radio_group,
-      :row,
-      :scroll_bar,
-      :select,
-      :separator,
-      :sparkline,
-      :spacer,
-      :split_pane,
-      :status,
-      :stream_widget,
-      :supervision_tree_viewer,
-      :table,
-      :tabs,
-      :text,
-      :text_input,
-      :time_input,
-      :toast,
-      :toggle,
-      :tree_view,
-      :viewport
-    ]
+    ([
+       :alert_dialog,
+       :bar_chart,
+       :box,
+       :button,
+       :canvas,
+       :checkbox,
+       :cluster_dashboard,
+       :column,
+       :command_palette,
+       :content,
+       :context_menu,
+       :date_input,
+       :dialog,
+       :field,
+       :field_group,
+       :file_input,
+       :form_builder,
+       :gauge,
+       :grid,
+       :icon,
+       :image,
+       :inline_feedback,
+       :label,
+       :line_chart,
+       :link,
+       :list,
+       :log_viewer,
+       :markdown_viewer,
+       :menu,
+       :numeric_input,
+       :overlay,
+       :pick_list,
+       :process_monitor,
+       :progress,
+       :radio_group,
+       :row,
+       :scroll_bar,
+       :select,
+       :separator,
+       :sparkline,
+       :spacer,
+       :split_pane,
+       :status,
+       :stream_widget,
+       :supervision_tree_viewer,
+       :table,
+       :tabs,
+       :text,
+       :text_input,
+       :time_input,
+       :toast,
+       :toggle,
+       :tree_view,
+       :viewport
+     ] ++ @component_kinds)
+    |> Enum.uniq()
+    |> Enum.sort()
   end
 
   attr(:element, :any, required: true)
   attr(:runtime_state, :any, default: nil)
   attr(:event_target, :any, default: nil)
+
+  def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
+    assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <section
+      id={element_id(@element, "component")}
+      class={["live-ui-canonical-component", "live-ui-canonical-component-#{@element.kind}", style_class(@element)]}
+      data-live-ui-component-kind={@element.kind}
+      data-live-ui-component-family={get_in(@element.attributes, [:component, :family])}
+      data-live-ui-unsupported-native-component="fallback"
+      {@style_attrs}
+    >
+      <%= for child <- child_elements(@element, :default) do %>
+        <.render element={child} event_target={@event_target} />
+      <% end %>
+    </section>
+    """
+  end
 
   def render(%{element: %Element{kind: :text}} = assigns) do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
@@ -584,7 +607,10 @@ defmodule LiveUi.Renderer do
         :input_attrs,
         direct_change_interaction_attrs(assigns.element, Map.get(assigns, :event_target))
       )
-      |> assign(:palette_items, command_palette_items(assigns.element, Map.get(assigns, :event_target)))
+      |> assign(
+        :palette_items,
+        command_palette_items(assigns.element, Map.get(assigns, :event_target))
+      )
 
     ~H"""
     <LiveUi.Widgets.CommandPalette.component
@@ -1225,7 +1251,8 @@ defmodule LiveUi.Renderer do
         |> List.wrap()
         |> Enum.map(&normalize_navigation_item(&1, element, event_target))
 
-      _ -> []
+      _ ->
+        []
     end
   end
 

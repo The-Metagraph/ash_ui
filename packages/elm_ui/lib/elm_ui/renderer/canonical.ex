@@ -8,6 +8,8 @@ defmodule ElmUi.Renderer.Canonical do
   alias ElmUi.Renderer.Error
   alias ElmUi.Widgets
 
+  @component_kinds UnifiedIUR.Widgets.Components.kinds()
+
   @spec render(Element.t(), keyword()) :: {:ok, ElmUi.Widget.t()} | {:error, Error.t()}
   def render(%Element{} = element, _opts \\ []) do
     do_render(element)
@@ -47,7 +49,8 @@ defmodule ElmUi.Renderer.Canonical do
          element.id,
          children,
          Keyword.merge(base_opts(element),
-           eyebrow: first_present([group_attr(element, :hero, :eyebrow), attr(element, :eyebrow)]),
+           eyebrow:
+             first_present([group_attr(element, :hero, :eyebrow), attr(element, :eyebrow)]),
            title: first_present([group_attr(element, :hero, :title), attr(element, :title)]),
            message:
              first_present([group_attr(element, :hero, :message), attr(element, :message)]),
@@ -473,7 +476,10 @@ defmodule ElmUi.Renderer.Canonical do
        first_present([group_attr(element, :info_list, :items), attr(element, :items)], []),
        Keyword.merge(base_opts(element),
          ordered:
-           first_present([group_attr(element, :info_list, :ordered?), attr(element, :ordered)], false),
+           first_present(
+             [group_attr(element, :info_list, :ordered?), attr(element, :ordered)],
+             false
+           ),
          empty_state:
            first_present([
              group_attr(element, :info_list, :empty_state),
@@ -1276,6 +1282,22 @@ defmodule ElmUi.Renderer.Canonical do
            )
        )
      )}
+  end
+
+  defp do_render(%Element{kind: kind} = element) when kind in @component_kinds do
+    with {:ok, children} <- map_children(default_children(element)) do
+      {:ok,
+       ElmUi.Widget.new(kind,
+         id: element.id,
+         attributes: element.attributes,
+         children: children,
+         metadata:
+           Map.merge(normalize_map(element.metadata && element.metadata.annotations), %{
+             canonical_component: true,
+             unsupported_native_component: :fallback
+           })
+       )}
+    end
   end
 
   defp do_render(%Element{} = element) do

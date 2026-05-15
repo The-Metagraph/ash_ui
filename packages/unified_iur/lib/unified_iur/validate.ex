@@ -109,6 +109,26 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Represent list_repeat with a list binding id, row scope, row field list, and template metadata."
+    },
+    invalid_sidebar_item: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar items with a non-empty label, supported state and item_kind, stable item_id, and either a link target or action intent."
+    },
+    invalid_sidebar_section: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar sections with a non-empty title and pair any section action intent with visible action copy."
+    },
+    invalid_sidebar_shell: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar shells with a supported width, a non-empty aria_label, and sidebar_section children only."
+    },
+    invalid_mode_nav: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent mode navigation with labeled atom-key modes, an active_key drawn from those modes, and a non-empty keyboard shortcut prefix."
     }
   }
 
@@ -489,6 +509,151 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :unread_badge, attributes: attributes}) do
+    badge = Map.get(attributes, :badge, %{})
+    count = fetch(badge, :count)
+    tone = fetch(badge, :tone, :default)
+
+    valid? = is_integer(count) and count >= 0 and tone in [:default, :critical]
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_badge_value,
+        "unread_badge count must be a non-negative integer and tone must be :default or :critical",
+        path: [:attributes, :badge],
+        details: %{count: count, tone: tone}
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{kind: :sidebar_item, attributes: attributes}) do
+    item = Map.get(attributes, :sidebar_item, %{})
+    label = fetch(item, :label)
+    state = fetch(item, :state, :default)
+    item_kind = fetch(item, :item_kind, :channel)
+    item_id = fetch(item, :item_id)
+    link_target = fetch(item, :link_target)
+    action_intent = fetch(item, :action_intent)
+    unread_count = fetch(item, :unread_count, 0)
+
+    valid? =
+      is_binary(label) and label != "" and
+        state in [:default, :active, :blocked] and
+        item_kind in [:channel, :build, :dm, :draft, :repo] and
+        valid_identity?(item_id) and
+        valid_sidebar_destination?(link_target, action_intent) and
+        is_integer(unread_count) and unread_count >= 0
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_item,
+        "sidebar_item requires a non-empty label, supported state and item_kind, stable item_id, and either a link_target or action_intent",
+        path: [:attributes, :sidebar_item],
+        details: %{
+          label: label,
+          state: state,
+          item_kind: item_kind,
+          item_id: inspect(item_id),
+          link_target: link_target,
+          action_intent: action_intent,
+          unread_count: unread_count
+        }
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{kind: :sidebar_section, attributes: attributes}) do
+    section = Map.get(attributes, :sidebar_section, %{})
+    title = fetch(section, :title)
+    action_glyph = fetch(section, :action_glyph)
+    action_label = fetch(section, :action_label)
+    action_intent = fetch(section, :action_intent)
+
+    valid? =
+      is_binary(title) and title != "" and
+        valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_section,
+        "sidebar_section requires a non-empty title and any action_intent must include visible action copy",
+        path: [:attributes, :sidebar_section],
+        details: %{
+          title: title,
+          action_glyph: action_glyph,
+          action_label: action_label,
+          action_intent: action_intent
+        }
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{
+         kind: :sidebar_shell,
+         attributes: attributes,
+         children: children
+       }) do
+    shell = Map.get(attributes, :sidebar_shell, %{})
+    width = fetch(shell, :width, :wide)
+    aria_label = fetch(shell, :aria_label)
+
+    valid? =
+      width in [:narrow, :wide] and
+        is_binary(aria_label) and aria_label != "" and
+        valid_sidebar_shell_children?(children)
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_shell,
+        "sidebar_shell requires width :narrow or :wide, a non-empty aria_label, and sidebar_section children only",
+        path: [:attributes, :sidebar_shell],
+        details: %{
+          width: width,
+          aria_label: aria_label,
+          child_kinds: Enum.map(children, &sidebar_shell_child_kind/1)
+        }
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{kind: :mode_nav, attributes: attributes}) do
+    nav = Map.get(attributes, :mode_nav, %{})
+    modes = fetch(nav, :modes, [])
+    active_key = fetch(nav, :active_key)
+    keyboard_shortcut_prefix = fetch(nav, :keyboard_shortcut_prefix, "⌘")
+    aria_label = fetch(nav, :aria_label)
+
+    valid? =
+      valid_mode_nav_modes?(modes) and
+        valid_mode_nav_active_key?(active_key, modes) and
+        is_binary(keyboard_shortcut_prefix) and keyboard_shortcut_prefix != "" and
+        is_binary(aria_label) and aria_label != ""
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_mode_nav,
+        "mode_nav requires labeled atom-key modes, an active_key from that mode set, a non-empty keyboard_shortcut_prefix, and a non-empty aria_label",
+        path: [:attributes, :mode_nav],
+        details: %{
+          modes: modes,
+          active_key: active_key,
+          keyboard_shortcut_prefix: keyboard_shortcut_prefix,
+          aria_label: aria_label
+        }
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_selection_options(options, path) when is_list(options) do
@@ -528,6 +693,80 @@ defmodule UnifiedIUR.Validate do
       )
     ]
   end
+
+  defp valid_identity?(value) when is_binary(value), do: value != ""
+  defp valid_identity?(value) when is_atom(value), do: true
+  defp valid_identity?(value) when is_integer(value), do: true
+  defp valid_identity?(value), do: not is_nil(value)
+
+  defp valid_sidebar_destination?(link_target, action_intent) do
+    (is_binary(link_target) and link_target != "") or is_atom(action_intent)
+  end
+
+  defp valid_sidebar_section_action?(nil, action_glyph, action_label) do
+    blank_text?(action_glyph) and blank_text?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+       when is_atom(action_intent) do
+    not blank_text?(action_glyph) or not blank_text?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(_action_intent, _action_glyph, _action_label), do: false
+
+  defp valid_sidebar_shell_children?(children) do
+    Enum.all?(children, fn
+      %Child{element: %Element{kind: :sidebar_section}} -> true
+      %Element{kind: :sidebar_section} -> true
+      {:default, %Element{kind: :sidebar_section}} -> true
+      _other -> false
+    end)
+  end
+
+  defp sidebar_shell_child_kind(%Child{element: %Element{kind: kind}}), do: kind
+  defp sidebar_shell_child_kind(%Element{kind: kind}), do: kind
+  defp sidebar_shell_child_kind({_slot, %Element{kind: kind}}), do: kind
+  defp sidebar_shell_child_kind(other), do: inspect(other)
+
+  defp valid_mode_nav_modes?(modes) when is_list(modes) and modes != [] do
+    Enum.all?(modes, &valid_mode_nav_mode?/1)
+  end
+
+  defp valid_mode_nav_modes?(_modes), do: false
+
+  defp valid_mode_nav_mode?(mode) when is_map(mode) or is_list(mode) do
+    mode = normalize_generic_map(mode)
+    key = fetch(mode, :key)
+    label = fetch(mode, :label)
+    glyph = fetch(mode, :glyph)
+    badge_count = fetch(mode, :badge_count)
+    panel_id = fetch(mode, :panel_id)
+
+    is_atom(key) and is_binary(label) and label != "" and
+      (is_nil(glyph) or (is_binary(glyph) and glyph != "")) and
+      (is_nil(badge_count) or (is_integer(badge_count) and badge_count >= 0)) and
+      (is_nil(panel_id) or (is_binary(panel_id) and panel_id != ""))
+  end
+
+  defp valid_mode_nav_mode?(_mode), do: false
+
+  defp valid_mode_nav_active_key?(nil, modes) when is_list(modes), do: modes != []
+
+  defp valid_mode_nav_active_key?(active_key, modes)
+       when is_atom(active_key) and is_list(modes) do
+    Enum.any?(modes, fn mode ->
+      mode = normalize_generic_map(mode)
+      fetch(mode, :key) == active_key
+    end)
+  end
+
+  defp valid_mode_nav_active_key?(_active_key, _modes), do: false
+
+  defp blank_text?(value), do: not is_binary(value) or value == ""
+
+  defp normalize_generic_map(value) when is_map(value), do: Map.new(value)
+  defp normalize_generic_map(value) when is_list(value), do: Enum.into(value, %{})
+  defp normalize_generic_map(_value), do: %{}
 
   defp validate_redline_segments(segments, path) when is_list(segments) do
     segments

@@ -414,6 +414,257 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       refute heex =~ ~r/font-family\s*:/i
     end
 
+    test "generates unread_badge with capped display text and tone classes" do
+      iur = %{
+        "type" => "unread_badge",
+        "id" => "badge-1",
+        "props" => %{"count" => 108, "tone" => "critical"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "ash-unread-badge")
+      assert String.contains?(heex, "ash-unread-badge-critical")
+      assert String.contains?(heex, "aria-label=\"108 unread items\"")
+      assert String.contains?(heex, ">99+<")
+    end
+
+    test "unread_badge produces no literal color or spacing values" do
+      iur = %{
+        "type" => "unread_badge",
+        "id" => "badge-pure",
+        "props" => %{"count" => 7, "tone" => "default"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
+    test "generates sidebar_item markup with phx-click wiring and composed unread_badge" do
+      iur = %{
+        "type" => "sidebar_item",
+        "id" => "item-phase-31-2",
+        "props" => %{
+          "label" => "build/phase-31.2",
+          "glyph" => "◇",
+          "meta" => "phase 31.2",
+          "kind" => "build",
+          "blocked" => true,
+          "event" => "select_sidebar_item",
+          "item_id" => "phase-31.2",
+          "event_value_key" => "item_id"
+        },
+        "children" => [
+          %{
+            "type" => "unread_badge",
+            "id" => "badge-phase-31-2",
+            "props" => %{"count" => 12, "tone" => "critical"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-sidebar-item"
+      assert heex =~ "ash-sidebar-item-blocked"
+      assert heex =~ "ash-sidebar-item-build"
+      assert heex =~ ~s(phx-click="select_sidebar_item")
+      assert heex =~ ~s(phx-value-item_id="phase-31.2")
+      assert heex =~ "build/phase-31.2"
+      assert heex =~ "phase 31.2"
+      assert heex =~ "ash-unread-badge-critical"
+    end
+
+    test "sidebar_item produces no literal color or spacing values" do
+      iur = %{
+        "type" => "sidebar_item",
+        "id" => "item-pure",
+        "props" => %{
+          "label" => "metagraph-team",
+          "glyph" => "#",
+          "kind" => "channel",
+          "active" => true,
+          "event" => "select_sidebar_item",
+          "item_id" => "metagraph-team",
+          "event_value_key" => "item_id"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
+    test "generates sidebar_section markup with action button and child rows" do
+      iur = %{
+        "type" => "sidebar_section",
+        "id" => "section-channels",
+        "props" => %{
+          "title" => "Channels",
+          "action_event" => "new_channel",
+          "action_label" => "new channel",
+          "action_glyph" => "+"
+        },
+        "children" => [
+          %{
+            "type" => "sidebar_item",
+            "id" => "item-ops",
+            "props" => %{
+              "label" => "ops",
+              "glyph" => "#",
+              "kind" => "channel",
+              "event" => "select_sidebar_item",
+              "item_id" => "ops",
+              "event_value_key" => "item_id"
+            },
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-sidebar-section"
+      assert heex =~ "ash-sidebar-section-title"
+      assert heex =~ "Channels"
+      assert heex =~ ~s(phx-click="new_channel")
+      assert heex =~ "ash-sidebar-section-action"
+      assert heex =~ "ash-sidebar-item"
+    end
+
+    test "sidebar_section produces no literal color or spacing values" do
+      iur = %{
+        "type" => "sidebar_section",
+        "id" => "section-pure",
+        "props" => %{"title" => "Pinned"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
+    test "generates sidebar_shell markup with semantic navigation structure" do
+      iur = %{
+        "type" => "sidebar_shell",
+        "id" => "primary-navigation",
+        "props" => %{
+          "width" => "wide",
+          "aria_label" => "primary navigation"
+        },
+        "children" => [
+          %{
+            "type" => "sidebar_section",
+            "id" => "section-channels",
+            "props" => %{"title" => "Channels"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-sidebar-shell"
+      assert heex =~ "ash-sidebar-shell-wide"
+      assert heex =~ "ash-sidebar-shell-scroll"
+      assert heex =~ ~s(aria-label="primary navigation")
+      assert heex =~ "ash-sidebar-section"
+    end
+
+    test "sidebar_shell produces no literal color or spacing values" do
+      iur = %{
+        "type" => "sidebar_shell",
+        "id" => "shell-pure",
+        "props" => %{
+          "width" => "narrow",
+          "aria_label" => "primary navigation"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
+    test "generates mode_nav markup with tab semantics, shortcut metadata, and badge composition" do
+      iur = %{
+        "type" => "mode_nav",
+        "props" => %{
+          "aria_label" => "mode navigation",
+          "active_key" => "map",
+          "keyboard_shortcut_prefix" => "⌘",
+          "event" => "select_mode",
+          "modes" => [
+            %{
+              "key" => "chat",
+              "label" => "Chat",
+              "glyph" => "◉",
+              "badge_count" => 3,
+              "panel_id" => "panel-chat"
+            },
+            %{"key" => "map", "label" => "Map", "panel_id" => "panel-map"},
+            %{"key" => "explorer", "label" => "Explorer"},
+            %{"key" => "ask", "label" => "Ask"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+
+      assert heex =~ ~s(class="ash-mode-nav")
+      assert heex =~ ~s(role="tablist")
+      assert heex =~ ~s(role="tab")
+      assert heex =~ ~s(aria-selected="true")
+      assert heex =~ ~s(aria-controls="panel-map")
+      assert heex =~ ~s(data-mode-key="map")
+      assert heex =~ ~s(data-shortcut="⌘2")
+      assert heex =~ ~s(aria-keyshortcuts="Meta+2")
+      assert heex =~ ~s(phx-click="select_mode")
+      assert heex =~ ~s(phx-value-mode_key="map")
+      assert heex =~ ~s(phx-value-selected_value="map")
+      assert heex =~ "ash-unread-badge"
+    end
+
+    test "mode_nav produces no literal color or spacing values" do
+      iur = %{
+        "type" => "mode_nav",
+        "props" => %{
+          "modes" => [
+            %{"key" => "chat", "label" => "Chat"},
+            %{"key" => "map", "label" => "Map"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+      refute heex =~ ~r/style="/i
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

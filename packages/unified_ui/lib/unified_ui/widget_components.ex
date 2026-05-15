@@ -2,14 +2,15 @@ defmodule UnifiedUi.WidgetComponents do
   @moduledoc """
   Reference catalog for the canonical widget-component expansion.
 
-  The catalog records the AshUi PR 79-98 source mapping, portable canonical
-  names, semantic families, and compatibility aliases before the DSL entities
-  are implemented.
+  The catalog records the AshUi source mapping, portable canonical names,
+  semantic families, and compatibility aliases before the DSL entities are
+  implemented.
   """
 
   @type family ::
           :content_identity_and_disclosure
           | :form_control_and_composer
+          | :navigation
           | :row_and_artifact
           | :workflow_progress_and_status
           | :layer_shell_and_callout
@@ -41,6 +42,7 @@ defmodule UnifiedUi.WidgetComponents do
   @families [
     :content_identity_and_disclosure,
     :form_control_and_composer,
+    :navigation,
     :row_and_artifact,
     :workflow_progress_and_status,
     :layer_shell_and_callout,
@@ -92,10 +94,25 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :unread_badge,
+      family: :content_identity_and_disclosure,
+      source: %{system: :ash_ui, pr: 101, name: :unread_badge},
+      summary: "Compact unread-count pill with default and critical tones.",
+      aliases: []
+    },
+    %{
       kind: :segmented_button_group,
       family: :form_control_and_composer,
       source: %{system: :ash_ui, pr: 85, name: :segmented_button_group},
       summary: "Single-selection segmented control with option values and labels.",
+      aliases: []
+    },
+    %{
+      kind: :mode_nav,
+      family: :navigation,
+      source: %{system: :ash_ui, pr: 106, name: :mode_nav},
+      summary:
+        "Centered mode switcher with tab semantics, optional glyphs and badges, and shortcut metadata.",
       aliases: []
     },
     %{
@@ -110,6 +127,30 @@ defmodule UnifiedUi.WidgetComponents do
       family: :row_and_artifact,
       source: %{system: :ash_ui, pr: 87, name: :artifact_row},
       summary: "Artifact row with title, meta text, row identity, and trailing content.",
+      aliases: []
+    },
+    %{
+      kind: :sidebar_item,
+      family: :row_and_artifact,
+      source: %{system: :ash_ui, pr: 102, name: :sidebar_item},
+      summary:
+        "Sidebar navigation row with glyph, state, optional meta, and unread badge composition.",
+      aliases: []
+    },
+    %{
+      kind: :sidebar_shell,
+      family: :layer_shell_and_callout,
+      source: %{system: :ash_ui, pr: 105, name: :sidebar_shell},
+      summary:
+        "Primary navigation shell with top-level scroll container and grouped sidebar sections.",
+      aliases: []
+    },
+    %{
+      kind: :sidebar_section,
+      family: :layer_shell_and_callout,
+      source: %{system: :ash_ui, pr: 104, name: :sidebar_section},
+      summary:
+        "Sidebar grouping with a section title, optional action button, and child navigation items.",
       aliases: []
     },
     %{

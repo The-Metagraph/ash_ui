@@ -36,11 +36,76 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
         selection_intent(:select_status)
       end
 
+      mode_nav :workspace_mode_nav do
+        modes([
+          %{key: :chat, label: "Chat", badge_count: 2, panel_id: "panel-chat"},
+          %{key: :map, label: "Map", panel_id: "panel-map"},
+          %{key: :explorer, label: "Explorer"},
+          %{key: :ask, label: "Ask"}
+        ])
+
+        active_key(:map)
+        keyboard_shortcut_prefix("⌘")
+        selection_intent(:select_mode)
+      end
+
       runtime_form_shell :settings_form do
         fields([%{name: :title, type: :text, label: "Title"}])
         submit_label("Save")
         submit_intent(:save_settings)
         change_intent(:validate_settings)
+      end
+
+      sidebar_item :build_item do
+        label("build/widget-adr")
+        glyph("◇")
+        meta("accepted")
+        state(:blocked)
+        item_kind(:build)
+        item_id("adr-1")
+        action_intent(:open_artifact)
+        unread_count(2)
+      end
+
+      sidebar_shell :primary_navigation do
+        width(:wide)
+        aria_label("primary navigation")
+
+        sidebar_section :navigation_builds_section do
+          title("Builds")
+          action_glyph("+")
+          action_label("New build")
+          action_intent(:new_build)
+
+          sidebar_item :navigation_build_item do
+            label("build/widget-adr-shell")
+            glyph("◇")
+            meta("queued")
+            state(:default)
+            item_kind(:build)
+            item_id("adr-1-shell")
+            action_intent(:open_shell_artifact)
+            unread_count(1)
+          end
+        end
+      end
+
+      sidebar_section :builds_section do
+        title("Builds")
+        action_glyph("+")
+        action_label("New build")
+        action_intent(:new_build)
+
+        sidebar_item :nested_build_item do
+          label("build/widget-adr-nested")
+          glyph("◇")
+          meta("queued")
+          state(:default)
+          item_kind(:build)
+          item_id("adr-1-nested")
+          action_intent(:open_nested_artifact)
+          unread_count(1)
+        end
       end
 
       slide_over_panel :details_panel do
@@ -83,12 +148,16 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
     for kind <- [
           :inline_rich_text_heading,
           :segmented_button_group,
+          :mode_nav,
           :runtime_form_shell,
+          :sidebar_shell,
+          :sidebar_section,
           :slide_over_panel,
           :redline_inline,
           :code_block_syntax_highlighted,
           :list_repeat,
-          :artifact_row
+          :artifact_row,
+          :sidebar_item
         ] do
       assert kind in listing.compiled.widget_kinds
       assert snapshot =~ to_string(kind)
@@ -102,17 +171,32 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
     iur = Compiler.iur!(EndToEndWidgetScreen)
 
     segmented = Tree.find_by_id(iur, :status_filter)
+    mode_nav = Tree.find_by_id(iur, :workspace_mode_nav)
     form = Tree.find_by_id(iur, :settings_form)
+    shell = Tree.find_by_id(iur, :primary_navigation)
+    section = Tree.find_by_id(iur, :builds_section)
     panel = Tree.find_by_id(iur, :details_panel)
     repeat = Tree.find_by_id(iur, :artifact_repeat)
 
     assert [%Interaction{family: :selection, intent: :select_status}] =
              segmented.attributes.interactions
 
+    assert [%Interaction{family: :selection, intent: :select_mode} = mode_nav_interaction] =
+             mode_nav.attributes.interactions
+
+    assert mode_nav.attributes.mode_nav.active_key == :map
+    assert mode_nav_interaction.payload == %{selection: :map, mapping: %{selected_value: :value}}
+
     assert Enum.map(form.attributes.interactions, &{&1.family, &1.intent}) == [
              {:submit, :save_settings},
              {:change, :validate_settings}
            ]
+
+    assert shell.attributes.sidebar_shell == %{width: :wide, aria_label: "primary navigation"}
+    assert Enum.map(shell.children, & &1.element.kind) == [:sidebar_section]
+
+    assert [%Interaction{family: :click, intent: :new_build}] = section.attributes.interactions
+    assert Enum.map(section.children, & &1.element.kind) == [:sidebar_item]
 
     assert [%Interaction{family: :close, intent: :close_details}] = panel.attributes.interactions
 

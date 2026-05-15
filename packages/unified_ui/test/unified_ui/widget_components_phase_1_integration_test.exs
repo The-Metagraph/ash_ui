@@ -51,6 +51,65 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
         action_intent(:open_artifact)
       end
 
+      mode_nav :workspace_mode_nav do
+        modes([
+          %{key: :chat, label: "Chat", badge_count: 2, panel_id: "panel-chat"},
+          %{key: :map, label: "Map", panel_id: "panel-map"},
+          %{key: :explorer, label: "Explorer"},
+          %{key: :ask, label: "Ask"}
+        ])
+
+        active_key(:chat)
+        keyboard_shortcut_prefix("⌘")
+        selection_intent(:select_mode)
+      end
+
+      sidebar_item :artifact_sidebar_item do
+        label("build/spec-artifact")
+        glyph("◇")
+        meta("spec")
+        state(:active)
+        item_kind(:build)
+        item_id("spec-artifact")
+        action_intent(:open_artifact)
+        unread_count(3)
+      end
+
+      sidebar_shell :artifact_sidebar_shell do
+        width(:wide)
+        aria_label("primary navigation")
+
+        sidebar_section :shell_artifact_sidebar_section do
+          title("Builds")
+          action_glyph("+")
+          action_label("New build")
+          action_intent(:new_build)
+
+          sidebar_item :shell_section_sidebar_item do
+            label("build/spec-shell")
+            glyph("◇")
+            item_kind(:build)
+            item_id("spec-shell")
+            action_intent(:open_shell_build)
+          end
+        end
+      end
+
+      sidebar_section :artifact_sidebar_section do
+        title("Builds")
+        action_glyph("+")
+        action_label("New build")
+        action_intent(:new_build)
+
+        sidebar_item :section_sidebar_item do
+          label("build/spec-section")
+          glyph("◇")
+          item_kind(:build)
+          item_id("spec-section")
+          action_intent(:open_section_build)
+        end
+      end
+
       pipeline_stepper_horizontal :workflow_steps do
         steps([
           %{id: :authored, label: "Authored", state: :done},
@@ -95,6 +154,7 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
              :content_identity_and_disclosure,
              :form_control_and_composer,
              :layer_shell_and_callout,
+             :navigation,
              :redline_and_code,
              :row_and_artifact,
              :workflow_progress_and_status
@@ -110,7 +170,11 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
           :avatar,
           :runtime_form_shell,
           :chat_composer,
+          :mode_nav,
           :artifact_row,
+          :sidebar_item,
+          :sidebar_shell,
+          :sidebar_section,
           :pipeline_stepper_horizontal,
           :slide_over_panel,
           :redline_inline,
@@ -139,6 +203,40 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
              })
 
     assert segmented_message =~ "segmented_button_group"
+
+    assert {:error, [:composition, :mode_nav, :bad_mode_nav], mode_nav_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :mode_nav,
+               id: :bad_mode_nav,
+               modes: [%{key: "chat", label: ""}],
+               active_key: :ask,
+               keyboard_shortcut_prefix: "",
+               aria_label: ""
+             })
+
+    assert mode_nav_message =~ "mode_nav"
+
+    assert {:error, [:composition, :sidebar_section, :bad_section], section_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_section,
+               id: :bad_section,
+               title: "Channels",
+               action_glyph: "+",
+               action_intent: nil
+             })
+
+    assert section_message =~ "sidebar_section"
+
+    assert {:error, [:composition, :sidebar_shell, :bad_shell], shell_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_shell,
+               id: :bad_shell,
+               width: :compact,
+               aria_label: "",
+               children: [%Node{kind: :sidebar_item, id: :bad_child}]
+             })
+
+    assert shell_message =~ "sidebar_shell"
 
     assert {:error, [:composition, :redline_inline, :bad_redline], redline_message} =
              ValidateWidgetComponents.validate_node(%Node{

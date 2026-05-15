@@ -45,6 +45,11 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
         accessibility_label("Active")
       end
 
+      unread_badge :operator_unread do
+        count(7)
+        tone(:critical)
+      end
+
       disclosure :advanced_options do
         summary("Advanced options")
         open?(true)
@@ -62,7 +67,8 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
              :disclosure,
              :kicker,
              :avatar,
-             :presence_dot
+             :presence_dot,
+             :unread_badge
            ]
 
     assert :inline_rich_text_heading in UnifiedUi.Widgets.kinds()
@@ -70,7 +76,7 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
   end
 
   test "stores content identity components in the composition tree" do
-    [heading, kicker, avatar, presence, disclosure] =
+    [heading, kicker, avatar, presence, unread_badge, disclosure] =
       Extension.get_entities(ContentIdentityScreen, [:composition])
 
     assert {heading.family, heading.kind, heading.level} ==
@@ -85,6 +91,10 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
              {:avatar, "PC", "/images/pascal.png", :round}
 
     assert {presence.kind, presence.state, presence.size} == {:presence_dot, :live, :small}
+
+    assert {unread_badge.kind, unread_badge.count, unread_badge.tone} ==
+             {:unread_badge, 7, :critical}
+
     assert {disclosure.kind, disclosure.open?} == {:disclosure, true}
     assert Enum.map(disclosure.children, & &1.kind) == [:text]
   end
@@ -121,6 +131,13 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
                family: :content_identity_and_disclosure,
                kind: :presence_dot,
                state: :live
+             },
+             %{
+               id: :operator_unread,
+               family: :content_identity_and_disclosure,
+               kind: :unread_badge,
+               count: 7,
+               tone: :critical
              },
              %{
                id: :advanced_options,
@@ -169,5 +186,18 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
              })
 
     assert message == "kicker :bad_kicker items must be a list of strings"
+  end
+
+  test "rejects malformed unread_badge counts with an actionable diagnostic" do
+    assert {:error, [:composition, :unread_badge, :bad_unread], message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :unread_badge,
+               id: :bad_unread,
+               count: -1,
+               tone: :urgent
+             })
+
+    assert message ==
+             "unread_badge :bad_unread count must be a non-negative integer and tone must be :default or :critical"
   end
 end

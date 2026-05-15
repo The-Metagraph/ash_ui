@@ -65,6 +65,15 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     end
   end
 
+  def validate_node(%Node{kind: :unread_badge, id: id, count: count, tone: tone}) do
+    if is_integer(count) and count >= 0 and tone in [:default, :critical] do
+      :ok
+    else
+      {:error, [:composition, :unread_badge, id],
+       "unread_badge #{inspect(id)} count must be a non-negative integer and tone must be :default or :critical"}
+    end
+  end
+
   def validate_node(%Node{kind: :segmented_button_group, id: id, options: options}) do
     if valid_options?(options) do
       :ok
@@ -127,6 +136,129 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
       not valid_scalar?(row_identity) ->
         {:error, [:composition, :artifact_row, id],
          "artifact_row #{inspect(id)} row_identity must be a non-empty scalar value"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :sidebar_item,
+        id: id,
+        label: label,
+        state: state,
+        item_kind: item_kind,
+        item_id: item_id,
+        unread_count: unread_count,
+        badge_tone: badge_tone,
+        link_target: link_target,
+        action_intent: action_intent
+      }) do
+    cond do
+      not is_binary(label) or label == "" ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} label must be a non-empty string"}
+
+      state not in [:default, :active, :blocked] ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} state must be :default, :active, or :blocked"}
+
+      item_kind not in [:channel, :build, :dm, :draft, :repo] ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} item_kind must be :channel, :build, :dm, :draft, or :repo"}
+
+      not valid_scalar?(item_id) ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} item_id must be a non-empty scalar value"}
+
+      not is_nil(unread_count) and (not is_integer(unread_count) or unread_count < 0) ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} unread_count must be a non-negative integer"}
+
+      badge_tone not in [nil, :default, :critical] ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} badge_tone must be :default or :critical"}
+
+      blank_string?(link_target) and not is_atom(action_intent) ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} requires either link_target or action_intent"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :mode_nav,
+        id: id,
+        modes: modes,
+        active_key: active_key,
+        keyboard_shortcut_prefix: keyboard_shortcut_prefix,
+        aria_label: aria_label
+      }) do
+    cond do
+      not valid_mode_nav_modes?(modes) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} modes must be a non-empty list of maps with atom key and label"}
+
+      not valid_mode_nav_active_key?(active_key, modes) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} active_key must reference an authored mode key"}
+
+      blank_string?(keyboard_shortcut_prefix) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} keyboard_shortcut_prefix must be a non-empty string"}
+
+      blank_string?(aria_label) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} aria_label must be a non-empty string"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :sidebar_shell,
+        id: id,
+        width: width,
+        aria_label: aria_label,
+        children: children
+      }) do
+    cond do
+      width not in [:narrow, :wide] ->
+        {:error, [:composition, :sidebar_shell, id],
+         "sidebar_shell #{inspect(id)} width must be :narrow or :wide"}
+
+      blank_string?(aria_label) ->
+        {:error, [:composition, :sidebar_shell, id],
+         "sidebar_shell #{inspect(id)} aria_label must be a non-empty string"}
+
+      not Enum.all?(children, &match?(%Node{kind: :sidebar_section}, &1)) ->
+        {:error, [:composition, :sidebar_shell, id],
+         "sidebar_shell #{inspect(id)} children must all be sidebar_section nodes"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :sidebar_section,
+        id: id,
+        title: title,
+        action_glyph: action_glyph,
+        action_label: action_label,
+        action_intent: action_intent
+      }) do
+    cond do
+      blank_string?(title) ->
+        {:error, [:composition, :sidebar_section, id],
+         "sidebar_section #{inspect(id)} title must be a non-empty string"}
+
+      not valid_sidebar_section_action?(action_intent, action_glyph, action_label) ->
+        {:error, [:composition, :sidebar_section, id],
+         "sidebar_section #{inspect(id)} action_intent requires a visible action_glyph or action_label, and action copy must not appear without an action_intent"}
 
       true ->
         :ok
@@ -329,6 +461,40 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   defp valid_form_fields?(_fields), do: false
 
+  defp valid_mode_nav_modes?(modes) when is_list(modes) and modes != [] do
+    Enum.all?(modes, &valid_mode_nav_mode?/1)
+  end
+
+  defp valid_mode_nav_modes?(_modes), do: false
+
+  defp valid_mode_nav_mode?(mode) when is_map(mode) or is_list(mode) do
+    mode = normalize_map(mode)
+    key = Map.get(mode, :key)
+    label = Map.get(mode, :label)
+    glyph = Map.get(mode, :glyph)
+    badge_count = Map.get(mode, :badge_count)
+    panel_id = Map.get(mode, :panel_id)
+
+    is_atom(key) and is_binary(label) and label != "" and
+      (is_nil(glyph) or (is_binary(glyph) and glyph != "")) and
+      (is_nil(badge_count) or (is_integer(badge_count) and badge_count >= 0)) and
+      (is_nil(panel_id) or (is_binary(panel_id) and panel_id != ""))
+  end
+
+  defp valid_mode_nav_mode?(_mode), do: false
+
+  defp valid_mode_nav_active_key?(nil, modes) when is_list(modes), do: modes != []
+
+  defp valid_mode_nav_active_key?(active_key, modes)
+       when is_atom(active_key) and is_list(modes) do
+    Enum.any?(modes, fn mode ->
+      mode = normalize_map(mode)
+      Map.get(mode, :key) == active_key
+    end)
+  end
+
+  defp valid_mode_nav_active_key?(_active_key, _modes), do: false
+
   defp valid_column_template?(columns) when is_list(columns) and columns != [] do
     Enum.all?(columns, fn
       column when is_map(column) or is_list(column) ->
@@ -438,6 +604,17 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   defp valid_meter_range?(_current, _min, _max), do: false
 
+  defp valid_sidebar_section_action?(nil, action_glyph, action_label) do
+    blank_string?(action_glyph) and blank_string?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+       when is_atom(action_intent) do
+    not blank_string?(action_glyph) or not blank_string?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(_action_intent, _action_glyph, _action_label), do: false
+
   defp valid_field_attributes?(nil), do: true
   defp valid_field_attributes?(attributes) when is_map(attributes), do: true
 
@@ -451,6 +628,8 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   defp valid_scalar?(""), do: false
   defp valid_scalar?(value) when is_atom(value) or is_binary(value) or is_number(value), do: true
   defp valid_scalar?(_value), do: false
+
+  defp blank_string?(value), do: not is_binary(value) or value == ""
 
   defp positive_number?(value) when is_number(value), do: value > 0
   defp positive_number?(_value), do: false

@@ -47,6 +47,11 @@ defmodule UnifiedUi.Widgets do
     WidgetComponentEntities.form_control_kinds()
   end
 
+  @spec navigation_component_kinds() :: [atom()]
+  def navigation_component_kinds do
+    WidgetComponentEntities.navigation_kinds()
+  end
+
   @spec row_artifact_component_kinds() :: [atom()]
   def row_artifact_component_kinds do
     WidgetComponentEntities.row_artifact_kinds()
@@ -102,6 +107,7 @@ defmodule UnifiedUi.Widgets do
       advanced_kinds() ++
       content_identity_component_kinds() ++
       form_control_component_kinds() ++
+      navigation_component_kinds() ++
       row_artifact_component_kinds() ++
       workflow_component_kinds() ++
       layer_callout_component_kinds() ++

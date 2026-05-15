@@ -36,6 +36,19 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
         selection_intent(:select_status)
       end
 
+      mode_nav :workspace_mode_nav do
+        modes([
+          %{key: :chat, label: "Chat", badge_count: 1, panel_id: "panel-chat"},
+          %{key: :map, label: "Map", panel_id: "panel-map"},
+          %{key: :explorer, label: "Explorer"},
+          %{key: :ask, label: "Ask"}
+        ])
+
+        active_key(:map)
+        keyboard_shortcut_prefix("⌘")
+        selection_intent(:select_mode)
+      end
+
       runtime_form_shell :settings_form do
         fields([%{name: :title, type: :text, label: "Title"}])
         submit_label("Save")
@@ -128,6 +141,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
 
     heading = Tree.find_by_id(iur, :headline)
     disclosure = Tree.find_by_id(iur, :details)
+    mode_nav = Tree.find_by_id(iur, :workspace_mode_nav)
     form = Tree.find_by_id(iur, :settings_form)
     composer = Tree.find_by_id(iur, :composer)
     row = Tree.find_by_id(iur, :task_row)
@@ -151,6 +165,19 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
 
     assert disclosure.attributes.disclosure == %{summary: "Details", open?: true}
     assert [%{element: %{kind: :text}}] = disclosure.children
+
+    assert mode_nav.attributes.mode_nav == %{
+             modes: [
+               %{key: :chat, label: "Chat", badge_count: 1, panel_id: "panel-chat"},
+               %{key: :map, label: "Map", panel_id: "panel-map"},
+               %{key: :explorer, label: "Explorer"},
+               %{key: :ask, label: "Ask"}
+             ],
+             active_key: :map,
+             keyboard_shortcut_prefix: "⌘",
+             aria_label: "mode navigation",
+             selection_intent: :select_mode
+           }
 
     assert form.attributes.form.host_adapter_hints == %{live_ui: %{adapter: :phoenix_form}}
 
@@ -197,6 +224,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     iur = Compiler.iur!(ComponentCompilerScreen)
 
     segmented = Tree.find_by_id(iur, :status_filter)
+    mode_nav = Tree.find_by_id(iur, :workspace_mode_nav)
     form = Tree.find_by_id(iur, :settings_form)
     composer = Tree.find_by_id(iur, :composer)
     row = Tree.find_by_id(iur, :task_row)
@@ -209,6 +237,12 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
 
     assert selection.source == %{element_id: :status_filter}
     assert selection.payload == %{selection: :all, mapping: %{selected_value: :value}}
+
+    assert [%Interaction{family: :selection, intent: :select_mode} = mode_selection] =
+             mode_nav.attributes.interactions
+
+    assert mode_selection.source == %{element_id: :workspace_mode_nav}
+    assert mode_selection.payload == %{selection: :map, mapping: %{selected_value: :value}}
 
     assert Enum.map(form.attributes.interactions, &{&1.family, &1.intent}) == [
              {:submit, :save_settings},

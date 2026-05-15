@@ -607,6 +607,17 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:label])
           )
 
+        :mode_nav ->
+          Widgets.Components.mode_nav(
+            normalize_list(node.modes),
+            common_opts(node, attachments,
+              active_key: node.active_key,
+              keyboard_shortcut_prefix: node.keyboard_shortcut_prefix,
+              aria_label: node.aria_label || node.accessibility_label,
+              selection_intent: node.selection_intent
+            )
+          )
+
         :list ->
           Widgets.Data.list(
             normalize_list(node.items),
@@ -869,6 +880,12 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:size, :accessibility_label])
           )
 
+        :unread_badge ->
+          Widgets.Components.unread_badge(
+            node.count || 0,
+            common_opts(node, attachments, %{tone: node.tone})
+          )
+
         :segmented_button_group ->
           Widgets.Components.segmented_button_group(
             normalize_keyword_items(node.options),
@@ -925,6 +942,44 @@ defmodule UnifiedUi.Compiler.Pipeline do
               :action_intent,
               :meta
             ])
+          )
+
+        :sidebar_item ->
+          Widgets.Components.sidebar_item(
+            node.label || "",
+            common_opts(node, attachments,
+              glyph: node.glyph,
+              meta: node.meta,
+              state: node.state,
+              item_kind: node.item_kind,
+              item_id: node.item_id,
+              link_target: node.link_target,
+              action_intent: node.action_intent,
+              unread_count: node.unread_count,
+              badge_tone: node.badge_tone,
+              accessibility_label: node.accessibility_label,
+              accessibility_description: node.accessibility_description
+            )
+          )
+
+        :sidebar_shell ->
+          Widgets.Components.sidebar_shell(
+            lower_children(node, context, visited),
+            common_opts(node, attachments,
+              width: node.width,
+              aria_label: node.aria_label || node.accessibility_label
+            )
+          )
+
+        :sidebar_section ->
+          Widgets.Components.sidebar_section(
+            node.title || "",
+            lower_children(node, context, visited),
+            common_opts(node, attachments,
+              action_glyph: node.action_glyph,
+              action_label: node.action_label,
+              action_intent: node.action_intent
+            )
           )
 
         :pipeline_stepper_horizontal ->
@@ -1431,11 +1486,14 @@ defmodule UnifiedUi.Compiler.Pipeline do
     Interaction.selection(
       intent: node.selection_intent,
       element_id: node.id,
-      selection: node.active_value,
+      selection: default_selection_value(node),
       mapping: %{selected_value: :value},
       phase: :authored_default
     )
   end
+
+  defp default_selection_value(%Node{kind: :mode_nav, active_key: active_key}), do: active_key
+  defp default_selection_value(%Node{} = node), do: node.active_value
 
   defp default_step_navigation_interaction(%Node{navigation_intent: nil}), do: nil
 

@@ -29,7 +29,8 @@ defmodule UnifiedIUR.Widgets.Components do
     :disclosure,
     :kicker,
     :avatar,
-    :presence_dot
+    :presence_dot,
+    :unread_badge
   ]
 
   @form_control_kinds [
@@ -38,9 +39,14 @@ defmodule UnifiedIUR.Widgets.Components do
     :chat_composer
   ]
 
+  @navigation_kinds [
+    :mode_nav
+  ]
+
   @row_artifact_kinds [
     :list_item_multi_column,
-    :artifact_row
+    :artifact_row,
+    :sidebar_item
   ]
 
   @workflow_kinds [
@@ -51,6 +57,8 @@ defmodule UnifiedIUR.Widgets.Components do
   ]
 
   @layer_callout_kinds [
+    :sidebar_shell,
+    :sidebar_section,
     :sticky_frosted_header,
     :slide_over_panel,
     :event_callout
@@ -71,6 +79,9 @@ defmodule UnifiedIUR.Widgets.Components do
   @spec form_control_kinds() :: [atom()]
   def form_control_kinds, do: @form_control_kinds
 
+  @spec navigation_kinds() :: [atom()]
+  def navigation_kinds, do: @navigation_kinds
+
   @spec row_artifact_kinds() :: [atom()]
   def row_artifact_kinds, do: @row_artifact_kinds
 
@@ -90,6 +101,7 @@ defmodule UnifiedIUR.Widgets.Components do
   def kinds do
     @content_identity_kinds ++
       @form_control_kinds ++
+      @navigation_kinds ++
       @row_artifact_kinds ++
       @workflow_kinds ++
       @layer_callout_kinds ++
@@ -169,6 +181,18 @@ defmodule UnifiedIUR.Widgets.Components do
     )
   end
 
+  @spec unread_badge(integer(), opts()) :: Element.t()
+  def unread_badge(count, opts \\ []) when is_integer(count) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :unread_badge,
+      :content_identity_and_disclosure,
+      %{badge: %{count: count, tone: option(opts, :tone, :default)}},
+      opts
+    )
+  end
+
   @spec segmented_button_group([keyword() | map()], opts()) :: Element.t()
   def segmented_button_group(options, opts \\ []) when is_list(options) do
     opts = normalize_opts(opts)
@@ -238,6 +262,31 @@ defmodule UnifiedIUR.Widgets.Components do
     )
   end
 
+  @spec mode_nav([keyword() | map()], opts()) :: Element.t()
+  def mode_nav(modes, opts \\ []) when is_list(modes) do
+    opts = normalize_opts(opts)
+    modes = normalize_mode_nav_modes(modes)
+    active_key = option(opts, :active_key, default_mode_nav_active_key(modes))
+    aria_label = option(opts, :aria_label, "mode navigation")
+    opts = Map.put_new(opts, :accessibility_label, aria_label)
+
+    build_component(
+      :mode_nav,
+      :navigation,
+      %{
+        mode_nav:
+          %{
+            modes: modes,
+            active_key: active_key,
+            keyboard_shortcut_prefix: option(opts, :keyboard_shortcut_prefix, "⌘"),
+            aria_label: aria_label
+          }
+          |> maybe_put(:selection_intent, option(opts, :selection_intent))
+      },
+      opts
+    )
+  end
+
   @spec list_item_multi_column(
           [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
           opts()
@@ -276,6 +325,78 @@ defmodule UnifiedIUR.Widgets.Components do
           common_row_attrs(opts)
           |> maybe_put(:title, title)
           |> maybe_put(:meta, option(opts, :meta))
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec sidebar_item(String.t(), opts()) :: Element.t()
+  def sidebar_item(label, opts \\ []) when is_binary(label) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :sidebar_item,
+      :row_and_artifact,
+      %{
+        sidebar_item:
+          %{
+            label: label,
+            state: option(opts, :state, :default),
+            item_kind: option(opts, :item_kind, :channel)
+          }
+          |> maybe_put(:glyph, option(opts, :glyph))
+          |> maybe_put(:meta, option(opts, :meta))
+          |> maybe_put(:item_id, option(opts, :item_id, option(opts, :row_identity)))
+          |> maybe_put(:link_target, option(opts, :link_target))
+          |> maybe_put(:action_intent, option(opts, :action_intent))
+          |> maybe_put(:unread_count, normalize_unread_count(option(opts, :unread_count)))
+      },
+      Map.put(opts, :children, compose_sidebar_item_children(opts))
+    )
+  end
+
+  @spec sidebar_section(
+          String.t(),
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) ::
+          Element.t()
+  def sidebar_section(title, children \\ [], opts \\ [])
+      when is_binary(title) and is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :sidebar_section,
+      :layer_shell_and_callout,
+      %{
+        sidebar_section:
+          %{title: title}
+          |> maybe_put(:action_glyph, option(opts, :action_glyph))
+          |> maybe_put(:action_label, option(opts, :action_label))
+          |> maybe_put(:action_intent, option(opts, :action_intent))
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec sidebar_shell(
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) ::
+          Element.t()
+  def sidebar_shell(children \\ [], opts \\ []) when is_list(children) do
+    opts = normalize_opts(opts)
+    aria_label = option(opts, :aria_label, "primary navigation")
+    opts = Map.put_new(opts, :accessibility_label, aria_label)
+
+    build_component(
+      :sidebar_shell,
+      :layer_shell_and_callout,
+      %{
+        sidebar_shell: %{
+          width: option(opts, :width, :wide),
+          aria_label: aria_label
+        }
       },
       Map.put(opts, :children, children)
     )
@@ -536,6 +657,54 @@ defmodule UnifiedIUR.Widgets.Components do
     |> maybe_put(:action_intent, option(opts, :action_intent))
   end
 
+  defp compose_sidebar_item_children(opts) do
+    base_children = option(opts, :children, [])
+    unread_count = normalize_unread_count(option(opts, :unread_count))
+
+    cond do
+      unread_count < 1 ->
+        base_children
+
+      has_unread_badge_child?(base_children) ->
+        base_children
+
+      true ->
+        badge_tone =
+          option(opts, :badge_tone, if(unread_count > 5, do: :critical, else: :default))
+
+        badge_label =
+          option(
+            opts,
+            :badge_label,
+            "#{unread_count} unread #{if unread_count == 1, do: "item", else: "items"}"
+          )
+
+        base_children ++
+          [
+            Element.Child.new(
+              :trailing,
+              unread_badge(unread_count,
+                tone: badge_tone,
+                accessibility_label: badge_label,
+                id: option(opts, :badge_id)
+              )
+            )
+          ]
+    end
+  end
+
+  defp has_unread_badge_child?(children) do
+    Enum.any?(children, fn
+      %Element.Child{element: %Element{kind: :unread_badge}} -> true
+      %Element{kind: :unread_badge} -> true
+      {:trailing, %Element{kind: :unread_badge}} -> true
+      _other -> false
+    end)
+  end
+
+  defp normalize_unread_count(value) when is_integer(value), do: value
+  defp normalize_unread_count(_value), do: 0
+
   defp normalize_metadata(opts) do
     opts
     |> option(:metadata)
@@ -578,6 +747,25 @@ defmodule UnifiedIUR.Widgets.Components do
       |> maybe_put(:disabled?, option(option_value, :disabled?))
     end)
   end
+
+  defp normalize_mode_nav_modes(modes) do
+    Enum.map(modes, fn mode ->
+      mode = normalize_opts(mode)
+
+      %{}
+      |> maybe_put(:key, option(mode, :key))
+      |> maybe_put(:label, option(mode, :label))
+      |> maybe_put(:glyph, option(mode, :glyph))
+      |> maybe_put(:badge_count, normalize_mode_badge_count(option(mode, :badge_count)))
+      |> maybe_put(:panel_id, option(mode, :panel_id))
+    end)
+  end
+
+  defp default_mode_nav_active_key([%{key: key} | _rest]), do: key
+  defp default_mode_nav_active_key(_modes), do: nil
+
+  defp normalize_mode_badge_count(value) when is_integer(value) and value > 0, do: value
+  defp normalize_mode_badge_count(_value), do: nil
 
   defp normalize_maps(values) when is_list(values) do
     Enum.map(values, &normalize_map/1)

@@ -2225,8 +2225,28 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     loud_class = if loud, do: "is-loud", else: ""
     aria_attr = if aria_label, do: ~s( aria-label="#{aria_label}"), else: ""
 
+    badge_style =
+      merge_style(
+        [
+          "display: inline-flex",
+          "align-items: center",
+          "justify-content: center",
+          "min-width: 18px",
+          "height: 18px",
+          "padding: 0 6px",
+          "border-radius: 999px",
+          "background: #{if loud, do: "var(--accent, var(--accent-fg))", else: "color-mix(in srgb, var(--accent, var(--accent-fg)) 16%, var(--bg-paper, var(--bg-1)))"}",
+          "color: #{if loud, do: "var(--bg-paper, var(--bg-1))", else: "var(--accent-strong, var(--accent-fg))"}",
+          "font-family: var(--mono, var(--font-mono))",
+          "font-size: 11px",
+          "font-weight: 500",
+          "line-height: 1"
+        ],
+        prop_style(iur)
+      )
+
     """
-    <span class="#{css_classes(["ash-unread-badge", loud_class, prop_class(iur)])}" data-count="#{count}"#{style_attr(prop_style(iur))}#{aria_attr}>#{count}</span>
+    <span class="#{css_classes(["ash-unread-badge", loud_class, prop_class(iur)])}" data-count="#{count}"#{style_attr(badge_style)}#{aria_attr}>#{count}</span>
     """
   end
 
@@ -2248,30 +2268,55 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     kind_attr = if kind != "", do: ~s( data-kind="#{kind}"), else: ""
     aria_attr = if aria_label, do: ~s( aria-label="#{aria_label}"), else: ""
 
+    item_style =
+      merge_style(
+        [
+          "display: flex",
+          "align-items: center",
+          "justify-content: space-between",
+          "gap: 10px",
+          "width: 100%",
+          "padding: 6px 10px",
+          "border: 0",
+          "border-radius: 10px",
+          "background: #{if active, do: "color-mix(in srgb, var(--accent, var(--accent-fg)) 10%, var(--bg-paper, var(--bg-1)))", else: "transparent"}",
+          "color: #{if active, do: "var(--ink, var(--fg))", else: "var(--ink-soft, var(--fg-2))"}",
+          "text-align: left",
+          "text-decoration: none",
+          "cursor: pointer"
+        ],
+        prop_style(iur)
+      )
+
     blocked_html =
       if blocked,
-        do: ~s(<span class="ash-sidebar-item-blocked" aria-hidden="true"></span>),
+        do:
+          ~s|<span class="ash-sidebar-item-blocked" aria-hidden="true" style="width: 8px; height: 8px; border-radius: 999px; background: var(--warn, var(--accent-strong));"></span>|,
         else: ""
 
     meta_html =
-      if meta != "", do: ~s(<span class="ash-sidebar-item-meta">#{meta}</span>), else: ""
+      if meta != "",
+        do:
+          ~s|<span class="ash-sidebar-item-meta" style="color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 12px;">#{meta}</span>|,
+        else: ""
 
     trailing_html = generate_children(iur["children"] || [], opts)
 
     trailing_wrapper =
       if trailing_html != "",
-        do: ~s(<span class="ash-sidebar-item-trailing">#{trailing_html}</span>),
+        do:
+          ~s|<span class="ash-sidebar-item-trailing" style="display: inline-flex; align-items: center; gap: 8px;">#{trailing_html}</span>|,
         else: ""
 
     inner = """
-    <span class="ash-sidebar-item-name">
-      <span class="ash-sidebar-item-glyph" aria-hidden="true">#{glyph}</span>
-      <span class="ash-sidebar-item-copy">
-        <span class="ash-sidebar-item-label">#{label}</span>
+    <span class="ash-sidebar-item-name" style="display: inline-flex; align-items: center; gap: 8px; min-width: 0;">
+      <span class="ash-sidebar-item-glyph" aria-hidden="true" style="color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 12px;">#{glyph}</span>
+      <span class="ash-sidebar-item-copy" style="display: inline-flex; align-items: baseline; gap: 8px; min-width: 0;">
+        <span class="ash-sidebar-item-label" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">#{label}</span>
         #{meta_html}
       </span>
     </span>
-    <span class="ash-sidebar-item-side">
+    <span class="ash-sidebar-item-side" style="display: inline-flex; align-items: center; gap: 8px;">
       #{blocked_html}
       #{trailing_wrapper}
     </span>
@@ -2279,7 +2324,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
     if href do
       """
-      <a class="#{css_classes(["ash-sidebar-item", prop_class(iur)])}" href="#{href}"#{active_attr}#{kind_attr}#{aria_attr}#{style_attr(prop_style(iur))}>
+      <a class="#{css_classes(["ash-sidebar-item", prop_class(iur)])}" href="#{href}"#{active_attr}#{kind_attr}#{aria_attr}#{style_attr(item_style)}>
         #{inner}
       </a>
       """
@@ -2287,7 +2332,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       value_attr = if item_id != "", do: ~s( phx-value-#{event_value_key}="#{item_id}"), else: ""
 
       """
-      <button type="button" class="#{css_classes(["ash-sidebar-item", prop_class(iur)])}" phx-click="#{event}"#{value_attr}#{active_attr}#{kind_attr}#{aria_attr}#{style_attr(prop_style(iur))}>
+      <button type="button" class="#{css_classes(["ash-sidebar-item", prop_class(iur)])}" phx-click="#{event}"#{value_attr}#{active_attr}#{kind_attr}#{aria_attr}#{style_attr(item_style)}>
         #{inner}
       </button>
       """
@@ -2304,19 +2349,19 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     action_html =
       if action_event != "" do
         """
-        <button type="button" class="ash-sidebar-section-action" phx-click="#{action_event}"#{if action_label != "", do: ~s( aria-label="#{action_label}" title="#{action_label}"), else: ""}>#{action_glyph}</button>
+        <button type="button" class="ash-sidebar-section-action" phx-click="#{action_event}" style="border: 0; background: transparent; color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 13px; cursor: pointer;"#{if action_label != "", do: ~s( aria-label="#{action_label}" title="#{action_label}"), else: ""}>#{action_glyph}</button>
         """
       else
         ""
       end
 
     """
-    <section class="#{css_classes(["ash-sidebar-section", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
-      <div class="ash-sidebar-section-header">
-        <span class="ash-sidebar-section-title">#{title}</span>
+    <section class="#{css_classes(["ash-sidebar-section", prop_class(iur)])}"#{style_attr(merge_style(["display: flex", "flex-direction: column", "gap: 6px"], prop_style(iur)))}>
+      <div class="ash-sidebar-section-header" style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+        <span class="ash-sidebar-section-title" style="color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 11px; text-transform: uppercase;">#{title}</span>
         #{action_html}
       </div>
-      <div class="ash-sidebar-section-body">
+      <div class="ash-sidebar-section-body" style="display: flex; flex-direction: column; gap: 4px;">
         #{generate_children(iur["children"] || [], opts)}
       </div>
     </section>
@@ -2328,8 +2373,8 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     collapsed = prop(props, "collapsed", false)
 
     """
-    <aside class="#{css_classes(["ash-sidebar-shell", prop_class(iur)])}" data-collapsed="#{collapsed}"#{style_attr(prop_style(iur))}>
-      <div class="ash-sidebar-shell-scroll">
+    <aside class="#{css_classes(["ash-sidebar-shell", prop_class(iur)])}" data-collapsed="#{collapsed}"#{style_attr(merge_style(["display: flex", "flex-direction: column", "min-height: 0", "height: 100%", "background: var(--bg, var(--bg-1))"], prop_style(iur)))}>
+      <div class="ash-sidebar-shell-scroll" style="display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow-y: auto; padding: 12px 10px 14px;">
         #{generate_children(iur["children"] || [], opts)}
       </div>
     </aside>
@@ -2351,21 +2396,29 @@ defmodule AshUI.Rendering.LiveUIAdapter do
         shortcut = text_prop(item, "shortcut", "")
         current = if prop(item, "current", false), do: "true", else: "false"
 
+        item_style =
+          if current == "true",
+            do:
+              "display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 14px; border: 0; border-radius: 999px; background: var(--bg-elevated, var(--bg-2)); color: var(--ink, var(--fg)); font-family: var(--mono, var(--font-mono)); font-size: 12px; cursor: pointer;",
+            else:
+              "display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 12px; cursor: pointer;"
+
         shortcut_html =
           if shortcut != "",
-            do: ~s(<span class="ash-mode-nav-shortcut">#{shortcut}</span>),
+            do:
+              ~s|<span class="ash-mode-nav-shortcut" style="padding: 1px 4px; border: 1px solid var(--rule, var(--line)); border-radius: 3px; color: var(--ink-faint, var(--fg-3)); font-size: 10px;">#{shortcut}</span>|,
             else: ""
 
         """
-        <button type="button" class="ash-mode-nav-item" aria-current="#{current}" phx-click="#{event}" phx-value-#{event_value_key}="#{value}">
-          <span class="ash-mode-nav-label">#{label}</span>
+        <button type="button" class="ash-mode-nav-item" aria-current="#{current}" phx-click="#{event}" phx-value-#{event_value_key}="#{value}" style="#{item_style}">
+          <span class="ash-mode-nav-label" style="white-space: nowrap;">#{label}</span>
           #{shortcut_html}
         </button>
         """
       end)
 
     """
-    <nav class="#{css_classes(["ash-mode-nav", prop_class(iur)])}" aria-label="#{aria_label}"#{style_attr(prop_style(iur))}>
+    <nav class="#{css_classes(["ash-mode-nav", prop_class(iur)])}" aria-label="#{aria_label}"#{style_attr(merge_style(["display: inline-flex", "align-items: center", "gap: 8px", "padding: 3px", "border: 1px solid var(--rule, var(--line))", "border-radius: 999px", "background: var(--bg-paper, var(--bg-1))"], prop_style(iur)))}>
       #{items_html}
     </nav>
     """
@@ -2386,36 +2439,43 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     theme_button = fn value, glyph, label ->
       pressed = if current_theme == value, do: "true", else: "false"
 
+      theme_style =
+        if pressed == "true" do
+          "display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; border: 0; border-radius: 999px; background: var(--bg-elevated, var(--bg-2)); color: var(--ink, var(--fg)); font-family: var(--mono, var(--font-mono)); font-size: 12px; cursor: pointer;"
+        else
+          "display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 12px; cursor: pointer;"
+        end
+
       """
-      <button type="button" class="ash-top-strip-theme-button" aria-pressed="#{pressed}" aria-label="#{label}" title="#{label}" phx-click="#{theme_event}" phx-value-theme="#{value}">#{glyph}</button>
+      <button type="button" class="ash-top-strip-theme-button" aria-pressed="#{pressed}" aria-label="#{label}" title="#{label}" phx-click="#{theme_event}" phx-value-theme="#{value}" style="#{theme_style}">#{glyph}</button>
       """
     end
 
     """
-    <header class="#{css_classes(["ash-top-strip", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
-      <div class="ash-top-strip-identity">
-        <span class="ash-top-strip-mark" aria-hidden="true">⊢</span>
-        <div class="ash-top-strip-crumb">
-          <b>#{brand}</b>
-          #{if context != "", do: ~s(<span class="ash-top-strip-sep">/</span><span>#{context}</span>), else: ""}
+    <header class="#{css_classes(["ash-top-strip", prop_class(iur)])}"#{style_attr(merge_style(["display: grid", "grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr)", "align-items: center", "gap: 16px", "padding: 0 22px", "min-height: 44px", "background: color-mix(in srgb, var(--bg, var(--bg-1)) 88%, transparent)", "border-bottom: 1px solid var(--rule, var(--line))", "backdrop-filter: blur(18px)", "-webkit-backdrop-filter: blur(18px)"], prop_style(iur)))}>
+      <div class="ash-top-strip-identity" style="display: inline-flex; align-items: center; gap: 12px; min-width: 0;">
+        <span class="ash-top-strip-mark" aria-hidden="true" style="display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--rule, var(--line)); border-radius: 999px; color: var(--accent, var(--accent-fg)); font-family: var(--mono, var(--font-mono)); font-size: 11px;">⊢</span>
+        <div class="ash-top-strip-crumb" style="display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+          <b style="color: var(--ink, var(--fg)); font-weight: 500; font-size: 12px;">#{brand}</b>
+          #{if context != "", do: ~s|<span class="ash-top-strip-sep" style="color: var(--ink-faint, var(--fg-3));">/</span><span>#{context}</span>|, else: ""}
         </div>
       </div>
-      <div class="ash-top-strip-center">
+      <div class="ash-top-strip-center" style="display: flex; justify-content: center;">
         #{if center, do: generate_heex(center, opts), else: ""}
       </div>
-      <div class="ash-top-strip-actions">
-        <div class="ash-top-strip-theme" role="group" aria-label="Theme">
+      <div class="ash-top-strip-actions" style="display: inline-flex; align-items: center; justify-self: end; gap: 8px;">
+        <div class="ash-top-strip-theme" role="group" aria-label="Theme" style="display: inline-flex; align-items: center; gap: 3px; padding: 2px; border: 1px solid var(--rule, var(--line)); border-radius: 999px; background: var(--bg-paper, var(--bg-1));">
           #{theme_button.("light", "☼", "light")}
           #{theme_button.("system", "⚙", "system")}
           #{theme_button.("dark", "☾", "dark")}
         </div>
-        <button type="button" class="ash-top-strip-pane-toggle" aria-pressed="#{pane_open}" phx-click="#{pane_event}" title="toggle reference pane" aria-label="toggle reference pane">
+        <button type="button" class="ash-top-strip-pane-toggle" aria-pressed="#{pane_open}" phx-click="#{pane_event}" title="toggle reference pane" aria-label="toggle reference pane" style="#{if pane_open, do: "display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; border: 0; border-radius: 999px; background: var(--bg-elevated, var(--bg-2)); color: var(--ink, var(--fg)); font-family: var(--mono, var(--font-mono)); font-size: 12px; cursor: pointer;", else: "display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 22px; border: 0; border-radius: 999px; background: transparent; color: var(--ink-faint, var(--fg-3)); font-family: var(--mono, var(--font-mono)); font-size: 12px; cursor: pointer;"}">
           ▥
         </button>
-        <button type="button" class="ash-top-strip-palette" phx-click="#{palette_event}" title="quick jump" aria-label="quick jump">
+        <button type="button" class="ash-top-strip-palette" phx-click="#{palette_event}" title="quick jump" aria-label="quick jump" style="display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border: 1px solid var(--rule, var(--line)); border-radius: 999px; background: var(--bg-paper, var(--bg-1)); color: var(--ink-soft, var(--fg-2)); font-family: var(--mono, var(--font-mono)); font-size: 12px; cursor: pointer;">
           <span>⌕</span>
           <span>jump</span>
-          <span class="ash-top-strip-shortcut">⌘K</span>
+          <span class="ash-top-strip-shortcut" style="padding: 1px 5px; border: 1px solid var(--rule, var(--line)); border-radius: 3px; font-size: 10px; color: var(--ink-faint, var(--fg-3));">⌘K</span>
         </button>
       </div>
     </header>

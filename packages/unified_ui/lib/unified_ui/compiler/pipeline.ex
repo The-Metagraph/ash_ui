@@ -955,6 +955,12 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:minimum, :maximum, :label, :state])
           )
 
+        :top_strip ->
+          Widgets.Components.top_strip(
+            lower_children(node, context, visited, :nav),
+            common_opts(node, attachments, [:title, :brand_glyph, :elevation])
+          )
+
         :sticky_frosted_header ->
           Widgets.Components.sticky_frosted_header(
             lower_children(node, context, visited),
@@ -1031,9 +1037,9 @@ defmodule UnifiedUi.Compiler.Pipeline do
     ])
   end
 
-  defp lower_children(node, context, visited) do
+  defp lower_children(node, context, visited, slot \\ :default) do
     Enum.map(node.children, fn child ->
-      Element.Child.new(:default, lower_node(child, context, visited))
+      Element.Child.new(slot, lower_node(child, context, visited))
     end)
   end
 

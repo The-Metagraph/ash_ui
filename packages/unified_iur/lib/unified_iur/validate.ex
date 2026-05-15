@@ -100,6 +100,11 @@ defmodule UnifiedIUR.Validate do
       guidance:
         "Keep progress and meter values numeric and within the canonical minimum and maximum range."
     },
+    invalid_top_strip: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent top strips with supported elevation, optional non-empty title and brand glyph fallback, and only leading, nav, or trailing slot children."
+    },
     invalid_selection_option: %{
       construct_family: :widget_components,
       guidance:
@@ -467,6 +472,43 @@ defmodule UnifiedIUR.Validate do
         "meter_thin current, minimum, and maximum must be numeric and in range",
         path: [:attributes, :meter],
         details: %{current: current, minimum: minimum, maximum: maximum}
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{
+         kind: :top_strip,
+         attributes: attributes,
+         children: children
+       }) do
+    top_strip = Map.get(attributes, :top_strip, %{})
+    title = fetch(top_strip, :title)
+    brand_glyph = fetch(top_strip, :brand_glyph)
+    elevation = fetch(top_strip, :elevation, :flat)
+
+    invalid_slots =
+      children
+      |> Enum.map(& &1.slot)
+      |> Enum.reject(&(&1 in [:leading, :nav, :trailing]))
+
+    valid? =
+      (is_nil(title) or (is_binary(title) and title != "")) and
+        (is_nil(brand_glyph) or (is_binary(brand_glyph) and brand_glyph != "")) and
+        elevation in [:flat, :raised] and invalid_slots == []
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_top_strip,
+        "top_strip requires :flat or :raised elevation, non-empty title and brand_glyph values when present, and only :leading, :nav, or :trailing child slots",
+        path: [:attributes, :top_strip],
+        details: %{
+          title: title,
+          brand_glyph: brand_glyph,
+          elevation: elevation,
+          slots: invalid_slots
+        }
       )
     )
   end

@@ -311,6 +311,7 @@ defmodule UnifiedUi.Phase2IntegrationTest do
              :segmented_progress_bar,
              :workflow_stage_list_vertical,
              :meter_thin,
+             :top_strip,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout,

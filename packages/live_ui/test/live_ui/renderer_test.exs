@@ -4,7 +4,7 @@ defmodule LiveUi.RendererTest do
   import Phoenix.LiveViewTest
 
   alias UnifiedIUR.{Container, Element, Forms, Interaction, Layout}
-  alias UnifiedIUR.Widgets.{Foundational, Input, Navigation}
+  alias UnifiedIUR.Widgets.{Components, Foundational, Input, Navigation}
 
   test "renderer maps foundational canonical widgets and layouts into native components" do
     element =
@@ -60,6 +60,42 @@ defmodule LiveUi.RendererTest do
     assert html =~ "data-live-ui-widget=\"field\""
     assert html =~ "data-live-ui-widget=\"text-input\""
     assert html =~ "Pascal"
+  end
+
+  test "renderer maps top_strip canonical components into banner chrome markup" do
+    element =
+      Components.top_strip(
+        [
+          {:nav, Foundational.button("Documents", id: "mode-nav-button")},
+          {:trailing, Foundational.button("Settings", id: "settings-button")}
+        ],
+        id: "workspace-top-strip",
+        title: "Ariston",
+        brand_glyph: "A",
+        elevation: :raised
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="top-strip")
+    assert html =~ ~s(role="banner")
+    assert html =~ ~s(aria-label="primary application chrome")
+    assert html =~ ~s(data-elevation="raised")
+    assert html =~ ~s(data-region="leading")
+    assert html =~ ~s(data-region="nav")
+    assert html =~ ~s(data-region="trailing")
+    assert html =~ "Ariston"
+    assert html =~ "Documents"
+    assert html =~ "Settings"
+  end
+
+  test "renderer marks empty top_strip regions without crashing" do
+    element = Components.top_strip([], id: "empty-top-strip", title: "Ariston")
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-region="nav" data-empty="true")
+    assert html =~ ~s(data-region="trailing" data-empty="true")
   end
 
   test "runtime can mount canonical unified_iur input through the shared screen host" do

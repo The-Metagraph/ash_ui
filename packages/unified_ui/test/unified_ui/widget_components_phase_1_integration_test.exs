@@ -60,6 +60,16 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
         active_index(1)
       end
 
+      top_strip :workspace_top_strip do
+        title("Ariston")
+        brand_glyph("A")
+        elevation(:raised)
+
+        button :mode_nav_button do
+          label("Documents")
+        end
+      end
+
       slide_over_panel :details_panel do
         accessibility_label("Details")
         open?(true)
@@ -94,6 +104,7 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
              :composition_behavior,
              :content_identity_and_disclosure,
              :form_control_and_composer,
+             :foundational,
              :layer_shell_and_callout,
              :redline_and_code,
              :row_and_artifact,
@@ -112,6 +123,7 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
           :chat_composer,
           :artifact_row,
           :pipeline_stepper_horizontal,
+          :top_strip,
           :slide_over_panel,
           :redline_inline,
           :code_block_syntax_highlighted,
@@ -139,6 +151,16 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
              })
 
     assert segmented_message =~ "segmented_button_group"
+
+    assert {:error, [:composition, :top_strip, :bad_top_strip], top_strip_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :top_strip,
+               id: :bad_top_strip,
+               title: "",
+               elevation: :floating
+             })
+
+    assert top_strip_message =~ "top_strip"
 
     assert {:error, [:composition, :redline_inline, :bad_redline], redline_message} =
              ValidateWidgetComponents.validate_node(%Node{

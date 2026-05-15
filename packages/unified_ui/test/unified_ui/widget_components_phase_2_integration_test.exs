@@ -43,6 +43,16 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
         change_intent(:validate_settings)
       end
 
+      top_strip :workspace_top_strip do
+        title("Ariston")
+        brand_glyph("A")
+        elevation(:raised)
+
+        button :mode_nav_button do
+          label("Documents")
+        end
+      end
+
       slide_over_panel :details_panel do
         accessibility_label("Details")
         open?(true)
@@ -84,6 +94,7 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
           :inline_rich_text_heading,
           :segmented_button_group,
           :runtime_form_shell,
+          :top_strip,
           :slide_over_panel,
           :redline_inline,
           :code_block_syntax_highlighted,
@@ -103,6 +114,7 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
 
     segmented = Tree.find_by_id(iur, :status_filter)
     form = Tree.find_by_id(iur, :settings_form)
+    top_strip = Tree.find_by_id(iur, :workspace_top_strip)
     panel = Tree.find_by_id(iur, :details_panel)
     repeat = Tree.find_by_id(iur, :artifact_repeat)
 
@@ -113,6 +125,14 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
              {:submit, :save_settings},
              {:change, :validate_settings}
            ]
+
+    assert top_strip.attributes.top_strip == %{
+             title: "Ariston",
+             brand_glyph: "A",
+             elevation: :raised
+           }
+
+    assert Enum.map(top_strip.children, & &1.slot) == [:nav]
 
     assert [%Interaction{family: :close, intent: :close_details}] = panel.attributes.interactions
 

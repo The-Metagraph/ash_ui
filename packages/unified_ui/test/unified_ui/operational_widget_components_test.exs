@@ -46,6 +46,18 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
         end
       end
 
+      sidebar_item :build_sidebar_item do
+        label("build/phase-31.2")
+        glyph("◇")
+        meta("phase 31.2")
+        state(:blocked)
+        item_kind(:build)
+        item_id("phase-31.2")
+        action_intent(:open_build)
+        unread_count(12)
+        badge_tone(:critical)
+      end
+
       pipeline_stepper_horizontal :release_steps do
         steps([
           %{id: :draft, label: "Draft", state: :done},
@@ -140,7 +152,8 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
   test "registers authored operational widget component kinds" do
     assert UnifiedUi.Widgets.row_artifact_component_kinds() == [
              :list_item_multi_column,
-             :artifact_row
+             :artifact_row,
+             :sidebar_item
            ]
 
     assert UnifiedUi.Widgets.workflow_component_kinds() == [
@@ -176,6 +189,10 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
             by_id.adr_artifact.meta.status} ==
              {:row_and_artifact, :artifact_row, "Widget component ADR", :accepted}
 
+    assert {by_id.build_sidebar_item.family, by_id.build_sidebar_item.kind,
+            by_id.build_sidebar_item.item_kind, by_id.build_sidebar_item.unread_count} ==
+             {:row_and_artifact, :sidebar_item, :build, 12}
+
     assert {by_id.release_steps.family, by_id.release_steps.kind,
             by_id.release_steps.active_index, by_id.release_steps.navigation_intent} ==
              {:workflow_progress_and_status, :pipeline_stepper_horizontal, 1,
@@ -209,6 +226,20 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
            } = summary.task_row
 
     assert Enum.map(summary.task_row.children, & &1.kind) == [:text, :badge]
+
+    assert %{
+             family: :row_and_artifact,
+             kind: :sidebar_item,
+             label: "build/phase-31.2",
+             glyph: "◇",
+             meta: "phase 31.2",
+             state: :blocked,
+             item_kind: :build,
+             item_id: "phase-31.2",
+             action_intent: :open_build,
+             unread_count: 12,
+             badge_tone: :critical
+           } = summary.build_sidebar_item
 
     assert %{
              family: :workflow_progress_and_status,
@@ -246,6 +277,19 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              })
 
     assert row_message =~ "column_template must be a non-empty list"
+
+    assert {:error, [:composition, :sidebar_item, :bad_sidebar], sidebar_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_item,
+               id: :bad_sidebar,
+               label: "Build",
+               state: :muted,
+               item_kind: :unknown,
+               item_id: nil,
+               unread_count: -1
+             })
+
+    assert sidebar_message =~ "state must be :default, :active, or :blocked"
 
     assert {:error, [:composition, :pipeline_stepper_horizontal, :bad_steps], step_message} =
              ValidateWidgetComponents.validate_node(%Node{

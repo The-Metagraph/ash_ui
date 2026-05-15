@@ -869,6 +869,12 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:size, :accessibility_label])
           )
 
+        :unread_badge ->
+          Widgets.Components.unread_badge(
+            node.count || 0,
+            common_opts(node, attachments, %{tone: node.tone})
+          )
+
         :segmented_button_group ->
           Widgets.Components.segmented_button_group(
             normalize_keyword_items(node.options),
@@ -925,6 +931,24 @@ defmodule UnifiedUi.Compiler.Pipeline do
               :action_intent,
               :meta
             ])
+          )
+
+        :sidebar_item ->
+          Widgets.Components.sidebar_item(
+            node.label || "",
+            common_opts(node, attachments,
+              glyph: node.glyph,
+              meta: node.meta,
+              state: node.state,
+              item_kind: node.item_kind,
+              item_id: node.item_id,
+              link_target: node.link_target,
+              action_intent: node.action_intent,
+              unread_count: node.unread_count,
+              badge_tone: node.badge_tone,
+              accessibility_label: node.accessibility_label,
+              accessibility_description: node.accessibility_description
+            )
           )
 
         :pipeline_stepper_horizontal ->

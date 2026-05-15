@@ -3,7 +3,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
 
   alias UnifiedUi.WidgetComponents
 
-  test "catalog groups the AshUi PR 79-98 additions into canonical families" do
+  test "catalog groups the AshUi admissions into canonical families" do
     assert WidgetComponents.families() == [
              :content_identity_and_disclosure,
              :form_control_and_composer,
@@ -20,14 +20,15 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :disclosure,
                :kicker,
                :avatar,
-               :presence_dot
+               :presence_dot,
+               :unread_badge
              ],
              form_control_and_composer: [
                :runtime_form_shell,
                :segmented_button_group,
                :chat_composer
              ],
-             row_and_artifact: [:list_item_multi_column, :artifact_row],
+             row_and_artifact: [:list_item_multi_column, :artifact_row, :sidebar_item],
              workflow_progress_and_status: [
                :pipeline_stepper_horizontal,
                :segmented_progress_bar,
@@ -47,10 +48,14 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
   test "source mapping records every AshUi PR in order" do
     source_mapping = WidgetComponents.source_mapping()
 
-    assert Map.keys(source_mapping) == Enum.to_list(79..98)
+    assert Enum.sort(Map.keys(source_mapping)) == Enum.to_list(79..98) ++ [101, 102]
     assert source_mapping[79].canonical_kind == :inline_rich_text_heading
     assert source_mapping[81].source_name == :phoenix_form
     assert source_mapping[81].canonical_kind == :runtime_form_shell
+    assert source_mapping[101].source_name == :unread_badge
+    assert source_mapping[101].canonical_kind == :unread_badge
+    assert source_mapping[102].source_name == :sidebar_item
+    assert source_mapping[102].canonical_kind == :sidebar_item
     assert source_mapping[98].source_name == :ui_relationship_repeat
     assert source_mapping[98].canonical_kind == :list_repeat
   end

@@ -51,6 +51,17 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
         action_intent(:open_artifact)
       end
 
+      sidebar_item :artifact_sidebar_item do
+        label("build/spec-artifact")
+        glyph("◇")
+        meta("spec")
+        state(:active)
+        item_kind(:build)
+        item_id("spec-artifact")
+        action_intent(:open_artifact)
+        unread_count(3)
+      end
+
       pipeline_stepper_horizontal :workflow_steps do
         steps([
           %{id: :authored, label: "Authored", state: :done},
@@ -111,6 +122,7 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
           :runtime_form_shell,
           :chat_composer,
           :artifact_row,
+          :sidebar_item,
           :pipeline_stepper_horizontal,
           :slide_over_panel,
           :redline_inline,

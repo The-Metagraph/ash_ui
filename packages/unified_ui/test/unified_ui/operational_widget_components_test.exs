@@ -46,6 +46,53 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
         end
       end
 
+      sidebar_item :build_sidebar_item do
+        label("build/phase-31.2")
+        glyph("◇")
+        meta("phase 31.2")
+        state(:blocked)
+        item_kind(:build)
+        item_id("phase-31.2")
+        action_intent(:open_build)
+        unread_count(12)
+        badge_tone(:critical)
+      end
+
+      sidebar_shell :primary_navigation do
+        width(:wide)
+        aria_label("primary navigation")
+
+        sidebar_section :shell_channels_section do
+          title("Channels")
+          action_glyph("+")
+          action_label("New channel")
+          action_intent(:new_channel)
+
+          sidebar_item :shell_channel_sidebar_item do
+            label("metagraph-team")
+            glyph("#")
+            item_kind(:channel)
+            item_id("metagraph-team")
+            action_intent(:open_channel)
+          end
+        end
+      end
+
+      sidebar_section :channels_section do
+        title("Channels")
+        action_glyph("+")
+        action_label("New channel")
+        action_intent(:new_channel)
+
+        sidebar_item :channel_sidebar_item do
+          label("metagraph-team")
+          glyph("#")
+          item_kind(:channel)
+          item_id("metagraph-team")
+          action_intent(:open_channel)
+        end
+      end
+
       pipeline_stepper_horizontal :release_steps do
         steps([
           %{id: :draft, label: "Draft", state: :done},
@@ -140,7 +187,8 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
   test "registers authored operational widget component kinds" do
     assert UnifiedUi.Widgets.row_artifact_component_kinds() == [
              :list_item_multi_column,
-             :artifact_row
+             :artifact_row,
+             :sidebar_item
            ]
 
     assert UnifiedUi.Widgets.workflow_component_kinds() == [
@@ -151,6 +199,8 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
            ]
 
     assert UnifiedUi.Widgets.layer_callout_component_kinds() == [
+             :sidebar_shell,
+             :sidebar_section,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout
@@ -175,6 +225,22 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
     assert {by_id.adr_artifact.family, by_id.adr_artifact.kind, by_id.adr_artifact.title,
             by_id.adr_artifact.meta.status} ==
              {:row_and_artifact, :artifact_row, "Widget component ADR", :accepted}
+
+    assert {by_id.build_sidebar_item.family, by_id.build_sidebar_item.kind,
+            by_id.build_sidebar_item.item_kind, by_id.build_sidebar_item.unread_count} ==
+             {:row_and_artifact, :sidebar_item, :build, 12}
+
+    assert {by_id.primary_navigation.family, by_id.primary_navigation.kind,
+            by_id.primary_navigation.width, by_id.primary_navigation.aria_label} ==
+             {:layer_shell_and_callout, :sidebar_shell, :wide, "primary navigation"}
+
+    assert Enum.map(by_id.primary_navigation.children, & &1.kind) == [:sidebar_section]
+
+    assert {by_id.channels_section.family, by_id.channels_section.kind,
+            by_id.channels_section.title, by_id.channels_section.action_intent} ==
+             {:layer_shell_and_callout, :sidebar_section, "Channels", :new_channel}
+
+    assert Enum.map(by_id.channels_section.children, & &1.kind) == [:sidebar_item]
 
     assert {by_id.release_steps.family, by_id.release_steps.kind,
             by_id.release_steps.active_index, by_id.release_steps.navigation_intent} ==
@@ -209,6 +275,38 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
            } = summary.task_row
 
     assert Enum.map(summary.task_row.children, & &1.kind) == [:text, :badge]
+
+    assert %{
+             family: :row_and_artifact,
+             kind: :sidebar_item,
+             label: "build/phase-31.2",
+             glyph: "◇",
+             meta: "phase 31.2",
+             state: :blocked,
+             item_kind: :build,
+             item_id: "phase-31.2",
+             action_intent: :open_build,
+             unread_count: 12,
+             badge_tone: :critical
+           } = summary.build_sidebar_item
+
+    assert %{
+             family: :layer_shell_and_callout,
+             kind: :sidebar_shell
+           } = summary.primary_navigation
+
+    assert Enum.map(summary.primary_navigation.children, & &1.kind) == [:sidebar_section]
+
+    assert %{
+             family: :layer_shell_and_callout,
+             kind: :sidebar_section,
+             title: "Channels",
+             action_glyph: "+",
+             action_label: "New channel",
+             action_intent: :new_channel
+           } = summary.channels_section
+
+    assert Enum.map(summary.channels_section.children, & &1.kind) == [:sidebar_item]
 
     assert %{
              family: :workflow_progress_and_status,
@@ -246,6 +344,41 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              })
 
     assert row_message =~ "column_template must be a non-empty list"
+
+    assert {:error, [:composition, :sidebar_item, :bad_sidebar], sidebar_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_item,
+               id: :bad_sidebar,
+               label: "Build",
+               state: :muted,
+               item_kind: :unknown,
+               item_id: nil,
+               unread_count: -1
+             })
+
+    assert sidebar_message =~ "state must be :default, :active, or :blocked"
+
+    assert {:error, [:composition, :sidebar_section, :bad_section], section_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_section,
+               id: :bad_section,
+               title: "Channels",
+               action_glyph: "+",
+               action_intent: nil
+             })
+
+    assert section_message =~ "action_intent requires a visible action_glyph"
+
+    assert {:error, [:composition, :sidebar_shell, :bad_shell], shell_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_shell,
+               id: :bad_shell,
+               width: :compact,
+               aria_label: "",
+               children: [%Node{kind: :sidebar_item, id: :bad_child}]
+             })
+
+    assert shell_message =~ "width must be :narrow or :wide"
 
     assert {:error, [:composition, :pipeline_stepper_horizontal, :bad_steps], step_message} =
              ValidateWidgetComponents.validate_node(%Node{

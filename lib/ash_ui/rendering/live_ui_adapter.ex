@@ -402,6 +402,31 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "top_strip"} = iur, opts) do
+    props = iur["props"] || %{}
+    elevation = top_strip_elevation_value(props)
+    leading_children = slot_children(iur, "leading")
+    nav_children = slot_children(iur, "nav")
+    trailing_children = slot_children(iur, "trailing")
+    leading_fallback = top_strip_leading_fallback_html(props)
+
+    leading_html =
+      if leading_children == [],
+        do: leading_fallback,
+        else: generate_children(leading_children, opts)
+
+    nav_html = generate_children(nav_children, opts)
+    trailing_html = generate_children(trailing_children, opts)
+
+    """
+    <header class="#{css_classes(["ash-top-strip", "ash-top-strip-#{elevation}", prop_class(iur)])}" role="banner" aria-label="primary application chrome" data-elevation="#{elevation}">
+      #{top_strip_region_html("leading", leading_html)}
+      #{top_strip_region_html("nav", nav_html)}
+      #{top_strip_region_html("trailing", trailing_html)}
+    </header>
+    """
+  end
+
   defp generate_heex(%{"type" => "disclosure"} = iur, opts) do
     props = iur["props"] || %{}
     summary = escaped_text_prop(props, ["summary", "label", "title"], "Details")
@@ -2889,6 +2914,39 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp style_attr(nil), do: ""
   defp style_attr(""), do: ""
   defp style_attr(style), do: " style=\"#{style}\""
+
+  defp top_strip_elevation_value(props) do
+    case text_prop(props, "elevation", "flat") do
+      "raised" -> "raised"
+      _other -> "flat"
+    end
+  end
+
+  defp top_strip_leading_fallback_html(props) do
+    title = text_prop(props, "title")
+    brand_glyph = text_prop(props, "brand_glyph")
+
+    if is_nil(title) and is_nil(brand_glyph) do
+      ""
+    else
+      """
+      <div class="ash-top-strip-brand">
+        #{if brand_glyph, do: "<span class=\"ash-top-strip-brand-glyph\" aria-hidden=\"true\">#{brand_glyph}</span>", else: ""}
+        #{if title, do: "<span class=\"ash-top-strip-title\">#{title}</span>", else: ""}
+      </div>
+      """
+    end
+  end
+
+  defp top_strip_region_html(region, content) do
+    class_name = "ash-top-strip-#{region}"
+
+    if content == "" do
+      ~s(<div class="#{class_name}" data-region="#{region}" data-empty="true"></div>)
+    else
+      ~s(<div class="#{class_name}" data-region="#{region}">#{content}</div>)
+    end
+  end
 
   defp attr(_name, nil), do: ""
   defp attr(_name, ""), do: ""

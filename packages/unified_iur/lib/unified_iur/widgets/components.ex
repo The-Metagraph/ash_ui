@@ -51,6 +51,7 @@ defmodule UnifiedIUR.Widgets.Components do
   ]
 
   @layer_callout_kinds [
+    :top_strip,
     :sticky_frosted_header,
     :slide_over_panel,
     :event_callout
@@ -358,6 +359,28 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:state, option(opts, :state))
       },
       opts
+    )
+  end
+
+  @spec top_strip(
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) ::
+          Element.t()
+  def top_strip(children \\ [], opts \\ []) when is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :top_strip,
+      :layer_shell_and_callout,
+      %{
+        top_strip:
+          %{}
+          |> maybe_put(:title, option(opts, :title))
+          |> maybe_put(:brand_glyph, option(opts, :brand_glyph))
+          |> maybe_put(:elevation, option(opts, :elevation, :flat))
+      },
+      Map.put(opts, :children, children)
     )
   end
 

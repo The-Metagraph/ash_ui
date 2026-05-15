@@ -157,6 +157,14 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   def layer_callout_entities do
     [
       container(
+        :top_strip,
+        @layer_family,
+        title: [type: :string, required: false],
+        brand_glyph: [type: :string, required: false],
+        elevation: [type: {:in, [:flat, :raised]}, required: false, default: :flat],
+        summary: [type: :string, required: false]
+      ),
+      container(
         :sticky_frosted_header,
         @layer_family,
         title: [type: :string, required: true],

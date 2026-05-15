@@ -32,6 +32,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            ]
 
     assert Components.layer_callout_kinds() == [
+             :top_strip,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout
@@ -197,6 +198,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
       )
 
     meter = Components.meter_thin(82.5, label: "Coverage", state: :success)
+
+    top_strip =
+      Components.top_strip(
+        [
+          {:leading, Foundational.text("Leading override")},
+          {:nav, Foundational.button("Documents")},
+          {:trailing, Foundational.button("Settings")}
+        ],
+        title: "Ariston",
+        brand_glyph: "A",
+        elevation: :raised
+      )
+
     header = Components.sticky_frosted_header([], title: "Workspace", leading: [:back])
 
     panel =
@@ -251,6 +265,18 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              label: "Coverage",
              state: :success
            }
+
+    assert top_strip.attributes.top_strip == %{
+             title: "Ariston",
+             brand_glyph: "A",
+             elevation: :raised
+           }
+
+    assert Enum.map(top_strip.children, &{&1.slot, &1.element.kind}) == [
+             {:leading, :text},
+             {:nav, :button},
+             {:trailing, :button}
+           ]
 
     assert header.attributes.shell == %{
              position: :sticky,

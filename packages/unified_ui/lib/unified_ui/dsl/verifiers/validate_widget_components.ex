@@ -202,6 +202,31 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     end
   end
 
+  def validate_node(%Node{
+        kind: :top_strip,
+        id: id,
+        title: title,
+        brand_glyph: brand_glyph,
+        elevation: elevation
+      }) do
+    cond do
+      not is_nil(title) and blank_string?(title) ->
+        {:error, [:composition, :top_strip, id],
+         "top_strip #{inspect(id)} title must be a non-empty string when present"}
+
+      not is_nil(brand_glyph) and blank_string?(brand_glyph) ->
+        {:error, [:composition, :top_strip, id],
+         "top_strip #{inspect(id)} brand_glyph must be a non-empty string when present"}
+
+      elevation not in [nil, :flat, :raised] ->
+        {:error, [:composition, :top_strip, id],
+         "top_strip #{inspect(id)} elevation must be :flat or :raised"}
+
+      true ->
+        :ok
+    end
+  end
+
   def validate_node(%Node{kind: :slide_over_panel, id: id, modal?: modal?}) do
     if modal? in [false, nil] do
       :ok
@@ -451,6 +476,8 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   defp valid_scalar?(""), do: false
   defp valid_scalar?(value) when is_atom(value) or is_binary(value) or is_number(value), do: true
   defp valid_scalar?(_value), do: false
+
+  defp blank_string?(value), do: not is_binary(value) or value == ""
 
   defp positive_number?(value) when is_number(value), do: value > 0
   defp positive_number?(_value), do: false

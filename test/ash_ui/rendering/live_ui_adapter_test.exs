@@ -414,6 +414,65 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       refute heex =~ ~r/font-family\s*:/i
     end
 
+    test "generates top_strip markup with three explicit regions and elevation semantics" do
+      iur = %{
+        "type" => "top_strip",
+        "id" => "workspace-top-strip",
+        "props" => %{
+          "title" => "Ariston",
+          "brand_glyph" => "A",
+          "elevation" => "raised"
+        },
+        "children" => [
+          %{
+            "type" => "button",
+            "id" => "mode-nav",
+            "props" => %{"label" => "Documents"},
+            "children" => [],
+            "metadata" => %{"slot" => "nav"}
+          },
+          %{
+            "type" => "button",
+            "id" => "settings",
+            "props" => %{"label" => "Settings"},
+            "children" => [],
+            "metadata" => %{"slot" => "trailing"}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-top-strip"
+      assert heex =~ ~s(role="banner")
+      assert heex =~ ~s(aria-label="primary application chrome")
+      assert heex =~ ~s(data-elevation="raised")
+      assert heex =~ ~s(data-region="leading")
+      assert heex =~ ~s(data-region="nav")
+      assert heex =~ ~s(data-region="trailing")
+      assert heex =~ "Ariston"
+      assert heex =~ "Documents"
+      assert heex =~ "Settings"
+    end
+
+    test "top_strip renders empty slot markers without inline styles" do
+      iur = %{
+        "type" => "top_strip",
+        "id" => "empty-top-strip",
+        "props" => %{"title" => "Ariston"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ ~s(data-region="nav" data-empty="true")
+      assert heex =~ ~s(data-region="trailing" data-empty="true")
+      refute heex =~ ~s(style=")
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\bhsl\s*\(/
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

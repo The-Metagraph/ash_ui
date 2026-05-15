@@ -85,6 +85,16 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
         state(:success)
       end
 
+      top_strip :workspace_top_strip do
+        title("Ariston")
+        brand_glyph("A")
+        elevation(:raised)
+
+        button :mode_nav_button do
+          label("Documents")
+        end
+      end
+
       sticky_frosted_header :workspace_header do
         title("Workspace")
         leading([:back_button])
@@ -151,6 +161,7 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
            ]
 
     assert UnifiedUi.Widgets.layer_callout_component_kinds() == [
+             :top_strip,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout
@@ -180,6 +191,13 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
             by_id.release_steps.active_index, by_id.release_steps.navigation_intent} ==
              {:workflow_progress_and_status, :pipeline_stepper_horizontal, 1,
               :select_release_step}
+
+    assert {by_id.workspace_top_strip.family, by_id.workspace_top_strip.kind,
+            by_id.workspace_top_strip.title, by_id.workspace_top_strip.brand_glyph,
+            by_id.workspace_top_strip.elevation} ==
+             {:layer_shell_and_callout, :top_strip, "Ariston", "A", :raised}
+
+    assert Enum.map(by_id.workspace_top_strip.children, & &1.kind) == [:button]
 
     assert {by_id.details_panel.family, by_id.details_panel.kind, by_id.details_panel.open?,
             by_id.details_panel.modal?} ==
@@ -217,6 +235,16 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              completed_indices: [0],
              navigation_intent: :select_release_step
            } = summary.release_steps
+
+    assert %{
+             family: :layer_shell_and_callout,
+             kind: :top_strip,
+             title: "Ariston",
+             brand_glyph: "A",
+             elevation: :raised
+           } = summary.workspace_top_strip
+
+    assert Enum.map(summary.workspace_top_strip.children, & &1.kind) == [:button]
 
     assert Enum.map(summary.release_steps.steps, & &1.state) == [:done, :active, :pending]
 
@@ -277,6 +305,17 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              })
 
     assert meter_message =~ "current, minimum, and maximum must be numeric"
+
+    assert {:error, [:composition, :top_strip, :bad_top_strip], top_strip_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :top_strip,
+               id: :bad_top_strip,
+               title: "",
+               brand_glyph: "",
+               elevation: :floating
+             })
+
+    assert top_strip_message =~ "title must be a non-empty string"
 
     assert {:error, [:composition, :slide_over_panel, :bad_panel], panel_message} =
              ValidateWidgetComponents.validate_node(%Node{

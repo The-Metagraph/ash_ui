@@ -82,12 +82,16 @@ defmodule UnifiedIUR.ValidateTest do
   test "validates required component accessible names and progress ranges" do
     missing_panel_name = Components.slide_over_panel([], id: "panel")
     invalid_meter = Components.meter_thin(120, minimum: 0, maximum: 100)
+    invalid_top_strip = Components.top_strip([], title: "", brand_glyph: "", elevation: :floating)
 
     assert {:error, [panel_error]} = Validate.element(missing_panel_name)
     assert panel_error.code == :missing_accessible_name
 
     assert {:error, [meter_error]} = Validate.element(invalid_meter)
     assert meter_error.code == :invalid_progress_value
+
+    assert {:error, [top_strip_error]} = Validate.element(invalid_top_strip)
+    assert top_strip_error.code == :invalid_top_strip
   end
 
   test "validates segmented control and list repeat required shapes" do

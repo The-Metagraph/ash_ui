@@ -84,6 +84,75 @@ defmodule LiveUi.Renderer do
   attr(:runtime_state, :any, default: nil)
   attr(:event_target, :any, default: nil)
 
+  def render(%{element: %Element{kind: :top_strip}} = assigns) do
+    leading_children = child_elements(assigns.element, :leading)
+    nav_children = child_elements(assigns.element, :nav)
+    trailing_children = child_elements(assigns.element, :trailing)
+    title = top_strip_title(assigns.element)
+    brand_glyph = top_strip_brand_glyph(assigns.element)
+    has_leading_fallback = leading_children == [] and (title != nil or brand_glyph != nil)
+
+    assigns =
+      assigns
+      |> assign(:leading_children, leading_children)
+      |> assign(:nav_children, nav_children)
+      |> assign(:trailing_children, trailing_children)
+      |> assign(:top_strip_title, title)
+      |> assign(:top_strip_brand_glyph, brand_glyph)
+      |> assign(:top_strip_elevation, top_strip_elevation(assigns.element))
+      |> assign(:has_leading_fallback, has_leading_fallback)
+      |> assign(:leading_empty, leading_children == [] and not has_leading_fallback)
+      |> assign(:nav_empty, nav_children == [])
+      |> assign(:trailing_empty, trailing_children == [])
+
+    ~H"""
+    <header
+      id={element_id(@element, "top-strip")}
+      data-live-ui-widget="top-strip"
+      data-elevation={@top_strip_elevation}
+      role="banner"
+      aria-label="primary application chrome"
+      class={[
+        "live-ui-top-strip",
+        "live-ui-top-strip-#{@top_strip_elevation}",
+        style_class(@element)
+      ]}
+    >
+      <div
+        data-region="leading"
+        data-empty={if @leading_empty, do: "true", else: nil}
+        class="live-ui-top-strip-leading"
+      >
+        <div :if={@has_leading_fallback} class="live-ui-top-strip-brand">
+          <span :if={@top_strip_brand_glyph} class="live-ui-top-strip-brand-glyph" aria-hidden="true"><%= @top_strip_brand_glyph %></span>
+          <span :if={@top_strip_title} class="live-ui-top-strip-title"><%= @top_strip_title %></span>
+        </div>
+        <%= for child <- @leading_children do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </div>
+      <div
+        data-region="nav"
+        data-empty={if @nav_empty, do: "true", else: nil}
+        class="live-ui-top-strip-nav"
+      >
+        <%= for child <- @nav_children do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </div>
+      <div
+        data-region="trailing"
+        data-empty={if @trailing_empty, do: "true", else: nil}
+        class="live-ui-top-strip-trailing"
+      >
+        <%= for child <- @trailing_children do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </div>
+    </header>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1405,6 +1474,22 @@ defmodule LiveUi.Renderer do
 
   defp state_boolean(%Element{} = element, key) do
     boolean_default(get_in(element.attributes, [:state, key]), false)
+  end
+
+  defp top_strip_title(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:top_strip, :title]))
+  end
+
+  defp top_strip_brand_glyph(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:top_strip, :brand_glyph]))
+  end
+
+  defp top_strip_elevation(%Element{} = element) do
+    case get_in(element.attributes, [:top_strip, :elevation]) do
+      elevation when elevation in [:flat, :raised] -> Atom.to_string(elevation)
+      elevation when is_binary(elevation) and elevation in ["flat", "raised"] -> elevation
+      _other -> "flat"
+    end
   end
 
   defp form_interaction_attrs(%Element{} = element, event_target) do

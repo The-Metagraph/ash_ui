@@ -24,6 +24,7 @@ defmodule UnifiedUi.Dsl.Node do
           | :composition_behavior
 
   @type t :: %__MODULE__{
+          __spark_metadata__: term(),
           __identifier__: atom() | nil,
           id: atom() | nil,
           family: family() | nil,
@@ -121,6 +122,7 @@ defmodule UnifiedUi.Dsl.Node do
           cluster_nodes: list() | nil,
           metrics: map() | nil,
           title: String.t() | nil,
+          brand_glyph: String.t() | nil,
           message: String.t() | nil,
           content_ref: atom() | nil,
           target_ref: atom() | nil,
@@ -154,6 +156,7 @@ defmodule UnifiedUi.Dsl.Node do
           image_source: String.t() | nil,
           shape: atom() | nil,
           state: atom() | nil,
+          elevation: atom() | nil,
           open?: boolean() | nil,
           active_value: term(),
           selection_intent: atom() | nil,
@@ -187,7 +190,8 @@ defmodule UnifiedUi.Dsl.Node do
           children: [t()]
         }
 
-  defstruct __identifier__: nil,
+  defstruct __spark_metadata__: nil,
+            __identifier__: nil,
             id: nil,
             family: nil,
             kind: nil,
@@ -284,6 +288,7 @@ defmodule UnifiedUi.Dsl.Node do
             cluster_nodes: nil,
             metrics: nil,
             title: nil,
+            brand_glyph: nil,
             message: nil,
             content_ref: nil,
             target_ref: nil,
@@ -317,6 +322,7 @@ defmodule UnifiedUi.Dsl.Node do
             image_source: nil,
             shape: nil,
             state: nil,
+            elevation: nil,
             open?: nil,
             active_value: nil,
             selection_intent: nil,
@@ -384,6 +390,7 @@ defmodule UnifiedUi.Dsl.Node do
       severity: node.severity,
       status: node.status,
       title: node.title,
+      brand_glyph: node.brand_glyph,
       message: node.message,
       content_ref: node.content_ref,
       target_ref: node.target_ref,
@@ -413,6 +420,7 @@ defmodule UnifiedUi.Dsl.Node do
       image_source: node.image_source,
       shape: node.shape,
       state: node.state,
+      elevation: node.elevation,
       open?: node.open?,
       active_value: node.active_value,
       selection_intent: node.selection_intent,

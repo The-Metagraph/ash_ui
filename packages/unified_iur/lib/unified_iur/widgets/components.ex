@@ -29,7 +29,8 @@ defmodule UnifiedIUR.Widgets.Components do
     :disclosure,
     :kicker,
     :avatar,
-    :presence_dot
+    :presence_dot,
+    :unread_badge
   ]
 
   @form_control_kinds [
@@ -165,6 +166,18 @@ defmodule UnifiedIUR.Widgets.Components do
       :presence_dot,
       :content_identity_and_disclosure,
       %{presence: %{state: state, size: option(opts, :size, :medium)}},
+      opts
+    )
+  end
+
+  @spec unread_badge(integer(), opts()) :: Element.t()
+  def unread_badge(count, opts \\ []) when is_integer(count) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :unread_badge,
+      :content_identity_and_disclosure,
+      %{badge: %{count: count, tone: option(opts, :tone, :default)}},
       opts
     )
   end

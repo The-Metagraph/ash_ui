@@ -57,6 +57,13 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         state: [type: :atom, required: false, default: :quiet],
         size: [type: {:in, [:small, :medium, :large]}, required: false, default: :medium],
         summary: [type: :string, required: false]
+      ),
+      leaf(
+        :unread_badge,
+        @content_identity_family,
+        count: [type: :integer, required: true],
+        tone: [type: {:in, [:default, :critical]}, required: false, default: :default],
+        summary: [type: :string, required: false]
       )
     ]
   end

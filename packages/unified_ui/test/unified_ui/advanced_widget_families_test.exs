@@ -167,6 +167,7 @@ defmodule UnifiedUi.AdvancedWidgetFamiliesTest do
              :kicker,
              :avatar,
              :presence_dot,
+             :unread_badge,
              :segmented_button_group,
              :runtime_form_shell,
              :chat_composer,

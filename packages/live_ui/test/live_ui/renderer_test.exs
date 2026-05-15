@@ -4,7 +4,7 @@ defmodule LiveUi.RendererTest do
   import Phoenix.LiveViewTest
 
   alias UnifiedIUR.{Container, Element, Forms, Interaction, Layout}
-  alias UnifiedIUR.Widgets.{Foundational, Input, Navigation}
+  alias UnifiedIUR.Widgets.{Components, Foundational, Input, Navigation}
 
   test "renderer maps foundational canonical widgets and layouts into native components" do
     element =
@@ -60,6 +60,17 @@ defmodule LiveUi.RendererTest do
     assert html =~ "data-live-ui-widget=\"field\""
     assert html =~ "data-live-ui-widget=\"text-input\""
     assert html =~ "Pascal"
+  end
+
+  test "renderer maps unread_badge canonical components into native badge markup" do
+    element = Components.unread_badge(108, tone: :critical, id: "sidebar-unread")
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="unread-badge")
+    assert html =~ ~s(data-live-ui-tone="critical")
+    assert html =~ ~s(aria-label="108 unread items")
+    assert html =~ "99+"
   end
 
   test "runtime can mount canonical unified_iur input through the shared screen host" do

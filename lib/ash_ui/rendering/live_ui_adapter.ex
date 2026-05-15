@@ -747,6 +747,18 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "unread_badge"} = iur, _opts) do
+    props = iur["props"] || %{}
+    count = max(trunc(numeric_value(props, "count", 0)), 0)
+    tone = text_prop(props, "tone", "default")
+    count_text = if count > 99, do: "99+", else: Integer.to_string(count)
+    suffix = if count == 1, do: "item", else: "items"
+
+    """
+    <span class="#{css_classes(["ash-unread-badge", "ash-unread-badge-#{tone}", prop_class(iur)])}" aria-label="#{count} unread #{suffix}" data-tone="#{tone}"#{style_attr(prop_style(iur))}>#{count_text}</span>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")

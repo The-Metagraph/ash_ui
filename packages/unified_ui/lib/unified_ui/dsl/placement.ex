@@ -89,6 +89,7 @@ defmodule UnifiedUi.Dsl.Placement do
     :kicker,
     :avatar,
     :presence_dot,
+    :unread_badge,
     :segmented_button_group,
     :runtime_form_shell,
     :pipeline_stepper_horizontal,

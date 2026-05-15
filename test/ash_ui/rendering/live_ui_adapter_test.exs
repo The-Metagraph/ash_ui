@@ -414,6 +414,37 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       refute heex =~ ~r/font-family\s*:/i
     end
 
+    test "generates unread_badge with capped display text and tone classes" do
+      iur = %{
+        "type" => "unread_badge",
+        "id" => "badge-1",
+        "props" => %{"count" => 108, "tone" => "critical"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "ash-unread-badge")
+      assert String.contains?(heex, "ash-unread-badge-critical")
+      assert String.contains?(heex, "aria-label=\"108 unread items\"")
+      assert String.contains?(heex, ">99+<")
+    end
+
+    test "unread_badge produces no literal color or spacing values" do
+      iur = %{
+        "type" => "unread_badge",
+        "id" => "badge-pure",
+        "props" => %{"count" => 7, "tone" => "default"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

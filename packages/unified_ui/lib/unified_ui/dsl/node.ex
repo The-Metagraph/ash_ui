@@ -24,6 +24,7 @@ defmodule UnifiedUi.Dsl.Node do
           | :composition_behavior
 
   @type t :: %__MODULE__{
+          __spark_metadata__: term(),
           __identifier__: atom() | nil,
           id: atom() | nil,
           family: family() | nil,
@@ -93,6 +94,7 @@ defmodule UnifiedUi.Dsl.Node do
           items: list() | nil,
           ordered?: boolean() | nil,
           selection_mode: atom() | nil,
+          count: integer() | nil,
           table_columns: keyword() | list() | nil,
           table_rows: list() | nil,
           empty_state: String.t() | nil,
@@ -187,7 +189,8 @@ defmodule UnifiedUi.Dsl.Node do
           children: [t()]
         }
 
-  defstruct __identifier__: nil,
+  defstruct __spark_metadata__: nil,
+            __identifier__: nil,
             id: nil,
             family: nil,
             kind: nil,
@@ -256,6 +259,7 @@ defmodule UnifiedUi.Dsl.Node do
             items: nil,
             ordered?: nil,
             selection_mode: nil,
+            count: nil,
             table_columns: nil,
             table_rows: nil,
             empty_state: nil,
@@ -380,6 +384,7 @@ defmodule UnifiedUi.Dsl.Node do
       items: node.items,
       ordered?: node.ordered?,
       selection_mode: node.selection_mode,
+      count: node.count,
       empty_state: node.empty_state,
       severity: node.severity,
       status: node.status,

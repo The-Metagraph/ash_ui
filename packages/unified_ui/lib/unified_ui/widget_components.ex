@@ -2,9 +2,9 @@ defmodule UnifiedUi.WidgetComponents do
   @moduledoc """
   Reference catalog for the canonical widget-component expansion.
 
-  The catalog records the AshUi PR 79-98 source mapping, portable canonical
-  names, semantic families, and compatibility aliases before the DSL entities
-  are implemented.
+  The catalog records the AshUi source mapping, portable canonical names,
+  semantic families, and compatibility aliases before the DSL entities are
+  implemented.
   """
 
   @type family ::
@@ -89,6 +89,13 @@ defmodule UnifiedUi.WidgetComponents do
       family: :content_identity_and_disclosure,
       source: %{system: :ash_ui, pr: 84, name: :presence_dot},
       summary: "Small state-driven status indicator with size and accessibility metadata.",
+      aliases: []
+    },
+    %{
+      kind: :unread_badge,
+      family: :content_identity_and_disclosure,
+      source: %{system: :ash_ui, pr: 101, name: :unread_badge},
+      summary: "Compact unread-count pill with default and critical tones.",
       aliases: []
     },
     %{

@@ -65,6 +65,15 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     end
   end
 
+  def validate_node(%Node{kind: :unread_badge, id: id, count: count, tone: tone}) do
+    if is_integer(count) and count >= 0 and tone in [:default, :critical] do
+      :ok
+    else
+      {:error, [:composition, :unread_badge, id],
+       "unread_badge #{inspect(id)} count must be a non-negative integer and tone must be :default or :critical"}
+    end
+  end
+
   def validate_node(%Node{kind: :segmented_button_group, id: id, options: options}) do
     if valid_options?(options) do
       :ok

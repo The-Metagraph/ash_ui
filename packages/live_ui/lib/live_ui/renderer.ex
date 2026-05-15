@@ -520,7 +520,8 @@ defmodule LiveUI.Renderer do
             else: ""
 
         # reject_value falls back to accept_value to preserve current behavior.
-        reject_value_resolved = if reject_value && to_string(reject_value) != "", do: reject_value, else: accept_value
+        reject_value_resolved =
+          if reject_value && to_string(reject_value) != "", do: reject_value, else: accept_value
 
         reject_value_attr =
           if reject_value_resolved && to_string(reject_value_resolved) != "",
@@ -712,6 +713,212 @@ defmodule LiveUI.Renderer do
     <div role="group" class="#{css_classes(["ash-segmented-button-group", prop_class(iur)])}"#{style_attr(prop_style(iur))} aria-label="#{aria_label}">
       #{options_html}
     </div>
+    """
+  end
+
+  defp generate_heex(%{"type" => "unread_badge"} = iur, _opts) do
+    props = iur["props"] || %{}
+    count = prop(props, "count", 0)
+    loud = prop(props, "loud", false)
+    aria_label = prop(props, "aria_label")
+
+    loud_class = if loud, do: "is-loud", else: ""
+    aria_attr = if aria_label, do: ~s( aria-label="#{aria_label}"), else: ""
+
+    """
+    <span class="#{css_classes(["ash-unread-badge", loud_class, prop_class(iur)])}" data-count="#{count}"#{style_attr(prop_style(iur))}#{aria_attr}>#{count}</span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "sidebar_item"} = iur, opts) do
+    props = iur["props"] || %{}
+    label = text_prop(props, "label", "")
+    glyph = text_prop(props, "glyph", "")
+    meta = text_prop(props, "meta", "")
+    active = prop(props, "active", false)
+    blocked = prop(props, "blocked", false)
+    event = text_prop(props, "event", "operator_select")
+    item_id = text_prop(props, "item_id", "")
+    event_value_key = text_prop(props, "event_value_key", "item_id")
+    href = prop(props, "href")
+    kind = text_prop(props, "kind", "")
+    aria_label = prop(props, "aria_label")
+
+    active_attr = ~s( data-active="#{active}")
+    kind_attr = if kind != "", do: ~s( data-kind="#{kind}"), else: ""
+    aria_attr = if aria_label, do: ~s( aria-label="#{aria_label}"), else: ""
+
+    blocked_html =
+      if blocked,
+        do: ~s(<span class="ash-sidebar-item-blocked" aria-hidden="true"></span>),
+        else: ""
+
+    meta_html =
+      if meta != "", do: ~s(<span class="ash-sidebar-item-meta">#{meta}</span>), else: ""
+
+    trailing_html = generate_children(iur["children"] || [], opts)
+
+    trailing_wrapper =
+      if trailing_html != "",
+        do: ~s(<span class="ash-sidebar-item-trailing">#{trailing_html}</span>),
+        else: ""
+
+    inner = """
+    <span class="ash-sidebar-item-name">
+      <span class="ash-sidebar-item-glyph" aria-hidden="true">#{glyph}</span>
+      <span class="ash-sidebar-item-copy">
+        <span class="ash-sidebar-item-label">#{label}</span>
+        #{meta_html}
+      </span>
+    </span>
+    <span class="ash-sidebar-item-side">
+      #{blocked_html}
+      #{trailing_wrapper}
+    </span>
+    """
+
+    if href do
+      """
+      <a class="#{css_classes(["ash-sidebar-item", prop_class(iur)])}" href="#{href}"#{active_attr}#{kind_attr}#{aria_attr}#{style_attr(prop_style(iur))}>
+        #{inner}
+      </a>
+      """
+    else
+      value_attr = if item_id != "", do: ~s( phx-value-#{event_value_key}="#{item_id}"), else: ""
+
+      """
+      <button type="button" class="#{css_classes(["ash-sidebar-item", prop_class(iur)])}" phx-click="#{event}"#{value_attr}#{active_attr}#{kind_attr}#{aria_attr}#{style_attr(prop_style(iur))}>
+        #{inner}
+      </button>
+      """
+    end
+  end
+
+  defp generate_heex(%{"type" => "sidebar_section"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, "title", "")
+    action_glyph = text_prop(props, "action_glyph", "")
+    action_label = text_prop(props, "action_label", "")
+    action_event = text_prop(props, "action_event", "")
+
+    action_html =
+      if action_event != "" do
+        """
+        <button type="button" class="ash-sidebar-section-action" phx-click="#{action_event}"#{if action_label != "", do: ~s( aria-label="#{action_label}" title="#{action_label}"), else: ""}>#{action_glyph}</button>
+        """
+      else
+        ""
+      end
+
+    """
+    <section class="#{css_classes(["ash-sidebar-section", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <div class="ash-sidebar-section-header">
+        <span class="ash-sidebar-section-title">#{title}</span>
+        #{action_html}
+      </div>
+      <div class="ash-sidebar-section-body">
+        #{generate_children(iur["children"] || [], opts)}
+      </div>
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "sidebar_shell"} = iur, opts) do
+    props = iur["props"] || %{}
+    collapsed = prop(props, "collapsed", false)
+
+    """
+    <aside class="#{css_classes(["ash-sidebar-shell", prop_class(iur)])}" data-collapsed="#{collapsed}"#{style_attr(prop_style(iur))}>
+      <div class="ash-sidebar-shell-scroll">
+        #{generate_children(iur["children"] || [], opts)}
+      </div>
+    </aside>
+    """
+  end
+
+  defp generate_heex(%{"type" => "mode_nav"} = iur, _opts) do
+    props = iur["props"] || %{}
+    items = prop(props, "items", [])
+    event = text_prop(props, "event", "set_mode")
+    event_value_key = text_prop(props, "event_value_key", "mode")
+    aria_label = text_prop(props, "aria_label", "Primary navigation")
+
+    items_html =
+      Enum.map_join(items, fn item ->
+        item = normalize_item(item)
+        label = text_prop(item, "label", "")
+        value = text_prop(item, "value", "")
+        shortcut = text_prop(item, "shortcut", "")
+        current = if prop(item, "current", false), do: "true", else: "false"
+
+        shortcut_html =
+          if shortcut != "",
+            do: ~s(<span class="ash-mode-nav-shortcut">#{shortcut}</span>),
+            else: ""
+
+        """
+        <button type="button" class="ash-mode-nav-item" aria-current="#{current}" phx-click="#{event}" phx-value-#{event_value_key}="#{value}">
+          <span class="ash-mode-nav-label">#{label}</span>
+          #{shortcut_html}
+        </button>
+        """
+      end)
+
+    """
+    <nav class="#{css_classes(["ash-mode-nav", prop_class(iur)])}" aria-label="#{aria_label}"#{style_attr(prop_style(iur))}>
+      #{items_html}
+    </nav>
+    """
+  end
+
+  defp generate_heex(%{"type" => "top_strip"} = iur, opts) do
+    props = iur["props"] || %{}
+    brand = text_prop(props, "brand", "Ariston")
+    context = text_prop(props, "context", "")
+    current_theme = text_prop(props, "current_theme", "system")
+    theme_event = text_prop(props, "theme_event", "set_theme")
+    palette_event = text_prop(props, "palette_event", "open_palette")
+    pane_event = text_prop(props, "pane_event", "toggle_pane")
+    pane_open = prop(props, "pane_open", false)
+    children = iur["children"] || []
+    center = Enum.at(children, 0)
+
+    theme_button = fn value, glyph, label ->
+      pressed = if current_theme == value, do: "true", else: "false"
+
+      """
+      <button type="button" class="ash-top-strip-theme-button" aria-pressed="#{pressed}" aria-label="#{label}" title="#{label}" phx-click="#{theme_event}" phx-value-theme="#{value}">#{glyph}</button>
+      """
+    end
+
+    """
+    <header class="#{css_classes(["ash-top-strip", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <div class="ash-top-strip-identity">
+        <span class="ash-top-strip-mark" aria-hidden="true">⊢</span>
+        <div class="ash-top-strip-crumb">
+          <b>#{brand}</b>
+          #{if context != "", do: ~s(<span class="ash-top-strip-sep">/</span><span>#{context}</span>), else: ""}
+        </div>
+      </div>
+      <div class="ash-top-strip-center">
+        #{if center, do: generate_heex(center, opts), else: ""}
+      </div>
+      <div class="ash-top-strip-actions">
+        <div class="ash-top-strip-theme" role="group" aria-label="Theme">
+          #{theme_button.("light", "☼", "light")}
+          #{theme_button.("system", "⚙", "system")}
+          #{theme_button.("dark", "☾", "dark")}
+        </div>
+        <button type="button" class="ash-top-strip-pane-toggle" aria-pressed="#{pane_open}" phx-click="#{pane_event}" title="toggle reference pane" aria-label="toggle reference pane">
+          ▥
+        </button>
+        <button type="button" class="ash-top-strip-palette" phx-click="#{palette_event}" title="quick jump" aria-label="quick jump">
+          <span>⌕</span>
+          <span>jump</span>
+          <span class="ash-top-strip-shortcut">⌘K</span>
+        </button>
+      </div>
+    </header>
     """
   end
 

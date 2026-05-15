@@ -1739,4 +1739,212 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert heex =~ "Origin"
     end
   end
+
+  describe "Wave AshUI-2 shell/sidebar widgets" do
+    defp unread_badge_iur(count, loud \\ false) do
+      %{
+        "type" => "unread_badge",
+        "id" => "badge-1",
+        "props" => %{
+          "count" => count,
+          "loud" => loud,
+          "aria_label" => "#{count} unread",
+          "class" => ""
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+    end
+
+    defp sidebar_item_iur(props, children \\ []) do
+      %{
+        "type" => "sidebar_item",
+        "id" => "sidebar-item-1",
+        "props" => Map.merge(%{"label" => "metagraph-team", "glyph" => "#"}, props),
+        "children" => children,
+        "metadata" => %{}
+      }
+    end
+
+    defp sidebar_section_iur(props, children \\ []) do
+      %{
+        "type" => "sidebar_section",
+        "id" => "sidebar-section-1",
+        "props" => Map.merge(%{"title" => "Channels"}, props),
+        "children" => children,
+        "metadata" => %{}
+      }
+    end
+
+    defp sidebar_shell_iur(props, children \\ []) do
+      %{
+        "type" => "sidebar_shell",
+        "id" => "sidebar-shell-1",
+        "props" => Map.merge(%{"collapsed" => false}, props),
+        "children" => children,
+        "metadata" => %{}
+      }
+    end
+
+    defp mode_nav_iur(items, props \\ %{}) do
+      %{
+        "type" => "mode_nav",
+        "id" => "mode-nav-1",
+        "props" =>
+          Map.merge(
+            %{
+              "items" => items,
+              "event" => "set_mode",
+              "event_value_key" => "mode",
+              "aria_label" => "Primary navigation"
+            },
+            props
+          ),
+        "children" => [],
+        "metadata" => %{}
+      }
+    end
+
+    defp top_strip_iur(props, children \\ []) do
+      %{
+        "type" => "top_strip",
+        "id" => "top-strip-1",
+        "props" =>
+          Map.merge(
+            %{
+              "brand" => "Ariston",
+              "context" => "operator surface",
+              "current_theme" => "system",
+              "theme_event" => "set_theme",
+              "palette_event" => "open_palette",
+              "pane_event" => "toggle_pane",
+              "pane_open" => true
+            },
+            props
+          ),
+        "children" => children,
+        "metadata" => %{}
+      }
+    end
+
+    test "unread_badge renders count and loud variant class" do
+      {:ok, heex} = LiveUIAdapter.render(unread_badge_iur(12, true))
+
+      assert heex =~ "ash-unread-badge"
+      assert heex =~ "is-loud"
+      assert heex =~ ">12<"
+      assert heex =~ ~s(aria-label="12 unread")
+    end
+
+    test "sidebar_item renders button row with blocked indicator and trailing unread badge" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          sidebar_item_iur(
+            %{
+              "item_id" => "phase-31.2",
+              "event" => "open_conversation",
+              "kind" => "build",
+              "blocked" => true,
+              "active" => true
+            },
+            [unread_badge_iur(4, false)]
+          )
+        )
+
+      assert heex =~ "<button"
+      assert heex =~ "ash-sidebar-item"
+      assert heex =~ ~s(phx-click="open_conversation")
+      assert heex =~ ~s(phx-value-item_id="phase-31.2")
+      assert heex =~ ~s(data-kind="build")
+      assert heex =~ ~s(data-active="true")
+      assert heex =~ "ash-sidebar-item-blocked"
+      assert heex =~ "ash-unread-badge"
+    end
+
+    test "sidebar_item renders anchor when href is present" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          sidebar_item_iur(%{"href" => "/operator?mode=map", "label" => "Map", "glyph" => "▾"})
+        )
+
+      assert heex =~ "<a"
+      assert heex =~ ~s(href="/operator?mode=map")
+      refute heex =~ "phx-click"
+    end
+
+    test "sidebar_section renders heading, action button, and child rows" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          sidebar_section_iur(
+            %{
+              "action_event" => "new_channel",
+              "action_label" => "new channel",
+              "action_glyph" => "+"
+            },
+            [sidebar_item_iur(%{"label" => "ops", "glyph" => "#"})]
+          )
+        )
+
+      assert heex =~ "ash-sidebar-section"
+      assert heex =~ "ash-sidebar-section-title"
+      assert heex =~ "Channels"
+      assert heex =~ ~s(phx-click="new_channel")
+      assert heex =~ "ash-sidebar-section-action"
+      assert heex =~ "ash-sidebar-item"
+    end
+
+    test "sidebar_shell wraps children and exposes collapsed state" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          sidebar_shell_iur(%{"collapsed" => true}, [sidebar_section_iur(%{}, [])])
+        )
+
+      assert heex =~ "ash-sidebar-shell"
+      assert heex =~ "ash-sidebar-shell-scroll"
+      assert heex =~ ~s(data-collapsed="true")
+    end
+
+    test "mode_nav renders one button per item with shortcut and current state" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          mode_nav_iur([
+            %{"label" => "Chat", "value" => "chat", "shortcut" => "⌘1", "current" => true},
+            %{"label" => "Map", "value" => "map", "shortcut" => "⌘2", "current" => false}
+          ])
+        )
+
+      assert heex =~ "ash-mode-nav"
+      assert heex =~ ~s(phx-click="set_mode")
+      assert heex =~ ~s(phx-value-mode="chat")
+      assert heex =~ ~s(aria-current="true")
+      assert heex =~ "ash-mode-nav-shortcut"
+      assert heex =~ "⌘2"
+    end
+
+    test "top_strip renders brand, center mode_nav child, theme buttons, pane toggle, and cmdk stub" do
+      {:ok, heex} =
+        LiveUIAdapter.render(
+          top_strip_iur(
+            %{"current_theme" => "dark", "pane_open" => false},
+            [
+              mode_nav_iur([
+                %{"label" => "Chat", "value" => "chat", "shortcut" => "⌘1", "current" => true}
+              ])
+            ]
+          )
+        )
+
+      assert heex =~ "ash-top-strip"
+      assert heex =~ "Ariston"
+      assert heex =~ "operator surface"
+      assert heex =~ "ash-mode-nav"
+      assert heex =~ ~s(phx-click="set_theme")
+      assert heex =~ ~s(phx-value-theme="dark")
+      assert heex =~ ~s(aria-pressed="true")
+      assert heex =~ ~s(phx-click="toggle_pane")
+      assert heex =~ ~s(aria-pressed="false")
+      assert heex =~ ~s(phx-click="open_palette")
+      assert heex =~ "⌘K"
+    end
+  end
 end

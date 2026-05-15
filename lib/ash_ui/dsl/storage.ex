@@ -159,7 +159,14 @@ defmodule AshUI.DSL.Storage do
       "event_callout",
       "redline_inline",
       "code_block_syntax_highlighted",
-      "chat_composer"
+      "chat_composer",
+      # Wave AshUI-2 shell/sidebar widgets.
+      "top_strip",
+      "mode_nav",
+      "sidebar_shell",
+      "sidebar_section",
+      "sidebar_item",
+      "unread_badge"
     ]
 
     type in valid_layouts or type in valid_widgets or String.starts_with?(type, "custom:")

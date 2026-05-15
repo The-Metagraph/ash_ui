@@ -127,6 +127,7 @@ defmodule AshUI.DSL.StorageTest do
   describe "signal_references/1" do
     test "returns all signals in DSL" do
       signal = %{type: :bidirectional, target: "name", source: "User.name"}
+
       dsl = %{
         type: "row",
         props: %{},
@@ -152,6 +153,7 @@ defmodule AshUI.DSL.StorageTest do
     test "handles nested signals" do
       signal1 = %{type: :bidirectional, target: "name", source: "User.name"}
       signal2 = %{type: :event, target: "button", action: "save"}
+
       dsl = %{
         type: "row",
         props: %{},
@@ -301,6 +303,30 @@ defmodule AshUI.DSL.StorageTest do
 
     test "admits chat_composer as a valid widget type" do
       assert Storage.valid_widget_type?("chat_composer") == true
+    end
+
+    test "admits top_strip as a valid widget type" do
+      assert Storage.valid_widget_type?("top_strip") == true
+    end
+
+    test "admits mode_nav as a valid widget type" do
+      assert Storage.valid_widget_type?("mode_nav") == true
+    end
+
+    test "admits sidebar_shell as a valid widget type" do
+      assert Storage.valid_widget_type?("sidebar_shell") == true
+    end
+
+    test "admits sidebar_section as a valid widget type" do
+      assert Storage.valid_widget_type?("sidebar_section") == true
+    end
+
+    test "admits sidebar_item as a valid widget type" do
+      assert Storage.valid_widget_type?("sidebar_item") == true
+    end
+
+    test "admits unread_badge as a valid widget type" do
+      assert Storage.valid_widget_type?("unread_badge") == true
     end
   end
 end

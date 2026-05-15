@@ -148,6 +148,12 @@ defmodule AshUI.Rendering.IURAdapter do
   defp map_element_type(:redline_inline), do: "redline_inline"
   defp map_element_type(:code_block_syntax_highlighted), do: "code_block_syntax_highlighted"
   defp map_element_type(:chat_composer), do: "chat_composer"
+  defp map_element_type(:top_strip), do: "top_strip"
+  defp map_element_type(:mode_nav), do: "mode_nav"
+  defp map_element_type(:sidebar_shell), do: "sidebar_shell"
+  defp map_element_type(:sidebar_section), do: "sidebar_section"
+  defp map_element_type(:sidebar_item), do: "sidebar_item"
+  defp map_element_type(:unread_badge), do: "unread_badge"
   defp map_element_type(other), do: atom_to_string(other)
 
   defp atom_to_string(atom) when is_atom(atom), do: Atom.to_string(atom)

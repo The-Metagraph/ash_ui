@@ -747,6 +747,91 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "unread_badge"} = iur, _opts) do
+    props = iur["props"] || %{}
+    count = max(trunc(numeric_value(props, "count", 0)), 0)
+
+    tone =
+      if(truthy_prop(props, "loud", false),
+        do: "critical",
+        else: text_prop(props, "tone", "default")
+      )
+
+    count_text = if count > 99, do: "99+", else: Integer.to_string(count)
+    suffix = if count == 1, do: "item", else: "items"
+
+    """
+    <span class="#{css_classes(["ash-unread-badge", "ash-unread-badge-#{tone}", prop_class(iur)])}" aria-label="#{count} unread #{suffix}" data-tone="#{tone}"#{style_attr(prop_style(iur))}>#{count_text}</span>
+    """
+  end
+
+  defp generate_heex(%{"type" => "sidebar_item"} = iur, opts) do
+    props = iur["props"] || %{}
+    state = sidebar_item_state(props)
+    item_kind = sidebar_item_kind(props)
+    label = text_prop(props, "label", "")
+    glyph = text_prop(props, "glyph")
+    meta = text_prop(props, "meta")
+    href = text_prop(props, ["href", "link_target"])
+    event = text_prop(props, ["phx_click", "event"])
+    item_id = text_prop(props, "item_id")
+    value_key = text_prop(props, "event_value_key", "item_id")
+    badge_html = sidebar_item_badge_html(iur, opts)
+
+    attrs =
+      [
+        attr("href", href),
+        attr("phx-click", if(href, do: nil, else: event)),
+        sidebar_item_value_attr(value_key, item_id),
+        attr("aria-current", if(state == "active", do: "page", else: nil)),
+        attr("data-kind", item_kind),
+        attr("data-state", state),
+        style_attr(prop_style(iur))
+      ]
+      |> Enum.join("")
+
+    tag = if href, do: "a", else: "button"
+    button_type = if href, do: "", else: ~s( type="button")
+
+    """
+    <#{tag}#{button_type} class="#{css_classes(["ash-sidebar-item", "ash-sidebar-item-#{state}", "ash-sidebar-item-#{item_kind}", prop_class(iur)])}"#{attrs}>
+      #{if glyph, do: "<span class=\"ash-sidebar-item-glyph\" aria-hidden=\"true\">#{glyph}</span>", else: ""}
+      <span class="ash-sidebar-item-label">#{label}</span>
+      #{if meta, do: "<span class=\"ash-sidebar-item-meta\">#{meta}</span>", else: ""}
+      #{if badge_html != "", do: "<span class=\"ash-sidebar-item-trailing\">#{badge_html}</span>", else: ""}
+    </#{tag}>
+    """
+  end
+
+  defp generate_heex(%{"type" => "sidebar_section"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, "title", "")
+    action_glyph = text_prop(props, "action_glyph")
+    action_label = text_prop(props, "action_label")
+    action_event = text_prop(props, "action_event")
+
+    action_html =
+      if action_event != "" do
+        """
+        <button type="button" class="ash-sidebar-section-action" phx-click="#{action_event}"#{attr("aria-label", action_label)}#{attr("title", action_label)}>#{action_glyph || action_label}</button>
+        """
+      else
+        ""
+      end
+
+    """
+    <section class="#{css_classes(["ash-sidebar-section", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <div class="ash-sidebar-section-header">
+        <span class="ash-sidebar-section-title">#{title}</span>
+        #{action_html}
+      </div>
+      <div class="ash-sidebar-section-body">
+        #{generate_children(iur["children"] || [], opts)}
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")
@@ -2889,6 +2974,58 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp style_attr(nil), do: ""
   defp style_attr(""), do: ""
   defp style_attr(style), do: " style=\"#{style}\""
+
+  defp sidebar_item_state(props) do
+    cond do
+      truthy_prop(props, "blocked", false) -> "blocked"
+      truthy_prop(props, "active", false) -> "active"
+      text_prop(props, "state") in ["default", "active", "blocked"] -> text_prop(props, "state")
+      true -> "default"
+    end
+  end
+
+  defp sidebar_item_kind(props) do
+    case text_prop(props, ["item_kind", "kind"], "channel") do
+      kind when kind in ["channel", "build", "dm", "draft", "repo"] -> kind
+      _other -> "channel"
+    end
+  end
+
+  defp sidebar_item_badge_html(iur, opts) do
+    children = iur["children"] || []
+
+    case Enum.find(children, &(Map.get(&1, "type") == "unread_badge")) do
+      %{} = badge ->
+        generate_heex(badge, opts)
+
+      nil ->
+        props = iur["props"] || %{}
+
+        unread_count =
+          max(trunc(numeric_value(props, "unread_count", numeric_value(props, "unread", 0))), 0)
+
+        if unread_count > 0 do
+          tone = if unread_count > 5, do: "critical", else: "default"
+
+          generate_heex(
+            %{
+              "type" => "unread_badge",
+              "id" => "#{iur["id"]}-badge",
+              "props" => %{"count" => unread_count, "tone" => tone},
+              "children" => [],
+              "metadata" => %{}
+            },
+            opts
+          )
+        else
+          ""
+        end
+    end
+  end
+
+  defp sidebar_item_value_attr(_value_key, nil), do: ""
+  defp sidebar_item_value_attr("", _item_id), do: ""
+  defp sidebar_item_value_attr(value_key, item_id), do: attr("phx-value-#{value_key}", item_id)
 
   defp attr(_name, nil), do: ""
   defp attr(_name, ""), do: ""

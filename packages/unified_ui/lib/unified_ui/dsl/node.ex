@@ -24,6 +24,7 @@ defmodule UnifiedUi.Dsl.Node do
           | :composition_behavior
 
   @type t :: %__MODULE__{
+          __spark_metadata__: term(),
           __identifier__: atom() | nil,
           id: atom() | nil,
           family: family() | nil,
@@ -59,6 +60,9 @@ defmodule UnifiedUi.Dsl.Node do
           presentation: atom() | nil,
           summary: String.t() | nil,
           emphasis: atom() | nil,
+          glyph: String.t() | nil,
+          action_glyph: String.t() | nil,
+          action_label: String.t() | nil,
           external?: boolean() | nil,
           target_kind: atom() | nil,
           orientation: atom() | nil,
@@ -80,6 +84,8 @@ defmodule UnifiedUi.Dsl.Node do
           field_name: atom() | nil,
           value_path: [atom()] | nil,
           default_value: term(),
+          item_id: term(),
+          item_kind: atom() | nil,
           submit_intent: atom() | nil,
           legend: String.t() | nil,
           help: String.t() | nil,
@@ -93,6 +99,7 @@ defmodule UnifiedUi.Dsl.Node do
           items: list() | nil,
           ordered?: boolean() | nil,
           selection_mode: atom() | nil,
+          count: integer() | nil,
           table_columns: keyword() | list() | nil,
           table_rows: list() | nil,
           empty_state: String.t() | nil,
@@ -168,6 +175,8 @@ defmodule UnifiedUi.Dsl.Node do
           active?: boolean() | nil,
           link_target: String.t() | nil,
           meta: term(),
+          unread_count: integer() | nil,
+          badge_tone: atom() | nil,
           steps: list() | nil,
           active_index: integer() | nil,
           completed_indices: list() | nil,
@@ -187,7 +196,8 @@ defmodule UnifiedUi.Dsl.Node do
           children: [t()]
         }
 
-  defstruct __identifier__: nil,
+  defstruct __spark_metadata__: nil,
+            __identifier__: nil,
             id: nil,
             family: nil,
             kind: nil,
@@ -222,6 +232,9 @@ defmodule UnifiedUi.Dsl.Node do
             presentation: nil,
             summary: nil,
             emphasis: nil,
+            glyph: nil,
+            action_glyph: nil,
+            action_label: nil,
             external?: nil,
             target_kind: nil,
             orientation: nil,
@@ -243,6 +256,8 @@ defmodule UnifiedUi.Dsl.Node do
             field_name: nil,
             value_path: nil,
             default_value: nil,
+            item_id: nil,
+            item_kind: nil,
             submit_intent: nil,
             legend: nil,
             help: nil,
@@ -256,6 +271,7 @@ defmodule UnifiedUi.Dsl.Node do
             items: nil,
             ordered?: nil,
             selection_mode: nil,
+            count: nil,
             table_columns: nil,
             table_rows: nil,
             empty_state: nil,
@@ -331,6 +347,8 @@ defmodule UnifiedUi.Dsl.Node do
             active?: nil,
             link_target: nil,
             meta: nil,
+            unread_count: nil,
+            badge_tone: nil,
             steps: nil,
             active_index: nil,
             completed_indices: nil,
@@ -377,9 +395,13 @@ defmodule UnifiedUi.Dsl.Node do
       role: node.role,
       presentation: node.presentation,
       summary: node.summary,
+      glyph: node.glyph,
+      action_glyph: node.action_glyph,
+      action_label: node.action_label,
       items: node.items,
       ordered?: node.ordered?,
       selection_mode: node.selection_mode,
+      count: node.count,
       empty_state: node.empty_state,
       severity: node.severity,
       status: node.status,
@@ -423,10 +445,14 @@ defmodule UnifiedUi.Dsl.Node do
       send_label: node.send_label,
       send_intent: node.send_intent,
       row_identity: node.row_identity,
+      item_id: node.item_id,
+      item_kind: node.item_kind,
       column_template: node.column_template,
       active?: node.active?,
       link_target: node.link_target,
       meta: node.meta,
+      unread_count: node.unread_count,
+      badge_tone: node.badge_tone,
       steps: node.steps,
       active_index: node.active_index,
       completed_indices: node.completed_indices,
@@ -467,7 +493,13 @@ defmodule UnifiedUi.Dsl.Node do
   defp summary_submit_intent(_node), do: nil
 
   defp summary_action_intent(%__MODULE__{kind: kind, action_intent: action_intent})
-       when kind in [:list_item_multi_column, :artifact_row, :event_callout] do
+       when kind in [
+              :list_item_multi_column,
+              :artifact_row,
+              :sidebar_item,
+              :sidebar_section,
+              :event_callout
+            ] do
     action_intent
   end
 

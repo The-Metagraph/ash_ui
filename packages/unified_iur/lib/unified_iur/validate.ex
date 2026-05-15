@@ -109,6 +109,16 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Represent list_repeat with a list binding id, row scope, row field list, and template metadata."
+    },
+    invalid_sidebar_item: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar items with a non-empty label, supported state and item_kind, stable item_id, and either a link target or action intent."
+    },
+    invalid_sidebar_section: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar sections with a non-empty title and pair any section action intent with visible action copy."
     }
   }
 
@@ -489,6 +499,91 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :unread_badge, attributes: attributes}) do
+    badge = Map.get(attributes, :badge, %{})
+    count = fetch(badge, :count)
+    tone = fetch(badge, :tone, :default)
+
+    valid? = is_integer(count) and count >= 0 and tone in [:default, :critical]
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_badge_value,
+        "unread_badge count must be a non-negative integer and tone must be :default or :critical",
+        path: [:attributes, :badge],
+        details: %{count: count, tone: tone}
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{kind: :sidebar_item, attributes: attributes}) do
+    item = Map.get(attributes, :sidebar_item, %{})
+    label = fetch(item, :label)
+    state = fetch(item, :state, :default)
+    item_kind = fetch(item, :item_kind, :channel)
+    item_id = fetch(item, :item_id)
+    link_target = fetch(item, :link_target)
+    action_intent = fetch(item, :action_intent)
+    unread_count = fetch(item, :unread_count, 0)
+
+    valid? =
+      is_binary(label) and label != "" and
+        state in [:default, :active, :blocked] and
+        item_kind in [:channel, :build, :dm, :draft, :repo] and
+        valid_identity?(item_id) and
+        valid_sidebar_destination?(link_target, action_intent) and
+        is_integer(unread_count) and unread_count >= 0
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_item,
+        "sidebar_item requires a non-empty label, supported state and item_kind, stable item_id, and either a link_target or action_intent",
+        path: [:attributes, :sidebar_item],
+        details: %{
+          label: label,
+          state: state,
+          item_kind: item_kind,
+          item_id: inspect(item_id),
+          link_target: link_target,
+          action_intent: action_intent,
+          unread_count: unread_count
+        }
+      )
+    )
+  end
+
+  defp validate_component_contracts(%Element{kind: :sidebar_section, attributes: attributes}) do
+    section = Map.get(attributes, :sidebar_section, %{})
+    title = fetch(section, :title)
+    action_glyph = fetch(section, :action_glyph)
+    action_label = fetch(section, :action_label)
+    action_intent = fetch(section, :action_intent)
+
+    valid? =
+      is_binary(title) and title != "" and
+        valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_section,
+        "sidebar_section requires a non-empty title and any action_intent must include visible action copy",
+        path: [:attributes, :sidebar_section],
+        details: %{
+          title: title,
+          action_glyph: action_glyph,
+          action_label: action_label,
+          action_intent: action_intent
+        }
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_selection_options(options, path) when is_list(options) do
@@ -528,6 +623,28 @@ defmodule UnifiedIUR.Validate do
       )
     ]
   end
+
+  defp valid_identity?(value) when is_binary(value), do: value != ""
+  defp valid_identity?(value) when is_atom(value), do: true
+  defp valid_identity?(value) when is_integer(value), do: true
+  defp valid_identity?(value), do: not is_nil(value)
+
+  defp valid_sidebar_destination?(link_target, action_intent) do
+    (is_binary(link_target) and link_target != "") or is_atom(action_intent)
+  end
+
+  defp valid_sidebar_section_action?(nil, action_glyph, action_label) do
+    blank_text?(action_glyph) and blank_text?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+       when is_atom(action_intent) do
+    not blank_text?(action_glyph) or not blank_text?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(_action_intent, _action_glyph, _action_label), do: false
+
+  defp blank_text?(value), do: not is_binary(value) or value == ""
 
   defp validate_redline_segments(segments, path) when is_list(segments) do
     segments

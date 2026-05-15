@@ -13,7 +13,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :disclosure,
              :kicker,
              :avatar,
-             :presence_dot
+             :presence_dot,
+             :unread_badge
            ]
 
     assert Components.form_control_kinds() == [
@@ -22,7 +23,11 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :chat_composer
            ]
 
-    assert Components.row_artifact_kinds() == [:list_item_multi_column, :artifact_row]
+    assert Components.row_artifact_kinds() == [
+             :list_item_multi_column,
+             :artifact_row,
+             :sidebar_item
+           ]
 
     assert Components.workflow_kinds() == [
              :pipeline_stepper_horizontal,
@@ -32,6 +37,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            ]
 
     assert Components.layer_callout_kinds() == [
+             :sidebar_section,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout
@@ -62,6 +68,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     kicker = Components.kicker(["Spec", "ADR"], separator: "/")
     avatar = Components.avatar(initials: "PC", size: :small, accessibility_label: "Pascal")
     presence = Components.presence_dot(:active, size: :small)
+    unread_badge = Components.unread_badge(12, tone: :critical)
 
     assert %Element{
              kind: :inline_rich_text_heading,
@@ -82,6 +89,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     assert avatar.attributes.identity == %{initials: "PC", size: :small, shape: :round}
     assert avatar.attributes.accessibility == %{label: "Pascal"}
     assert presence.attributes.presence == %{state: :active, size: :small}
+    assert unread_badge.attributes.badge == %{count: 12, tone: :critical}
   end
 
   test "represents form controls, rows, artifacts, and composer children" do
@@ -124,6 +132,17 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
       Components.artifact_row("ADR", [Foundational.button("Open")],
         row_identity: :adr,
         meta: %{status: :accepted}
+      )
+
+    sidebar_item =
+      Components.sidebar_item("build/phase-31.2",
+        glyph: "◇",
+        meta: "phase 31.2",
+        state: :blocked,
+        item_kind: :build,
+        item_id: "phase-31.2",
+        action_intent: :open_build,
+        unread_count: 12
       )
 
     assert segmented.attributes.selection == %{
@@ -169,6 +188,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              title: "ADR",
              meta: %{status: :accepted}
            }
+
+    assert sidebar_item.attributes.sidebar_item == %{
+             label: "build/phase-31.2",
+             glyph: "◇",
+             meta: "phase 31.2",
+             state: :blocked,
+             item_kind: :build,
+             item_id: "phase-31.2",
+             action_intent: :open_build,
+             unread_count: 12
+           }
+
+    assert [%{slot: :trailing, element: %Element{kind: :unread_badge}}] = sidebar_item.children
   end
 
   test "represents workflow, layer, callout, redline, and code components" do
@@ -197,6 +229,23 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
       )
 
     meter = Components.meter_thin(82.5, label: "Coverage", state: :success)
+
+    section =
+      Components.sidebar_section(
+        "Channels",
+        [
+          Components.sidebar_item("metagraph-team",
+            glyph: "#",
+            item_kind: :channel,
+            item_id: "metagraph-team",
+            action_intent: :open_channel
+          )
+        ],
+        action_glyph: "+",
+        action_label: "New channel",
+        action_intent: :new_channel
+      )
+
     header = Components.sticky_frosted_header([], title: "Workspace", leading: [:back])
 
     panel =
@@ -251,6 +300,15 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              label: "Coverage",
              state: :success
            }
+
+    assert section.attributes.sidebar_section == %{
+             title: "Channels",
+             action_glyph: "+",
+             action_label: "New channel",
+             action_intent: :new_channel
+           }
+
+    assert [%{element: %Element{kind: :sidebar_item}}] = section.children
 
     assert header.attributes.shell == %{
              position: :sticky,

@@ -82,12 +82,37 @@ defmodule UnifiedIUR.ValidateTest do
   test "validates required component accessible names and progress ranges" do
     missing_panel_name = Components.slide_over_panel([], id: "panel")
     invalid_meter = Components.meter_thin(120, minimum: 0, maximum: 100)
+    invalid_badge = Components.unread_badge(-1, tone: :urgent)
+
+    invalid_sidebar_item =
+      Components.sidebar_item("",
+        item_id: nil,
+        state: :muted,
+        item_kind: :unknown,
+        unread_count: -1
+      )
+
+    invalid_sidebar_section =
+      Components.sidebar_section(
+        "",
+        [],
+        action_intent: :new_channel
+      )
 
     assert {:error, [panel_error]} = Validate.element(missing_panel_name)
     assert panel_error.code == :missing_accessible_name
 
     assert {:error, [meter_error]} = Validate.element(invalid_meter)
     assert meter_error.code == :invalid_progress_value
+
+    assert {:error, [badge_error]} = Validate.element(invalid_badge)
+    assert badge_error.code == :invalid_badge_value
+
+    assert {:error, [sidebar_item_error]} = Validate.element(invalid_sidebar_item)
+    assert sidebar_item_error.code == :invalid_sidebar_item
+
+    assert {:error, [sidebar_section_error]} = Validate.element(invalid_sidebar_section)
+    assert sidebar_section_error.code == :invalid_sidebar_section
   end
 
   test "validates segmented control and list repeat required shapes" do

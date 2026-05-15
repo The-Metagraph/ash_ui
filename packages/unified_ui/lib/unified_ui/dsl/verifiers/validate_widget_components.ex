@@ -65,6 +65,15 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     end
   end
 
+  def validate_node(%Node{kind: :unread_badge, id: id, count: count, tone: tone}) do
+    if is_integer(count) and count >= 0 and tone in [:default, :critical] do
+      :ok
+    else
+      {:error, [:composition, :unread_badge, id],
+       "unread_badge #{inspect(id)} count must be a non-negative integer and tone must be :default or :critical"}
+    end
+  end
+
   def validate_node(%Node{kind: :segmented_button_group, id: id, options: options}) do
     if valid_options?(options) do
       :ok
@@ -127,6 +136,74 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
       not valid_scalar?(row_identity) ->
         {:error, [:composition, :artifact_row, id],
          "artifact_row #{inspect(id)} row_identity must be a non-empty scalar value"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :sidebar_item,
+        id: id,
+        label: label,
+        state: state,
+        item_kind: item_kind,
+        item_id: item_id,
+        unread_count: unread_count,
+        badge_tone: badge_tone,
+        link_target: link_target,
+        action_intent: action_intent
+      }) do
+    cond do
+      not is_binary(label) or label == "" ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} label must be a non-empty string"}
+
+      state not in [:default, :active, :blocked] ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} state must be :default, :active, or :blocked"}
+
+      item_kind not in [:channel, :build, :dm, :draft, :repo] ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} item_kind must be :channel, :build, :dm, :draft, or :repo"}
+
+      not valid_scalar?(item_id) ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} item_id must be a non-empty scalar value"}
+
+      not is_nil(unread_count) and (not is_integer(unread_count) or unread_count < 0) ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} unread_count must be a non-negative integer"}
+
+      badge_tone not in [nil, :default, :critical] ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} badge_tone must be :default or :critical"}
+
+      blank_string?(link_target) and not is_atom(action_intent) ->
+        {:error, [:composition, :sidebar_item, id],
+         "sidebar_item #{inspect(id)} requires either link_target or action_intent"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :sidebar_section,
+        id: id,
+        title: title,
+        action_glyph: action_glyph,
+        action_label: action_label,
+        action_intent: action_intent
+      }) do
+    cond do
+      blank_string?(title) ->
+        {:error, [:composition, :sidebar_section, id],
+         "sidebar_section #{inspect(id)} title must be a non-empty string"}
+
+      not valid_sidebar_section_action?(action_intent, action_glyph, action_label) ->
+        {:error, [:composition, :sidebar_section, id],
+         "sidebar_section #{inspect(id)} action_intent requires a visible action_glyph or action_label, and action copy must not appear without an action_intent"}
 
       true ->
         :ok
@@ -438,6 +515,17 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   defp valid_meter_range?(_current, _min, _max), do: false
 
+  defp valid_sidebar_section_action?(nil, action_glyph, action_label) do
+    blank_string?(action_glyph) and blank_string?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+       when is_atom(action_intent) do
+    not blank_string?(action_glyph) or not blank_string?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(_action_intent, _action_glyph, _action_label), do: false
+
   defp valid_field_attributes?(nil), do: true
   defp valid_field_attributes?(attributes) when is_map(attributes), do: true
 
@@ -451,6 +539,8 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   defp valid_scalar?(""), do: false
   defp valid_scalar?(value) when is_atom(value) or is_binary(value) or is_number(value), do: true
   defp valid_scalar?(_value), do: false
+
+  defp blank_string?(value), do: not is_binary(value) or value == ""
 
   defp positive_number?(value) when is_number(value), do: value > 0
   defp positive_number?(_value), do: false

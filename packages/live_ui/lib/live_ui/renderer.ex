@@ -84,6 +84,133 @@ defmodule LiveUi.Renderer do
   attr(:runtime_state, :any, default: nil)
   attr(:event_target, :any, default: nil)
 
+  def render(%{element: %Element{kind: :unread_badge}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:count_text, unread_badge_count_text(assigns.element))
+      |> assign(:badge_tone, unread_badge_tone(assigns.element))
+      |> assign(:badge_label, unread_badge_label(assigns.element))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <span
+      id={element_id(@element, "unread-badge")}
+      data-live-ui-widget="unread-badge"
+      data-live-ui-tone={@badge_tone}
+      aria-label={@badge_label}
+      class={["live-ui-unread-badge", "live-ui-unread-badge-#{@badge_tone}", style_class(@element)]}
+      {@style_attrs}
+    ><%= @count_text %></span>
+    """
+  end
+
+  def render(%{element: %Element{kind: :sidebar_item}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:sidebar_state, sidebar_item_state(assigns.element))
+      |> assign(:sidebar_kind, sidebar_item_kind(assigns.element))
+      |> assign(:sidebar_label, sidebar_item_label(assigns.element))
+      |> assign(:sidebar_glyph, sidebar_item_glyph(assigns.element))
+      |> assign(:sidebar_meta, sidebar_item_meta(assigns.element))
+      |> assign(:sidebar_link, sidebar_item_link(assigns.element))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <%= if @sidebar_link do %>
+      <a
+        id={element_id(@element, "sidebar-item")}
+        href={@sidebar_link}
+        data-live-ui-widget="sidebar-item"
+        data-live-ui-kind={@sidebar_kind}
+        data-live-ui-state={@sidebar_state}
+        aria-current={if @sidebar_state == "active", do: "page", else: nil}
+        class={[
+          "live-ui-sidebar-item",
+          "live-ui-sidebar-item-#{@sidebar_state}",
+          "live-ui-sidebar-item-#{@sidebar_kind}",
+          style_class(@element)
+        ]}
+        {@style_attrs}
+      >
+        <span :if={@sidebar_glyph} class="live-ui-sidebar-item-glyph" aria-hidden="true"><%= @sidebar_glyph %></span>
+        <span class="live-ui-sidebar-item-label"><%= @sidebar_label %></span>
+        <span :if={@sidebar_meta} class="live-ui-sidebar-item-meta"><%= @sidebar_meta %></span>
+        <span :if={child_elements(@element, :trailing) != []} class="live-ui-sidebar-item-trailing">
+          <%= for child <- child_elements(@element, :trailing) do %>
+            <.render element={child} event_target={@event_target} />
+          <% end %>
+        </span>
+      </a>
+    <% else %>
+      <button
+        type="button"
+        id={element_id(@element, "sidebar-item")}
+        data-live-ui-widget="sidebar-item"
+        data-live-ui-kind={@sidebar_kind}
+        data-live-ui-state={@sidebar_state}
+        aria-current={if @sidebar_state == "active", do: "page", else: nil}
+        class={[
+          "live-ui-sidebar-item",
+          "live-ui-sidebar-item-#{@sidebar_state}",
+          "live-ui-sidebar-item-#{@sidebar_kind}",
+          style_class(@element)
+        ]}
+        {@style_attrs}
+      >
+        <span :if={@sidebar_glyph} class="live-ui-sidebar-item-glyph" aria-hidden="true"><%= @sidebar_glyph %></span>
+        <span class="live-ui-sidebar-item-label"><%= @sidebar_label %></span>
+        <span :if={@sidebar_meta} class="live-ui-sidebar-item-meta"><%= @sidebar_meta %></span>
+        <span :if={child_elements(@element, :trailing) != []} class="live-ui-sidebar-item-trailing">
+          <%= for child <- child_elements(@element, :trailing) do %>
+            <.render element={child} event_target={@event_target} />
+          <% end %>
+        </span>
+      </button>
+    <% end %>
+    """
+  end
+
+  def render(%{element: %Element{kind: :sidebar_section}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:section_title, sidebar_section_title(assigns.element))
+      |> assign(:action_glyph, sidebar_section_action_glyph(assigns.element))
+      |> assign(:action_label, sidebar_section_action_label(assigns.element))
+      |> assign(:action_copy, sidebar_section_action_copy(assigns.element))
+      |> assign(:show_action, sidebar_section_show_action?(assigns.element))
+      |> assign(
+        :interaction_attrs,
+        interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <section
+      id={element_id(@element, "sidebar-section")}
+      data-live-ui-widget="sidebar-section"
+      class={["live-ui-sidebar-section", style_class(@element)]}
+      {@style_attrs}
+    >
+      <div class="live-ui-sidebar-section-header">
+        <span class="live-ui-sidebar-section-title"><%= @section_title %></span>
+        <button
+          :if={@show_action}
+          type="button"
+          class="live-ui-sidebar-section-action"
+          aria-label={@action_label}
+          title={@action_label}
+          {@interaction_attrs}
+        ><%= @action_copy %></button>
+      </div>
+      <div class="live-ui-sidebar-section-body">
+        <%= for child <- child_elements(@element) do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </div>
+    </section>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1405,6 +1532,109 @@ defmodule LiveUi.Renderer do
 
   defp state_boolean(%Element{} = element, key) do
     boolean_default(get_in(element.attributes, [:state, key]), false)
+  end
+
+  defp unread_badge_count(%Element{} = element) do
+    value = get_in(element.attributes, [:badge, :count])
+
+    cond do
+      is_integer(value) and value >= 0 ->
+        value
+
+      is_float(value) and value >= 0 ->
+        trunc(value)
+
+      is_binary(value) ->
+        case Integer.parse(value) do
+          {count, ""} when count >= 0 -> count
+          _ -> 0
+        end
+
+      true ->
+        0
+    end
+  end
+
+  defp unread_badge_count_text(%Element{} = element) do
+    case unread_badge_count(element) do
+      count when count > 99 -> "99+"
+      count -> Integer.to_string(count)
+    end
+  end
+
+  defp unread_badge_tone(%Element{} = element) do
+    case get_in(element.attributes, [:badge, :tone]) do
+      tone when tone in [:default, :critical] -> Atom.to_string(tone)
+      tone when is_binary(tone) and tone in ["default", "critical"] -> tone
+      _other -> style_tone(element) || "default"
+    end
+  end
+
+  defp unread_badge_label(%Element{} = element) do
+    count = unread_badge_count(element)
+    suffix = if count == 1, do: "item", else: "items"
+    "#{count} unread #{suffix}"
+  end
+
+  defp sidebar_item_state(%Element{} = element) do
+    element
+    |> get_in([Access.key(:attributes, %{}), :sidebar_item, :state])
+    |> case do
+      state when state in [:default, :active, :blocked] -> Atom.to_string(state)
+      _other -> "default"
+    end
+  end
+
+  defp sidebar_item_kind(%Element{} = element) do
+    element
+    |> get_in([Access.key(:attributes, %{}), :sidebar_item, :item_kind])
+    |> case do
+      kind when kind in [:channel, :build, :dm, :draft, :repo] -> Atom.to_string(kind)
+      _other -> "channel"
+    end
+  end
+
+  defp sidebar_item_label(%Element{} = element) do
+    string_value(get_in(element.attributes, [:sidebar_item, :label]), "")
+  end
+
+  defp sidebar_item_glyph(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_item, :glyph]))
+  end
+
+  defp sidebar_item_meta(%Element{} = element) do
+    case get_in(element.attributes, [:sidebar_item, :meta]) do
+      nil -> nil
+      meta -> to_string(meta)
+    end
+  end
+
+  defp sidebar_item_link(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_item, :link_target]))
+  end
+
+  defp sidebar_section_title(%Element{} = element) do
+    string_value(get_in(element.attributes, [:sidebar_section, :title]), "")
+  end
+
+  defp sidebar_section_action_glyph(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_section, :action_glyph]))
+  end
+
+  defp sidebar_section_action_label(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_section, :action_label]))
+  end
+
+  defp sidebar_section_action_copy(%Element{} = element) do
+    sidebar_section_action_glyph(element) || sidebar_section_action_label(element) || "+"
+  end
+
+  defp sidebar_section_show_action?(%Element{} = element) do
+    attrs = get_in(element.attributes, [:sidebar_section]) || %{}
+
+    is_atom(Map.get(attrs, :action_intent)) or
+      sidebar_section_action_glyph(element) != nil or
+      sidebar_section_action_label(element) != nil
   end
 
   defp form_interaction_attrs(%Element{} = element, event_target) do

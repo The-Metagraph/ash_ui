@@ -43,6 +43,35 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
         change_intent(:validate_settings)
       end
 
+      sidebar_item :build_item do
+        label("build/widget-adr")
+        glyph("◇")
+        meta("accepted")
+        state(:blocked)
+        item_kind(:build)
+        item_id("adr-1")
+        action_intent(:open_artifact)
+        unread_count(2)
+      end
+
+      sidebar_section :builds_section do
+        title("Builds")
+        action_glyph("+")
+        action_label("New build")
+        action_intent(:new_build)
+
+        sidebar_item :nested_build_item do
+          label("build/widget-adr-nested")
+          glyph("◇")
+          meta("queued")
+          state(:default)
+          item_kind(:build)
+          item_id("adr-1-nested")
+          action_intent(:open_nested_artifact)
+          unread_count(1)
+        end
+      end
+
       slide_over_panel :details_panel do
         accessibility_label("Details")
         open?(true)
@@ -84,11 +113,13 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
           :inline_rich_text_heading,
           :segmented_button_group,
           :runtime_form_shell,
+          :sidebar_section,
           :slide_over_panel,
           :redline_inline,
           :code_block_syntax_highlighted,
           :list_repeat,
-          :artifact_row
+          :artifact_row,
+          :sidebar_item
         ] do
       assert kind in listing.compiled.widget_kinds
       assert snapshot =~ to_string(kind)
@@ -103,6 +134,7 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
 
     segmented = Tree.find_by_id(iur, :status_filter)
     form = Tree.find_by_id(iur, :settings_form)
+    section = Tree.find_by_id(iur, :builds_section)
     panel = Tree.find_by_id(iur, :details_panel)
     repeat = Tree.find_by_id(iur, :artifact_repeat)
 
@@ -113,6 +145,9 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
              {:submit, :save_settings},
              {:change, :validate_settings}
            ]
+
+    assert [%Interaction{family: :click, intent: :new_build}] = section.attributes.interactions
+    assert Enum.map(section.children, & &1.element.kind) == [:sidebar_item]
 
     assert [%Interaction{family: :close, intent: :close_details}] = panel.attributes.interactions
 

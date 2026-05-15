@@ -10,6 +10,7 @@ defmodule UnifiedUi.WidgetComponents do
   @type family ::
           :content_identity_and_disclosure
           | :form_control_and_composer
+          | :navigation
           | :row_and_artifact
           | :workflow_progress_and_status
           | :layer_shell_and_callout
@@ -41,6 +42,7 @@ defmodule UnifiedUi.WidgetComponents do
   @families [
     :content_identity_and_disclosure,
     :form_control_and_composer,
+    :navigation,
     :row_and_artifact,
     :workflow_progress_and_status,
     :layer_shell_and_callout,
@@ -103,6 +105,14 @@ defmodule UnifiedUi.WidgetComponents do
       family: :form_control_and_composer,
       source: %{system: :ash_ui, pr: 85, name: :segmented_button_group},
       summary: "Single-selection segmented control with option values and labels.",
+      aliases: []
+    },
+    %{
+      kind: :mode_nav,
+      family: :navigation,
+      source: %{system: :ash_ui, pr: 106, name: :mode_nav},
+      summary:
+        "Centered mode switcher with tab semantics, optional glyphs and badges, and shortcut metadata.",
       aliases: []
     },
     %{

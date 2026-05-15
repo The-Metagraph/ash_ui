@@ -604,6 +604,67 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       refute heex =~ ~r/\b\d+px\b/
     end
 
+    test "generates mode_nav markup with tab semantics, shortcut metadata, and badge composition" do
+      iur = %{
+        "type" => "mode_nav",
+        "props" => %{
+          "aria_label" => "mode navigation",
+          "active_key" => "map",
+          "keyboard_shortcut_prefix" => "⌘",
+          "event" => "select_mode",
+          "modes" => [
+            %{
+              "key" => "chat",
+              "label" => "Chat",
+              "glyph" => "◉",
+              "badge_count" => 3,
+              "panel_id" => "panel-chat"
+            },
+            %{"key" => "map", "label" => "Map", "panel_id" => "panel-map"},
+            %{"key" => "explorer", "label" => "Explorer"},
+            %{"key" => "ask", "label" => "Ask"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+
+      assert heex =~ ~s(class="ash-mode-nav")
+      assert heex =~ ~s(role="tablist")
+      assert heex =~ ~s(role="tab")
+      assert heex =~ ~s(aria-selected="true")
+      assert heex =~ ~s(aria-controls="panel-map")
+      assert heex =~ ~s(data-mode-key="map")
+      assert heex =~ ~s(data-shortcut="⌘2")
+      assert heex =~ ~s(aria-keyshortcuts="Meta+2")
+      assert heex =~ ~s(phx-click="select_mode")
+      assert heex =~ ~s(phx-value-mode_key="map")
+      assert heex =~ ~s(phx-value-selected_value="map")
+      assert heex =~ "ash-unread-badge"
+    end
+
+    test "mode_nav produces no literal color or spacing values" do
+      iur = %{
+        "type" => "mode_nav",
+        "props" => %{
+          "modes" => [
+            %{"key" => "chat", "label" => "Chat"},
+            %{"key" => "map", "label" => "Map"}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+      refute heex =~ ~r/style="/i
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

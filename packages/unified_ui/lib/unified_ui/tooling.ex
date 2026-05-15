@@ -18,7 +18,8 @@ defmodule UnifiedUi.Tooling do
     input: [".spec/specs/unified-ui/widgets.spec.md", ".spec/specs/unified-ui/signals.spec.md"],
     navigation: [
       ".spec/specs/unified-ui/widgets.spec.md",
-      ".spec/specs/unified-ui/signals.spec.md"
+      ".spec/specs/unified-ui/signals.spec.md",
+      ".spec/specs/unified-ui/widget_components.spec.md"
     ],
     forms: [".spec/specs/unified-ui/widgets.spec.md", ".spec/specs/unified-ui/signals.spec.md"],
     data: [".spec/specs/unified-ui/widgets.spec.md"],

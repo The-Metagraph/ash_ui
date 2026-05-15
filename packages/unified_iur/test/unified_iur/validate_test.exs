@@ -106,6 +106,17 @@ defmodule UnifiedIUR.ValidateTest do
         aria_label: ""
       )
 
+    invalid_mode_nav =
+      Components.mode_nav(
+        [
+          %{key: "chat", label: "", badge_count: -1},
+          %{key: :map, label: "Map", panel_id: ""}
+        ],
+        active_key: :ask,
+        keyboard_shortcut_prefix: "",
+        aria_label: ""
+      )
+
     assert {:error, [panel_error]} = Validate.element(missing_panel_name)
     assert panel_error.code == :missing_accessible_name
 
@@ -123,6 +134,9 @@ defmodule UnifiedIUR.ValidateTest do
 
     assert {:error, [sidebar_shell_error]} = Validate.element(invalid_sidebar_shell)
     assert sidebar_shell_error.code == :invalid_sidebar_shell
+
+    assert {:error, [mode_nav_error]} = Validate.element(invalid_mode_nav)
+    assert mode_nav_error.code == :invalid_mode_nav
   end
 
   test "validates segmented control and list repeat required shapes" do

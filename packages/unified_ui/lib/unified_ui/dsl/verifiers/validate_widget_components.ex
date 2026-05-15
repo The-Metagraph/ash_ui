@@ -189,6 +189,36 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   def validate_node(%Node{
+        kind: :mode_nav,
+        id: id,
+        modes: modes,
+        active_key: active_key,
+        keyboard_shortcut_prefix: keyboard_shortcut_prefix,
+        aria_label: aria_label
+      }) do
+    cond do
+      not valid_mode_nav_modes?(modes) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} modes must be a non-empty list of maps with atom key and label"}
+
+      not valid_mode_nav_active_key?(active_key, modes) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} active_key must reference an authored mode key"}
+
+      blank_string?(keyboard_shortcut_prefix) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} keyboard_shortcut_prefix must be a non-empty string"}
+
+      blank_string?(aria_label) ->
+        {:error, [:composition, :mode_nav, id],
+         "mode_nav #{inspect(id)} aria_label must be a non-empty string"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
         kind: :sidebar_shell,
         id: id,
         width: width,
@@ -430,6 +460,40 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   defp valid_form_fields?(_fields), do: false
+
+  defp valid_mode_nav_modes?(modes) when is_list(modes) and modes != [] do
+    Enum.all?(modes, &valid_mode_nav_mode?/1)
+  end
+
+  defp valid_mode_nav_modes?(_modes), do: false
+
+  defp valid_mode_nav_mode?(mode) when is_map(mode) or is_list(mode) do
+    mode = normalize_map(mode)
+    key = Map.get(mode, :key)
+    label = Map.get(mode, :label)
+    glyph = Map.get(mode, :glyph)
+    badge_count = Map.get(mode, :badge_count)
+    panel_id = Map.get(mode, :panel_id)
+
+    is_atom(key) and is_binary(label) and label != "" and
+      (is_nil(glyph) or (is_binary(glyph) and glyph != "")) and
+      (is_nil(badge_count) or (is_integer(badge_count) and badge_count >= 0)) and
+      (is_nil(panel_id) or (is_binary(panel_id) and panel_id != ""))
+  end
+
+  defp valid_mode_nav_mode?(_mode), do: false
+
+  defp valid_mode_nav_active_key?(nil, modes) when is_list(modes), do: modes != []
+
+  defp valid_mode_nav_active_key?(active_key, modes)
+       when is_atom(active_key) and is_list(modes) do
+    Enum.any?(modes, fn mode ->
+      mode = normalize_map(mode)
+      Map.get(mode, :key) == active_key
+    end)
+  end
+
+  defp valid_mode_nav_active_key?(_active_key, _modes), do: false
 
   defp valid_column_template?(columns) when is_list(columns) and columns != [] do
     Enum.all?(columns, fn

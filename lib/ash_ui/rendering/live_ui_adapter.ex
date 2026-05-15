@@ -846,6 +846,45 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "mode_nav"} = iur, opts) do
+    props = iur["props"] || %{}
+    aria_label = text_prop(props, "aria_label", "mode navigation")
+    active_key = text_prop(props, "active_key")
+    shortcut_prefix = text_prop(props, "keyboard_shortcut_prefix", "⌘")
+    event = text_prop(props, ["phx_click", "event"])
+
+    mode_buttons =
+      props
+      |> prop("modes", [])
+      |> List.wrap()
+      |> Enum.with_index(1)
+      |> Enum.map_join("", fn {mode, index} ->
+        mode = normalize_item(mode)
+        mode_key = text_prop(mode, "key", "")
+        label = text_prop(mode, "label", "")
+        glyph = text_prop(mode, "glyph")
+        panel_id = text_prop(mode, "panel_id")
+        badge_html = mode_nav_badge_html(mode, opts)
+        active? = mode_nav_selected?(active_key, mode_key, index)
+        shortcut = "#{shortcut_prefix}#{index}"
+        aria_shortcut = mode_nav_aria_shortcut(shortcut_prefix, index)
+
+        """
+        <button type="button" role="tab" class="#{css_classes(["ash-mode-nav-tab", if(active?, do: "ash-mode-nav-tab-active", else: nil)])}" aria-selected="#{if(active?, do: "true", else: "false")}"#{attr("aria-controls", panel_id)}#{attr("aria-keyshortcuts", aria_shortcut)} tabindex="#{if(active?, do: "0", else: "-1")}" data-mode-key="#{mode_key}" data-shortcut="#{shortcut}"#{attr("phx-click", event)}#{attr("phx-value-mode_key", if(event != "", do: mode_key, else: nil))}#{attr("phx-value-selected_value", if(event != "", do: mode_key, else: nil))}#{attr("phx-value-value", if(event != "", do: mode_key, else: nil))}>
+          #{if glyph, do: "<span class=\"ash-mode-nav-tab-glyph\" aria-hidden=\"true\">#{glyph}</span>", else: ""}
+          <span class="ash-mode-nav-tab-label">#{label}</span>
+          #{if badge_html != "", do: "<span class=\"ash-mode-nav-tab-badge\">#{badge_html}</span>", else: ""}
+        </button>
+        """
+      end)
+
+    """
+    <nav class="#{css_classes(["ash-mode-nav", prop_class(iur)])}" role="tablist" aria-label="#{aria_label}">
+      #{mode_buttons}
+    </nav>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")
@@ -2597,6 +2636,52 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp normalize_item(item), do: %{"value" => item}
+
+  defp mode_nav_badge_html(mode, opts) when is_map(mode) do
+    count =
+      case prop(mode, "badge_count") do
+        value when is_integer(value) ->
+          value
+
+        value when is_binary(value) ->
+          case Integer.parse(value) do
+            {parsed, ""} -> parsed
+            _ -> nil
+          end
+
+        _other ->
+          nil
+      end
+
+    if is_integer(count) and count > 0 do
+      generate_heex(
+        %{
+          "type" => "unread_badge",
+          "props" => %{
+            "count" => count,
+            "tone" => "default"
+          },
+          "children" => [],
+          "metadata" => %{}
+        },
+        opts
+      )
+    else
+      ""
+    end
+  end
+
+  defp mode_nav_selected?(nil, _mode_key, 1), do: true
+  defp mode_nav_selected?(nil, _mode_key, _index), do: false
+
+  defp mode_nav_selected?(active_key, mode_key, _index),
+    do: to_string(active_key) == to_string(mode_key)
+
+  defp mode_nav_aria_shortcut(prefix, index)
+       when prefix in ["⌘", "cmd", "Cmd", "command", "Command"],
+       do: "Meta+#{index}"
+
+  defp mode_nav_aria_shortcut(prefix, index), do: "#{prefix}+#{index}"
 
   defp collection_items(props) do
     items = prop(props, "items")

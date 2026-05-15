@@ -163,6 +163,44 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(data-live-ui-widget="sidebar-section")
   end
 
+  test "renderer maps mode_nav canonical components into tablist markup with shortcut metadata" do
+    element =
+      Components.mode_nav(
+        [
+          %{key: :chat, label: "Chat", glyph: "◉", badge_count: 4, panel_id: "panel-chat"},
+          %{key: :map, label: "Map", panel_id: "panel-map"},
+          %{key: :explorer, label: "Explorer"},
+          %{key: :ask, label: "Ask"}
+        ],
+        id: "workspace-mode-nav",
+        active_key: :map,
+        keyboard_shortcut_prefix: "⌘",
+        selection_intent: :select_mode,
+        interactions: [
+          UnifiedIUR.Interaction.selection(intent: :select_mode, element_id: "workspace-mode-nav")
+        ]
+      )
+
+    html =
+      render_component(&LiveUi.Renderer.render/1, %{
+        element: element,
+        event_target: "#runtime-host"
+      })
+
+    assert html =~ ~s(data-live-ui-widget="mode-nav")
+    assert html =~ ~s(role="tablist")
+    assert html =~ ~s(role="tab")
+    assert html =~ ~s(aria-selected="true")
+    assert html =~ ~s(aria-controls="panel-map")
+    assert html =~ ~s(data-mode-key="map")
+    assert html =~ ~s(data-shortcut="⌘2")
+    assert html =~ ~s(aria-keyshortcuts="Meta+2")
+    assert html =~ ~s(phx-click="canonical_interaction")
+    assert html =~ ~s(phx-value-mode_key="map")
+    assert html =~ ~s(phx-value-selected_value="map")
+    assert html =~ ~s(data-live-ui-widget="unread-badge")
+  end
+
   test "runtime can mount canonical unified_iur input through the shared screen host" do
     element =
       Layout.column([

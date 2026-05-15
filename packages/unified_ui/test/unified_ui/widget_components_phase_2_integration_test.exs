@@ -36,6 +36,19 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
         selection_intent(:select_status)
       end
 
+      mode_nav :workspace_mode_nav do
+        modes([
+          %{key: :chat, label: "Chat", badge_count: 2, panel_id: "panel-chat"},
+          %{key: :map, label: "Map", panel_id: "panel-map"},
+          %{key: :explorer, label: "Explorer"},
+          %{key: :ask, label: "Ask"}
+        ])
+
+        active_key(:map)
+        keyboard_shortcut_prefix("⌘")
+        selection_intent(:select_mode)
+      end
+
       runtime_form_shell :settings_form do
         fields([%{name: :title, type: :text, label: "Title"}])
         submit_label("Save")
@@ -135,6 +148,7 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
     for kind <- [
           :inline_rich_text_heading,
           :segmented_button_group,
+          :mode_nav,
           :runtime_form_shell,
           :sidebar_shell,
           :sidebar_section,
@@ -157,6 +171,7 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
     iur = Compiler.iur!(EndToEndWidgetScreen)
 
     segmented = Tree.find_by_id(iur, :status_filter)
+    mode_nav = Tree.find_by_id(iur, :workspace_mode_nav)
     form = Tree.find_by_id(iur, :settings_form)
     shell = Tree.find_by_id(iur, :primary_navigation)
     section = Tree.find_by_id(iur, :builds_section)
@@ -165,6 +180,12 @@ defmodule UnifiedUi.WidgetComponentsPhase2IntegrationTest do
 
     assert [%Interaction{family: :selection, intent: :select_status}] =
              segmented.attributes.interactions
+
+    assert [%Interaction{family: :selection, intent: :select_mode} = mode_nav_interaction] =
+             mode_nav.attributes.interactions
+
+    assert mode_nav.attributes.mode_nav.active_key == :map
+    assert mode_nav_interaction.payload == %{selection: :map, mapping: %{selected_value: :value}}
 
     assert Enum.map(form.attributes.interactions, &{&1.family, &1.intent}) == [
              {:submit, :save_settings},

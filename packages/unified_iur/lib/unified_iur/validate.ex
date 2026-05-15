@@ -124,6 +124,11 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Represent sidebar shells with a supported width, a non-empty aria_label, and sidebar_section children only."
+    },
+    invalid_mode_nav: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent mode navigation with labeled atom-key modes, an active_key drawn from those modes, and a non-empty keyboard shortcut prefix."
     }
   }
 
@@ -619,6 +624,36 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :mode_nav, attributes: attributes}) do
+    nav = Map.get(attributes, :mode_nav, %{})
+    modes = fetch(nav, :modes, [])
+    active_key = fetch(nav, :active_key)
+    keyboard_shortcut_prefix = fetch(nav, :keyboard_shortcut_prefix, "⌘")
+    aria_label = fetch(nav, :aria_label)
+
+    valid? =
+      valid_mode_nav_modes?(modes) and
+        valid_mode_nav_active_key?(active_key, modes) and
+        is_binary(keyboard_shortcut_prefix) and keyboard_shortcut_prefix != "" and
+        is_binary(aria_label) and aria_label != ""
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_mode_nav,
+        "mode_nav requires labeled atom-key modes, an active_key from that mode set, a non-empty keyboard_shortcut_prefix, and a non-empty aria_label",
+        path: [:attributes, :mode_nav],
+        details: %{
+          modes: modes,
+          active_key: active_key,
+          keyboard_shortcut_prefix: keyboard_shortcut_prefix,
+          aria_label: aria_label
+        }
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_selection_options(options, path) when is_list(options) do
@@ -693,7 +728,45 @@ defmodule UnifiedIUR.Validate do
   defp sidebar_shell_child_kind({_slot, %Element{kind: kind}}), do: kind
   defp sidebar_shell_child_kind(other), do: inspect(other)
 
+  defp valid_mode_nav_modes?(modes) when is_list(modes) and modes != [] do
+    Enum.all?(modes, &valid_mode_nav_mode?/1)
+  end
+
+  defp valid_mode_nav_modes?(_modes), do: false
+
+  defp valid_mode_nav_mode?(mode) when is_map(mode) or is_list(mode) do
+    mode = normalize_generic_map(mode)
+    key = fetch(mode, :key)
+    label = fetch(mode, :label)
+    glyph = fetch(mode, :glyph)
+    badge_count = fetch(mode, :badge_count)
+    panel_id = fetch(mode, :panel_id)
+
+    is_atom(key) and is_binary(label) and label != "" and
+      (is_nil(glyph) or (is_binary(glyph) and glyph != "")) and
+      (is_nil(badge_count) or (is_integer(badge_count) and badge_count >= 0)) and
+      (is_nil(panel_id) or (is_binary(panel_id) and panel_id != ""))
+  end
+
+  defp valid_mode_nav_mode?(_mode), do: false
+
+  defp valid_mode_nav_active_key?(nil, modes) when is_list(modes), do: modes != []
+
+  defp valid_mode_nav_active_key?(active_key, modes)
+       when is_atom(active_key) and is_list(modes) do
+    Enum.any?(modes, fn mode ->
+      mode = normalize_generic_map(mode)
+      fetch(mode, :key) == active_key
+    end)
+  end
+
+  defp valid_mode_nav_active_key?(_active_key, _modes), do: false
+
   defp blank_text?(value), do: not is_binary(value) or value == ""
+
+  defp normalize_generic_map(value) when is_map(value), do: Map.new(value)
+  defp normalize_generic_map(value) when is_list(value), do: Enum.into(value, %{})
+  defp normalize_generic_map(_value), do: %{}
 
   defp validate_redline_segments(segments, path) when is_list(segments) do
     segments

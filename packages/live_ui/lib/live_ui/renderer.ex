@@ -240,6 +240,61 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  def render(%{element: %Element{kind: :mode_nav}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:aria_label, mode_nav_aria_label(assigns.element))
+      |> assign(:active_key, mode_nav_active_key(assigns.element))
+      |> assign(:shortcut_prefix, mode_nav_shortcut_prefix(assigns.element))
+      |> assign(:modes, mode_nav_modes(assigns.element))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <nav
+      id={element_id(@element, "mode-nav")}
+      data-live-ui-widget="mode-nav"
+      role="tablist"
+      aria-label={@aria_label}
+      class={["live-ui-mode-nav", style_class(@element)]}
+      {@style_attrs}
+    >
+      <%= for {mode, index} <- Enum.with_index(@modes, 1) do %>
+        <% mode_key = mode_nav_mode_key(mode) %>
+        <% active? = mode_key == @active_key %>
+        <% shortcut = mode_nav_shortcut(@shortcut_prefix, index) %>
+        <button
+          id={mode_nav_tab_id(@element, mode_key)}
+          type="button"
+          role="tab"
+          aria-selected={boolean_string(active?)}
+          aria-controls={mode_nav_panel_id(mode)}
+          aria-keyshortcuts={mode_nav_aria_shortcut(@shortcut_prefix, index)}
+          tabindex={if(active?, do: "0", else: "-1")}
+          data-mode-key={Atom.to_string(mode_key)}
+          data-shortcut={shortcut}
+          data-live-ui-shortcut={shortcut}
+          class={[
+            "live-ui-mode-nav-tab",
+            active? && "live-ui-mode-nav-tab-active"
+          ]}
+          {mode_nav_tab_interaction_attrs(@element, @event_target, mode_key)}
+        >
+          <span :if={mode_nav_mode_glyph(mode)} class="live-ui-mode-nav-tab-glyph" aria-hidden="true">
+            <%= mode_nav_mode_glyph(mode) %>
+          </span>
+          <span class="live-ui-mode-nav-tab-label"><%= mode_nav_mode_label(mode) %></span>
+          <span :if={mode_nav_mode_badge_count(mode)} class="live-ui-mode-nav-tab-badge">
+            <.render
+              element={mode_nav_badge_element(mode)}
+              event_target={@event_target}
+            />
+          </span>
+        </button>
+      <% end %>
+    </nav>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1555,6 +1610,9 @@ defmodule LiveUi.Renderer do
   defp boolean_default("false", _default), do: false
   defp boolean_default(value, _default), do: value
 
+  defp boolean_string(true), do: "true"
+  defp boolean_string(false), do: "false"
+
   defp state_boolean(%Element{} = element, path) when is_list(path) do
     boolean_default(get_in(element.attributes, path), false)
   end
@@ -1681,6 +1739,95 @@ defmodule LiveUi.Renderer do
         get_in(element.attributes, [:accessibility, :label]),
       "primary navigation"
     )
+  end
+
+  defp mode_nav_modes(%Element{} = element) do
+    get_in(element.attributes, [:mode_nav, :modes]) || []
+  end
+
+  defp mode_nav_active_key(%Element{} = element) do
+    get_in(element.attributes, [:mode_nav, :active_key]) ||
+      case mode_nav_modes(element) do
+        [%{} = mode | _rest] -> mode_nav_mode_key(mode)
+        _other -> nil
+      end
+  end
+
+  defp mode_nav_shortcut_prefix(%Element{} = element) do
+    string_value(get_in(element.attributes, [:mode_nav, :keyboard_shortcut_prefix]), "⌘")
+  end
+
+  defp mode_nav_aria_label(%Element{} = element) do
+    string_value(
+      get_in(element.attributes, [:mode_nav, :aria_label]) ||
+        get_in(element.attributes, [:accessibility, :label]),
+      "mode navigation"
+    )
+  end
+
+  defp mode_nav_mode_key(mode) when is_map(mode),
+    do: Map.get(mode, :key) || Map.get(mode, "key")
+
+  defp mode_nav_mode_label(mode) when is_map(mode),
+    do: to_string(Map.get(mode, :label) || Map.get(mode, "label") || "")
+
+  defp mode_nav_mode_glyph(mode) when is_map(mode) do
+    string_optional(Map.get(mode, :glyph) || Map.get(mode, "glyph"))
+  end
+
+  defp mode_nav_mode_badge_count(mode) when is_map(mode) do
+    case Map.get(mode, :badge_count) || Map.get(mode, "badge_count") do
+      count when is_integer(count) and count > 0 -> count
+      _other -> nil
+    end
+  end
+
+  defp mode_nav_panel_id(mode) when is_map(mode) do
+    string_optional(Map.get(mode, :panel_id) || Map.get(mode, "panel_id"))
+  end
+
+  defp mode_nav_shortcut(prefix, index), do: "#{prefix}#{index}"
+
+  defp mode_nav_aria_shortcut(prefix, index)
+       when prefix in ["⌘", "cmd", "Cmd", "command", "Command"],
+       do: "Meta+#{index}"
+
+  defp mode_nav_aria_shortcut(prefix, index), do: "#{prefix}+#{index}"
+
+  defp mode_nav_badge_element(mode) when is_map(mode) do
+    count = mode_nav_mode_badge_count(mode)
+    label = mode_nav_mode_label(mode)
+
+    Element.new(:widget, :unread_badge,
+      attributes: %{
+        badge: %{count: count, tone: :default},
+        accessibility: %{label: "#{count} unread items for #{label}"}
+      },
+      children: []
+    )
+  end
+
+  defp mode_nav_tab_id(%Element{} = element, mode_key) do
+    "#{element_id(element, "mode-nav")}-#{mode_key}"
+  end
+
+  defp mode_nav_tab_interaction_attrs(%Element{} = element, event_target, mode_key) do
+    case {primary_interaction(element, :selection), event_target, mode_key} do
+      {%Interaction{} = interaction, target, key} when not is_nil(target) and not is_nil(key) ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, Atom.to_string(element.kind)),
+          :"phx-value-widget" => Atom.to_string(element.kind),
+          :"phx-value-mode_key" => Atom.to_string(key),
+          :"phx-value-selected_value" => Atom.to_string(key),
+          :"phx-value-value" => Atom.to_string(key)
+        }
+
+      _ ->
+        %{}
+    end
   end
 
   defp form_interaction_attrs(%Element{} = element, event_target) do

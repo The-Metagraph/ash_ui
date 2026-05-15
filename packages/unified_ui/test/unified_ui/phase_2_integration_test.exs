@@ -306,6 +306,7 @@ defmodule UnifiedUi.Phase2IntegrationTest do
              :segmented_button_group,
              :runtime_form_shell,
              :chat_composer,
+             :mode_nav,
              :list_item_multi_column,
              :artifact_row,
              :sidebar_item,

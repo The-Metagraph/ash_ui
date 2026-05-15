@@ -58,6 +58,20 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
         badge_tone(:critical)
       end
 
+      mode_nav :workspace_mode_nav do
+        modes([
+          %{key: :chat, label: "Chat", glyph: "◉", badge_count: 3, panel_id: "panel-chat"},
+          %{key: :map, label: "Map", panel_id: "panel-map"},
+          %{key: :explorer, label: "Explorer"},
+          %{key: :ask, label: "Ask"}
+        ])
+
+        active_key(:map)
+        keyboard_shortcut_prefix("⌘")
+        aria_label("mode navigation")
+        selection_intent(:select_mode)
+      end
+
       sidebar_shell :primary_navigation do
         width(:wide)
         aria_label("primary navigation")
@@ -185,6 +199,8 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
   end
 
   test "registers authored operational widget component kinds" do
+    assert UnifiedUi.Widgets.navigation_component_kinds() == [:mode_nav]
+
     assert UnifiedUi.Widgets.row_artifact_component_kinds() == [
              :list_item_multi_column,
              :artifact_row,
@@ -229,6 +245,10 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
     assert {by_id.build_sidebar_item.family, by_id.build_sidebar_item.kind,
             by_id.build_sidebar_item.item_kind, by_id.build_sidebar_item.unread_count} ==
              {:row_and_artifact, :sidebar_item, :build, 12}
+
+    assert {by_id.workspace_mode_nav.family, by_id.workspace_mode_nav.kind,
+            by_id.workspace_mode_nav.active_key, by_id.workspace_mode_nav.selection_intent} ==
+             {:navigation, :mode_nav, :map, :select_mode}
 
     assert {by_id.primary_navigation.family, by_id.primary_navigation.kind,
             by_id.primary_navigation.width, by_id.primary_navigation.aria_label} ==
@@ -289,6 +309,16 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              unread_count: 12,
              badge_tone: :critical
            } = summary.build_sidebar_item
+
+    assert %{
+             family: :navigation,
+             kind: :mode_nav,
+             active_key: :map,
+             keyboard_shortcut_prefix: "⌘",
+             selection_intent: :select_mode
+           } = summary.workspace_mode_nav
+
+    assert Enum.map(summary.workspace_mode_nav.modes, & &1.key) == [:chat, :map, :explorer, :ask]
 
     assert %{
              family: :layer_shell_and_callout,
@@ -369,6 +399,18 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
 
     assert section_message =~ "action_intent requires a visible action_glyph"
 
+    assert {:error, [:composition, :mode_nav, :bad_mode_nav], mode_nav_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :mode_nav,
+               id: :bad_mode_nav,
+               modes: [%{key: "chat", label: ""}],
+               active_key: :map,
+               keyboard_shortcut_prefix: "",
+               aria_label: ""
+             })
+
+    assert mode_nav_message =~ "modes must be a non-empty list"
+
     assert {:error, [:composition, :sidebar_shell, :bad_shell], shell_message} =
              ValidateWidgetComponents.validate_node(%Node{
                kind: :sidebar_shell,
@@ -442,6 +484,7 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
   test "tooling links operational families to widget component specs" do
     {:ok, report} = UnifiedUi.Tooling.inspect_module(OperationalComponentsScreen)
 
+    assert :navigation in report.construct_families
     assert :row_and_artifact in report.construct_families
     assert :workflow_progress_and_status in report.construct_families
     assert :layer_shell_and_callout in report.construct_families

@@ -23,6 +23,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :chat_composer
            ]
 
+    assert Components.navigation_kinds() == [:mode_nav]
+
     assert Components.row_artifact_kinds() == [
              :list_item_multi_column,
              :artifact_row,
@@ -146,6 +148,17 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         unread_count: 12
       )
 
+    mode_nav =
+      Components.mode_nav(
+        [
+          %{key: :chat, label: "Chat", glyph: "◉", badge_count: 3, panel_id: "mode-chat"},
+          %{key: :map, label: "Map", glyph: "◎"}
+        ],
+        active_key: :chat,
+        keyboard_shortcut_prefix: "⌘",
+        selection_intent: :select_mode
+      )
+
     assert segmented.attributes.selection == %{
              presentation: :segmented_button_group,
              multiple?: false,
@@ -202,6 +215,17 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            }
 
     assert [%{slot: :trailing, element: %Element{kind: :unread_badge}}] = sidebar_item.children
+
+    assert mode_nav.attributes.mode_nav == %{
+             modes: [
+               %{key: :chat, label: "Chat", glyph: "◉", badge_count: 3, panel_id: "mode-chat"},
+               %{key: :map, label: "Map", glyph: "◎"}
+             ],
+             active_key: :chat,
+             keyboard_shortcut_prefix: "⌘",
+             aria_label: "mode navigation",
+             selection_intent: :select_mode
+           }
   end
 
   test "represents workflow, layer, callout, redline, and code components" do

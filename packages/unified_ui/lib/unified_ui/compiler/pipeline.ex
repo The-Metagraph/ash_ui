@@ -607,6 +607,17 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:label])
           )
 
+        :mode_nav ->
+          Widgets.Components.mode_nav(
+            normalize_list(node.modes),
+            common_opts(node, attachments,
+              active_key: node.active_key,
+              keyboard_shortcut_prefix: node.keyboard_shortcut_prefix,
+              aria_label: node.aria_label || node.accessibility_label,
+              selection_intent: node.selection_intent
+            )
+          )
+
         :list ->
           Widgets.Data.list(
             normalize_list(node.items),
@@ -1475,11 +1486,14 @@ defmodule UnifiedUi.Compiler.Pipeline do
     Interaction.selection(
       intent: node.selection_intent,
       element_id: node.id,
-      selection: node.active_value,
+      selection: default_selection_value(node),
       mapping: %{selected_value: :value},
       phase: :authored_default
     )
   end
+
+  defp default_selection_value(%Node{kind: :mode_nav, active_key: active_key}), do: active_key
+  defp default_selection_value(%Node{} = node), do: node.active_value
 
   defp default_step_navigation_interaction(%Node{navigation_intent: nil}), do: nil
 

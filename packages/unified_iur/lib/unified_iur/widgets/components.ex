@@ -39,6 +39,10 @@ defmodule UnifiedIUR.Widgets.Components do
     :chat_composer
   ]
 
+  @navigation_kinds [
+    :mode_nav
+  ]
+
   @row_artifact_kinds [
     :list_item_multi_column,
     :artifact_row,
@@ -75,6 +79,9 @@ defmodule UnifiedIUR.Widgets.Components do
   @spec form_control_kinds() :: [atom()]
   def form_control_kinds, do: @form_control_kinds
 
+  @spec navigation_kinds() :: [atom()]
+  def navigation_kinds, do: @navigation_kinds
+
   @spec row_artifact_kinds() :: [atom()]
   def row_artifact_kinds, do: @row_artifact_kinds
 
@@ -94,6 +101,7 @@ defmodule UnifiedIUR.Widgets.Components do
   def kinds do
     @content_identity_kinds ++
       @form_control_kinds ++
+      @navigation_kinds ++
       @row_artifact_kinds ++
       @workflow_kinds ++
       @layer_callout_kinds ++
@@ -251,6 +259,31 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:change_intent, option(opts, :change_intent))
       },
       Map.put(opts, :children, children)
+    )
+  end
+
+  @spec mode_nav([keyword() | map()], opts()) :: Element.t()
+  def mode_nav(modes, opts \\ []) when is_list(modes) do
+    opts = normalize_opts(opts)
+    modes = normalize_mode_nav_modes(modes)
+    active_key = option(opts, :active_key, default_mode_nav_active_key(modes))
+    aria_label = option(opts, :aria_label, "mode navigation")
+    opts = Map.put_new(opts, :accessibility_label, aria_label)
+
+    build_component(
+      :mode_nav,
+      :navigation,
+      %{
+        mode_nav:
+          %{
+            modes: modes,
+            active_key: active_key,
+            keyboard_shortcut_prefix: option(opts, :keyboard_shortcut_prefix, "⌘"),
+            aria_label: aria_label
+          }
+          |> maybe_put(:selection_intent, option(opts, :selection_intent))
+      },
+      opts
     )
   end
 
@@ -714,6 +747,25 @@ defmodule UnifiedIUR.Widgets.Components do
       |> maybe_put(:disabled?, option(option_value, :disabled?))
     end)
   end
+
+  defp normalize_mode_nav_modes(modes) do
+    Enum.map(modes, fn mode ->
+      mode = normalize_opts(mode)
+
+      %{}
+      |> maybe_put(:key, option(mode, :key))
+      |> maybe_put(:label, option(mode, :label))
+      |> maybe_put(:glyph, option(mode, :glyph))
+      |> maybe_put(:badge_count, normalize_mode_badge_count(option(mode, :badge_count)))
+      |> maybe_put(:panel_id, option(mode, :panel_id))
+    end)
+  end
+
+  defp default_mode_nav_active_key([%{key: key} | _rest]), do: key
+  defp default_mode_nav_active_key(_modes), do: nil
+
+  defp normalize_mode_badge_count(value) when is_integer(value) and value > 0, do: value
+  defp normalize_mode_badge_count(_value), do: nil
 
   defp normalize_maps(values) when is_list(values) do
     Enum.map(values, &normalize_map/1)

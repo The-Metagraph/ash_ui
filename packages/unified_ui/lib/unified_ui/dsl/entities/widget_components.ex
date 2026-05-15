@@ -7,6 +7,7 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
 
   @content_identity_family :content_identity_and_disclosure
   @form_control_family :form_control_and_composer
+  @navigation_family :navigation
   @row_artifact_family :row_and_artifact
   @workflow_family :workflow_progress_and_status
   @layer_family :layer_shell_and_callout
@@ -17,6 +18,7 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   def entities do
     content_identity_entities() ++
       form_control_entities() ++
+      navigation_entities() ++
       row_artifact_entities() ++
       workflow_entities() ++
       layer_callout_entities() ++
@@ -90,6 +92,22 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         summary: [type: :string, required: false]
       ),
       chat_composer_entity()
+    ]
+  end
+
+  @spec navigation_entities() :: [Spark.Dsl.Entity.t()]
+  def navigation_entities do
+    [
+      leaf(
+        :mode_nav,
+        @navigation_family,
+        modes: [type: :any, required: true],
+        active_key: [type: :atom, required: false],
+        keyboard_shortcut_prefix: [type: :string, required: false, default: "⌘"],
+        aria_label: [type: :string, required: false, default: "mode navigation"],
+        selection_intent: [type: :atom, required: false],
+        summary: [type: :string, required: false]
+      )
     ]
   end
 
@@ -264,6 +282,11 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
     Enum.map(form_control_entities(), & &1.name)
   end
 
+  @spec navigation_kinds() :: [atom()]
+  def navigation_kinds do
+    Enum.map(navigation_entities(), & &1.name)
+  end
+
   @spec row_artifact_kinds() :: [atom()]
   def row_artifact_kinds do
     Enum.map(row_artifact_entities(), & &1.name)
@@ -293,6 +316,7 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   def kinds do
     content_identity_kinds() ++
       form_control_kinds() ++
+      navigation_kinds() ++
       row_artifact_kinds() ++
       workflow_kinds() ++
       layer_callout_kinds() ++

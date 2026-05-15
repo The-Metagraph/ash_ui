@@ -130,7 +130,7 @@ defmodule UnifiedUi.WidgetComponents do
     %{
       kind: :sidebar_section,
       family: :layer_shell_and_callout,
-      source: %{system: :ash_ui, pr: 103, name: :sidebar_section},
+      source: %{system: :ash_ui, pr: 104, name: :sidebar_section},
       summary:
         "Sidebar grouping with a section title, optional action button, and child navigation items.",
       aliases: []

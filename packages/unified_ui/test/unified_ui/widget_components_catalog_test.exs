@@ -49,7 +49,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
   test "source mapping records every AshUi PR in order" do
     source_mapping = WidgetComponents.source_mapping()
 
-    assert Enum.sort(Map.keys(source_mapping)) == Enum.to_list(79..98) ++ [101, 102, 103]
+    assert Enum.sort(Map.keys(source_mapping)) == Enum.to_list(79..98) ++ [101, 102, 104]
     assert source_mapping[79].canonical_kind == :inline_rich_text_heading
     assert source_mapping[81].source_name == :phoenix_form
     assert source_mapping[81].canonical_kind == :runtime_form_shell
@@ -57,8 +57,8 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert source_mapping[101].canonical_kind == :unread_badge
     assert source_mapping[102].source_name == :sidebar_item
     assert source_mapping[102].canonical_kind == :sidebar_item
-    assert source_mapping[103].source_name == :sidebar_section
-    assert source_mapping[103].canonical_kind == :sidebar_section
+    assert source_mapping[104].source_name == :sidebar_section
+    assert source_mapping[104].canonical_kind == :sidebar_section
     assert source_mapping[98].source_name == :ui_relationship_repeat
     assert source_mapping[98].canonical_kind == :list_repeat
   end

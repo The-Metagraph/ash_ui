@@ -115,7 +115,7 @@ defmodule UnifiedUi.WidgetComponents do
     %{
       kind: :top_strip,
       family: :layer_shell_and_callout,
-      source: %{system: :ash_ui, pr: 106, name: :top_strip},
+      source: %{system: :ash_ui, pr: 107, name: :top_strip},
       summary:
         "Primary application chrome bar with leading brand fallback, centered nav slot, and trailing affordance slot.",
       aliases: []

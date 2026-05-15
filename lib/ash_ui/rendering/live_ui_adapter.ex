@@ -832,6 +832,20 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "sidebar_shell"} = iur, opts) do
+    props = iur["props"] || %{}
+    width = text_prop(props, "width", "wide")
+    aria_label = text_prop(props, "aria_label", "primary navigation")
+
+    """
+    <nav class="#{css_classes(["ash-sidebar-shell", "ash-sidebar-shell-#{width}", prop_class(iur)])}" aria-label="#{aria_label}">
+      <div class="ash-sidebar-shell-scroll">
+        #{generate_children(iur["children"] || [], opts)}
+      </div>
+    </nav>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")

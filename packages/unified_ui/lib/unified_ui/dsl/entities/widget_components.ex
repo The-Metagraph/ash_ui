@@ -183,6 +183,13 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   def layer_callout_entities do
     [
       container(
+        :sidebar_shell,
+        @layer_family,
+        width: [type: {:in, [:narrow, :wide]}, required: false, default: :wide],
+        aria_label: [type: :string, required: false, default: "primary navigation"],
+        summary: [type: :string, required: false]
+      ),
+      container(
         :sidebar_section,
         @layer_family,
         title: [type: :string, required: true],

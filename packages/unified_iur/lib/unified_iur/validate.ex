@@ -119,6 +119,11 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Represent sidebar sections with a non-empty title and pair any section action intent with visible action copy."
+    },
+    invalid_sidebar_shell: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar shells with a supported width, a non-empty aria_label, and sidebar_section children only."
     }
   }
 
@@ -584,6 +589,36 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{
+         kind: :sidebar_shell,
+         attributes: attributes,
+         children: children
+       }) do
+    shell = Map.get(attributes, :sidebar_shell, %{})
+    width = fetch(shell, :width, :wide)
+    aria_label = fetch(shell, :aria_label)
+
+    valid? =
+      width in [:narrow, :wide] and
+        is_binary(aria_label) and aria_label != "" and
+        valid_sidebar_shell_children?(children)
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_shell,
+        "sidebar_shell requires width :narrow or :wide, a non-empty aria_label, and sidebar_section children only",
+        path: [:attributes, :sidebar_shell],
+        details: %{
+          width: width,
+          aria_label: aria_label,
+          child_kinds: Enum.map(children, &sidebar_shell_child_kind/1)
+        }
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_selection_options(options, path) when is_list(options) do
@@ -643,6 +678,20 @@ defmodule UnifiedIUR.Validate do
   end
 
   defp valid_sidebar_section_action?(_action_intent, _action_glyph, _action_label), do: false
+
+  defp valid_sidebar_shell_children?(children) do
+    Enum.all?(children, fn
+      %Child{element: %Element{kind: :sidebar_section}} -> true
+      %Element{kind: :sidebar_section} -> true
+      {:default, %Element{kind: :sidebar_section}} -> true
+      _other -> false
+    end)
+  end
+
+  defp sidebar_shell_child_kind(%Child{element: %Element{kind: kind}}), do: kind
+  defp sidebar_shell_child_kind(%Element{kind: kind}), do: kind
+  defp sidebar_shell_child_kind({_slot, %Element{kind: kind}}), do: kind
+  defp sidebar_shell_child_kind(other), do: inspect(other)
 
   defp blank_text?(value), do: not is_binary(value) or value == ""
 

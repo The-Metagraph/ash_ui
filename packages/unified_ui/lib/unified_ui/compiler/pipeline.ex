@@ -951,6 +951,15 @@ defmodule UnifiedUi.Compiler.Pipeline do
             )
           )
 
+        :sidebar_shell ->
+          Widgets.Components.sidebar_shell(
+            lower_children(node, context, visited),
+            common_opts(node, attachments,
+              width: node.width,
+              aria_label: node.aria_label || node.accessibility_label
+            )
+          )
+
         :sidebar_section ->
           Widgets.Components.sidebar_section(
             node.title || "",

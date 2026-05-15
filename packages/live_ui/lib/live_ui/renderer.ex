@@ -211,6 +211,35 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  def render(%{element: %Element{kind: :sidebar_shell}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:shell_width, sidebar_shell_width(assigns.element))
+      |> assign(:aria_label, sidebar_shell_aria_label(assigns.element))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <nav
+      id={element_id(@element, "sidebar-shell")}
+      data-live-ui-widget="sidebar-shell"
+      data-live-ui-width={@shell_width}
+      aria-label={@aria_label}
+      class={[
+        "live-ui-sidebar-shell",
+        "live-ui-sidebar-shell-#{@shell_width}",
+        style_class(@element)
+      ]}
+      {@style_attrs}
+    >
+      <div class="live-ui-sidebar-shell-scroll">
+        <%= for child <- child_elements(@element) do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </div>
+    </nav>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1635,6 +1664,23 @@ defmodule LiveUi.Renderer do
     is_atom(Map.get(attrs, :action_intent)) or
       sidebar_section_action_glyph(element) != nil or
       sidebar_section_action_label(element) != nil
+  end
+
+  defp sidebar_shell_width(%Element{} = element) do
+    element
+    |> get_in([Access.key(:attributes, %{}), :sidebar_shell, :width])
+    |> case do
+      width when width in [:narrow, :wide] -> Atom.to_string(width)
+      _other -> "wide"
+    end
+  end
+
+  defp sidebar_shell_aria_label(%Element{} = element) do
+    string_value(
+      get_in(element.attributes, [:sidebar_shell, :aria_label]) ||
+        get_in(element.attributes, [:accessibility, :label]),
+      "primary navigation"
+    )
   end
 
   defp form_interaction_attrs(%Element{} = element, event_target) do

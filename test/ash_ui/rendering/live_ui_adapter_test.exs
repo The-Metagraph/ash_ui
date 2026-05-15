@@ -558,6 +558,52 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       refute heex =~ ~r/\b\d+px\b/
     end
 
+    test "generates sidebar_shell markup with semantic navigation structure" do
+      iur = %{
+        "type" => "sidebar_shell",
+        "id" => "primary-navigation",
+        "props" => %{
+          "width" => "wide",
+          "aria_label" => "primary navigation"
+        },
+        "children" => [
+          %{
+            "type" => "sidebar_section",
+            "id" => "section-channels",
+            "props" => %{"title" => "Channels"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-sidebar-shell"
+      assert heex =~ "ash-sidebar-shell-wide"
+      assert heex =~ "ash-sidebar-shell-scroll"
+      assert heex =~ ~s(aria-label="primary navigation")
+      assert heex =~ "ash-sidebar-section"
+    end
+
+    test "sidebar_shell produces no literal color or spacing values" do
+      iur = %{
+        "type" => "sidebar_shell",
+        "id" => "shell-pure",
+        "props" => %{
+          "width" => "narrow",
+          "aria_label" => "primary navigation"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

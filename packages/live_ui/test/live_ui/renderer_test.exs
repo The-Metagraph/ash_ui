@@ -130,6 +130,39 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(data-live-ui-widget="sidebar-item")
   end
 
+  test "renderer maps sidebar_shell canonical components into navigation shell markup" do
+    element =
+      Components.sidebar_shell(
+        [
+          Components.sidebar_section(
+            "Channels",
+            [
+              Components.sidebar_item("metagraph-team",
+                glyph: "#",
+                item_kind: :channel,
+                item_id: "metagraph-team",
+                action_intent: :open_channel
+              )
+            ],
+            action_glyph: "+",
+            action_label: "New channel",
+            action_intent: :new_channel
+          )
+        ],
+        id: "primary-navigation",
+        width: :wide,
+        aria_label: "primary navigation"
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="sidebar-shell")
+    assert html =~ ~s(data-live-ui-width="wide")
+    assert html =~ ~s(aria-label="primary navigation")
+    assert html =~ "live-ui-sidebar-shell-scroll"
+    assert html =~ ~s(data-live-ui-widget="sidebar-section")
+  end
+
   test "runtime can mount canonical unified_iur input through the shared screen host" do
     element =
       Layout.column([

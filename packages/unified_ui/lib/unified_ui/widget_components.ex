@@ -128,6 +128,14 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :sidebar_shell,
+      family: :layer_shell_and_callout,
+      source: %{system: :ash_ui, pr: 105, name: :sidebar_shell},
+      summary:
+        "Primary navigation shell with top-level scroll container and grouped sidebar sections.",
+      aliases: []
+    },
+    %{
       kind: :sidebar_section,
       family: :layer_shell_and_callout,
       source: %{system: :ash_ui, pr: 104, name: :sidebar_section},

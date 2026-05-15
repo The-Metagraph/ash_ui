@@ -135,6 +135,7 @@ defmodule UnifiedUi.Dsl.Placement do
     :chat_composer,
     :list_item_multi_column,
     :artifact_row,
+    :sidebar_shell,
     :sidebar_section,
     :sticky_frosted_header,
     :slide_over_panel,

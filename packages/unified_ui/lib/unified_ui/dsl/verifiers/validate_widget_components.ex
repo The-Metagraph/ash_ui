@@ -189,6 +189,31 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   def validate_node(%Node{
+        kind: :sidebar_shell,
+        id: id,
+        width: width,
+        aria_label: aria_label,
+        children: children
+      }) do
+    cond do
+      width not in [:narrow, :wide] ->
+        {:error, [:composition, :sidebar_shell, id],
+         "sidebar_shell #{inspect(id)} width must be :narrow or :wide"}
+
+      blank_string?(aria_label) ->
+        {:error, [:composition, :sidebar_shell, id],
+         "sidebar_shell #{inspect(id)} aria_label must be a non-empty string"}
+
+      not Enum.all?(children, &match?(%Node{kind: :sidebar_section}, &1)) ->
+        {:error, [:composition, :sidebar_shell, id],
+         "sidebar_shell #{inspect(id)} children must all be sidebar_section nodes"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
         kind: :sidebar_section,
         id: id,
         title: title,

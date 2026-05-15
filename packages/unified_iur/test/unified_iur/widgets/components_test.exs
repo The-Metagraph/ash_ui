@@ -37,6 +37,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            ]
 
     assert Components.layer_callout_kinds() == [
+             :sidebar_shell,
              :sidebar_section,
              :sticky_frosted_header,
              :slide_over_panel,
@@ -246,6 +247,13 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         action_intent: :new_channel
       )
 
+    shell =
+      Components.sidebar_shell(
+        [section],
+        width: :wide,
+        aria_label: "primary navigation"
+      )
+
     header = Components.sticky_frosted_header([], title: "Workspace", leading: [:back])
 
     panel =
@@ -300,6 +308,14 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              label: "Coverage",
              state: :success
            }
+
+    assert shell.attributes.sidebar_shell == %{
+             width: :wide,
+             aria_label: "primary navigation"
+           }
+
+    assert shell.attributes.accessibility == %{label: "primary navigation"}
+    assert [%{element: %Element{kind: :sidebar_section}}] = shell.children
 
     assert section.attributes.sidebar_section == %{
              title: "Channels",

@@ -53,6 +53,7 @@ defmodule UnifiedIUR.Widgets.Components do
   ]
 
   @layer_callout_kinds [
+    :sidebar_shell,
     :sidebar_section,
     :sticky_frosted_header,
     :slide_over_panel,
@@ -340,6 +341,29 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:action_glyph, option(opts, :action_glyph))
           |> maybe_put(:action_label, option(opts, :action_label))
           |> maybe_put(:action_intent, option(opts, :action_intent))
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec sidebar_shell(
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) ::
+          Element.t()
+  def sidebar_shell(children \\ [], opts \\ []) when is_list(children) do
+    opts = normalize_opts(opts)
+    aria_label = option(opts, :aria_label, "primary navigation")
+    opts = Map.put_new(opts, :accessibility_label, aria_label)
+
+    build_component(
+      :sidebar_shell,
+      :layer_shell_and_callout,
+      %{
+        sidebar_shell: %{
+          width: option(opts, :width, :wide),
+          aria_label: aria_label
+        }
       },
       Map.put(opts, :children, children)
     )

@@ -951,6 +951,17 @@ defmodule UnifiedUi.Compiler.Pipeline do
             )
           )
 
+        :sidebar_section ->
+          Widgets.Components.sidebar_section(
+            node.title || "",
+            lower_children(node, context, visited),
+            common_opts(node, attachments,
+              action_glyph: node.action_glyph,
+              action_label: node.action_label,
+              action_intent: node.action_intent
+            )
+          )
+
         :pipeline_stepper_horizontal ->
           Widgets.Components.pipeline_stepper_horizontal(
             normalize_list(node.steps),

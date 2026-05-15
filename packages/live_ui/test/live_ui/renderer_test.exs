@@ -97,6 +97,39 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(data-live-ui-widget="unread-badge")
   end
 
+  test "renderer maps sidebar_section canonical components into native grouping markup" do
+    element =
+      Components.sidebar_section(
+        "Channels",
+        [
+          Components.sidebar_item("metagraph-team",
+            glyph: "#",
+            item_kind: :channel,
+            item_id: "metagraph-team",
+            action_intent: :open_channel
+          )
+        ],
+        id: "channels-section",
+        action_glyph: "+",
+        action_label: "New channel",
+        action_intent: :new_channel,
+        interactions: [Interaction.click(intent: :new_channel)]
+      )
+
+    html =
+      render_component(&LiveUi.Renderer.render/1, %{
+        element: element,
+        event_target: "#runtime-host"
+      })
+
+    assert html =~ ~s(data-live-ui-widget="sidebar-section")
+    assert html =~ "Channels"
+    assert html =~ ~s(aria-label="New channel")
+    assert html =~ ~s(phx-click="canonical_interaction")
+    assert html =~ ~s(phx-target="#runtime-host")
+    assert html =~ ~s(data-live-ui-widget="sidebar-item")
+  end
+
   test "runtime can mount canonical unified_iur input through the shared screen host" do
     element =
       Layout.column([

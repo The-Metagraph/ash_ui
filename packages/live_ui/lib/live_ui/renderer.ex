@@ -170,6 +170,47 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  def render(%{element: %Element{kind: :sidebar_section}} = assigns) do
+    assigns =
+      assigns
+      |> assign(:section_title, sidebar_section_title(assigns.element))
+      |> assign(:action_glyph, sidebar_section_action_glyph(assigns.element))
+      |> assign(:action_label, sidebar_section_action_label(assigns.element))
+      |> assign(:action_copy, sidebar_section_action_copy(assigns.element))
+      |> assign(:show_action, sidebar_section_show_action?(assigns.element))
+      |> assign(
+        :interaction_attrs,
+        interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <section
+      id={element_id(@element, "sidebar-section")}
+      data-live-ui-widget="sidebar-section"
+      class={["live-ui-sidebar-section", style_class(@element)]}
+      {@style_attrs}
+    >
+      <div class="live-ui-sidebar-section-header">
+        <span class="live-ui-sidebar-section-title"><%= @section_title %></span>
+        <button
+          :if={@show_action}
+          type="button"
+          class="live-ui-sidebar-section-action"
+          aria-label={@action_label}
+          title={@action_label}
+          {@interaction_attrs}
+        ><%= @action_copy %></button>
+      </div>
+      <div class="live-ui-sidebar-section-body">
+        <%= for child <- child_elements(@element) do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </div>
+    </section>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1570,6 +1611,30 @@ defmodule LiveUi.Renderer do
 
   defp sidebar_item_link(%Element{} = element) do
     string_optional(get_in(element.attributes, [:sidebar_item, :link_target]))
+  end
+
+  defp sidebar_section_title(%Element{} = element) do
+    string_value(get_in(element.attributes, [:sidebar_section, :title]), "")
+  end
+
+  defp sidebar_section_action_glyph(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_section, :action_glyph]))
+  end
+
+  defp sidebar_section_action_label(%Element{} = element) do
+    string_optional(get_in(element.attributes, [:sidebar_section, :action_label]))
+  end
+
+  defp sidebar_section_action_copy(%Element{} = element) do
+    sidebar_section_action_glyph(element) || sidebar_section_action_label(element) || "+"
+  end
+
+  defp sidebar_section_show_action?(%Element{} = element) do
+    attrs = get_in(element.attributes, [:sidebar_section]) || %{}
+
+    is_atom(Map.get(attrs, :action_intent)) or
+      sidebar_section_action_glyph(element) != nil or
+      sidebar_section_action_label(element) != nil
   end
 
   defp form_interaction_attrs(%Element{} = element, event_target) do

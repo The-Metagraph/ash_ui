@@ -505,6 +505,59 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       refute heex =~ ~r/\b\d+px\b/
     end
 
+    test "generates sidebar_section markup with action button and child rows" do
+      iur = %{
+        "type" => "sidebar_section",
+        "id" => "section-channels",
+        "props" => %{
+          "title" => "Channels",
+          "action_event" => "new_channel",
+          "action_label" => "new channel",
+          "action_glyph" => "+"
+        },
+        "children" => [
+          %{
+            "type" => "sidebar_item",
+            "id" => "item-ops",
+            "props" => %{
+              "label" => "ops",
+              "glyph" => "#",
+              "kind" => "channel",
+              "event" => "select_sidebar_item",
+              "item_id" => "ops",
+              "event_value_key" => "item_id"
+            },
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      assert heex =~ "ash-sidebar-section"
+      assert heex =~ "ash-sidebar-section-title"
+      assert heex =~ "Channels"
+      assert heex =~ ~s(phx-click="new_channel")
+      assert heex =~ "ash-sidebar-section-action"
+      assert heex =~ "ash-sidebar-item"
+    end
+
+    test "sidebar_section produces no literal color or spacing values" do
+      iur = %{
+        "type" => "sidebar_section",
+        "id" => "section-pure",
+        "props" => %{"title" => "Pinned"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur)
+      refute heex =~ ~r/#[0-9a-fA-F]{3,6}\b/
+      refute heex =~ ~r/\brgb\s*\(/
+      refute heex =~ ~r/\b\d+px\b/
+    end
+
     test "generates dedicated navigation markup for example-facing custom surfaces" do
       Enum.each(
         [

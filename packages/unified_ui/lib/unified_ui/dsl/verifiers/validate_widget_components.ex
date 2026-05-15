@@ -189,6 +189,28 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   def validate_node(%Node{
+        kind: :sidebar_section,
+        id: id,
+        title: title,
+        action_glyph: action_glyph,
+        action_label: action_label,
+        action_intent: action_intent
+      }) do
+    cond do
+      blank_string?(title) ->
+        {:error, [:composition, :sidebar_section, id],
+         "sidebar_section #{inspect(id)} title must be a non-empty string"}
+
+      not valid_sidebar_section_action?(action_intent, action_glyph, action_label) ->
+        {:error, [:composition, :sidebar_section, id],
+         "sidebar_section #{inspect(id)} action_intent requires a visible action_glyph or action_label, and action copy must not appear without an action_intent"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
         kind: :pipeline_stepper_horizontal,
         id: id,
         steps: steps,
@@ -492,6 +514,17 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   defp valid_meter_range?(_current, _min, _max), do: false
+
+  defp valid_sidebar_section_action?(nil, action_glyph, action_label) do
+    blank_string?(action_glyph) and blank_string?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+       when is_atom(action_intent) do
+    not blank_string?(action_glyph) or not blank_string?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(_action_intent, _action_glyph, _action_label), do: false
 
   defp valid_field_attributes?(nil), do: true
   defp valid_field_attributes?(attributes) when is_map(attributes), do: true

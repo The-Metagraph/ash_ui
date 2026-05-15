@@ -92,6 +92,13 @@ defmodule UnifiedIUR.ValidateTest do
         unread_count: -1
       )
 
+    invalid_sidebar_section =
+      Components.sidebar_section(
+        "",
+        [],
+        action_intent: :new_channel
+      )
+
     assert {:error, [panel_error]} = Validate.element(missing_panel_name)
     assert panel_error.code == :missing_accessible_name
 
@@ -103,6 +110,9 @@ defmodule UnifiedIUR.ValidateTest do
 
     assert {:error, [sidebar_item_error]} = Validate.element(invalid_sidebar_item)
     assert sidebar_item_error.code == :invalid_sidebar_item
+
+    assert {:error, [sidebar_section_error]} = Validate.element(invalid_sidebar_section)
+    assert sidebar_section_error.code == :invalid_sidebar_section
   end
 
   test "validates segmented control and list repeat required shapes" do

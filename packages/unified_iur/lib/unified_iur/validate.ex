@@ -114,6 +114,11 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Represent sidebar items with a non-empty label, supported state and item_kind, stable item_id, and either a link target or action intent."
+    },
+    invalid_sidebar_section: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent sidebar sections with a non-empty title and pair any section action intent with visible action copy."
     }
   }
 
@@ -551,6 +556,34 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :sidebar_section, attributes: attributes}) do
+    section = Map.get(attributes, :sidebar_section, %{})
+    title = fetch(section, :title)
+    action_glyph = fetch(section, :action_glyph)
+    action_label = fetch(section, :action_label)
+    action_intent = fetch(section, :action_intent)
+
+    valid? =
+      is_binary(title) and title != "" and
+        valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+
+    maybe_add(
+      [],
+      not valid?,
+      Error.new(
+        :invalid_sidebar_section,
+        "sidebar_section requires a non-empty title and any action_intent must include visible action copy",
+        path: [:attributes, :sidebar_section],
+        details: %{
+          title: title,
+          action_glyph: action_glyph,
+          action_label: action_label,
+          action_intent: action_intent
+        }
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_selection_options(options, path) when is_list(options) do
@@ -599,6 +632,19 @@ defmodule UnifiedIUR.Validate do
   defp valid_sidebar_destination?(link_target, action_intent) do
     (is_binary(link_target) and link_target != "") or is_atom(action_intent)
   end
+
+  defp valid_sidebar_section_action?(nil, action_glyph, action_label) do
+    blank_text?(action_glyph) and blank_text?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(action_intent, action_glyph, action_label)
+       when is_atom(action_intent) do
+    not blank_text?(action_glyph) or not blank_text?(action_label)
+  end
+
+  defp valid_sidebar_section_action?(_action_intent, _action_glyph, _action_label), do: false
+
+  defp blank_text?(value), do: not is_binary(value) or value == ""
 
   defp validate_redline_segments(segments, path) when is_list(segments) do
     segments

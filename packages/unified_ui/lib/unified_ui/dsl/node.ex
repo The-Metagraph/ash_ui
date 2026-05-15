@@ -61,6 +61,8 @@ defmodule UnifiedUi.Dsl.Node do
           summary: String.t() | nil,
           emphasis: atom() | nil,
           glyph: String.t() | nil,
+          action_glyph: String.t() | nil,
+          action_label: String.t() | nil,
           external?: boolean() | nil,
           target_kind: atom() | nil,
           orientation: atom() | nil,
@@ -231,6 +233,8 @@ defmodule UnifiedUi.Dsl.Node do
             summary: nil,
             emphasis: nil,
             glyph: nil,
+            action_glyph: nil,
+            action_label: nil,
             external?: nil,
             target_kind: nil,
             orientation: nil,
@@ -392,6 +396,8 @@ defmodule UnifiedUi.Dsl.Node do
       presentation: node.presentation,
       summary: node.summary,
       glyph: node.glyph,
+      action_glyph: node.action_glyph,
+      action_label: node.action_label,
       items: node.items,
       ordered?: node.ordered?,
       selection_mode: node.selection_mode,
@@ -487,7 +493,13 @@ defmodule UnifiedUi.Dsl.Node do
   defp summary_submit_intent(_node), do: nil
 
   defp summary_action_intent(%__MODULE__{kind: kind, action_intent: action_intent})
-       when kind in [:list_item_multi_column, :artifact_row, :sidebar_item, :event_callout] do
+       when kind in [
+              :list_item_multi_column,
+              :artifact_row,
+              :sidebar_item,
+              :sidebar_section,
+              :event_callout
+            ] do
     action_intent
   end
 

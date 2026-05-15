@@ -128,6 +128,14 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :sidebar_section,
+      family: :layer_shell_and_callout,
+      source: %{system: :ash_ui, pr: 103, name: :sidebar_section},
+      summary:
+        "Sidebar grouping with a section title, optional action button, and child navigation items.",
+      aliases: []
+    },
+    %{
       kind: :sticky_frosted_header,
       family: :layer_shell_and_callout,
       source: %{system: :ash_ui, pr: 88, name: :sticky_frosted_header},

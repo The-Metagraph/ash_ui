@@ -803,6 +803,35 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "sidebar_section"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = text_prop(props, "title", "")
+    action_glyph = text_prop(props, "action_glyph")
+    action_label = text_prop(props, "action_label")
+    action_event = text_prop(props, "action_event")
+
+    action_html =
+      if action_event != "" do
+        """
+        <button type="button" class="ash-sidebar-section-action" phx-click="#{action_event}"#{attr("aria-label", action_label)}#{attr("title", action_label)}>#{action_glyph || action_label}</button>
+        """
+      else
+        ""
+      end
+
+    """
+    <section class="#{css_classes(["ash-sidebar-section", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <div class="ash-sidebar-section-header">
+        <span class="ash-sidebar-section-title">#{title}</span>
+        #{action_html}
+      </div>
+      <div class="ash-sidebar-section-body">
+        #{generate_children(iur["children"] || [], opts)}
+      </div>
+    </section>
+    """
+  end
+
   defp generate_heex(%{"type" => "label"} = iur, _opts) do
     props = iur["props"] || %{}
     content = text_prop(props, ["text", "content", "label"], "")

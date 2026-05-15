@@ -183,6 +183,15 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   def layer_callout_entities do
     [
       container(
+        :sidebar_section,
+        @layer_family,
+        title: [type: :string, required: true],
+        action_glyph: [type: :string, required: false],
+        action_label: [type: :string, required: false],
+        action_intent: [type: :atom, required: false],
+        summary: [type: :string, required: false]
+      ),
+      container(
         :sticky_frosted_header,
         @layer_family,
         title: [type: :string, required: true],

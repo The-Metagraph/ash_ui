@@ -62,6 +62,21 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
         unread_count(3)
       end
 
+      sidebar_section :artifact_sidebar_section do
+        title("Builds")
+        action_glyph("+")
+        action_label("New build")
+        action_intent(:new_build)
+
+        sidebar_item :section_sidebar_item do
+          label("build/spec-section")
+          glyph("◇")
+          item_kind(:build)
+          item_id("spec-section")
+          action_intent(:open_section_build)
+        end
+      end
+
       pipeline_stepper_horizontal :workflow_steps do
         steps([
           %{id: :authored, label: "Authored", state: :done},
@@ -123,6 +138,7 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
           :chat_composer,
           :artifact_row,
           :sidebar_item,
+          :sidebar_section,
           :pipeline_stepper_horizontal,
           :slide_over_panel,
           :redline_inline,
@@ -151,6 +167,17 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
              })
 
     assert segmented_message =~ "segmented_button_group"
+
+    assert {:error, [:composition, :sidebar_section, :bad_section], section_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_section,
+               id: :bad_section,
+               title: "Channels",
+               action_glyph: "+",
+               action_intent: nil
+             })
+
+    assert section_message =~ "sidebar_section"
 
     assert {:error, [:composition, :redline_inline, :bad_redline], redline_message} =
              ValidateWidgetComponents.validate_node(%Node{

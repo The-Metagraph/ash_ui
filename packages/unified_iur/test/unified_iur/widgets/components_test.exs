@@ -37,6 +37,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            ]
 
     assert Components.layer_callout_kinds() == [
+             :sidebar_section,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout
@@ -228,6 +229,23 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
       )
 
     meter = Components.meter_thin(82.5, label: "Coverage", state: :success)
+
+    section =
+      Components.sidebar_section(
+        "Channels",
+        [
+          Components.sidebar_item("metagraph-team",
+            glyph: "#",
+            item_kind: :channel,
+            item_id: "metagraph-team",
+            action_intent: :open_channel
+          )
+        ],
+        action_glyph: "+",
+        action_label: "New channel",
+        action_intent: :new_channel
+      )
+
     header = Components.sticky_frosted_header([], title: "Workspace", leading: [:back])
 
     panel =
@@ -282,6 +300,15 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              label: "Coverage",
              state: :success
            }
+
+    assert section.attributes.sidebar_section == %{
+             title: "Channels",
+             action_glyph: "+",
+             action_label: "New channel",
+             action_intent: :new_channel
+           }
+
+    assert [%{element: %Element{kind: :sidebar_item}}] = section.children
 
     assert header.attributes.shell == %{
              position: :sticky,

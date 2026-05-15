@@ -58,6 +58,21 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
         badge_tone(:critical)
       end
 
+      sidebar_section :channels_section do
+        title("Channels")
+        action_glyph("+")
+        action_label("New channel")
+        action_intent(:new_channel)
+
+        sidebar_item :channel_sidebar_item do
+          label("metagraph-team")
+          glyph("#")
+          item_kind(:channel)
+          item_id("metagraph-team")
+          action_intent(:open_channel)
+        end
+      end
+
       pipeline_stepper_horizontal :release_steps do
         steps([
           %{id: :draft, label: "Draft", state: :done},
@@ -164,6 +179,7 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
            ]
 
     assert UnifiedUi.Widgets.layer_callout_component_kinds() == [
+             :sidebar_section,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout
@@ -192,6 +208,12 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
     assert {by_id.build_sidebar_item.family, by_id.build_sidebar_item.kind,
             by_id.build_sidebar_item.item_kind, by_id.build_sidebar_item.unread_count} ==
              {:row_and_artifact, :sidebar_item, :build, 12}
+
+    assert {by_id.channels_section.family, by_id.channels_section.kind,
+            by_id.channels_section.title, by_id.channels_section.action_intent} ==
+             {:layer_shell_and_callout, :sidebar_section, "Channels", :new_channel}
+
+    assert Enum.map(by_id.channels_section.children, & &1.kind) == [:sidebar_item]
 
     assert {by_id.release_steps.family, by_id.release_steps.kind,
             by_id.release_steps.active_index, by_id.release_steps.navigation_intent} ==
@@ -242,6 +264,17 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
            } = summary.build_sidebar_item
 
     assert %{
+             family: :layer_shell_and_callout,
+             kind: :sidebar_section,
+             title: "Channels",
+             action_glyph: "+",
+             action_label: "New channel",
+             action_intent: :new_channel
+           } = summary.channels_section
+
+    assert Enum.map(summary.channels_section.children, & &1.kind) == [:sidebar_item]
+
+    assert %{
              family: :workflow_progress_and_status,
              kind: :pipeline_stepper_horizontal,
              active_index: 1,
@@ -290,6 +323,17 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              })
 
     assert sidebar_message =~ "state must be :default, :active, or :blocked"
+
+    assert {:error, [:composition, :sidebar_section, :bad_section], section_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :sidebar_section,
+               id: :bad_section,
+               title: "Channels",
+               action_glyph: "+",
+               action_intent: nil
+             })
+
+    assert section_message =~ "action_intent requires a visible action_glyph"
 
     assert {:error, [:composition, :pipeline_stepper_horizontal, :bad_steps], step_message} =
              ValidateWidgetComponents.validate_node(%Node{

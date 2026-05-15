@@ -53,6 +53,7 @@ defmodule UnifiedIUR.Widgets.Components do
   ]
 
   @layer_callout_kinds [
+    :sidebar_section,
     :sticky_frosted_header,
     :slide_over_panel,
     :event_callout
@@ -317,6 +318,30 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:unread_count, normalize_unread_count(option(opts, :unread_count)))
       },
       Map.put(opts, :children, compose_sidebar_item_children(opts))
+    )
+  end
+
+  @spec sidebar_section(
+          String.t(),
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) ::
+          Element.t()
+  def sidebar_section(title, children \\ [], opts \\ [])
+      when is_binary(title) and is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :sidebar_section,
+      :layer_shell_and_callout,
+      %{
+        sidebar_section:
+          %{title: title}
+          |> maybe_put(:action_glyph, option(opts, :action_glyph))
+          |> maybe_put(:action_label, option(opts, :action_label))
+          |> maybe_put(:action_intent, option(opts, :action_intent))
+      },
+      Map.put(opts, :children, children)
     )
   end
 

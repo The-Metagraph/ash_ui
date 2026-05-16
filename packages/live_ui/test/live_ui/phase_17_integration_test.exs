@@ -65,9 +65,8 @@ defmodule LiveUi.Phase17IntegrationTest do
 
     test "canonical and native paths target same widget boundaries" do
       # Native path
-      {:ok, native_runtime} = Runtime.mount_iur(
-        Data.list([%{id: "1", label: "Item"}], id: "test-list")
-      )
+      {:ok, native_runtime} =
+        Runtime.mount_iur(Data.list([%{id: "1", label: "Item"}], id: "test-list"))
 
       native_html =
         render_component(Runtime.component(),

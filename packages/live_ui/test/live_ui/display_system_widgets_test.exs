@@ -333,7 +333,9 @@ defmodule LiveUi.DisplaySystemWidgetsTest do
         )
 
       assert Identity.key(native_identity) == "native:display:scroll_bar:mode-scrollbar:root"
-      assert Identity.key(canonical_identity) == "canonical:display:scroll_bar:mode-scrollbar:root"
+
+      assert Identity.key(canonical_identity) ==
+               "canonical:display:scroll_bar:mode-scrollbar:root"
     end
   end
 

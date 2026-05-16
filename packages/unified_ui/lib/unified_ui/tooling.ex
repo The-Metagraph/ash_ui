@@ -117,8 +117,7 @@ defmodule UnifiedUi.Tooling do
     %{
       families: WidgetComponents.component_families(),
       components: WidgetComponents.catalog(),
-      aliases: WidgetComponents.aliases(),
-      source_mapping: WidgetComponents.source_mapping()
+      aliases: WidgetComponents.aliases()
     }
   end
 

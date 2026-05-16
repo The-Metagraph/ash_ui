@@ -48,7 +48,6 @@ defmodule LiveUi.Phase18IntegrationTest do
     refute drifted.documentation_surface.complete?
     refute drifted.release_readiness.ready?
 
-    assert %{path: "README.md", label: "mix live_ui.demo"} in
-             drifted.documentation_surface.prohibited_mentions
+    assert %{path: "README.md", label: "mix live_ui.demo"} in drifted.documentation_surface.prohibited_mentions
   end
 end

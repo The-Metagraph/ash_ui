@@ -8,13 +8,20 @@ defmodule LiveUi.WidgetLocalStateTest do
 
   describe "widget_local_state/2" do
     test "returns empty map when no state exists for widget" do
-      state = %State{screen: TestScreen, assigns: %{}, mode: :native, event_routes: %{}, bridge_hooks: []}
+      state = %State{
+        screen: TestScreen,
+        assigns: %{},
+        mode: :native,
+        event_routes: %{},
+        bridge_hooks: []
+      }
 
       assert State.widget_local_state(state, "native:content:text:test-id:root") == %{}
     end
 
     test "returns stored state for widget identity key" do
       widget_key = "native:content:text:test-id:root"
+
       state = %State{
         screen: TestScreen,
         assigns: %{},
@@ -53,7 +60,14 @@ defmodule LiveUi.WidgetLocalStateTest do
 
   describe "put_widget_local_state/3" do
     test "stores widget-local state by key" do
-      state = %State{screen: TestScreen, assigns: %{}, mode: :native, event_routes: %{}, bridge_hooks: []}
+      state = %State{
+        screen: TestScreen,
+        assigns: %{},
+        mode: :native,
+        event_routes: %{},
+        bridge_hooks: []
+      }
+
       widget_key = "native:content:text:test-id:root"
 
       updated_state = State.put_widget_local_state(state, widget_key, %{count: 1})
@@ -63,6 +77,7 @@ defmodule LiveUi.WidgetLocalStateTest do
 
     test "replaces existing widget-local state" do
       widget_key = "native:content:text:test-id:root"
+
       state = %State{
         screen: TestScreen,
         assigns: %{},
@@ -78,7 +93,14 @@ defmodule LiveUi.WidgetLocalStateTest do
     end
 
     test "stores state for widget identity struct" do
-      state = %State{screen: TestScreen, assigns: %{}, mode: :native, event_routes: %{}, bridge_hooks: []}
+      state = %State{
+        screen: TestScreen,
+        assigns: %{},
+        mode: :native,
+        event_routes: %{},
+        bridge_hooks: []
+      }
+
       identity = %Identity{
         id: "test-id--root",
         component_module: TestWidget.Component,
@@ -98,6 +120,7 @@ defmodule LiveUi.WidgetLocalStateTest do
   describe "update_widget_local_state/3" do
     test "updates widget-local state with a function" do
       widget_key = "native:content:button:counter:root"
+
       state = %State{
         screen: TestScreen,
         assigns: %{},
@@ -107,20 +130,29 @@ defmodule LiveUi.WidgetLocalStateTest do
         widget_local_state: %{widget_key => %{count: 0}}
       }
 
-      updated_state = State.update_widget_local_state(state, widget_key, fn state ->
-        Map.update(state, :count, 0, &(&1 + 1))
-      end)
+      updated_state =
+        State.update_widget_local_state(state, widget_key, fn state ->
+          Map.update(state, :count, 0, &(&1 + 1))
+        end)
 
       assert updated_state.widget_local_state[widget_key] == %{count: 1}
     end
 
     test "creates empty state when none exists" do
       widget_key = "native:content:button:new:root"
-      state = %State{screen: TestScreen, assigns: %{}, mode: :native, event_routes: %{}, bridge_hooks: []}
 
-      updated_state = State.update_widget_local_state(state, widget_key, fn state ->
-        Map.put(state, :initialized, true)
-      end)
+      state = %State{
+        screen: TestScreen,
+        assigns: %{},
+        mode: :native,
+        event_routes: %{},
+        bridge_hooks: []
+      }
+
+      updated_state =
+        State.update_widget_local_state(state, widget_key, fn state ->
+          Map.put(state, :initialized, true)
+        end)
 
       assert updated_state.widget_local_state[widget_key] == %{initialized: true}
     end
@@ -145,9 +177,10 @@ defmodule LiveUi.WidgetLocalStateTest do
         widget_local_state: %{Identity.key(identity) => %{checked: false}}
       }
 
-      updated_state = State.update_widget_local_state(state, identity, fn state ->
-        Map.update(state, :checked, false, &(!&1))
-      end)
+      updated_state =
+        State.update_widget_local_state(state, identity, fn state ->
+          Map.update(state, :checked, false, &(!&1))
+        end)
 
       assert updated_state.widget_local_state[Identity.key(identity)] == %{checked: true}
     end
@@ -156,6 +189,7 @@ defmodule LiveUi.WidgetLocalStateTest do
   describe "delete_widget_local_state/2" do
     test "removes widget-local state by key" do
       widget_key = "native:content:text:temp:root"
+
       state = %State{
         screen: TestScreen,
         assigns: %{},
@@ -199,6 +233,7 @@ defmodule LiveUi.WidgetLocalStateTest do
   describe "handle_widget_event/2" do
     test "handles widget event and updates local state" do
       widget_key = "native:content:button:counter:root"
+
       state = %State{
         screen: TestScreen,
         assigns: %{},
@@ -221,14 +256,26 @@ defmodule LiveUi.WidgetLocalStateTest do
     end
 
     test "returns error for invalid payload" do
-      state = %State{screen: TestScreen, assigns: %{}, mode: :native, event_routes: %{}, bridge_hooks: []}
+      state = %State{
+        screen: TestScreen,
+        assigns: %{},
+        mode: :native,
+        event_routes: %{},
+        bridge_hooks: []
+      }
 
       assert {:error, _reason} = State.handle_widget_event(state, %{})
       assert {:error, _reason} = State.handle_widget_event(state, %{"widget_key" => "test"})
     end
 
     test "returns error for non-existent widget component" do
-      state = %State{screen: TestScreen, assigns: %{}, mode: :native, event_routes: %{}, bridge_hooks: []}
+      state = %State{
+        screen: TestScreen,
+        assigns: %{},
+        mode: :native,
+        event_routes: %{},
+        bridge_hooks: []
+      }
 
       params = %{
         "widget_component" => "Elixir.NonExistent.Widget",

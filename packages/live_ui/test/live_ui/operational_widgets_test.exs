@@ -256,8 +256,11 @@ defmodule LiveUi.OperationalWidgetsTest do
           mode: :canonical
         )
 
-      assert Identity.key(native_identity) == "native:operational:process_monitor:mode-monitor:root"
-      assert Identity.key(canonical_identity) == "canonical:operational:process_monitor:mode-monitor:root"
+      assert Identity.key(native_identity) ==
+               "native:operational:process_monitor:mode-monitor:root"
+
+      assert Identity.key(canonical_identity) ==
+               "canonical:operational:process_monitor:mode-monitor:root"
     end
   end
 

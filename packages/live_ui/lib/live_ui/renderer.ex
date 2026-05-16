@@ -84,6 +84,161 @@ defmodule LiveUi.Renderer do
   attr(:runtime_state, :any, default: nil)
   attr(:event_target, :any, default: nil)
 
+  def render(%{element: %Element{kind: :top_strip}} = assigns) do
+    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+
+    assigns =
+      assign(assigns, :interaction_attrs, interaction_attrs)
+      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+
+    ~H"""
+    <header
+      id={element_id(@element, "top-strip")}
+      class={["live-ui-top-strip", style_class(@element)]}
+      data-live-ui-shell-position="top"
+      data-live-ui-theme={get_in(@element.attributes, [:shell, :theme])}
+      {@style_attrs}
+    >
+      <span class="live-ui-top-strip-brand">{get_in(@element.attributes, [:shell, :brand]) || ""}</span>
+      <span class="live-ui-top-strip-context">{get_in(@element.attributes, [:shell, :context]) || ""}</span>
+      <%= for child <- child_elements(@element, :default) do %>
+        <.render element={child} event_target={@event_target} />
+      <% end %>
+    </header>
+    """
+  end
+
+  def render(%{element: %Element{kind: :mode_nav}} = assigns) do
+    assigns =
+      assign(
+        assigns,
+        :nav_items,
+        navigation_items(assigns.element, Map.get(assigns, :event_target))
+      )
+
+    ~H"""
+    <nav
+      id={element_id(@element, "mode-nav")}
+      class={["live-ui-mode-nav", style_class(@element)]}
+      role="navigation"
+      aria-label={get_in(@element.attributes, [:navigation, :aria_label]) || "Mode navigation"}
+    >
+      <%= for item <- @nav_items do %>
+        <button
+          class={["live-ui-mode-nav-item", if(Map.get(item, :active), do: "live-ui-mode-nav-item--active")]}
+          aria-current={if Map.get(item, :active), do: "page"}
+          disabled={Map.get(item, :disabled)}
+          {Map.get(item, :attrs, %{})}
+        >
+          {Map.get(item, :label) || Map.get(item, "label") || ""}
+        </button>
+      <% end %>
+    </nav>
+    """
+  end
+
+  def render(%{element: %Element{kind: :sidebar_shell}} = assigns) do
+    assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <nav
+      id={element_id(@element, "sidebar-shell")}
+      class={["live-ui-sidebar-shell", style_class(@element)]}
+      data-live-ui-shell-position="side"
+      data-live-ui-collapsed={get_in(@element.attributes, [:shell, :collapsed?]) || false}
+      {@style_attrs}
+    >
+      <%= for child <- child_elements(@element, :default) do %>
+        <.render element={child} event_target={@event_target} />
+      <% end %>
+    </nav>
+    """
+  end
+
+  def render(%{element: %Element{kind: :sidebar_section}} = assigns) do
+    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+
+    assigns =
+      assign(assigns, :interaction_attrs, interaction_attrs)
+      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+
+    ~H"""
+    <section
+      id={element_id(@element, "sidebar-section")}
+      class={["live-ui-sidebar-section", style_class(@element)]}
+      {@style_attrs}
+    >
+      <div class="live-ui-sidebar-section-header">
+        <h3 class="live-ui-sidebar-section-label">{get_in(@element.attributes, [:section, :label]) || ""}</h3>
+        <%= if get_in(@element.attributes, [:section, :action_intent]) do %>
+          <button class="live-ui-sidebar-section-action" {@interaction_attrs}>
+            {get_in(@element.attributes, [:section, :action_label]) || get_in(@element.attributes, [:section, :action_glyph]) || "+"}
+          </button>
+        <% end %>
+      </div>
+      <%= for child <- child_elements(@element, :default) do %>
+        <.render element={child} event_target={@event_target} />
+      <% end %>
+    </section>
+    """
+  end
+
+  def render(%{element: %Element{kind: :sidebar_item}} = assigns) do
+    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+
+    assigns =
+      assign(assigns, :interaction_attrs, interaction_attrs)
+      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+
+    ~H"""
+    <li
+      id={element_id(@element, "sidebar-item")}
+      class={["live-ui-sidebar-item", if(get_in(@element.attributes, [:item, :selected?]), do: "live-ui-sidebar-item--selected"), style_class(@element)]}
+    >
+      <button
+        class="live-ui-sidebar-item-button"
+        aria-current={if get_in(@element.attributes, [:item, :selected?]), do: "page"}
+        {@interaction_attrs}
+      >
+        {get_in(@element.attributes, [:item, :label]) || ""}
+        <%= for child <- child_elements(@element, :default) do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </button>
+    </li>
+    """
+  end
+
+  def render(%{element: %Element{kind: :unread_badge}} = assigns) do
+    count = get_in(assigns.element.attributes, [:status, :count]) || 0
+    threshold = get_in(assigns.element.attributes, [:status, :threshold]) || 99
+
+    display =
+      cond do
+        count <= 0 -> ""
+        count > threshold -> "#{threshold}+"
+        true -> to_string(count)
+      end
+
+    assigns =
+      assign(assigns, :count, count)
+      |> assign(:display, display)
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <span
+      id={element_id(@element, "unread-badge")}
+      class={["live-ui-unread-badge", style_class(@element)]}
+      role="status"
+      data-live-ui-unread-count={@count}
+      aria-hidden={if @count <= 0, do: "true"}
+      {@style_attrs}
+    >
+      {@display}
+    </span>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 

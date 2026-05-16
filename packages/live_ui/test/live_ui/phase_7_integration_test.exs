@@ -240,5 +240,4 @@ defmodule LiveUi.Phase7IntegrationTest do
       inner_block: fn _, _ -> content end
     }
   end
-
 end

@@ -395,7 +395,10 @@ defmodule LiveUi.FoundationalWidgetsTest do
             %{
               __slot__: :inner_block,
               inner_block: fn _, _ ->
-                render_component(&LiveUi.Widgets.Text.component/1, %{id: "inner-text", content: "Boxed"})
+                render_component(&LiveUi.Widgets.Text.component/1, %{
+                  id: "inner-text",
+                  content: "Boxed"
+                })
               end
             }
           ]

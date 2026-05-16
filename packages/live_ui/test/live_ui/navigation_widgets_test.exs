@@ -210,14 +210,17 @@ defmodule LiveUi.NavigationWidgetsTest do
       # This would be tested through the canonical renderer
       # The widget identity should be preserved when rendering
       # through UnifiedIUR navigation constructs
-      menu_identity = LiveUi.Widget.Identity.new(
-        Component.metadata(LiveUi.Widgets.Menu),
-        %{id: "nav-menu"},
-        mode: :canonical
-      )
+      menu_identity =
+        LiveUi.Widget.Identity.new(
+          Component.metadata(LiveUi.Widgets.Menu),
+          %{id: "nav-menu"},
+          mode: :canonical
+        )
 
       assert menu_identity.mode == :canonical
-      assert LiveUi.Widget.Identity.key(menu_identity) == "canonical:navigation:menu:nav-menu:root"
+
+      assert LiveUi.Widget.Identity.key(menu_identity) ==
+               "canonical:navigation:menu:nav-menu:root"
     end
   end
 end

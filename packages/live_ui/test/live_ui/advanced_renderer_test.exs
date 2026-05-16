@@ -128,15 +128,16 @@ defmodule LiveUi.AdvancedRendererTest do
   test "renderer maps layered and viewport canonical constructs through native display primitives" do
     base =
       UnifiedIUR.Layout.column([
-      UnifiedIUR.Widgets.Foundational.text("Navigation", id: "nav-text"),
-      UnifiedIUR.Widgets.Foundational.text("Details", id: "details-text"),
-      UnifiedIUR.Widgets.Foundational.text("Plot", id: "plot-text")
-    ])
+        UnifiedIUR.Widgets.Foundational.text("Navigation", id: "nav-text"),
+        UnifiedIUR.Widgets.Foundational.text("Details", id: "details-text"),
+        UnifiedIUR.Widgets.Foundational.text("Plot", id: "plot-text")
+      ])
 
-    html = render_component(Runtime.component(),
-      id: "canonical-render-test",
-      runtime_state: element_to_runtime_state(base)
-    )
+    html =
+      render_component(Runtime.component(),
+        id: "canonical-render-test",
+        runtime_state: element_to_runtime_state(base)
+      )
 
     # Verify widget boundaries are present
     assert html =~ ~s(data-live-ui-widget-boundary)

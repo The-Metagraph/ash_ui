@@ -348,14 +348,23 @@ defmodule LiveUi.Phase16IntegrationTest do
       nested_screen =
         Container.box(
           [
-            Layout.row([
-              Layout.column([
-                Data.list([%{id: "1", label: "Item"}], id: "col-1-list")
-              ], id: "col-left"),
-              Layout.column([
-                Feedback.status("Ready", id: "col-2-status")
-              ], id: "col-right")
-            ], id: "main-row")
+            Layout.row(
+              [
+                Layout.column(
+                  [
+                    Data.list([%{id: "1", label: "Item"}], id: "col-1-list")
+                  ],
+                  id: "col-left"
+                ),
+                Layout.column(
+                  [
+                    Feedback.status("Ready", id: "col-2-status")
+                  ],
+                  id: "col-right"
+                )
+              ],
+              id: "main-row"
+            )
           ],
           id: "nested-layout"
         )
@@ -393,6 +402,7 @@ defmodule LiveUi.Phase16IntegrationTest do
         )
 
       {:ok, canonical_runtime} = Runtime.mount_iur(canonical_element)
+
       canonical_html =
         render_component(Runtime.component(),
           id: "canonical-test",

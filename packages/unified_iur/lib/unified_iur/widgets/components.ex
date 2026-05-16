@@ -35,7 +35,8 @@ defmodule UnifiedIUR.Widgets.Components do
   @form_control_kinds [
     :segmented_button_group,
     :runtime_form_shell,
-    :chat_composer
+    :chat_composer,
+    :mode_nav
   ]
 
   @row_artifact_kinds [
@@ -47,13 +48,19 @@ defmodule UnifiedIUR.Widgets.Components do
     :pipeline_stepper_horizontal,
     :segmented_progress_bar,
     :workflow_stage_list_vertical,
-    :meter_thin
+    :meter_thin,
+    :unread_badge
   ]
 
   @layer_callout_kinds [
     :sticky_frosted_header,
     :slide_over_panel,
-    :event_callout
+    :event_callout,
+    :top_strip,
+    :sidebar_shell,
+    :sidebar_section,
+    :sidebar_item,
+    :command_palette
   ]
 
   @redline_code_kinds [
@@ -498,6 +505,158 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:binding_ref, normalize_optional_map(option(opts, :binding_ref)))
           |> maybe_put(:template_identity, option(opts, :template_identity))
           |> maybe_put(:template, normalize_optional_map(option(opts, :template)))
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec top_strip(
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) :: Element.t()
+  def top_strip(children \\ [], opts \\ []) when is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :top_strip,
+      :layer_shell_and_callout,
+      %{
+        shell: %{
+          position: :top,
+          brand: option(opts, :brand, ""),
+          context: option(opts, :context, ""),
+          theme: option(opts, :theme, :light),
+          pane_open?: option(opts, :pane_open?, false)
+        }
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec mode_nav([keyword() | map()], opts()) :: Element.t()
+  def mode_nav(items, opts \\ []) when is_list(items) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :mode_nav,
+      :form_control_and_composer,
+      %{
+        navigation:
+          %{
+            items: normalize_maps(items)
+          }
+          |> maybe_put(:aria_label, option(opts, :aria_label))
+          |> maybe_put(:navigation_intent, option(opts, :navigation_intent))
+          |> maybe_put(:navigation_value_key, option(opts, :navigation_value_key))
+      },
+      opts
+    )
+  end
+
+  @spec sidebar_shell(
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) :: Element.t()
+  def sidebar_shell(children \\ [], opts \\ []) when is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :sidebar_shell,
+      :layer_shell_and_callout,
+      %{
+        shell: %{
+          position: :side,
+          collapsed?: option(opts, :collapsed?, false)
+        }
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec sidebar_section(
+          String.t(),
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) :: Element.t()
+  def sidebar_section(label, children \\ [], opts \\ [])
+      when is_binary(label) and is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :sidebar_section,
+      :layer_shell_and_callout,
+      %{
+        section:
+          %{label: label}
+          |> maybe_put(:action_glyph, option(opts, :action_glyph))
+          |> maybe_put(:action_label, option(opts, :action_label))
+          |> maybe_put(:action_intent, option(opts, :action_intent))
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec sidebar_item(
+          String.t(),
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) :: Element.t()
+  def sidebar_item(label, children \\ [], opts \\ [])
+      when is_binary(label) and is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :sidebar_item,
+      :layer_shell_and_callout,
+      %{
+        item:
+          %{
+            label: label,
+            selected?: option(opts, :selected?, false)
+          }
+          |> maybe_put(:item_intent, option(opts, :item_intent))
+      },
+      Map.put(opts, :children, children)
+    )
+  end
+
+  @spec unread_badge(non_neg_integer(), opts()) :: Element.t()
+  def unread_badge(count, opts \\ []) when is_integer(count) and count >= 0 do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :unread_badge,
+      :workflow_progress_and_status,
+      %{
+        status: %{
+          count: count,
+          threshold: option(opts, :threshold, 99)
+        }
+      },
+      opts
+    )
+  end
+
+  @spec command_palette(
+          [keyword() | map()],
+          [Element.t() | Element.Child.t() | {atom(), Element.t()} | map()],
+          opts()
+        ) :: Element.t()
+  def command_palette(items \\ [], children \\ [], opts \\ [])
+      when is_list(items) and is_list(children) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :command_palette,
+      :layer_shell_and_callout,
+      %{
+        palette:
+          %{
+            open?: option(opts, :open?, false),
+            items: normalize_maps(items)
+          }
+          |> maybe_put(:filter_intent, option(opts, :filter_intent))
+          |> maybe_put(:select_intent, option(opts, :select_intent))
       },
       Map.put(opts, :children, children)
     )

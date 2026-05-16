@@ -206,18 +206,8 @@ defmodule LiveUi.InputWidgetsTest do
               __slot__: :inner_block,
               inner_block: fn _, _ ->
                 Phoenix.HTML.raw("""
-                #{render_component(&LiveUi.Forms.Field.component/1, %{
-                  id: "field-1",
-                  name: "name",
-                  label: [%{__slot__: :label, inner_block: fn _, _ -> "Name" end}],
-                  control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="name" />)) end}]
-                })}
-                #{render_component(&LiveUi.Forms.Field.component/1, %{
-                  id: "field-2",
-                  name: "email",
-                  label: [%{__slot__: :label, inner_block: fn _, _ -> "Email" end}],
-                  control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="email" />)) end}]
-                })}
+                #{render_component(&LiveUi.Forms.Field.component/1, %{id: "field-1", name: "name", label: [%{__slot__: :label, inner_block: fn _, _ -> "Name" end}], control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="name" />)) end}]})}
+                #{render_component(&LiveUi.Forms.Field.component/1, %{id: "field-2", name: "email", label: [%{__slot__: :label, inner_block: fn _, _ -> "Email" end}], control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="email" />)) end}]})}
                 """)
               end
             }
@@ -249,12 +239,7 @@ defmodule LiveUi.InputWidgetsTest do
               __slot__: :inner_block,
               inner_block: fn _, _ ->
                 Phoenix.HTML.raw("""
-                #{render_component(&LiveUi.Forms.Field.component/1, %{
-                  id: "name",
-                  name: "name",
-                  label: [%{__slot__: :label, inner_block: fn _, _ -> "Name" end}],
-                  control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="name" />)) end}]
-                })}
+                #{render_component(&LiveUi.Forms.Field.component/1, %{id: "name", name: "name", label: [%{__slot__: :label, inner_block: fn _, _ -> "Name" end}], control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="name" />)) end}]})}
                 #{render_component(&LiveUi.Widgets.Button.component/1, %{id: "submit", label: "Sign Up"})}
                 """)
               end
@@ -319,18 +304,8 @@ defmodule LiveUi.InputWidgetsTest do
               __slot__: :inner_block,
               inner_block: fn _, _ ->
                 Phoenix.HTML.raw("""
-                #{render_component(&LiveUi.Forms.Field.component/1, %{
-                  id: "email-field",
-                  name: "email",
-                  label: [%{__slot__: :label, inner_block: fn _, _ -> "Email" end}],
-                  control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="email" />)) end}]
-                })}
-                #{render_component(&LiveUi.Forms.Field.component/1, %{
-                  id: "password-field",
-                  name: "password",
-                  label: [%{__slot__: :label, inner_block: fn _, _ -> "Password" end}],
-                  control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="password" name="password" />)) end}]
-                })}
+                #{render_component(&LiveUi.Forms.Field.component/1, %{id: "email-field", name: "email", label: [%{__slot__: :label, inner_block: fn _, _ -> "Email" end}], control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="text" name="email" />)) end}]})}
+                #{render_component(&LiveUi.Forms.Field.component/1, %{id: "password-field", name: "password", label: [%{__slot__: :label, inner_block: fn _, _ -> "Password" end}], control: [%{__slot__: :control, inner_block: fn _, _ -> Phoenix.HTML.raw(~s(<input type="password" name="password" />)) end}]})}
                 #{render_component(&LiveUi.Widgets.Button.component/1, %{id: "submit", label: "Sign Up"})}
                 """)
               end
@@ -365,6 +340,7 @@ defmodule LiveUi.InputWidgetsTest do
         })
 
       assert html =~ ~s(data-live-ui-widget-boundary="field_group")
+
       # text_input widget should be nested (check for widget name without worrying about HTML entity encoding)
       assert html =~ "text_input"
       assert html =~ "name"

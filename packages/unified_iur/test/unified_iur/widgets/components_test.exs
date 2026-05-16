@@ -19,7 +19,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     assert Components.form_control_kinds() == [
              :segmented_button_group,
              :runtime_form_shell,
-             :chat_composer
+             :chat_composer,
+             :mode_nav
            ]
 
     assert Components.row_artifact_kinds() == [:list_item_multi_column, :artifact_row]
@@ -28,13 +29,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :pipeline_stepper_horizontal,
              :segmented_progress_bar,
              :workflow_stage_list_vertical,
-             :meter_thin
+             :meter_thin,
+             :unread_badge
            ]
 
     assert Components.layer_callout_kinds() == [
              :sticky_frosted_header,
              :slide_over_panel,
-             :event_callout
+             :event_callout,
+             :top_strip,
+             :sidebar_shell,
+             :sidebar_section,
+             :sidebar_item,
+             :command_palette
            ]
 
     assert Components.redline_code_kinds() == [

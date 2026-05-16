@@ -5,6 +5,7 @@ defmodule LiveUi.Phase6IntegrationTest do
 
   test "aligned examples cover native and canonical review workflows through one tooling surface" do
     assert {:ok, native_preview} = LiveUi.Tooling.preview_example(:button)
+
     assert {:ok, canonical_preview} =
              LiveUi.Tooling.inspect_example(:button, review_mode: :canonical)
 

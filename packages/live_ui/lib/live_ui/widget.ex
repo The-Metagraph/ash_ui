@@ -18,7 +18,10 @@ defmodule LiveUi.Widget do
   @callback handle_widget_event(atom(), map(), local_state()) ::
               {:ok, local_state()} | {:error, term()}
 
-  @optional_callbacks mount_defaults: 0, event_routes: 0, local_state_keys: 0, handle_widget_event: 3
+  @optional_callbacks mount_defaults: 0,
+                      event_routes: 0,
+                      local_state_keys: 0,
+                      handle_widget_event: 3
 
   defmacro __using__(opts) do
     wrapper = Keyword.fetch!(opts, :wrapper)
@@ -81,7 +84,8 @@ defmodule LiveUi.Widget do
       def local_state_keys, do: @live_ui_widget_local_state_keys
 
       @impl true
-      def handle_widget_event(_route, _payload, _local_state), do: {:error, :unsupported_widget_event}
+      def handle_widget_event(_route, _payload, _local_state),
+        do: {:error, :unsupported_widget_event}
 
       @impl true
       def update(%{widget_assigns: widget_assigns} = incoming_assigns, socket) do

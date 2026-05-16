@@ -79,11 +79,6 @@ defmodule UnifiedUi.Reference do
     WidgetComponents.catalog()
   end
 
-  @spec widget_component_source_mapping() :: %{pos_integer() => map()}
-  def widget_component_source_mapping do
-    WidgetComponents.source_mapping()
-  end
-
   @spec widget_component_aliases() :: %{atom() => atom()}
   def widget_component_aliases do
     WidgetComponents.aliases()

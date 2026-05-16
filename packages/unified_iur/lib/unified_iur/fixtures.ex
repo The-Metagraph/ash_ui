@@ -1055,6 +1055,51 @@ defmodule UnifiedIUR.Fixtures do
            hydrated?: true,
            row_count: 0,
            children: []
+         )},
+        {:content,
+         Components.mode_nav(
+           [
+             %{value: :workspace, label: "Workspace", current?: true},
+             %{value: :settings, label: "Settings"}
+           ],
+           id: "component-mode-nav",
+           aria_label: "Application modes",
+           navigation_intent: :switch_mode
+         )},
+        {:content, Components.unread_badge(5, id: "component-unread-badge", threshold: 99)},
+        {:content,
+         Components.top_strip(
+           [],
+           id: "component-top-strip",
+           brand: "Ariston",
+           context: "Workspace"
+         )},
+        {:content,
+         Components.sidebar_shell(
+           [
+             Components.sidebar_section(
+               "Docs",
+               [
+                 Components.sidebar_item("Overview", [], id: "sidebar-item-overview"),
+                 Components.sidebar_item("Details", [],
+                   id: "sidebar-item-details",
+                   selected?: true
+                 )
+               ],
+               id: "sidebar-section-docs"
+             )
+           ],
+           id: "component-sidebar-shell"
+         )},
+        {:content,
+         Components.command_palette(
+           [
+             %{id: "cmd-1", label: "Open Spec"},
+             %{id: "cmd-2", label: "New Doc"}
+           ],
+           [],
+           id: "component-command-palette",
+           open?: false
          )}
       ],
       id: "component-safety-fixture"

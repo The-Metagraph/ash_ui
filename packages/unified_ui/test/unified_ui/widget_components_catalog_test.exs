@@ -3,7 +3,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
 
   alias UnifiedUi.WidgetComponents
 
-  test "catalog groups the AshUi PR 79-98 additions into canonical families" do
+  test "catalog groups widget kinds into canonical families" do
     assert WidgetComponents.families() == [
              :content_identity_and_disclosure,
              :form_control_and_composer,
@@ -25,34 +25,42 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
              form_control_and_composer: [
                :runtime_form_shell,
                :segmented_button_group,
-               :chat_composer
+               :chat_composer,
+               :mode_nav
              ],
              row_and_artifact: [:list_item_multi_column, :artifact_row],
              workflow_progress_and_status: [
                :pipeline_stepper_horizontal,
                :segmented_progress_bar,
                :workflow_stage_list_vertical,
-               :meter_thin
+               :meter_thin,
+               :unread_badge
              ],
              layer_shell_and_callout: [
                :sticky_frosted_header,
                :slide_over_panel,
-               :event_callout
+               :event_callout,
+               :top_strip,
+               :sidebar_shell,
+               :sidebar_section,
+               :sidebar_item,
+               :command_palette
              ],
              redline_and_code: [:redline_inline, :code_block_syntax_highlighted],
              composition_behavior: [:list_repeat]
            }
   end
 
-  test "source mapping records every AshUi PR in order" do
-    source_mapping = WidgetComponents.source_mapping()
+  test "7 shell primitive kinds are present in catalog" do
+    kinds = WidgetComponents.kinds()
 
-    assert Map.keys(source_mapping) == Enum.to_list(79..98)
-    assert source_mapping[79].canonical_kind == :inline_rich_text_heading
-    assert source_mapping[81].source_name == :phoenix_form
-    assert source_mapping[81].canonical_kind == :runtime_form_shell
-    assert source_mapping[98].source_name == :ui_relationship_repeat
-    assert source_mapping[98].canonical_kind == :list_repeat
+    assert :top_strip in kinds
+    assert :mode_nav in kinds
+    assert :sidebar_shell in kinds
+    assert :sidebar_section in kinds
+    assert :sidebar_item in kinds
+    assert :unread_badge in kinds
+    assert :command_palette in kinds
   end
 
   test "canonical name lookup accepts AshUi aliases with diagnostics" do
@@ -94,13 +102,9 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert UnifiedUi.Reference.widget_component_families() ==
              WidgetComponents.component_families()
 
-    assert UnifiedUi.Reference.widget_component_source_mapping()[98].canonical_kind ==
-             :list_repeat
-
     tooling_catalog = UnifiedUi.Tooling.widget_component_catalog()
 
     assert tooling_catalog.families == WidgetComponents.component_families()
     assert tooling_catalog.aliases == WidgetComponents.aliases()
-    assert tooling_catalog.source_mapping[81].canonical_kind == :runtime_form_shell
   end
 end

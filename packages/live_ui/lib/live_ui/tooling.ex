@@ -349,8 +349,14 @@ defmodule LiveUi.Tooling do
     # Use render_component/3 from LiveViewTest to properly handle LiveComponents
     # The direct .render/1 approach doesn't work when the rendered content
     # contains nested LiveComponents (our widget components)
+    #
+    # Use a per-call unique id to avoid Phoenix.HTML duplicate-id crashes when
+    # render_widget!/1 is called more than once per LiveView render cycle
+    # (e.g. ariston-ui's /operator renders top_strip and sidebar_shell in the same cycle).
+    unique_id = "tooling-runtime-#{System.unique_integer([:positive])}"
+
     render_component(LiveUi.Runtime.component(), %{
-      id: "tooling-runtime",
+      id: unique_id,
       runtime_state: runtime_state
     })
   end

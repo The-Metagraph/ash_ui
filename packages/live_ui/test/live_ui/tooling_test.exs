@@ -151,6 +151,37 @@ defmodule LiveUi.ToolingTest do
     assert Enum.any?(report.diagnostics, &(&1.reason == :browser_style_drift))
   end
 
+  test "render_runtime produces distinct wrapper ids across multiple calls" do
+    # Regression test: LiveUi.Tooling.render_runtime/1 previously hardcoded
+    # id: "tooling-runtime" on the wrapper element. When render_widget!/1 is called
+    # more than once per LiveView render cycle (e.g. ariston-ui /operator renders
+    # top_strip and sidebar_shell in the same cycle), both wrappers would emit the
+    # same id → Phoenix.HTML duplicate-id crash. Each inspect_canonical call exercises
+    # render_runtime/1 internally. We extract the wrapper id from the rendered HTML
+    # and assert the two calls produce different ids.
+    element = canonical_element()
+
+    assert {:ok, first} = LiveUi.Tooling.inspect_canonical(element)
+    assert {:ok, second} = LiveUi.Tooling.inspect_canonical(element)
+
+    # Extract "tooling-runtime..." id attribute from each rendered HTML string
+    extract_tooling_id = fn html ->
+      case Regex.run(~r/id="(tooling-runtime[^"]*)"/, html) do
+        [_, id] -> id
+        nil -> nil
+      end
+    end
+
+    first_id = extract_tooling_id.(first.html)
+    second_id = extract_tooling_id.(second.html)
+
+    assert first_id != nil, "expected tooling-runtime wrapper id in first render"
+    assert second_id != nil, "expected tooling-runtime wrapper id in second render"
+
+    assert first_id != second_id,
+           "render_runtime must produce unique ids per call (got #{first_id} twice)"
+  end
+
   test "tooling summarizes unsupported ignored and unresolved browser-style inputs" do
     assert {:ok, canonical} = LiveUi.Tooling.inspect_canonical(canonical_diagnostic_element())
 

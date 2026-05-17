@@ -349,8 +349,10 @@ defmodule LiveUi.Tooling do
     # Use render_component/3 from LiveViewTest to properly handle LiveComponents
     # The direct .render/1 approach doesn't work when the rendered content
     # contains nested LiveComponents (our widget components)
+    runtime_id = "tooling-runtime-#{System.unique_integer([:positive, :monotonic])}"
+
     render_component(LiveUi.Runtime.component(), %{
-      id: "tooling-runtime",
+      id: runtime_id,
       runtime_state: runtime_state
     })
   end

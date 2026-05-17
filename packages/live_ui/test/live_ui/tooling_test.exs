@@ -114,6 +114,18 @@ defmodule LiveUi.ToolingTest do
     assert canonical.browser_style.css_var_keys != []
   end
 
+  test "tooling uses a unique runtime component id per snapshot render" do
+    assert {:ok, first} = LiveUi.Tooling.inspect_canonical(canonical_element())
+    assert {:ok, second} = LiveUi.Tooling.inspect_canonical(canonical_element())
+
+    first_id = runtime_component_id(first.html)
+    second_id = runtime_component_id(second.html)
+
+    assert String.starts_with?(first_id, "tooling-runtime-")
+    assert String.starts_with?(second_id, "tooling-runtime-")
+    refute first_id == second_id
+  end
+
   test "tooling compares native and canonical outputs and reports continuity diagnostics" do
     assert {:ok, report} =
              LiveUi.Tooling.compare_native_and_canonical(
@@ -167,5 +179,10 @@ defmodule LiveUi.ToolingTest do
     assert status_node.fallback == "mixed"
     assert "--live-ui-foreground" in status_node.css_var_keys
     assert status_node.unresolved_token_refs == ["missing.panel"]
+  end
+
+  defp runtime_component_id(html) do
+    [_, id] = Regex.run(~r/<section[^>]*id="([^"]+)"[^>]*data-live-ui-runtime="screen"/, html)
+    id
   end
 end

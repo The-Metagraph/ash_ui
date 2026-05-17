@@ -40,7 +40,8 @@ defmodule AshUI.Phase31PackageBoundaryTest do
       assert families.form_control_and_composer == [
                :runtime_form_shell,
                :segmented_button_group,
-               :chat_composer
+               :chat_composer,
+               :mode_nav
              ]
 
       assert families.row_and_artifact == [:list_item_multi_column, :artifact_row]
@@ -49,13 +50,19 @@ defmodule AshUI.Phase31PackageBoundaryTest do
                :pipeline_stepper_horizontal,
                :segmented_progress_bar,
                :workflow_stage_list_vertical,
-               :meter_thin
+               :meter_thin,
+               :unread_badge
              ]
 
       assert families.layer_shell_and_callout == [
                :sticky_frosted_header,
                :slide_over_panel,
-               :event_callout
+               :event_callout,
+               :top_strip,
+               :sidebar_shell,
+               :sidebar_section,
+               :sidebar_item,
+               :command_palette
              ]
 
       assert families.redline_and_code == [:redline_inline, :code_block_syntax_highlighted]

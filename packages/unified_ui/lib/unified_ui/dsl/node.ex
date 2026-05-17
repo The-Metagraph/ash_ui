@@ -25,6 +25,7 @@ defmodule UnifiedUi.Dsl.Node do
 
   @type t :: %__MODULE__{
           __identifier__: atom() | nil,
+          __spark_metadata__: term(),
           id: atom() | nil,
           family: family() | nil,
           kind: atom() | nil,
@@ -188,6 +189,7 @@ defmodule UnifiedUi.Dsl.Node do
         }
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             id: nil,
             family: nil,
             kind: nil,

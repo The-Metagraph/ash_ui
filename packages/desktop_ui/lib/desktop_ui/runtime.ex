@@ -116,7 +116,10 @@ defmodule DesktopUi.Runtime do
   def component do
     # Desktop UI can be previewed in browser via live_ui components
     # This allows unified examples to work with both runtimes
-    LiveUi.Runtime.component()
+    case Code.ensure_loaded(LiveUi.Runtime) do
+      {:module, runtime} -> apply(runtime, :component, [])
+      {:error, reason} -> raise "LiveUi.Runtime is unavailable: #{inspect(reason)}"
+    end
   end
 
   @spec shutdown(State.t()) :: {:ok, State.t()} | {:error, Error.t()}

@@ -9,6 +9,7 @@ defmodule UnifiedUi.Theme do
 
   @type t :: %__MODULE__{
           __identifier__: atom() | nil,
+          __spark_metadata__: term(),
           id: atom() | nil,
           description: String.t() | nil,
           authored_ref: [atom()] | nil,
@@ -21,6 +22,7 @@ defmodule UnifiedUi.Theme do
         }
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             id: nil,
             description: nil,
             authored_ref: nil,
@@ -36,12 +38,14 @@ defmodule UnifiedUi.Theme do
 
     @type t :: %__MODULE__{
             __identifier__: atom() | nil,
+            __spark_metadata__: term(),
             id: atom() | nil,
             color: Color.t() | nil,
             summary: String.t() | nil
           }
 
     defstruct __identifier__: nil,
+              __spark_metadata__: nil,
               id: nil,
               color: nil,
               summary: nil
@@ -75,12 +79,14 @@ defmodule UnifiedUi.Theme do
 
     @type t :: %__MODULE__{
             __identifier__: atom() | nil,
+            __spark_metadata__: term(),
             id: atom() | nil,
             value: Style.color_value(),
             summary: String.t() | nil
           }
 
     defstruct __identifier__: nil,
+              __spark_metadata__: nil,
               id: nil,
               value: nil,
               summary: nil
@@ -129,12 +135,14 @@ defmodule UnifiedUi.Theme do
 
     @type t :: %__MODULE__{
             __identifier__: atom() | nil,
+            __spark_metadata__: term(),
             id: atom() | nil,
             value: term(),
             summary: String.t() | nil
           }
 
     defstruct __identifier__: nil,
+              __spark_metadata__: nil,
               id: nil,
               value: nil,
               summary: nil
@@ -252,6 +260,7 @@ defmodule UnifiedUi.Theme do
 
     @type t :: %__MODULE__{
             __identifier__: atom() | nil,
+            __spark_metadata__: term(),
             id: atom() | nil,
             component: atom() | nil,
             variant: atom() | nil,
@@ -263,6 +272,7 @@ defmodule UnifiedUi.Theme do
           }
 
     defstruct __identifier__: nil,
+              __spark_metadata__: nil,
               id: nil,
               component: nil,
               variant: nil,

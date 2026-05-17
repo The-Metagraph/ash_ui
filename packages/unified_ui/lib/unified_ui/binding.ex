@@ -12,6 +12,7 @@ defmodule UnifiedUi.Binding do
 
   @type t :: %__MODULE__{
           __identifier__: atom() | nil,
+          __spark_metadata__: term(),
           id: atom() | nil,
           path: [path_segment()],
           scope: [path_segment()],
@@ -26,6 +27,7 @@ defmodule UnifiedUi.Binding do
         }
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             id: nil,
             path: [],
             scope: [],

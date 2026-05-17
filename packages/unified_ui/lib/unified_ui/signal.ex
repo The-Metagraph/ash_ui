@@ -51,6 +51,7 @@ defmodule UnifiedUi.Signal do
 
   @type t :: %__MODULE__{
           __identifier__: atom() | nil,
+          __spark_metadata__: term(),
           id: atom() | nil,
           family: family(),
           intent: atom() | String.t() | nil,
@@ -118,6 +119,7 @@ defmodule UnifiedUi.Signal do
   ]
 
   defstruct __identifier__: nil,
+            __spark_metadata__: nil,
             id: nil,
             family: :click,
             intent: nil,

@@ -97,7 +97,9 @@ defmodule AshUI.Phase11IntegrationTest do
 
       assert {:ok, cached_heex} = LiveUIAdapter.render(cached_canonical)
       assert {:ok, uncached_heex} = LiveUIAdapter.render(uncached_canonical)
-      assert cached_heex == uncached_heex
+
+      assert normalize_tooling_runtime_ids(cached_heex) ==
+               normalize_tooling_runtime_ids(uncached_heex)
 
       assert ElmUIAdapter.configure_elm_integration(cached_canonical).flags ==
                ElmUIAdapter.configure_elm_integration(uncached_canonical).flags
@@ -196,4 +198,8 @@ defmodule AshUI.Phase11IntegrationTest do
   end
 
   defp find_node(_node, _id), do: nil
+
+  defp normalize_tooling_runtime_ids(html) when is_binary(html) do
+    Regex.replace(~r/id="tooling-runtime-\d+"/, html, ~s(id="tooling-runtime"))
+  end
 end

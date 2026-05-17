@@ -107,7 +107,10 @@ defmodule DesktopUi.Tooling do
   def inspect_canonical(%UnifiedIUR.Element{} = element, opts \\ []) do
     # For inspection purposes, we can use the live_ui tooling since
     # the IUR is runtime-agnostic and inspection focuses on structure
-    LiveUi.Tooling.inspect_canonical(element, opts)
+    case Code.ensure_loaded(LiveUi.Tooling) do
+      {:module, tooling} -> apply(tooling, :inspect_canonical, [element, opts])
+      {:error, reason} -> {:error, {:live_ui_tooling_unavailable, reason}}
+    end
   end
 
   @spec validation_report() :: map()

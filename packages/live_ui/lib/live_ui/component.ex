@@ -132,16 +132,27 @@ defmodule LiveUi.Component do
     component_module = component_module(module)
     widget_local_state = fetch_widget_local_state(runtime_state, widget_identity)
 
+    assigns =
+      assign(assigns,
+        component_module: component_module,
+        widget_identity: widget_identity,
+        widget_assigns: widget_assigns,
+        widget_local_state: widget_local_state,
+        event_target: event_target,
+        path: path,
+        widget_mode: widget_mode
+      )
+
     ~H"""
     <.live_component
-      module={component_module}
-      id={widget_identity.id}
-      widget_assigns={widget_assigns}
-      widget_identity={widget_identity}
-      widget_local_state={widget_local_state}
-      event_target={event_target}
-      path={path}
-      mode={widget_mode}
+      module={@component_module}
+      id={@widget_identity.id}
+      widget_assigns={@widget_assigns}
+      widget_identity={@widget_identity}
+      widget_local_state={@widget_local_state}
+      event_target={@event_target}
+      path={@path}
+      mode={@widget_mode}
     />
     """
   end

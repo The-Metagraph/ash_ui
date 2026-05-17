@@ -239,6 +239,38 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:command_palette` is a member of `@layer_callout_kinds` (and therefore
+  # of `@component_kinds`), so the generic fallback below would shadow any later
+  # `:command_palette` clause. Keep this specific clause BEFORE the generic
+  # `@component_kinds` fallback — mirrors the pattern used by `:top_strip`,
+  # `:mode_nav`, `:sidebar_shell`, `:sidebar_section`, `:sidebar_item`, and
+  # `:unread_badge` above.
+  def render(%{element: %Element{kind: :command_palette}} = assigns) do
+    assigns =
+      assigns
+      |> assign(
+        :input_attrs,
+        direct_change_interaction_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(
+        :palette_items,
+        command_palette_items(assigns.element, Map.get(assigns, :event_target))
+      )
+
+    ~H"""
+    <LiveUi.Widgets.CommandPalette.component
+      id={element_id(@element, "command-palette")}
+      query={string_optional(get_in(@element.attributes, [:command_palette, :query]))}
+      items={@palette_items}
+      input_attrs={@input_attrs}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+    />
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -751,32 +783,6 @@ defmodule LiveUi.Renderer do
       state={style_state(@element)}
       class={style_class(@element)}
       {@style_attrs}
-    />
-    """
-  end
-
-  def render(%{element: %Element{kind: :command_palette}} = assigns) do
-    assigns =
-      assigns
-      |> assign(
-        :input_attrs,
-        direct_change_interaction_attrs(assigns.element, Map.get(assigns, :event_target))
-      )
-      |> assign(
-        :palette_items,
-        command_palette_items(assigns.element, Map.get(assigns, :event_target))
-      )
-
-    ~H"""
-    <LiveUi.Widgets.CommandPalette.component
-      id={element_id(@element, "command-palette")}
-      query={string_optional(get_in(@element.attributes, [:command_palette, :query]))}
-      items={@palette_items}
-      input_attrs={@input_attrs}
-      tone={style_tone(@element)}
-      variant={theme_variant(@element)}
-      state={style_state(@element)}
-      class={style_class(@element)}
     />
     """
   end

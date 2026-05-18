@@ -219,6 +219,55 @@ defmodule AshUI.Rendering.IURAdapterTest do
     end
   end
 
+  describe "ask_sidebar IUR routing" do
+    test "routes ask_sidebar kind through layer_shell_and_callout family" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "ask-sidebar-screen",
+          name: "ask_sidebar_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:ask_sidebar,
+              id: "ask-sb-1",
+              props: %{
+                "sidebar_id" => "main-ask-sidebar",
+                "on_map_jump_event" => "switch_to_map"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :ask_sidebar
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :layer_shell_and_callout
+    end
+
+    test "preserves sidebar_id in canonical ask_sidebar attributes" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "ask-sidebar-screen-2",
+          name: "ask_sidebar_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:ask_sidebar,
+              id: "ask-sb-2",
+              props: %{
+                "sidebar_id" => "workspace-ask-sidebar",
+                "on_map_jump_event" => "goto_map"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.attributes.ask_sidebar.sidebar_id == "workspace-ask-sidebar"
+      assert child.element.attributes.ask_sidebar.on_map_jump_event == "goto_map"
+    end
+  end
+
   defp assert_valid_canonical(canonical) do
     assert {:ok, %UnifiedIUR.Element{} = normalized} = UnifiedIUR.Normalize.element(canonical)
     assert :ok = UnifiedIUR.Validate.element(normalized)

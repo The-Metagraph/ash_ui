@@ -1155,4 +1155,60 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       "metadata" => %{}
     }
   end
+
+  describe "ask_sidebar adapter dispatch" do
+    test "generates dedicated ask_sidebar markup" do
+      canonical_iur = %{
+        "type" => "ask_sidebar",
+        "id" => "sidebar-1",
+        "props" => %{
+          "sidebar_id" => "main-sidebar",
+          "on_map_jump_event" => "open_map",
+          "recent_items" => [
+            %{"id" => "r1", "label" => "Recent query 1"}
+          ],
+          "saved_items" => [],
+          "blocker_count" => 2,
+          "empty_saved_label" => "Nothing saved yet"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      assert {:ok, html} = LiveUIAdapter.render(canonical_iur)
+      assert html =~ ~s(data-live-ui-widget="ask-sidebar")
+      assert html =~ ~s(data-sidebar-id="main-sidebar")
+      assert html =~ "ash-ask-sidebar"
+      assert html =~ "ash-ask-sidebar__recent"
+      assert html =~ "ash-ask-sidebar__saved"
+      assert html =~ "Recent query 1"
+      assert html =~ "ash-ask-sidebar__blocker-badge"
+      assert html =~ "Nothing saved yet"
+    end
+
+    test "ask_sidebar adapter preserves active item aria-current" do
+      canonical_iur = %{
+        "type" => "ask_sidebar",
+        "id" => "sidebar-2",
+        "props" => %{
+          "sidebar_id" => "workspace-sidebar",
+          "on_map_jump_event" => "",
+          "recent_items" => [
+            %{"id" => "item-a", "label" => "Alpha"},
+            %{"id" => "item-b", "label" => "Beta"}
+          ],
+          "saved_items" => [],
+          "active_item_id" => "item-b",
+          "blocker_count" => 0
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      assert {:ok, html} = LiveUIAdapter.render(canonical_iur)
+      assert html =~ ~s(aria-current="true")
+      assert html =~ "ash-ask-sidebar__item--active"
+      assert html =~ "Beta"
+    end
+  end
 end

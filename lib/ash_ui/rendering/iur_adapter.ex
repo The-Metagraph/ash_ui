@@ -624,6 +624,31 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:command_palette, props),
     do: %{command_palette: Map.drop(props, attachment_prop_keys())}
 
+  defp base_attributes(:ask_sidebar = kind, props) do
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        ask_sidebar:
+          compact_map(%{
+            sidebar_id: first_present(props, [:sidebar_id, :id_key]),
+            on_map_jump_event: first_present(props, [:on_map_jump_event, :map_jump_event]),
+            recent_items: fetch(props, :recent_items, []),
+            saved_items: fetch(props, :saved_items, []),
+            blocker_count: fetch(props, :blocker_count, 0),
+            empty_recent_label:
+              first_present(props, [:empty_recent_label]) || "No recent queries",
+            empty_saved_label:
+              first_present(props, [:empty_saved_label]) || "No saved queries yet"
+          })
+          |> maybe_put(:active_item_id, first_present(props, [:active_item_id]))
+          |> maybe_put(:on_new_saved_event, first_present(props, [:on_new_saved_event]))
+          |> maybe_put(:on_see_all_event, first_present(props, [:on_see_all_event]))
+      },
+      props
+    )
+  end
+
   defp base_attributes(:list, props), do: %{list: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:table, props), do: %{table: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:tree_view, props), do: %{tree: Map.drop(props, attachment_prop_keys())}

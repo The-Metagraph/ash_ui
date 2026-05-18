@@ -16,6 +16,7 @@ defmodule LiveUi.Widgets do
           | :content_identity_and_disclosure
           | :form_control_and_composer
           | :composition_behavior
+          | :layer_shell_and_callout
 
   @type widget_module :: module()
 
@@ -33,7 +34,8 @@ defmodule LiveUi.Widgets do
       :display,
       :content_identity_and_disclosure,
       :form_control_and_composer,
-      :composition_behavior
+      :composition_behavior,
+      :layer_shell_and_callout
     ]
   end
 
@@ -46,7 +48,9 @@ defmodule LiveUi.Widgets do
       overlay_modules() ++
       display_modules() ++
       content_identity_and_disclosure_modules() ++
-      form_control_and_composer_modules() ++ composition_behavior_modules()
+      form_control_and_composer_modules() ++
+      composition_behavior_modules() ++
+      layer_shell_and_callout_modules()
   end
 
   @spec metadata() :: [LiveUi.Component.Metadata.t()]
@@ -97,6 +101,11 @@ defmodule LiveUi.Widgets do
   @spec composition_behavior_modules() :: [widget_module()]
   def composition_behavior_modules do
     LiveUi.Widgets.CompositionBehavior.modules()
+  end
+
+  @spec layer_shell_and_callout_modules() :: [widget_module()]
+  def layer_shell_and_callout_modules do
+    LiveUi.Widgets.LayerShellAndCallout.modules()
   end
 
   @spec namespace() :: module()

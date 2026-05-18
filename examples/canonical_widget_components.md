@@ -13,7 +13,7 @@ AshUI resource authority.
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer` | Keep form and composer actions on the owning element through `ui_actions`. |
 | Row and artifact | `list_item_multi_column`, `artifact_row` | Use row identity and column templates as props; avoid custom row shells for cataloged artifact rows. |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin` | Keep progress and workflow state in props that canonical validation can check. |
-| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout` | Preserve accessible names, open state, and message text in canonical props. |
+| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `right_rail` | Preserve accessible names, open state, message text, and rail panel descriptors in canonical props. |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | Provide explicit segment or token state instead of pre-rendered HTML. |
 | Composition behavior | `list_repeat` | Declare repeat ownership through relationships and list bindings. |
 
@@ -95,6 +95,110 @@ ui_element do
   props(%{message: "Deployment paused", tone: :warning})
   metadata(%{id: "deployment_pause_callout"})
 end
+```
+
+## Reusable Right Rail
+
+Generic inspector rails use the canonical `right_rail` type directly. Panel
+descriptors stay domain-neutral, and each `content_slot` points to a
+relationship-owned panel body.
+
+```elixir
+ui_element do
+  type(:right_rail)
+
+  props(%{
+    side: :right,
+    active_panel: :summary,
+    collapsed?: false,
+    collapsible?: true,
+    density: :compact,
+    panels: [
+      %{id: :summary, label: "Summary", content_slot: :summary_body},
+      %{id: :activity, label: "Activity", badge: "3", content_slot: :activity_body},
+      %{
+        id: :sources,
+        label: "Sources",
+        disabled?: true,
+        empty_state: "No sources available",
+        content_slot: :sources_body
+      }
+    ]
+  })
+
+  metadata(%{id: "workspace_inspector_rail"})
+end
+```
+
+```elixir
+ui_relationships do
+  relationship :summary_panel do
+    kind(:child)
+    slot(:summary_body)
+    placement(:append)
+    order(0)
+  end
+
+  relationship :activity_panel do
+    kind(:child)
+    slot(:activity_body)
+    placement(:append)
+    order(1)
+  end
+end
+```
+
+Document-oriented rails are application compositions that emit the same
+canonical kind. The resource, module, or example may use a document name, but
+the authored widget type remains `right_rail`; do not author `doc_right_rail`
+as package vocabulary.
+
+```elixir
+defmodule MyApp.Documents.DocumentContextRail do
+  use Ash.Resource, domain: MyApp.Documents.UIDomain, data_layer: Ash.DataLayer.Ets
+  use AshUI.Resource.DSL.Element
+
+  ui_element do
+    type(:right_rail)
+
+    props(%{
+      active_panel: :outline,
+      panels: [
+        %{id: :outline, label: "Outline", content_slot: :outline_body},
+        %{id: :comments, label: "Comments", badge: "8", content_slot: :comments_body},
+        %{id: :sources, label: "Sources", empty_state: "No linked sources"}
+      ]
+    })
+
+    metadata(%{id: "document_context_rail", composition: "document rail"})
+  end
+end
+```
+
+Canonical signal previews should show semantic selection and collapse
+interactions instead of renderer-specific event attributes.
+
+```elixir
+UnifiedIUR.Widgets.Components.right_rail(
+  id: "workspace-inspector-rail",
+  panels: [
+    %{id: :summary, label: "Summary", content_slot: :summary_body},
+    %{id: :activity, label: "Activity", badge: "3", content_slot: :activity_body}
+  ],
+  active_panel: :summary,
+  interactions: [
+    UnifiedIUR.Interaction.selection(
+      intent: :select_panel,
+      element_id: "workspace-inspector-rail",
+      mapping: %{selected_value: :id}
+    ),
+    UnifiedIUR.Interaction.change(
+      intent: :toggle_rail,
+      element_id: "workspace-inspector-rail",
+      mapping: %{collapsed?: :collapsed?}
+    )
+  ]
+)
 ```
 
 ```elixir

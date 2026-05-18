@@ -989,6 +989,9 @@ defmodule UnifiedUi.Compiler.Pipeline do
             ])
           )
 
+        :right_rail ->
+          lower_right_rail(node, context, visited, attachments)
+
         :redline_inline ->
           Widgets.Components.redline_inline(
             normalize_list(node.segments),
@@ -1038,6 +1041,15 @@ defmodule UnifiedUi.Compiler.Pipeline do
   defp lower_children(node, context, visited) do
     Enum.map(node.children, fn child ->
       Element.Child.new(:default, lower_node(child, context, visited))
+    end)
+  end
+
+  defp lower_rail_children(node, context, visited) do
+    panel_slots = rail_panel_slots(node.panels)
+
+    Enum.map(node.children, fn child ->
+      slot = if MapSet.member?(panel_slots, child.id), do: child.id, else: :default
+      Element.Child.new(slot, lower_node(child, context, visited))
     end)
   end
 
@@ -1095,6 +1107,25 @@ defmodule UnifiedUi.Compiler.Pipeline do
       |> Map.put(:children, hydrated_children)
 
     Widgets.Components.list_repeat(template, opts)
+  end
+
+  defp lower_right_rail(node, context, visited, attachments) do
+    opts =
+      node
+      |> common_opts(attachments, [
+        :side,
+        :panels,
+        :active_panel,
+        :collapsed?,
+        :collapsible?,
+        :density,
+        :width,
+        :accessibility_label,
+        :accessibility_description
+      ])
+      |> Map.put(:children, lower_rail_children(node, context, visited))
+
+    Widgets.Components.right_rail(opts)
   end
 
   defp repeat_rows(%IURBinding{default: rows}) when is_list(rows) do
@@ -1422,7 +1453,9 @@ defmodule UnifiedUi.Compiler.Pipeline do
         default_selection_interaction(node),
         default_step_navigation_interaction(node),
         default_send_interaction(node),
-        default_dismiss_interaction(node)
+        default_dismiss_interaction(node),
+        default_panel_select_interaction(node),
+        default_collapse_interaction(node)
       ]
       |> Enum.reject(&is_nil/1)
 
@@ -1504,6 +1537,30 @@ defmodule UnifiedUi.Compiler.Pipeline do
       intent: node.dismiss_intent,
       element_id: node.id,
       mapping: %{open?: false},
+      phase: :authored_default
+    )
+  end
+
+  defp default_panel_select_interaction(%Node{panel_select_intent: nil}), do: nil
+
+  defp default_panel_select_interaction(node) do
+    Interaction.selection(
+      intent: node.panel_select_intent,
+      element_id: node.id,
+      selection: node.active_panel,
+      mapping: %{panel_id: :id},
+      phase: :authored_default
+    )
+  end
+
+  defp default_collapse_interaction(%Node{collapse_intent: nil}), do: nil
+
+  defp default_collapse_interaction(node) do
+    Interaction.change(
+      intent: node.collapse_intent,
+      element_id: node.id,
+      value: node.collapsed? || false,
+      mapping: %{collapsed?: :collapsed?},
       phase: :authored_default
     )
   end
@@ -1892,6 +1949,17 @@ defmodule UnifiedUi.Compiler.Pipeline do
 
   defp normalize_list(nil), do: []
   defp normalize_list(list) when is_list(list), do: Enum.map(list, &normalize_map/1)
+
+  defp rail_panel_slots(panels) do
+    panels
+    |> normalize_list()
+    |> Enum.map(&map_value(&1, :content_slot))
+    |> Enum.reject(&is_nil/1)
+    |> MapSet.new()
+  end
+
+  defp map_value(map, key) when is_map(map), do: Map.get(map, key, Map.get(map, to_string(key)))
+  defp map_value(_map, _key), do: nil
 
   defp element_type(:layout), do: :layout
   defp element_type(:forms), do: :composite

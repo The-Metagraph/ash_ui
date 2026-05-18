@@ -136,6 +136,7 @@ defmodule UnifiedUi.Dsl.Placement do
     :sticky_frosted_header,
     :slide_over_panel,
     :event_callout,
+    :right_rail,
     :list_repeat
   ]
 

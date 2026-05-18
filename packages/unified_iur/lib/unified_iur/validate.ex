@@ -123,12 +123,46 @@ defmodule UnifiedIUR.Validate do
     invalid_artifact_count: %{
       construct_family: :widget_components,
       guidance: "Represent artifact counts as a list of maps with key, value, and optional label."
+    },
+    invalid_rail_contract: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent right_rail with a rail id, semantic side, ordered panels, active panel, and boolean collapse state."
+    },
+    invalid_rail_panel: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent right_rail panels as maps with stable id, label, and optional semantic badge, disabled, empty-state, or slot metadata."
+    },
+    invalid_rail_active_panel: %{
+      construct_family: :widget_components,
+      guidance: "Set right_rail active_panel to one of the declared panel ids."
+    },
+    invalid_rail_interaction: %{
+      construct_family: :interactions,
+      guidance:
+        "Represent rail panel selection and collapse as UnifiedIUR.Interaction structs, not renderer event names."
     }
   }
 
   @redline_states [:keep, :insert, :delete, :accepted, :rejected]
   @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
   @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
+  @rail_sides [:right]
+  @rail_forbidden_panel_keys ~w[
+    event
+    helper
+    live_action
+    module
+    on_click
+    path
+    phx-click
+    phx_click
+    phx_event
+    route
+    runtime_module
+    url
+  ]
   @code_token_types [
     :text,
     :keyword,
@@ -521,7 +555,196 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{kind: :right_rail, attributes: attributes}) do
+    rail = Map.get(attributes, :rail, %{})
+
+    []
+    |> Kernel.++(validate_rail_shape(rail))
+    |> Kernel.++(validate_rail_panels(fetch(rail, :panels), [:attributes, :rail, :panels]))
+    |> Kernel.++(validate_rail_active_panel(rail))
+    |> Kernel.++(validate_rail_interactions(Map.get(attributes, :interactions, [])))
+  end
+
   defp validate_component_contracts(_element), do: []
+
+  defp validate_rail_shape(rail) when is_map(rail) do
+    []
+    |> maybe_add(
+      blank?(fetch(rail, :id)),
+      Error.new(
+        :invalid_rail_contract,
+        "right_rail requires a rail id",
+        path: [:attributes, :rail, :id]
+      )
+    )
+    |> maybe_add(
+      fetch(rail, :side) not in @rail_sides,
+      Error.new(
+        :invalid_rail_contract,
+        "right_rail side must be one of #{inspect(@rail_sides)}",
+        path: [:attributes, :rail, :side],
+        details: %{side: inspect(fetch(rail, :side))}
+      )
+    )
+    |> maybe_add(
+      not is_boolean(fetch(rail, :collapsed?)),
+      Error.new(
+        :invalid_rail_contract,
+        "right_rail collapsed? must be boolean",
+        path: [:attributes, :rail, :collapsed?],
+        details: %{collapsed?: inspect(fetch(rail, :collapsed?))}
+      )
+    )
+    |> maybe_add(
+      not is_boolean(fetch(rail, :collapsible?)),
+      Error.new(
+        :invalid_rail_contract,
+        "right_rail collapsible? must be boolean",
+        path: [:attributes, :rail, :collapsible?],
+        details: %{collapsible?: inspect(fetch(rail, :collapsible?))}
+      )
+    )
+  end
+
+  defp validate_rail_shape(_rail) do
+    [
+      Error.new(
+        :invalid_rail_contract,
+        "right_rail attributes.rail must be a map",
+        path: [:attributes, :rail]
+      )
+    ]
+  end
+
+  defp validate_rail_panels(panels, path) when is_list(panels) do
+    panels
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {panel, index} ->
+      validate_rail_panel(panel, path ++ [index])
+    end)
+    |> maybe_add(
+      panels == [],
+      Error.new(
+        :invalid_rail_panel,
+        "right_rail panels must be a non-empty list",
+        path: path
+      )
+    )
+  end
+
+  defp validate_rail_panels(_panels, path) do
+    [
+      Error.new(
+        :invalid_rail_panel,
+        "right_rail panels must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_rail_panel(panel, path) when is_map(panel) or is_list(panel) do
+    panel = normalize_map(panel)
+    id = fetch(panel, :id)
+    label = fetch(panel, :label)
+    disabled? = fetch(panel, :disabled?)
+    content_slot = fetch(panel, :content_slot)
+
+    []
+    |> maybe_add(
+      blank?(id) or not is_binary(label),
+      Error.new(
+        :invalid_rail_panel,
+        "right_rail panel requires id and label",
+        path: path,
+        details: %{id: inspect(id), label: inspect(label)}
+      )
+    )
+    |> maybe_add(
+      not is_nil(disabled?) and not is_boolean(disabled?),
+      Error.new(
+        :invalid_rail_panel,
+        "right_rail panel disabled? must be boolean when present",
+        path: path ++ [:disabled?],
+        details: %{disabled?: inspect(disabled?)}
+      )
+    )
+    |> maybe_add(
+      not is_nil(content_slot) and blank?(content_slot),
+      Error.new(
+        :invalid_rail_panel,
+        "right_rail panel content_slot must be stable when present",
+        path: path ++ [:content_slot]
+      )
+    )
+    |> maybe_add(
+      has_forbidden_rail_panel_key?(panel),
+      Error.new(
+        :invalid_rail_panel,
+        "right_rail panel must not include renderer event or host route fields",
+        path: path
+      )
+    )
+  end
+
+  defp validate_rail_panel(_panel, path) do
+    [
+      Error.new(
+        :invalid_rail_panel,
+        "right_rail panel must be a map",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_rail_active_panel(rail) when is_map(rail) do
+    panels = fetch(rail, :panels, [])
+    active_panel = fetch(rail, :active_panel)
+
+    maybe_add(
+      [],
+      blank?(active_panel) or not active_panel_in_panels?(active_panel, panels),
+      Error.new(
+        :invalid_rail_active_panel,
+        "right_rail active_panel must reference a declared panel id",
+        path: [:attributes, :rail, :active_panel],
+        details: %{active_panel: inspect(active_panel)}
+      )
+    )
+  end
+
+  defp validate_rail_active_panel(_rail), do: []
+
+  defp validate_rail_interactions(interactions) when is_list(interactions) do
+    interactions
+    |> Enum.with_index()
+    |> Enum.flat_map(fn
+      {%Interaction{}, _index} ->
+        []
+
+      {interaction, index} ->
+        [
+          Error.new(
+            :invalid_rail_interaction,
+            "right_rail interactions must be UnifiedIUR.Interaction structs",
+            path: [:attributes, :interactions, index],
+            details: %{value: inspect(interaction)}
+          )
+        ]
+    end)
+  end
+
+  defp validate_rail_interactions(nil), do: []
+
+  defp validate_rail_interactions(interactions) do
+    [
+      Error.new(
+        :invalid_rail_interaction,
+        "right_rail interactions must be a list",
+        path: [:attributes, :interactions],
+        details: %{value: inspect(interactions)}
+      )
+    ]
+  end
 
   defp validate_selection_options(options, path) when is_list(options) do
     options
@@ -756,6 +979,29 @@ defmodule UnifiedIUR.Validate do
     |> Enum.chunk_every(length(prefix_parts), 1, :discard)
     |> Enum.any?(&(&1 == prefix_parts))
   end
+
+  defp normalize_map(nil), do: %{}
+  defp normalize_map(map) when is_map(map), do: Map.new(map)
+  defp normalize_map(list) when is_list(list), do: Enum.into(list, %{})
+
+  defp has_forbidden_rail_panel_key?(panel) do
+    panel
+    |> Map.keys()
+    |> Enum.any?(&(to_string(&1) in @rail_forbidden_panel_keys))
+  end
+
+  defp active_panel_in_panels?(active_panel, panels) when is_list(panels) do
+    Enum.any?(panels, fn
+      panel when is_map(panel) or is_list(panel) ->
+        panel = normalize_map(panel)
+        to_string(fetch(panel, :id)) == to_string(active_panel)
+
+      _panel ->
+        false
+    end)
+  end
+
+  defp active_panel_in_panels?(_active_panel, _panels), do: false
 
   defp fetch(source, key, default \\ nil)
 

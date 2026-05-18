@@ -17,7 +17,8 @@ visual contract.
 - `examples/ash_hq_theme_baseline.md` and `examples/ash_hq_theme_tokens.css`
   define the shared Ash HQ shell and styling tokens every example app must use.
 - `examples/canonical_widget_components.md` gives resource-authored canonical
-  component snippets by family, including relationship-owned `list_repeat`.
+  component snippets by family, including relationship-owned `list_repeat` and
+  reusable `right_rail` compositions.
 
 ## Parity Labels
 

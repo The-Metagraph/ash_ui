@@ -117,6 +117,27 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
         action_intent(:inspect_event)
       end
 
+      right_rail :workspace_rail do
+        side(:right)
+
+        panels([
+          %{id: :agents, label: "Agents", badge: %{label: "2"}, content_slot: :agents_body},
+          %{id: :sources, label: "Sources", content_slot: :sources_body}
+        ])
+
+        active_panel(:sources)
+        collapsed?(false)
+        collapsible?(true)
+        panel_select_intent(:select_rail_panel)
+        collapse_intent(:toggle_rail)
+        density(:compact)
+        width(:wide)
+
+        text :sources_body do
+          value("Rail body")
+        end
+      end
+
       redline_inline :copy_redline do
         segments([%{state: :insert, text: "new"}])
       end
@@ -139,6 +160,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     artifact = Tree.find_by_id(iur, :artifact)
     progress = Tree.find_by_id(iur, :quality_bar)
     panel = Tree.find_by_id(iur, :details_panel)
+    rail = Tree.find_by_id(iur, :workspace_rail)
     code = Tree.find_by_id(iur, :code_sample)
 
     assert heading.kind == :inline_rich_text_heading
@@ -205,6 +227,27 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              dismiss_intent: :close_panel
            }
 
+    assert rail.attributes.component == %{
+             family: :layer_shell_and_callout,
+             kind: :right_rail
+           }
+
+    assert rail.attributes.rail == %{
+             id: :workspace_rail,
+             side: :right,
+             panels: [
+               %{id: :agents, label: "Agents", badge: %{label: "2"}, content_slot: :agents_body},
+               %{id: :sources, label: "Sources", content_slot: :sources_body}
+             ],
+             active_panel: :sources,
+             collapsed?: false,
+             collapsible?: true,
+             density: :compact,
+             width: :wide
+           }
+
+    assert [%{slot: :sources_body, element: %{kind: :text, id: :sources_body}}] = rail.children
+
     assert code.attributes.code == %{
              language: :elixir,
              tokens: [%{type: :keyword, text: "defmodule"}]
@@ -222,6 +265,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     stepper = Tree.find_by_id(iur, :release_steps)
     panel = Tree.find_by_id(iur, :details_panel)
     callout = Tree.find_by_id(iur, :incident_callout)
+    rail = Tree.find_by_id(iur, :workspace_rail)
 
     assert [%Interaction{family: :selection, intent: :select_status} = selection] =
              segmented.attributes.interactions
@@ -261,5 +305,14 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
 
     assert [%Interaction{family: :click, intent: :inspect_event}] =
              callout.attributes.interactions
+
+    assert [
+             %Interaction{family: :selection, intent: :select_rail_panel} = panel_select,
+             %Interaction{family: :change, intent: :toggle_rail} = collapse_change
+           ] = rail.attributes.interactions
+
+    assert panel_select.source == %{element_id: :workspace_rail}
+    assert panel_select.payload == %{selection: :sources, mapping: %{panel_id: :id}}
+    assert collapse_change.payload == %{value: false, mapping: %{collapsed?: :collapsed?}}
   end
 end

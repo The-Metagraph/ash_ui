@@ -97,7 +97,7 @@ defmodule AshUI.Rendering.IURAdapter do
     Element.new(type, kind,
       id: element.id || generate_id(),
       metadata: convert_metadata(element),
-      attributes: convert_attributes(kind, props),
+      attributes: convert_attributes(kind, props, element.id),
       children: convert_children(element.children)
     )
   end
@@ -163,8 +163,9 @@ defmodule AshUI.Rendering.IURAdapter do
 
   defp convert_props(_), do: %{}
 
-  defp convert_attributes(kind, props) do
+  defp convert_attributes(kind, props, element_id) do
     props = convert_props(props)
+    props = if is_nil(element_id), do: props, else: Map.put_new(props, :_element_id, element_id)
 
     kind
     |> base_attributes(props)
@@ -465,6 +466,29 @@ defmodule AshUI.Rendering.IURAdapter do
             eyebrow: first_present(props, [:eyebrow, :kicker]),
             title: first_present(props, [:title]),
             action_intent: first_present(props, [:action_intent])
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:right_rail = kind, props) do
+    collapsible? = first_present(props, [:collapsible?, :collapsible])
+
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        rail:
+          compact_map(%{
+            id: first_present(props, [:rail_id, :id, :_element_id]),
+            side: normalize_existing_atom(first_present(props, [:side]) || :right),
+            panels: normalize_maps(fetch(props, :panels, [])),
+            active_panel: first_present(props, [:active_panel, :active_tab, :selected_panel]),
+            collapsed?: first_present(props, [:collapsed?, :collapsed]) || false,
+            collapsible?: if(is_nil(collapsible?), do: true, else: collapsible?),
+            density: normalize_existing_atom(fetch(props, :density)),
+            width: normalize_existing_atom(fetch(props, :width))
           })
       },
       props
@@ -1058,7 +1082,8 @@ defmodule AshUI.Rendering.IURAdapter do
       :bindings,
       :binding,
       :interactions,
-      :interaction
+      :interaction,
+      :_element_id
     ]
   end
 

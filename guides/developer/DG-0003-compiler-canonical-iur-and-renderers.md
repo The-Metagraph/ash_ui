@@ -8,7 +8,7 @@ status: Active
 owners: Ash UI Team
 last_reviewed: 2026-05-14
 next_review: 2026-11-14
-related_reqs: [REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002, REQ-BIND-002, REQ-NAV-001, REQ-NAV-002, REQ-NAV-003, REQ-NAV-008, REQ-NAV-009, REQ-NAV-010, REQ-WIDGET-001, REQ-WIDGET-004, REQ-WIDGET-005, REQ-WIDGET-006, REQ-WIDGET-007, REQ-WIDGET-008, REQ-WIDGET-009]
+related_reqs: [REQ-COMP-001, REQ-RENDER-001, REQ-RENDER-002, REQ-BIND-002, REQ-NAV-001, REQ-NAV-002, REQ-NAV-003, REQ-NAV-008, REQ-NAV-009, REQ-NAV-010, REQ-WIDGET-001, REQ-WIDGET-004, REQ-WIDGET-005, REQ-WIDGET-006, REQ-WIDGET-007, REQ-WIDGET-008, REQ-WIDGET-009, REQ-RAIL-001, REQ-RAIL-010, REQ-RAIL-011]
 related_scns: [SCN-041, SCN-061, SCN-101, SCN-141, SCN-144, SCN-145, SCN-165]
 related_guides: [DG-0001, DG-0002, DG-0004, UG-0003, UG-0005]
 diagram_required: true
@@ -160,7 +160,7 @@ Current component attribute namespaces are:
 | Form control and composer | `:form`, `:selection`, `:composer` |
 | Row and artifact | `:row`, `:artifact` |
 | Workflow, progress, and status | `:workflow`, `:progress`, `:meter` |
-| Layer shell and callout | `:shell`, `:panel`, `:callout` |
+| Layer shell and callout | `:shell`, `:panel`, `:callout`, `:rail` |
 | Redline and code | `:redline`, `:code`, `:text_safety` |
 | Composition behavior | `:repeat` |
 
@@ -174,6 +174,21 @@ binding, the destination `list_repeat` element owns a `binding_type :list`
 binding, the compiler carries repeat metadata into props and composition
 metadata, and LiveView hydration expands row-scoped templates only when row data
 is present.
+
+`right_rail` is the canonical reusable rail component in the layer shell and
+callout family. Unified UI owns the DSL entity and lowers generic panel
+descriptors to `UnifiedIUR.Widgets.Components.right_rail/1`. Unified IUR owns
+the `attributes.rail` contract and rejects renderer fields such as routes,
+helper names, and host event strings. Ash UI resource conversion maps
+resource-authored props into that `:rail` namespace, preserves panel
+`content_slot` values as child slots, and keeps document-oriented rail behavior
+as composition over `right_rail` rather than as `doc_right_rail`.
+
+Live UI renders `right_rail` natively and registers it in widget discovery.
+Elm UI and desktop adapters currently preserve the canonical component identity
+through structured unsupported-component diagnostics until they grow native
+rail renderers. That is intentional renderer support, not a reason to degrade
+the canonical kind to `custom:*`.
 
 ## Canonical Navigation Flow
 

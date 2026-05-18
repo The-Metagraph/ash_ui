@@ -8,7 +8,7 @@ status: Active
 owners: Ash UI Team
 last_reviewed: 2026-04-23
 next_review: 2026-10-23
-related_reqs: [REQ-SCREEN-003, REQ-BIND-002, REQ-BIND-007, REQ-RENDER-002]
+related_reqs: [REQ-SCREEN-003, REQ-BIND-002, REQ-BIND-007, REQ-RENDER-002, REQ-RAIL-011]
 related_scns: [SCN-005, SCN-008, SCN-011, SCN-061]
 related_guides: [UG-0002, UG-0003, UG-0004, UG-0005, UG-0006]
 diagram_required: false
@@ -101,6 +101,56 @@ When a screen mixes display and editing:
 - keep the submit action in an `:actions` slot companion
 
 That prevents display widgets from becoming accidental form containers.
+
+## Pattern 6: Reusable Right Rail Inspectors
+
+Use `right_rail` when a screen needs secondary panels that can switch between
+related views such as summary, activity, sources, or document metadata. The
+rail element owns panel order, active panel state, collapsed state, and
+semantic panel descriptors. Related child resources own the panel bodies.
+
+```elixir
+ui_element do
+  type(:right_rail)
+
+  props(%{
+    side: :right,
+    active_panel: :summary,
+    collapsed?: false,
+    collapsible?: true,
+    panels: [
+      %{id: :summary, label: "Summary", content_slot: :summary_body},
+      %{id: :activity, label: "Activity", badge: "3", content_slot: :activity_body},
+      %{id: :sources, label: "Sources", disabled?: true, empty_state: "No sources yet"}
+    ]
+  })
+
+  metadata(%{id: "case_inspector_rail"})
+end
+```
+
+```elixir
+ui_relationships do
+  relationship :summary_panel do
+    kind(:child)
+    slot(:summary_body)
+    placement(:append)
+    order(0)
+  end
+
+  relationship :activity_panel do
+    kind(:child)
+    slot(:activity_body)
+    placement(:append)
+    order(1)
+  end
+end
+```
+
+The same canonical rail can power a document-oriented sidebar. Name the
+resource for your domain, but keep the canonical element type as `right_rail`.
+`doc_right_rail` may be an application-local composition name; it is not shared
+package vocabulary.
 
 ## Example Composition Sketch
 

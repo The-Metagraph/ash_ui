@@ -11,6 +11,21 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   @redline_states [:keep, :insert, :delete, :accepted, :rejected]
   @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
   @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
+  @rail_sides [:right]
+  @rail_forbidden_panel_keys ~w[
+    event
+    helper
+    live_action
+    module
+    on_click
+    path
+    phx-click
+    phx_click
+    phx_event
+    route
+    runtime_module
+    url
+  ]
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
   def verify(dsl) do
@@ -235,6 +250,31 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     else
       {:error, [:composition, :slide_over_panel, id],
        "slide_over_panel #{inspect(id)} must remain non-modal; use dialog for modal layers"}
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :right_rail,
+        id: id,
+        side: side,
+        panels: panels,
+        active_panel: active_panel
+      }) do
+    cond do
+      side not in @rail_sides ->
+        {:error, [:composition, :right_rail, id],
+         "right_rail #{inspect(id)} side must be one of #{inspect(@rail_sides)}"}
+
+      not valid_rail_panels?(panels) ->
+        {:error, [:composition, :right_rail, id],
+         "right_rail #{inspect(id)} panels must be a non-empty list of maps with id and label and without host-specific event or route fields"}
+
+      not active_rail_panel?(active_panel, panels) ->
+        {:error, [:composition, :right_rail, id],
+         "right_rail #{inspect(id)} active_panel must reference one of the declared panel ids"}
+
+      true ->
+        :ok
     end
   end
 
@@ -497,6 +537,39 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   defp valid_repeat_template?(_node), do: false
 
+  defp valid_rail_panels?(panels) when is_list(panels) and panels != [] do
+    Enum.all?(panels, &valid_rail_panel?/1)
+  end
+
+  defp valid_rail_panels?(_panels), do: false
+
+  defp valid_rail_panel?(panel) when is_map(panel) or is_list(panel) do
+    panel = normalize_map(panel)
+    disabled? = field(panel, :disabled?)
+    content_slot = field(panel, :content_slot)
+
+    valid_scalar?(field(panel, :id)) and is_binary(field(panel, :label)) and
+      (is_nil(disabled?) or is_boolean(disabled?)) and
+      (is_nil(content_slot) or valid_scalar?(content_slot)) and
+      not has_forbidden_rail_panel_key?(panel)
+  end
+
+  defp valid_rail_panel?(_panel), do: false
+
+  defp active_rail_panel?(active_panel, panels) do
+    valid_scalar?(active_panel) and
+      Enum.any?(panels, fn panel ->
+        panel = normalize_map(panel)
+        to_string(field(panel, :id)) == to_string(active_panel)
+      end)
+  end
+
+  defp has_forbidden_rail_panel_key?(panel) do
+    panel
+    |> Map.keys()
+    |> Enum.any?(&(to_string(&1) in @rail_forbidden_panel_keys))
+  end
+
   defp valid_index?(index, items) when is_integer(index) and is_list(items) do
     index >= 0 and index < length(items)
   end
@@ -546,6 +619,10 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   defp normalize_map(segment) when is_list(segment), do: Map.new(segment)
+
+  defp field(map, key) do
+    Map.get(map, key, Map.get(map, Atom.to_string(key)))
+  end
 
   defp flatten_nodes(nodes) do
     Enum.flat_map(nodes, fn %Node{children: children} = node ->

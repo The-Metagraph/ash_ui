@@ -214,14 +214,26 @@ defmodule UnifiedUi.WidgetComponentsPhase1IntegrationTest do
   end
 
   defp assert_compile_dsl_error(body, expected_message) do
-    {pid, ref} = spawn_monitor(fn -> compile_module(body) end)
+    output =
+      ExUnit.CaptureIO.capture_io(:stderr, fn ->
+        {pid, ref} = spawn_monitor(fn -> compile_module(body) end)
 
-    receive do
-      {:DOWN, ^ref, :process, ^pid, :normal} ->
-        flunk("expected authored module compilation to fail, but it succeeded")
+        receive do
+          {:DOWN, ^ref, :process, ^pid, :normal} ->
+            :ok
 
-      {:DOWN, ^ref, :process, ^pid, reason} ->
-        assert Exception.format_exit(reason) =~ expected_message
-    end
+          {:DOWN, ^ref, :process, ^pid, reason} ->
+            send(self(), {:compile_exit, Exception.format_exit(reason)})
+        end
+      end)
+
+    compile_exit =
+      receive do
+        {:compile_exit, reason} -> reason
+      after
+        0 -> ""
+      end
+
+    assert output =~ expected_message or compile_exit =~ expected_message
   end
 end

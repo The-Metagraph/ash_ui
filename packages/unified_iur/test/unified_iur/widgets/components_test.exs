@@ -43,6 +43,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :sidebar_shell,
              :sidebar_section,
              :sidebar_item,
+             :right_rail,
              :command_palette
            ]
 
@@ -341,5 +342,41 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
 
     assert [%{slot: :default, element: %Element{id: "artifact_repeat:a1:artifact"}}] =
              repeat.children
+  end
+
+  test "represents canonical right rail panels and children" do
+    rail =
+      Components.right_rail(
+        id: :workspace_rail,
+        panels: [
+          %{id: :agents, label: "Agents", badge: %{label: "2"}, content_slot: :agents_body},
+          %{id: :sources, label: "Sources", content_slot: :sources_body}
+        ],
+        active_panel: :sources,
+        collapsed?: false,
+        collapsible?: true,
+        density: :compact,
+        width: :wide,
+        children: [Foundational.text("Sources", id: :sources_body)]
+      )
+
+    assert rail.kind == :right_rail
+    assert rail.attributes.component == %{family: :layer_shell_and_callout, kind: :right_rail}
+
+    assert rail.attributes.rail == %{
+             id: :workspace_rail,
+             side: :right,
+             panels: [
+               %{id: :agents, label: "Agents", badge: %{label: "2"}, content_slot: :agents_body},
+               %{id: :sources, label: "Sources", content_slot: :sources_body}
+             ],
+             active_panel: :sources,
+             collapsed?: false,
+             collapsible?: true,
+             density: :compact,
+             width: :wide
+           }
+
+    assert [%{slot: :default, element: %Element{id: :sources_body, kind: :text}}] = rail.children
   end
 end

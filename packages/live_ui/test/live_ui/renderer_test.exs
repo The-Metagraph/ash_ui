@@ -341,4 +341,44 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(name="element_id" value="profile-name")
     assert html =~ ~s(name="widget" value="text_input")
   end
+
+  test "renderer maps canonical ask_sidebar through the dedicated AskSidebar component" do
+    element =
+      Components.ask_sidebar(
+        id: "ask-sb-test",
+        sidebar_id: "main-sidebar",
+        on_map_jump_event: "open_map",
+        recent_items: [
+          %{id: "r1", query: "Recent query"},
+          %{id: "r2", query: "Another query"}
+        ],
+        saved_items: [],
+        blocker_count: 1
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="ask-sidebar")
+    assert html =~ ~s(data-sidebar-id="main-sidebar")
+  end
+
+  test "renderer preserves ask_sidebar active item and rails" do
+    element =
+      Components.ask_sidebar(
+        id: "ask-sb-active",
+        sidebar_id: "rail-sidebar",
+        on_map_jump_event: "jump",
+        recent_items: [%{id: "r1", query: "First query"}],
+        saved_items: [%{id: "s1", title: "Pinned search"}],
+        active_item_id: "r1",
+        blocker_count: 0
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="ask-sidebar")
+    assert html =~ ~s(data-item-id="r1")
+    assert html =~ ~s(data-item-id="s1")
+    assert html =~ ~s(aria-current="true")
+  end
 end

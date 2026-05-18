@@ -670,6 +670,101 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "ask_sidebar"} = iur, _opts) do
+    props = iur["props"] || %{}
+    sidebar_id = text_prop(props, ["sidebar_id"], "ask-sidebar")
+    on_map_jump_event = text_prop(props, ["on_map_jump_event"], "")
+    recent_items = prop(props, "recent_items", [])
+    saved_items = prop(props, "saved_items", [])
+    active_item_id = prop(props, "active_item_id", nil)
+    on_new_saved_event = text_prop(props, ["on_new_saved_event"], nil)
+    on_see_all_event = text_prop(props, ["on_see_all_event"], nil)
+    empty_recent_label = escaped_text_prop(props, ["empty_recent_label"], "No recent queries")
+    empty_saved_label = escaped_text_prop(props, ["empty_saved_label"], "No saved queries yet")
+    blocker_count_raw = prop(props, "blocker_count", 0)
+
+    blocker_count =
+      case blocker_count_raw do
+        n when is_integer(n) -> n
+        n when is_float(n) -> round(n)
+        s when is_binary(s) -> String.to_integer(s)
+        _ -> 0
+      end
+
+    recent_items_html =
+      Enum.map_join(recent_items, "\n", fn item ->
+        item = normalize_item(item)
+        item_id = text_prop(item, ["id", "item_id"], "")
+        item_label = escaped_text_prop(item, ["label", "title"], "")
+        is_active = active_item_id != nil and item_id == active_item_id
+
+        active_attr =
+          if is_active,
+            do:
+              " aria-current=\"true\" class=\"ash-ask-sidebar__item ash-ask-sidebar__item--active\"",
+            else: " class=\"ash-ask-sidebar__item\""
+
+        "<li#{active_attr} data-item-id=\"#{html_escape(item_id)}\">#{item_label}</li>"
+      end)
+
+    saved_items_html =
+      Enum.map_join(saved_items, "\n", fn item ->
+        item = normalize_item(item)
+        item_id = text_prop(item, ["id", "item_id"], "")
+        item_label = escaped_text_prop(item, ["label", "title"], "")
+        is_active = active_item_id != nil and item_id == active_item_id
+
+        active_attr =
+          if is_active,
+            do:
+              " aria-current=\"true\" class=\"ash-ask-sidebar__item ash-ask-sidebar__item--active\"",
+            else: " class=\"ash-ask-sidebar__item\""
+
+        "<li#{active_attr} data-item-id=\"#{html_escape(item_id)}\">#{item_label}</li>"
+      end)
+
+    see_all_btn =
+      if on_see_all_event && on_see_all_event != "",
+        do:
+          "<button class=\"ash-ask-sidebar__see-all\" phx-click=\"#{html_escape(on_see_all_event)}\">See all</button>",
+        else: ""
+
+    new_saved_btn =
+      if on_new_saved_event && on_new_saved_event != "",
+        do:
+          "<button class=\"ash-ask-sidebar__new-saved\" phx-click=\"#{html_escape(on_new_saved_event)}\">Save query</button>",
+        else: ""
+
+    map_jump_btn =
+      if on_map_jump_event != "" do
+        badge =
+          if blocker_count > 0,
+            do:
+              "<span class=\"ash-ask-sidebar__blocker-badge\" aria-label=\"#{blocker_count} blockers\">#{blocker_count}</span>",
+            else: ""
+
+        "<button class=\"ash-ask-sidebar__map-jump\" phx-click=\"#{html_escape(on_map_jump_event)}\">Map#{badge}</button>"
+      else
+        ""
+      end
+
+    """
+    <aside class="#{css_classes(["ash-ask-sidebar", prop_class(iur)])}" data-live-ui-widget="ask-sidebar" data-sidebar-id="#{html_escape(sidebar_id)}"#{style_attr(prop_style(iur))}>
+      <section class="ash-ask-sidebar__recent">
+        <h2 class="ash-ask-sidebar__section-title">Recent</h2>
+        #{see_all_btn}
+        #{if recent_items == [], do: "<p class=\"ash-ask-sidebar__empty\">#{empty_recent_label}</p>", else: "<ul class=\"ash-ask-sidebar__list\">#{recent_items_html}</ul>"}
+      </section>
+      <section class="ash-ask-sidebar__saved">
+        <h2 class="ash-ask-sidebar__section-title">Saved</h2>
+        #{new_saved_btn}
+        #{if saved_items == [], do: "<p class=\"ash-ask-sidebar__empty\">#{empty_saved_label}</p>", else: "<ul class=\"ash-ask-sidebar__list\">#{saved_items_html}</ul>"}
+      </section>
+      #{map_jump_btn}
+    </aside>
+    """
+  end
+
   defp generate_heex(%{"type" => "sticky_frosted_header"} = iur, opts) do
     props = iur["props"] || %{}
     title = escaped_text_prop(props, ["title", "label"], "")

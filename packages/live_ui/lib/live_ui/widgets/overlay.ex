@@ -8,7 +8,9 @@ defmodule LiveUi.Widgets.Overlay do
     LiveUi.Widgets.Dialog,
     LiveUi.Widgets.AlertDialog,
     LiveUi.Widgets.ContextMenu,
-    LiveUi.Widgets.Toast
+    LiveUi.Widgets.Toast,
+    LiveUi.Widgets.AskSidebar,
+    LiveUi.Widgets.ComposerInlineAsk
   ]
 
   @spec modules() :: [module()]

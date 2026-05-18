@@ -189,7 +189,8 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         message: [type: :string, required: true],
         action_intent: [type: :atom, required: false],
         summary: [type: :string, required: false]
-      )
+      ),
+      right_rail_entity()
     ]
   end
 
@@ -389,6 +390,37 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
             type: {:in, [:row_identity, :index, :stable_hash]},
             required: false,
             default: :row_identity
+          ],
+          summary: [type: :string, required: false]
+        )
+    }
+  end
+
+  defp right_rail_entity do
+    %Spark.Dsl.Entity{
+      name: :right_rail,
+      target: Node,
+      args: [:id],
+      identifier: :id,
+      recursive_as: :children,
+      auto_set_fields: [family: @layer_family, kind: :right_rail],
+      entities: [children: Foundational.entities()],
+      schema:
+        EntitySchema.widget(
+          side: [type: {:in, [:right]}, required: false, default: :right],
+          panels: [type: :any, required: true],
+          active_panel: [type: :any, required: true],
+          collapsed?: [type: :boolean, required: false, default: false],
+          collapsible?: [type: :boolean, required: false, default: true],
+          panel_select_intent: [type: :atom, required: false],
+          collapse_intent: [type: :atom, required: false],
+          density: [
+            type: {:in, [:compact, :comfortable, :spacious]},
+            required: false
+          ],
+          width: [
+            type: {:in, [:narrow, :standard, :wide]},
+            required: false
           ],
           summary: [type: :string, required: false]
         )

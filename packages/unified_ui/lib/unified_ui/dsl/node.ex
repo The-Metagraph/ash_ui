@@ -189,6 +189,14 @@ defmodule UnifiedUi.Dsl.Node do
           row_fields: list() | nil,
           template_identity: atom() | nil,
           identity_strategy: atom() | nil,
+          side: atom() | nil,
+          panels: list() | nil,
+          active_panel: atom() | String.t() | nil,
+          collapsed?: boolean() | nil,
+          collapsible?: boolean() | nil,
+          panel_select_intent: atom() | nil,
+          collapse_intent: atom() | nil,
+          density: atom() | nil,
           children: [t()]
         }
 
@@ -357,6 +365,14 @@ defmodule UnifiedUi.Dsl.Node do
             row_fields: nil,
             template_identity: nil,
             identity_strategy: nil,
+            side: nil,
+            panels: nil,
+            active_panel: nil,
+            collapsed?: nil,
+            collapsible?: nil,
+            panel_select_intent: nil,
+            collapse_intent: nil,
+            density: nil,
             children: []
 
   @spec summary(t()) :: map()
@@ -457,6 +473,14 @@ defmodule UnifiedUi.Dsl.Node do
       row_fields: node.row_fields,
       template_identity: node.template_identity,
       identity_strategy: node.identity_strategy,
+      side: node.side,
+      panels: node.panels,
+      active_panel: node.active_panel,
+      collapsed?: node.collapsed?,
+      collapsible?: node.collapsible?,
+      panel_select_intent: node.panel_select_intent,
+      collapse_intent: node.collapse_intent,
+      density: node.density,
       current: node.current,
       minimum: node.minimum,
       maximum: node.maximum,

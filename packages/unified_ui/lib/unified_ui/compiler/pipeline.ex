@@ -989,6 +989,9 @@ defmodule UnifiedUi.Compiler.Pipeline do
             ])
           )
 
+        :right_rail ->
+          lower_right_rail(node, context, visited, attachments)
+
         :redline_inline ->
           Widgets.Components.redline_inline(
             normalize_list(node.segments),
@@ -1095,6 +1098,60 @@ defmodule UnifiedUi.Compiler.Pipeline do
       |> Map.put(:children, hydrated_children)
 
     Widgets.Components.list_repeat(template, opts)
+  end
+
+  defp lower_right_rail(node, context, visited, attachments) do
+    children = lower_children(node, context, visited)
+
+    attributes =
+      %{
+        component: %{
+          family: :layer_shell_and_callout,
+          kind: :right_rail
+        },
+        rail:
+          compact_map(%{
+            id: node.id,
+            side: node.side || :right,
+            panels: normalize_list(node.panels),
+            active_panel: node.active_panel,
+            collapsed?: node.collapsed? || false,
+            collapsible?: if(is_nil(node.collapsible?), do: true, else: node.collapsible?),
+            density: node.density,
+            width: node.width
+          })
+      }
+      |> maybe_put(
+        :accessibility,
+        compact_optional_map(%{
+          label: node.accessibility_label,
+          description: node.accessibility_description
+        })
+      )
+      |> maybe_put(
+        :state,
+        compact_optional_map(%{
+          disabled?: node.disabled?,
+          collapsed?: node.collapsed? || false
+        })
+      )
+      |> maybe_put(:style, attachments.style)
+      |> maybe_put(:theme, attachments.theme)
+      |> maybe_put(:bindings, attachments.bindings)
+      |> maybe_put(:interactions, attachments.interactions)
+
+    Element.new(:widget, :right_rail,
+      id: node.id,
+      metadata:
+        Metadata.new(%{
+          authored_ref: node.authored_ref,
+          description: node.summary || node.description,
+          tags: node.tags,
+          annotations: node.annotations
+        }),
+      attributes: attributes,
+      children: children
+    )
   end
 
   defp repeat_rows(%IURBinding{default: rows}) when is_list(rows) do
@@ -1422,7 +1479,9 @@ defmodule UnifiedUi.Compiler.Pipeline do
         default_selection_interaction(node),
         default_step_navigation_interaction(node),
         default_send_interaction(node),
-        default_dismiss_interaction(node)
+        default_dismiss_interaction(node),
+        default_panel_select_interaction(node),
+        default_collapse_interaction(node)
       ]
       |> Enum.reject(&is_nil/1)
 
@@ -1504,6 +1563,30 @@ defmodule UnifiedUi.Compiler.Pipeline do
       intent: node.dismiss_intent,
       element_id: node.id,
       mapping: %{open?: false},
+      phase: :authored_default
+    )
+  end
+
+  defp default_panel_select_interaction(%Node{panel_select_intent: nil}), do: nil
+
+  defp default_panel_select_interaction(node) do
+    Interaction.selection(
+      intent: node.panel_select_intent,
+      element_id: node.id,
+      selection: node.active_panel,
+      mapping: %{panel_id: :id},
+      phase: :authored_default
+    )
+  end
+
+  defp default_collapse_interaction(%Node{collapse_intent: nil}), do: nil
+
+  defp default_collapse_interaction(node) do
+    Interaction.change(
+      intent: node.collapse_intent,
+      element_id: node.id,
+      value: node.collapsed? || false,
+      mapping: %{collapsed?: :collapsed?},
       phase: :authored_default
     )
   end

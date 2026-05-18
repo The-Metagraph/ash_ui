@@ -699,10 +699,15 @@ defmodule UnifiedIUR.Widgets.Components do
       :layer_shell_and_callout,
       %{
         section:
-          %{label: label}
+          %{
+            label: label,
+            collapsible?: option(opts, :collapsible?, false),
+            expanded?: option(opts, :expanded?, true)
+          }
           |> maybe_put(:action_glyph, option(opts, :action_glyph))
           |> maybe_put(:action_label, option(opts, :action_label))
           |> maybe_put(:action_intent, option(opts, :action_intent))
+          |> maybe_put(:on_toggle, option(opts, :on_toggle))
       },
       Map.put(opts, :children, children)
     )

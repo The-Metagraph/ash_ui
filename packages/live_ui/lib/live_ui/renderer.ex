@@ -164,31 +164,44 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:sidebar_section` is a member of `@layer_callout_kinds` (and therefore
+  # of `@component_kinds`), so the generic fallback below would shadow any later
+  # `:sidebar_section` clause. Keep this specific clause BEFORE the generic
+  # `@component_kinds` fallback. Delegates to `LiveUi.Widgets.SidebarSection`
+  # which handles both the non-collapsible (always-expanded) and collapsible
+  # (ARIA disclosure pattern) rendering modes.
   def render(%{element: %Element{kind: :sidebar_section}} = assigns) do
-    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+    section_attrs = get_in(assigns.element.attributes, [:section]) || %{}
 
     assigns =
-      assign(assigns, :interaction_attrs, interaction_attrs)
-      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+      assigns
+      |> assign(:section_label, Map.get(section_attrs, :label, ""))
+      |> assign(:collapsible, Map.get(section_attrs, :collapsible?, false))
+      |> assign(:expanded, Map.get(section_attrs, :expanded?, true))
+      |> assign(:on_toggle, Map.get(section_attrs, :on_toggle))
+      |> assign(:action_label, Map.get(section_attrs, :action_label))
+      |> assign(:action_glyph, Map.get(section_attrs, :action_glyph))
+      |> assign(:action_intent, Map.get(section_attrs, :action_intent))
 
     ~H"""
-    <section
+    <LiveUi.Widgets.SidebarSection.component
       id={element_id(@element, "sidebar-section")}
-      class={["live-ui-sidebar-section", style_class(@element)]}
-      {@style_attrs}
+      label={@section_label}
+      collapsible?={@collapsible}
+      expanded?={@expanded}
+      on_toggle={@on_toggle}
+      action_label={@action_label}
+      action_glyph={@action_glyph}
+      action_intent={@action_intent}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
     >
-      <div class="live-ui-sidebar-section-header">
-        <h3 class="live-ui-sidebar-section-label">{get_in(@element.attributes, [:section, :label]) || ""}</h3>
-        <%= if get_in(@element.attributes, [:section, :action_intent]) do %>
-          <button class="live-ui-sidebar-section-action" {@interaction_attrs}>
-            {get_in(@element.attributes, [:section, :action_label]) || get_in(@element.attributes, [:section, :action_glyph]) || "+"}
-          </button>
-        <% end %>
-      </div>
       <%= for child <- child_elements(@element, :default) do %>
         <.render element={child} event_target={@event_target} />
       <% end %>
-    </section>
+    </LiveUi.Widgets.SidebarSection.component>
     """
   end
 

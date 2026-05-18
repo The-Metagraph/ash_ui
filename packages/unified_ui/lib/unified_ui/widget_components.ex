@@ -205,7 +205,7 @@ defmodule UnifiedUi.WidgetComponents do
       kind: :sidebar_section,
       family: :layer_shell_and_callout,
       summary:
-        "Labeled section group inside a sidebar shell with optional action and item children.",
+        "Labeled section group inside a sidebar shell with optional collapsible? toggle, action, and item children.",
       aliases: []
     },
     %{

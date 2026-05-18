@@ -8,7 +8,7 @@ status: Active
 owners: Ash UI Team
 last_reviewed: 2026-05-14
 next_review: 2026-11-14
-related_reqs: [REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002, REQ-WIDGET-001, REQ-WIDGET-002, REQ-WIDGET-003, REQ-WIDGET-008, REQ-WIDGET-009]
+related_reqs: [REQ-RES-002, REQ-BIND-002, REQ-BIND-008, REQ-RENDER-002, REQ-WIDGET-001, REQ-WIDGET-002, REQ-WIDGET-003, REQ-WIDGET-008, REQ-WIDGET-009, REQ-RAIL-011]
 related_scns: [SCN-002, SCN-009, SCN-061, SCN-101, SCN-165]
 related_guides: [UG-0002, UG-0004, UG-0005, UG-0007, DG-0001]
 diagram_required: false
@@ -96,7 +96,7 @@ authoring boundaries and normalize before renderer-facing output.
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
 | Row and artifact | `list_item_multi_column`, `artifact_row` | none |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge` | none |
-| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette` | none |
+| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
 | Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
 
@@ -105,6 +105,21 @@ relationship-owned row templates. Declare the repeat list binding through
 `ui_relationships`, keep the row template as an element resource, and use
 row-scoped values such as `%{scope: :row, field: :title}` inside the template
 props.
+
+`right_rail` is the reusable rail component for inspector panels, document
+sidebars, contextual tools, and similar secondary surfaces. Author it with
+generic rail props:
+
+- `panels`: ordered panel descriptors such as `%{id: :summary, label: "Summary", content_slot: :summary_body}`
+- `active_panel`: the selected panel id
+- `collapsed?` and `collapsible?`: rail collapse state and capability
+- optional per-panel `badge`, `disabled?`, and `empty_state`
+- `content_slot`: the relationship slot that supplies each panel body
+
+Concrete layout width, responsive behavior, and visual treatment belong to the
+renderer or host application CSS. Document-specific rails should compose
+`right_rail` with document panel resources; do not introduce `doc_right_rail`
+as a canonical widget type.
 
 You can also author `custom:*` types. They are accepted as widget types, but the
 shipped validation/runtime does not automatically give them built-in signal
@@ -206,6 +221,7 @@ Signal support is type-specific.
 | `switch` | `:change`, `:toggle` |
 | `slider` | `:change`, `:input` |
 | `form_builder` | `:submit` |
+| `right_rail` | `:change`, `:toggle`, `:click` |
 
 If you declare a signal outside this matrix, authoring validation raises.
 
@@ -235,6 +251,7 @@ The current action-binding-capable widgets are:
 - `runtime_form_shell`
 - `segmented_button_group`
 - `chat_composer`
+- `right_rail`
 
 ## Compatibility and Normalization Notes
 

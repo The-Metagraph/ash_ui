@@ -171,23 +171,101 @@ defmodule UnifiedIUR.Widgets.Data do
   end
 
   defp normalize_nodes(nodes) do
-    Enum.map(nodes, fn node ->
-      node = normalize_opts(node)
+    Enum.map(nodes, &normalize_node/1)
+  end
 
-      children =
-        case option(node, :children, []) do
-          [] -> []
-          nested when is_list(nested) -> normalize_nodes(nested)
-        end
+  # :sub_group — categorical grouping inside a tree (e.g. "ADRs", "Specs")
+  # Differs from :folder which is filesystem-style. Renders as a group header
+  # with aria-role="group" rather than an expand/collapse folder affordance.
+  defp normalize_node(raw_node) do
+    node = normalize_opts(raw_node)
+    kind = option(node, :kind)
 
-      %{}
-      |> maybe_put(:id, option(node, :id))
-      |> maybe_put(:label, option(node, :label))
-      |> maybe_put(:value, option(node, :value))
-      |> maybe_put(:expanded?, option(node, :expanded?))
-      |> maybe_put(:selected?, option(node, :selected?))
-      |> maybe_put(:children, if(children == [], do: nil, else: children))
-    end)
+    case kind do
+      :sub_group -> normalize_sub_group_node(node)
+      :file_leaf -> normalize_file_leaf_node(node)
+      _ -> normalize_generic_node(node)
+    end
+  end
+
+  defp normalize_generic_node(node) do
+    children =
+      case option(node, :children, []) do
+        [] -> []
+        nested when is_list(nested) -> normalize_nodes(nested)
+      end
+
+    %{}
+    |> maybe_put(:id, option(node, :id))
+    |> maybe_put(:kind, option(node, :kind))
+    |> maybe_put(:label, option(node, :label))
+    |> maybe_put(:value, option(node, :value))
+    |> maybe_put(:expanded?, option(node, :expanded?))
+    |> maybe_put(:selected?, option(node, :selected?))
+    |> maybe_put(:children, if(children == [], do: nil, else: children))
+  end
+
+  # :sub_group: categorical grouping node
+  #   - label: String.t() — visible group label (required)
+  #   - children: [node()] — nested nodes within this group
+  #   - expanded?: boolean() — hint (not gate) for initial render state
+  defp normalize_sub_group_node(node) do
+    children =
+      case option(node, :children, []) do
+        [] -> []
+        nested when is_list(nested) -> normalize_nodes(nested)
+      end
+
+    %{}
+    |> maybe_put(:id, option(node, :id))
+    |> Map.put(:kind, :sub_group)
+    |> maybe_put(:label, option(node, :label))
+    |> maybe_put(:expanded?, option(node, :expanded?))
+    |> maybe_put(:children, if(children == [], do: nil, else: children))
+  end
+
+  # :file_leaf: filesystem-path leaf node
+  #   - path: String.t() — full file path (e.g. "lib/foo/bar.ex")
+  #   - name: String.t() — display name (e.g. "bar.ex")
+  #   - glyph: String.t() | nil — explicit glyph; falls back to extension-derived if nil
+  #   - meta: map() | nil — optional metadata (lang, line count, last-modified, etc.)
+  #   - selected?: boolean()
+  defp normalize_file_leaf_node(node) do
+    glyph = option(node, :glyph) || derive_glyph(option(node, :path))
+
+    %{}
+    |> maybe_put(:id, option(node, :id))
+    |> Map.put(:kind, :file_leaf)
+    |> maybe_put(:path, option(node, :path))
+    |> maybe_put(:name, option(node, :name))
+    |> maybe_put(:glyph, glyph)
+    |> maybe_put(:meta, option(node, :meta))
+    |> maybe_put(:selected?, option(node, :selected?))
+  end
+
+  # Extension-derived glyph fallback for :file_leaf nodes.
+  # Returns a semantic glyph token for known Elixir/Markdown/etc extensions.
+  # Returns nil for unknown extensions (renderer uses a generic file icon).
+  @extension_glyphs %{
+    ".ex" => "elixir",
+    ".exs" => "elixir",
+    ".md" => "markdown",
+    ".livemd" => "markdown",
+    ".json" => "json",
+    ".yaml" => "yaml",
+    ".yml" => "yaml",
+    ".js" => "javascript",
+    ".ts" => "typescript",
+    ".css" => "stylesheet",
+    ".html" => "markup",
+    ".heex" => "markup"
+  }
+
+  defp derive_glyph(nil), do: nil
+
+  defp derive_glyph(path) when is_binary(path) do
+    ext = path |> Path.extname() |> String.downcase()
+    Map.get(@extension_glyphs, ext)
   end
 
   defp normalize_info_items(items) do

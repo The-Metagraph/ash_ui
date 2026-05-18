@@ -338,6 +338,38 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:ask_sidebar` is a member of `@layer_callout_kinds` (and therefore of
+  # `@component_kinds`). This specific clause MUST appear BEFORE the generic
+  # `@component_kinds` fallback to route to the dedicated AskSidebar
+  # Phoenix.Component. Mirrors the `:command_palette`, `:thread_card`, and
+  # `:composer_inline_ask` patterns above.
+  def render(%{element: %Element{kind: :ask_sidebar}} = assigns) do
+    ask_sidebar_attrs = get_in(assigns.element.attributes, [:ask_sidebar]) || %{}
+    assigns = assign(assigns, :ask_sidebar_attrs, ask_sidebar_attrs)
+    assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.AskSidebar.component
+      id={element_id(@element, "ask-sidebar")}
+      sidebar_id={string_value(Map.get(@ask_sidebar_attrs, :sidebar_id), "")}
+      on_map_jump_event={string_value(Map.get(@ask_sidebar_attrs, :on_map_jump_event), "")}
+      recent_items={Map.get(@ask_sidebar_attrs, :recent_items) || []}
+      saved_items={Map.get(@ask_sidebar_attrs, :saved_items) || []}
+      active_item_id={string_optional(Map.get(@ask_sidebar_attrs, :active_item_id))}
+      on_new_saved_event={string_optional(Map.get(@ask_sidebar_attrs, :on_new_saved_event))}
+      on_see_all_event={string_optional(Map.get(@ask_sidebar_attrs, :on_see_all_event))}
+      empty_recent_label={string_value(Map.get(@ask_sidebar_attrs, :empty_recent_label), "No recent queries")}
+      empty_saved_label={string_value(Map.get(@ask_sidebar_attrs, :empty_saved_label), "No saved queries yet")}
+      blocker_count={Map.get(@ask_sidebar_attrs, :blocker_count) || 0}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 

@@ -188,6 +188,116 @@ defmodule LiveUi.DataWidgetsTest do
 
       assert html =~ ~s(data-expanded)
     end
+
+    test "tree_view :sub_group node renders with role=group and aria-label (Wave 3.7 EX-1)" do
+      html =
+        render_component(&LiveUi.Widgets.TreeView.component/1, %{
+          id: "sub-group-tree",
+          nodes: [
+            %{id: "group-adr", kind: :sub_group, label: "ADRs", expanded?: true}
+          ]
+        })
+
+      assert html =~ ~s(data-node-kind="sub_group")
+      assert html =~ ~s(role="group")
+      assert html =~ ~s(aria-label="ADRs")
+      assert html =~ "ADRs"
+    end
+
+    test "tree_view :sub_group node renders nested children" do
+      html =
+        render_component(&LiveUi.Widgets.TreeView.component/1, %{
+          id: "sub-group-nested",
+          nodes: [
+            %{
+              id: "group-specs",
+              kind: :sub_group,
+              label: "Specs",
+              children: [%{id: "child-spec", label: "grain.spec.md"}]
+            }
+          ]
+        })
+
+      assert html =~ "Specs"
+      assert html =~ "grain.spec.md"
+    end
+
+    test "tree_view :file_leaf node renders with file path and glyph (Wave 3.7 EX-2)" do
+      html =
+        render_component(&LiveUi.Widgets.TreeView.component/1, %{
+          id: "file-leaf-tree",
+          nodes: [
+            %{
+              id: "f1",
+              kind: :file_leaf,
+              path: "lib/foo.ex",
+              name: "foo.ex",
+              glyph: "elixir"
+            }
+          ]
+        })
+
+      assert html =~ ~s(data-node-kind="file_leaf")
+      assert html =~ ~s(data-file-path="lib/foo.ex")
+      assert html =~ ~s(data-glyph="elixir")
+      assert html =~ ~s(aria-label="File: foo.ex")
+      assert html =~ "foo.ex"
+    end
+
+    test "tree_view :file_leaf node selected state reflects data-selected" do
+      html =
+        render_component(&LiveUi.Widgets.TreeView.component/1, %{
+          id: "selected-file-tree",
+          nodes: [
+            %{
+              id: "f2",
+              kind: :file_leaf,
+              path: "lib/bar.ex",
+              name: "bar.ex",
+              selected: true
+            }
+          ]
+        })
+
+      assert html =~ ~s(data-selected)
+    end
+
+    test "tree_view mixed sub_group and file_leaf in same tree" do
+      html =
+        render_component(&LiveUi.Widgets.TreeView.component/1, %{
+          id: "mixed-tree",
+          nodes: [
+            %{
+              id: "repo-root",
+              label: "metagraph/",
+              children: [
+                %{
+                  id: "specs-group",
+                  kind: :sub_group,
+                  label: "Specs",
+                  children: [
+                    %{
+                      id: "spec-file",
+                      kind: :file_leaf,
+                      path: ".spec/specs/grain.spec.md",
+                      name: "grain.spec.md",
+                      glyph: "markdown"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        })
+
+      assert html =~ "metagraph/"
+      assert html =~ ~s(data-node-kind="sub_group")
+      assert html =~ ~s(role="group")
+      assert html =~ "Specs"
+      assert html =~ ~s(data-node-kind="file_leaf")
+      assert html =~ ~s(data-glyph="markdown")
+      assert html =~ "grain.spec.md"
+    end
   end
 
   describe "markdown_viewer widget" do

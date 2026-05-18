@@ -240,6 +240,13 @@ defmodule UnifiedUi.WidgetComponents do
       summary:
         "Ask-mode sidebar shell: Recent rail + Saved rail + Map jump affordance. Replaces :sidebar_shell when operator is in Ask mode.",
       aliases: []
+    },
+    %{
+      kind: :tree_view,
+      family: :content_identity_and_disclosure,
+      summary:
+        "Hierarchical tree data view with expand/collapse nodes and selection. Supports generic nodes, :sub_group categorical groupings (Wave 3.7 EX-1), and :file_leaf filesystem-path rows with extension-derived glyphs (Wave 3.7 EX-2). For filesystem-only use cases see :file_tree_browser.",
+      aliases: []
     }
   ]
 

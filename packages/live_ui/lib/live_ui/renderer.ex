@@ -1705,6 +1705,7 @@ defmodule LiveUi.Renderer do
         value: value,
         label: Map.get(option, :label, Map.get(option, "label", "")),
         disabled?: disabled?,
+        count: Map.get(option, :count, Map.get(option, "count")),
         attrs: segmented_button_group_option_attrs(element, event_target, value, disabled?)
       }
     end)

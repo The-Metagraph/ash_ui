@@ -48,6 +48,11 @@ defmodule LiveUi.Widgets.SegmentedButtonGroup do
         {option_attrs(option)}
       >
         {option_label(option)}
+        <span
+          :if={option_count(option) != nil}
+          class="live-ui-segmented-button-group-option-count"
+          aria-hidden="true"
+        >{option_count(option)}</span>
       </button>
     </div>
     """
@@ -56,6 +61,7 @@ defmodule LiveUi.Widgets.SegmentedButtonGroup do
   defp option_value(option), do: fetch_option(option, :value)
   defp option_label(option), do: fetch_option(option, :label, "")
   defp option_attrs(option), do: fetch_option(option, :attrs, %{})
+  defp option_count(option), do: fetch_option(option, :count)
 
   defp option_disabled?(option) do
     fetch_option(option, :disabled?) || fetch_option(option, :disabled) || false

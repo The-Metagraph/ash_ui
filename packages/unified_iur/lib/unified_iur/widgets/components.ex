@@ -851,7 +851,17 @@ defmodule UnifiedIUR.Widgets.Components do
       |> maybe_put(:value, option(option_value, :value))
       |> maybe_put(:label, option(option_value, :label))
       |> maybe_put(:disabled?, option(option_value, :disabled?))
+      |> maybe_put(:count, normalize_option_count(option(option_value, :count)))
     end)
+  end
+
+  defp normalize_option_count(nil), do: nil
+
+  defp normalize_option_count(count) when is_integer(count) and count >= 0, do: count
+
+  defp normalize_option_count(count) do
+    raise ArgumentError,
+          "option :count must be a non-negative integer or nil, got: #{inspect(count)}"
   end
 
   defp normalize_maps(values) when is_list(values) do

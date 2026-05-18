@@ -203,4 +203,83 @@ defmodule LiveUi.Widgets.SegmentedButtonGroupTest do
       assert metadata.mountable?
     end
   end
+
+  describe "count badge" do
+    test "option with count renders count badge span" do
+      html =
+        render_component(&SegmentedButtonGroup.component/1, %{
+          id: "test-sbg",
+          options: [
+            %{value: "adrs", label: "ADRs", count: 12},
+            %{value: "specs", label: "Specs", count: 8}
+          ],
+          label: "Document type"
+        })
+
+      assert html =~ ~s(class="live-ui-segmented-button-group-option-count")
+      assert html =~ "12"
+      assert html =~ "8"
+    end
+
+    test "count badge has aria-hidden=true" do
+      html =
+        render_component(&SegmentedButtonGroup.component/1, %{
+          id: "test-sbg",
+          options: [%{value: "a", label: "All", count: 5}],
+          label: "Test group"
+        })
+
+      assert html =~ ~s(aria-hidden="true")
+    end
+
+    test "option without count does not render count badge span" do
+      html =
+        render_component(&SegmentedButtonGroup.component/1, %{
+          id: "test-sbg",
+          options: @options,
+          label: "Test group"
+        })
+
+      refute html =~ ~s(live-ui-segmented-button-group-option-count)
+    end
+
+    test "option with count nil does not render count badge span" do
+      html =
+        render_component(&SegmentedButtonGroup.component/1, %{
+          id: "test-sbg",
+          options: [%{value: "a", label: "Option A", count: nil}],
+          label: "Test group"
+        })
+
+      refute html =~ ~s(live-ui-segmented-button-group-option-count)
+    end
+
+    test "count of zero renders a badge with '0'" do
+      html =
+        render_component(&SegmentedButtonGroup.component/1, %{
+          id: "test-sbg",
+          options: [%{value: "plans", label: "Plans", count: 0}],
+          label: "Test group"
+        })
+
+      assert html =~ ~s(live-ui-segmented-button-group-option-count)
+      assert html =~ ">0<"
+    end
+
+    test "mixed options: some with count, some without" do
+      html =
+        render_component(&SegmentedButtonGroup.component/1, %{
+          id: "test-sbg",
+          options: [
+            %{value: "adrs", label: "ADRs", count: 12},
+            %{value: "specs", label: "Specs"}
+          ],
+          label: "Document type"
+        })
+
+      assert html =~ "12"
+      assert html =~ "ADRs"
+      assert html =~ "Specs"
+    end
+  end
 end

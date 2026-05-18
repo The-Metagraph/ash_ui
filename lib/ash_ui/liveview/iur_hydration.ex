@@ -38,7 +38,7 @@ defmodule AshUI.LiveView.IURHydration do
 
   def hydrate(iur, _bindings), do: iur
 
-  defp hydrate_node(%{"id" => element_id} = node, binding_states, all_states \\ []) do
+  defp hydrate_node(%{"id" => element_id} = node, binding_states, all_states) do
     props = Map.get(node, "props", %{})
 
     hydrated_props =

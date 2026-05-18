@@ -13,19 +13,34 @@ defmodule LiveUi.Widgets do
           | :data
           | :operational
           | :display
+          | :content_identity_and_disclosure
 
   @type widget_module :: module()
 
   @spec families() :: [family()]
   def families do
-    [:content, :input, :navigation, :feedback, :layout, :overlay, :data, :operational, :display]
+    [
+      :content,
+      :input,
+      :navigation,
+      :feedback,
+      :layout,
+      :overlay,
+      :data,
+      :operational,
+      :display,
+      :content_identity_and_disclosure
+    ]
   end
 
   @spec modules() :: [widget_module()]
   def modules do
     foundational_modules() ++
       input_modules() ++
-      navigation_modules() ++ advanced_modules() ++ overlay_modules() ++ display_modules()
+      navigation_modules() ++
+      advanced_modules() ++
+      overlay_modules() ++
+      display_modules() ++ content_identity_and_disclosure_modules()
   end
 
   @spec metadata() :: [LiveUi.Component.Metadata.t()]
@@ -61,6 +76,11 @@ defmodule LiveUi.Widgets do
   @spec display_modules() :: [widget_module()]
   def display_modules do
     LiveUi.Widgets.Display.modules()
+  end
+
+  @spec content_identity_and_disclosure_modules() :: [widget_module()]
+  def content_identity_and_disclosure_modules do
+    LiveUi.Widgets.ContentIdentityAndDisclosure.modules()
   end
 
   @spec namespace() :: module()

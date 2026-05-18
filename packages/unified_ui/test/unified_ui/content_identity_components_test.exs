@@ -40,7 +40,7 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
       end
 
       presence_dot :operator_presence do
-        state(:live)
+        state(:active)
         size(:small)
         accessibility_label("Active")
       end
@@ -84,7 +84,7 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
     assert {avatar.kind, avatar.initials, avatar.image_source, avatar.shape} ==
              {:avatar, "PC", "/images/pascal.png", :round}
 
-    assert {presence.kind, presence.state, presence.size} == {:presence_dot, :live, :small}
+    assert {presence.kind, presence.state, presence.size} == {:presence_dot, :active, :small}
     assert {disclosure.kind, disclosure.open?} == {:disclosure, true}
     assert Enum.map(disclosure.children, & &1.kind) == [:text]
   end
@@ -120,7 +120,7 @@ defmodule UnifiedUi.ContentIdentityComponentsTest do
                id: :operator_presence,
                family: :content_identity_and_disclosure,
                kind: :presence_dot,
-               state: :live
+               state: :active
              },
              %{
                id: :advanced_options,

@@ -279,37 +279,34 @@ defmodule LiveUi.Renderer do
   def render(%{element: %Element{kind: :presence_dot}} = assigns) do
     state = get_in(assigns.element.attributes, [:presence, :state]) || :offline
 
-    aria_label_override = get_in(assigns.element.attributes, [:presence, :accessibility_label])
+    aria_label =
+      get_in(assigns.element.attributes, [:accessibility, :label]) ||
+        get_in(assigns.element.attributes, [:presence, :accessibility_label])
 
-    {aria_hidden, aria_label} =
-      cond do
-        aria_label_override == false ->
-          {"true", nil}
-
-        is_binary(aria_label_override) and aria_label_override != "" ->
-          {nil, aria_label_override}
-
-        true ->
-          {nil, "Presence: #{state}"}
-      end
+    decorative? =
+      get_in(assigns.element.attributes, [:accessibility, :decorative?]) ||
+        get_in(assigns.element.attributes, [:presence, :decorative?]) ||
+        false
 
     assigns =
       assigns
       |> assign(:presence_state, state)
-      |> assign(:aria_hidden, aria_hidden)
       |> assign(:aria_label, aria_label)
+      |> assign(:presence_decorative, decorative?)
       |> assign(:style_attrs, style_rest(assigns.element))
 
     ~H"""
-    <span
+    <LiveUi.Widgets.PresenceDot.component
       id={element_id(@element, "presence-dot")}
-      class={["live-ui-presence-dot", style_class(@element)]}
-      data-live-ui-widget="presence_dot"
-      data-presence-state={@presence_state}
-      aria-hidden={@aria_hidden}
-      aria-label={@aria_label}
+      aria_label={@aria_label}
+      presence_state={@presence_state}
+      decorative?={@presence_decorative}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
       {@style_attrs}
-    ></span>
+    />
     """
   end
 

@@ -713,6 +713,7 @@ defmodule UnifiedIUR.Widgets.Components do
     |> normalize_map()
     |> maybe_put(:label, option(opts, :accessibility_label))
     |> maybe_put(:description, option(opts, :accessibility_description))
+    |> maybe_put(:decorative?, option(opts, :decorative?))
   end
 
   defp normalize_state(opts) do

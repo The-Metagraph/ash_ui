@@ -242,7 +242,7 @@ defmodule AshUI.Rendering.IURAdapter do
       :content_identity_and_disclosure,
       %{
         presence: %{
-          state: normalize_existing_atom(first_present(props, [:state, :status]) || :unknown),
+          state: normalize_existing_atom(first_present(props, [:state, :status]) || :offline),
           size: normalize_existing_atom(first_present(props, [:size]) || :medium)
         }
       },
@@ -863,6 +863,7 @@ defmodule AshUI.Rendering.IURAdapter do
       :description,
       first_present(props, [:accessibility_description, :aria_description])
     )
+    |> maybe_put(:decorative?, first_present(props, [:decorative?]))
   end
 
   defp common_row_attrs(props) do

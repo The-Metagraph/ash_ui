@@ -8,9 +8,9 @@ defmodule LiveUi.Widgets.PresenceDotTest do
   @moduledoc """
   Tests for the PresenceDot widget (Wave AshUI-3.9.1a Stage-4).
 
-  Covers: presence-state rendering for all 4 states, default state,
+  Covers: presence-state rendering for all canonical states, default state,
   aria-label fallback, explicit aria-label override, and decorative-only
-  (aria-hidden) mode via `aria_label: false`.
+  (aria-hidden) mode via `decorative?: true`.
   """
 
   describe "LiveUi.Widgets.PresenceDot metadata" do
@@ -19,8 +19,16 @@ defmodule LiveUi.Widgets.PresenceDotTest do
 
       assert metadata.mountable?
       assert metadata.component_module == LiveUi.Widgets.PresenceDot.Component
-      assert metadata.family == :feedback
+      assert metadata.family == :content_identity_and_disclosure
       assert metadata.name == :presence_dot
+    end
+
+    test "is exposed through the content identity widget family" do
+      assert :content_identity_and_disclosure in LiveUi.Widgets.families()
+
+      assert LiveUi.Widgets.PresenceDot in LiveUi.Widgets.content_identity_and_disclosure_modules()
+
+      assert LiveUi.Widgets.PresenceDot in LiveUi.Widgets.modules()
     end
   end
 
@@ -65,6 +73,17 @@ defmodule LiveUi.Widgets.PresenceDotTest do
         })
 
       assert html =~ ~s(data-presence-state="focus")
+    end
+
+    test "renders data-presence-state for :do_not_disturb" do
+      html =
+        render_component(&LiveUi.Widgets.PresenceDot.component/1, %{
+          id: "dot-do-not-disturb",
+          presence_state: :do_not_disturb
+        })
+
+      assert html =~ ~s(data-presence-state="do_not_disturb")
+      assert html =~ ~s(aria-label="Presence: do not disturb")
     end
   end
 
@@ -134,11 +153,23 @@ defmodule LiveUi.Widgets.PresenceDotTest do
     end
   end
 
-  describe "decorative-only mode (aria_label: false)" do
-    test "renders aria-hidden=true and no aria-label when aria_label is false" do
+  describe "decorative-only mode" do
+    test "renders aria-hidden=true and no aria-label when decorative? is true" do
       html =
         render_component(&LiveUi.Widgets.PresenceDot.component/1, %{
           id: "dot-decorative",
+          presence_state: :active,
+          decorative?: true
+        })
+
+      assert html =~ ~s(aria-hidden="true")
+      refute html =~ "aria-label="
+    end
+
+    test "continues to support aria_label false as a compatibility shortcut" do
+      html =
+        render_component(&LiveUi.Widgets.PresenceDot.component/1, %{
+          id: "dot-decorative-compat",
           presence_state: :active,
           aria_label: false
         })
@@ -152,7 +183,7 @@ defmodule LiveUi.Widgets.PresenceDotTest do
         render_component(&LiveUi.Widgets.PresenceDot.component/1, %{
           id: "dot-decorative-state",
           presence_state: :focus,
-          aria_label: false
+          decorative?: true
         })
 
       assert html =~ ~s(data-presence-state="focus")

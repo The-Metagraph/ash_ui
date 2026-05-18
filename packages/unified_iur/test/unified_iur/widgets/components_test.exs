@@ -68,7 +68,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
 
     kicker = Components.kicker(["Spec", "ADR"], separator: "/")
     avatar = Components.avatar(initials: "PC", size: :small, accessibility_label: "Pascal")
-    presence = Components.presence_dot(:active, size: :small)
+    presence = Components.presence_dot(:do_not_disturb, size: :small, decorative?: true)
 
     assert %Element{
              kind: :inline_rich_text_heading,
@@ -88,7 +88,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     assert kicker.attributes.kicker == %{items: ["Spec", "ADR"], separator: "/"}
     assert avatar.attributes.identity == %{initials: "PC", size: :small, shape: :round}
     assert avatar.attributes.accessibility == %{label: "Pascal"}
-    assert presence.attributes.presence == %{state: :active, size: :small}
+    assert presence.attributes.presence == %{state: :do_not_disturb, size: :small}
+    assert presence.attributes.accessibility == %{decorative?: true}
   end
 
   test "represents form controls, rows, artifacts, and composer children" do

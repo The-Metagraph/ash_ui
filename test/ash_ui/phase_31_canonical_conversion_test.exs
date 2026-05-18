@@ -91,6 +91,17 @@ defmodule AshUI.Phase31CanonicalConversionTest do
       assert_valid_canonical(canonical)
     end
 
+    test "normalizes presence dot default state and decorative accessibility" do
+      assert {:ok, canonical} =
+               :presence_dot
+               |> IUR.new(props: %{decorative?: true})
+               |> IURAdapter.to_canonical()
+
+      assert canonical.attributes.presence.state == :offline
+      assert canonical.attributes.accessibility.decorative? == true
+      assert_valid_canonical(canonical)
+    end
+
     test "fails invalid required component shapes through Unified IUR validation" do
       invalid_samples = [
         {:redline_inline, %{segments: [%{state: :unknown, text: "bad"}]}, :invalid_text_segment},

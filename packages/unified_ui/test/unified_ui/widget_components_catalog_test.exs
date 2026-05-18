@@ -20,7 +20,9 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :disclosure,
                :kicker,
                :avatar,
-               :presence_dot
+               :presence_dot,
+               :thread_card,
+               :tree_view
              ],
              form_control_and_composer: [
                :runtime_form_shell,
@@ -44,7 +46,10 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :sidebar_shell,
                :sidebar_section,
                :sidebar_item,
-               :command_palette
+               :command_palette,
+               :file_tree_browser,
+               :composer_inline_ask,
+               :ask_sidebar
              ],
              redline_and_code: [:redline_inline, :code_block_syntax_highlighted],
              composition_behavior: [:list_repeat]

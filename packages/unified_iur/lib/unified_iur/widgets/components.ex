@@ -29,7 +29,8 @@ defmodule UnifiedIUR.Widgets.Components do
     :disclosure,
     :kicker,
     :avatar,
-    :presence_dot
+    :presence_dot,
+    :thread_card
   ]
 
   @form_control_kinds [
@@ -60,7 +61,9 @@ defmodule UnifiedIUR.Widgets.Components do
     :sidebar_shell,
     :sidebar_section,
     :sidebar_item,
-    :command_palette
+    :command_palette,
+    :composer_inline_ask,
+    :ask_sidebar
   ]
 
   @redline_code_kinds [
@@ -172,6 +175,29 @@ defmodule UnifiedIUR.Widgets.Components do
       :presence_dot,
       :content_identity_and_disclosure,
       %{presence: %{state: state, size: option(opts, :size, :medium)}},
+      opts
+    )
+  end
+
+  @spec thread_card(opts()) :: Element.t()
+  def thread_card(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :thread_card,
+      :content_identity_and_disclosure,
+      %{
+        thread:
+          %{}
+          |> maybe_put(:thread_id, option(opts, :thread_id))
+          |> maybe_put(:title, option(opts, :title, ""))
+          |> maybe_put(:reply_count, option(opts, :reply_count, 0))
+          |> maybe_put(:seed_quote, option(opts, :seed_quote, ""))
+          |> maybe_put(:progress_pct, option(opts, :progress_pct))
+          |> maybe_put(:last_activity_at, option(opts, :last_activity_at))
+          |> maybe_put(:open_intent, option(opts, :open_intent, "open_thread")),
+        participants: option(opts, :participants, [])
+      },
       opts
     )
   end
@@ -659,6 +685,98 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:select_intent, option(opts, :select_intent))
       },
       Map.put(opts, :children, children)
+    )
+  end
+
+  @spec composer_inline_ask(opts()) :: Element.t()
+  defdelegate composer_inline_ask(opts \\ []),
+    to: UnifiedIUR.Widgets.Components.ComposerInlineAsk
+
+  @spec ask_sidebar(opts()) :: Element.t()
+  @doc """
+  Canonical Ask-mode sidebar shell.
+
+  Provides two persistent navigation rails — Recent (chronological query history,
+  capped at 10) and Saved (pinned or named queries with ★ glyph) — plus a Map
+  jump affordance at the bottom.
+
+  Replaces `:sidebar_shell` when the operator is in Ask mode.
+
+  ## Required options
+
+    * `:sidebar_id` — root identity string; used as `data-sidebar-id` and ARIA landmark anchor
+    * `:on_map_jump_event` — canonical Interaction intent string for the Map jump button
+
+  ## Optional options
+
+    * `:recent_items` — list of `%{id, query, last_run_at, status, on_open_event}` maps
+    * `:saved_items` — list of `%{id, title, query, on_open_event}` maps (+ optional `:cadence`, `:last_run_at`)
+    * `:active_item_id` — currently-selected item id; `aria-current="true"` on the matching row
+    * `:on_new_saved_event` — intent string for the "+ new" save action
+    * `:on_see_all_event` — intent string for "see all ▸" (shown when recent count > 6)
+    * `:empty_recent_label` — override for empty-rail message (default: `"No recent queries"`)
+    * `:empty_saved_label` — override for empty-rail message (default: `"No saved queries yet"`)
+    * `:blocker_count` — non-negative integer badge on Map jump button; 0 hides badge (default: `0`)
+
+  ## Invalid payload cases
+
+    * `:sidebar_id` missing or empty string → raises `ArgumentError`
+    * `:on_map_jump_event` missing or empty string → raises `ArgumentError`
+    * `:recent_items` or `:saved_items` not a list → raises `ArgumentError`
+    * `:blocker_count` negative → raises `ArgumentError`
+  """
+  def ask_sidebar(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    sidebar_id = option(opts, :sidebar_id)
+
+    unless is_binary(sidebar_id) and sidebar_id != "" do
+      raise ArgumentError, ":sidebar_id is required and must be a non-empty string"
+    end
+
+    map_jump_event = option(opts, :on_map_jump_event)
+
+    unless is_binary(map_jump_event) and map_jump_event != "" do
+      raise ArgumentError, ":on_map_jump_event is required and must be a non-empty string"
+    end
+
+    recent_items = option(opts, :recent_items, [])
+
+    unless is_list(recent_items) do
+      raise ArgumentError, ":recent_items must be a list"
+    end
+
+    saved_items = option(opts, :saved_items, [])
+
+    unless is_list(saved_items) do
+      raise ArgumentError, ":saved_items must be a list"
+    end
+
+    blocker_count = option(opts, :blocker_count, 0)
+
+    unless is_integer(blocker_count) and blocker_count >= 0 do
+      raise ArgumentError, ":blocker_count must be a non-negative integer"
+    end
+
+    build_component(
+      :ask_sidebar,
+      :layer_shell_and_callout,
+      %{
+        ask_sidebar:
+          %{
+            sidebar_id: sidebar_id,
+            on_map_jump_event: map_jump_event,
+            recent_items: recent_items,
+            saved_items: saved_items,
+            blocker_count: blocker_count,
+            empty_recent_label: option(opts, :empty_recent_label, "No recent queries"),
+            empty_saved_label: option(opts, :empty_saved_label, "No saved queries yet")
+          }
+          |> maybe_put(:active_item_id, option(opts, :active_item_id))
+          |> maybe_put(:on_new_saved_event, option(opts, :on_new_saved_event))
+          |> maybe_put(:on_see_all_event, option(opts, :on_see_all_event))
+      },
+      opts
     )
   end
 

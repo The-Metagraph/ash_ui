@@ -212,6 +212,41 @@ defmodule UnifiedUi.WidgetComponents do
       summary:
         "Keyboard-driven command palette overlay with open state, filterable items, and children.",
       aliases: []
+    },
+    %{
+      kind: :thread_card,
+      family: :content_identity_and_disclosure,
+      summary:
+        "Rich preview card for a conversation thread reference (avatar stack + seed quote + inline progress + open action).",
+      aliases: []
+    },
+    %{
+      kind: :file_tree_browser,
+      family: :layer_shell_and_callout,
+      summary:
+        "Recursive folder-hierarchy file tree: expand/collapse folder nodes + file-leaf rows with kind glyph, name, and file meta (lang, line count). Distinct from :tree_view (artifact rows). Used in Explorer Files sub-tree and Map FilesPane.",
+      aliases: []
+    },
+    %{
+      kind: :composer_inline_ask,
+      family: :layer_shell_and_callout,
+      summary:
+        "Above-composer AskPreview band: shows MGQL explain + meta + finding peek rows when operator runs /ask in Chat or Talk composer.",
+      aliases: []
+    },
+    %{
+      kind: :ask_sidebar,
+      family: :layer_shell_and_callout,
+      summary:
+        "Ask-mode sidebar shell: Recent rail + Saved rail + Map jump affordance. Replaces :sidebar_shell when operator is in Ask mode.",
+      aliases: []
+    },
+    %{
+      kind: :tree_view,
+      family: :content_identity_and_disclosure,
+      summary:
+        "Hierarchical tree data view with expand/collapse nodes and selection. Supports generic nodes, :sub_group categorical groupings (Wave 3.7 EX-1), and :file_leaf filesystem-path rows with extension-derived glyphs (Wave 3.7 EX-2). For filesystem-only use cases see :file_tree_browser.",
+      aliases: []
     }
   ]
 

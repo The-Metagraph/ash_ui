@@ -44,7 +44,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :sidebar_section,
              :sidebar_item,
              :right_rail,
-             :command_palette
+             :command_palette,
+             :doc_right_rail
            ]
 
     assert Components.redline_code_kinds() == [

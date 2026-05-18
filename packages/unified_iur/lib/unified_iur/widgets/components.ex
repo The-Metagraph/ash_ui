@@ -70,7 +70,8 @@ defmodule UnifiedIUR.Widgets.Components do
     :sidebar_section,
     :sidebar_item,
     :right_rail,
-    :command_palette
+    :command_palette,
+    :doc_right_rail
   ]
 
   @redline_code_kinds [
@@ -707,6 +708,91 @@ defmodule UnifiedIUR.Widgets.Components do
       },
       Map.put(opts, :children, children)
     )
+  end
+
+  @valid_doc_right_rail_tabs [:agents, :sources, :history]
+  @valid_doc_right_rail_positions [:fixed_right, :sticky_top, :inline]
+  @valid_doc_right_rail_widths [:compact, :standard, :wide]
+
+  @spec doc_right_rail(opts()) :: Element.t()
+  def doc_right_rail(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    doc_id = option(opts, :doc_id) || raise ArgumentError, "doc_right_rail/1 requires :doc_id"
+
+    unless is_binary(doc_id) and byte_size(doc_id) > 0 do
+      raise ArgumentError, "doc_right_rail/1 :doc_id must be a non-empty string"
+    end
+
+    on_tab_change =
+      option(opts, :on_tab_change) ||
+        raise ArgumentError, "doc_right_rail/1 requires :on_tab_change"
+
+    active_tab = option(opts, :active_tab, :sources)
+
+    unless active_tab in @valid_doc_right_rail_tabs do
+      raise ArgumentError,
+            "doc_right_rail/1 :active_tab must be one of #{inspect(@valid_doc_right_rail_tabs)}"
+    end
+
+    tabs = option(opts, :tabs, default_rail_tabs())
+
+    unless is_list(tabs) and length(tabs) >= 1 and length(tabs) <= 6 do
+      raise ArgumentError, "doc_right_rail/1 :tabs must be a list of 1–6 tab descriptors"
+    end
+
+    Enum.each(tabs, fn tab ->
+      unless is_map(tab) and Map.has_key?(tab, :kind) and Map.has_key?(tab, :label) do
+        raise ArgumentError,
+              "doc_right_rail/1 each :tabs entry must have :kind and :label keys"
+      end
+
+      count = Map.get(tab, :count)
+
+      unless is_nil(count) or (is_integer(count) and count >= 0) do
+        raise ArgumentError,
+              "doc_right_rail/1 :tabs entry :count must be nil or a non-negative integer"
+      end
+    end)
+
+    position = option(opts, :position, :fixed_right)
+
+    unless position in @valid_doc_right_rail_positions do
+      raise ArgumentError,
+            "doc_right_rail/1 :position must be one of #{inspect(@valid_doc_right_rail_positions)}"
+    end
+
+    width_variant = option(opts, :width_variant, :standard)
+
+    unless width_variant in @valid_doc_right_rail_widths do
+      raise ArgumentError,
+            "doc_right_rail/1 :width_variant must be one of #{inspect(@valid_doc_right_rail_widths)}"
+    end
+
+    build_component(
+      :doc_right_rail,
+      :layer_shell_and_callout,
+      %{
+        rail: %{
+          doc_id: doc_id,
+          active_tab: active_tab,
+          on_tab_change: on_tab_change,
+          tabs: normalize_maps(tabs),
+          position: position,
+          collapsed?: option(opts, :collapsed?, false),
+          width_variant: width_variant
+        }
+      },
+      opts
+    )
+  end
+
+  defp default_rail_tabs do
+    [
+      %{kind: :agents, label: "Agents", count: nil},
+      %{kind: :sources, label: "Sources", count: nil},
+      %{kind: :history, label: "History", count: nil}
+    ]
   end
 
   defp build_component(kind, family, kind_attributes, opts) do

@@ -1100,6 +1100,13 @@ defmodule UnifiedIUR.Fixtures do
            [],
            id: "component-command-palette",
            open?: false
+         )},
+        {:content,
+         Components.doc_right_rail(
+           doc_id: "fixture-doc-1",
+           on_tab_change: "tab_changed",
+           active_tab: :sources,
+           id: "component-doc-right-rail"
          )}
       ],
       id: "component-safety-fixture"

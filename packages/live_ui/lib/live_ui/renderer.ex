@@ -33,6 +33,7 @@ defmodule LiveUi.Renderer do
        :command_palette,
        :content,
        :context_menu,
+       :doc_right_rail,
        :date_input,
        :dialog,
        :disclosure,
@@ -334,6 +335,37 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:doc_right_rail` is a member of `@layer_callout_kinds` (and therefore
+  # of `@component_kinds`). Keep this dedicated clause BEFORE the generic
+  # `@component_kinds` fallback below, following the same ordering discipline as
+  # `:command_palette`, `:top_strip`, `:mode_nav`, `:sidebar_shell`, etc.
+  def render(%{element: %Element{kind: :doc_right_rail}} = assigns) do
+    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+
+    assigns =
+      assign(assigns, :interaction_attrs, interaction_attrs)
+      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+      |> assign(:rail, get_in(assigns.element.attributes, [:rail]) || %{})
+
+    ~H"""
+    <LiveUi.Widgets.DocRightRail.component
+      id={element_id(@element, "doc-right-rail")}
+      doc_id={@rail[:doc_id] || ""}
+      active_tab={@rail[:active_tab] || :sources}
+      tabs={@rail[:tabs] || []}
+      collapsed?={@rail[:collapsed?] || false}
+      width_variant={@rail[:width_variant] || :standard}
+      position={@rail[:position] || :fixed_right}
+      on_tab_change={@rail[:on_tab_change] || ""}
+      event_target={@event_target}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+    />
+    """
+  end
+
   # NOTE: `:presence_dot` is a member of `@content_identity_kinds` (and therefore
   # of `@component_kinds`), so the generic fallback below would shadow any later
   # `:presence_dot` clause. Keep this specific clause BEFORE the generic
@@ -561,6 +593,7 @@ defmodule LiveUi.Renderer do
     </LiveUi.Widgets.RightRail.component>
     """
   end
+
 
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))

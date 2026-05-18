@@ -219,6 +219,13 @@ defmodule UnifiedUi.WidgetComponents do
       summary:
         "Keyboard-driven command palette overlay with open state, filterable items, and children.",
       aliases: []
+    },
+    %{
+      kind: :doc_right_rail,
+      family: :layer_shell_and_callout,
+      summary:
+        "Persistent right-side companion panel for Doc mode: three-tab strip (Agents / Sources / History) with slotted body content per tab.",
+      aliases: []
     }
   ]
 

@@ -1044,6 +1044,15 @@ defmodule UnifiedUi.Compiler.Pipeline do
     end)
   end
 
+  defp lower_rail_children(node, context, visited) do
+    panel_slots = rail_panel_slots(node.panels)
+
+    Enum.map(node.children, fn child ->
+      slot = if MapSet.member?(panel_slots, child.id), do: child.id, else: :default
+      Element.Child.new(slot, lower_node(child, context, visited))
+    end)
+  end
+
   defp lower_viewport(node, context, visited, attachments) do
     UnifiedIUR.Viewport.region(
       lower_referenced_node(node.content_ref, context, visited, :viewport),
@@ -1114,7 +1123,7 @@ defmodule UnifiedUi.Compiler.Pipeline do
         :accessibility_label,
         :accessibility_description
       ])
-      |> Map.put(:children, lower_children(node, context, visited))
+      |> Map.put(:children, lower_rail_children(node, context, visited))
 
     Widgets.Components.right_rail(opts)
   end
@@ -1940,6 +1949,17 @@ defmodule UnifiedUi.Compiler.Pipeline do
 
   defp normalize_list(nil), do: []
   defp normalize_list(list) when is_list(list), do: Enum.map(list, &normalize_map/1)
+
+  defp rail_panel_slots(panels) do
+    panels
+    |> normalize_list()
+    |> Enum.map(&map_value(&1, :content_slot))
+    |> Enum.reject(&is_nil/1)
+    |> MapSet.new()
+  end
+
+  defp map_value(map, key) when is_map(map), do: Map.get(map, key, Map.get(map, to_string(key)))
+  defp map_value(_map, _key), do: nil
 
   defp element_type(:layout), do: :layout
   defp element_type(:forms), do: :composite

@@ -3,6 +3,7 @@ defmodule UnifiedUi.RightRailCompilerTest do
 
   alias UnifiedUi.Dsl.Node
   alias UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents
+  alias UnifiedUi.Compiler
 
   defmodule RightRailScreen do
     use UnifiedUi.Dsl
@@ -73,5 +74,16 @@ defmodule UnifiedUi.RightRailCompilerTest do
              })
 
     assert message =~ "without host-specific event or route fields"
+  end
+
+  test "compiled right_rail uses semantic interactions without renderer event fields" do
+    rail =
+      RightRailScreen
+      |> Compiler.iur!()
+      |> UnifiedIUR.Tree.find_by_id(:inspector_rail)
+
+    assert Enum.map(rail.attributes.interactions, & &1.family) == [:selection, :change]
+    refute inspect(rail) =~ "phx-click"
+    refute inspect(rail) =~ ~s("select_panel")
   end
 end

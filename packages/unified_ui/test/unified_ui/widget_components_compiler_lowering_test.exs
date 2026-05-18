@@ -246,7 +246,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              width: :wide
            }
 
-    assert [%{slot: :default, element: %{kind: :text, id: :sources_body}}] = rail.children
+    assert [%{slot: :sources_body, element: %{kind: :text, id: :sources_body}}] = rail.children
 
     assert code.attributes.code == %{
              language: :elixir,

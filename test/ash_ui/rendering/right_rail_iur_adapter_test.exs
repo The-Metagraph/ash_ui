@@ -23,7 +23,11 @@ defmodule AshUI.Rendering.RightRailIURAdapterTest do
           accessibility_label: "Workspace rail"
         },
         children: [
-          IUR.new(:text, id: "summary-body", props: %{text: "Summary body"})
+          IUR.new(:text,
+            id: "summary-body",
+            props: %{text: "Summary body"},
+            metadata: %{composition: %{slot: :summary_body}}
+          )
         ]
       )
 
@@ -52,7 +56,7 @@ defmodule AshUI.Rendering.RightRailIURAdapterTest do
            }
 
     assert canonical.attributes.accessibility == %{label: "Workspace rail"}
-    assert [%{slot: :default, element: %{kind: :text}}] = canonical.children
+    assert [%{slot: :summary_body, element: %{kind: :text}}] = canonical.children
     assert :ok = UnifiedIUR.Validate.element(canonical)
   end
 

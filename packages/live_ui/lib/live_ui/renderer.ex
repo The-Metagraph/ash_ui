@@ -471,6 +471,49 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:list_repeat` is a member of `@composition_behavior_kinds` (and therefore
+  # of `@component_kinds`), so the generic fallback below would shadow any later
+  # `:list_repeat` clause. Keep this specific clause BEFORE the generic
+  # `@component_kinds` fallback with the other native component-family clauses.
+  #
+  # Hydration: the IUR hydration pass runs before rendering and produces
+  # pre-hydrated child Element.t() children. The renderer extracts those children
+  # and passes them to the Stage-4 component as the `items` list.
+  def render(%{element: %Element{kind: :list_repeat}} = assigns) do
+    repeat_binding =
+      assigns.element
+      |> get_in([Access.key(:attributes), :repeat, :binding_id])
+      |> case do
+        nil -> nil
+        value -> to_string(value)
+      end
+
+    hydrated_children = child_elements(assigns.element, :default)
+
+    assigns =
+      assigns
+      |> assign(:repeat_binding, repeat_binding)
+      |> assign(:items, hydrated_children)
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.ListRepeat.component
+      id={element_id(@element, "list-repeat")}
+      items={@items}
+      repeat_binding={@repeat_binding}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    >
+      <:row :let={child}>
+        <.render element={child} event_target={@event_target} />
+      </:row>
+    </LiveUi.Widgets.ListRepeat.component>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 

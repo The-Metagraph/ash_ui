@@ -514,6 +514,54 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:right_rail` is a canonical component kind, so keep this native
+  # renderer clause before the generic `@component_kinds` fallback.
+  def render(%{element: %Element{kind: :right_rail}} = assigns) do
+    rail = rail_attributes(assigns.element)
+    panels = right_rail_panels(rail)
+
+    assigns =
+      assigns
+      |> assign(:rail, rail)
+      |> assign(:panels, panels)
+      |> assign(:active_panel, right_rail_active_panel(rail, panels))
+      |> assign(
+        :panel_attrs,
+        right_rail_panel_attrs(assigns.element, Map.get(assigns, :event_target), panels)
+      )
+      |> assign(
+        :collapse_attrs,
+        right_rail_collapse_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.RightRail.component
+      id={element_id(@element, "right-rail")}
+      side={map_value(@rail, :side, :right)}
+      panels={@panels}
+      active_panel={@active_panel}
+      collapsed?={boolean_default(map_value(@rail, :collapsed?), false)}
+      collapsible?={boolean_default(map_value(@rail, :collapsible?), true)}
+      density={map_value(@rail, :density)}
+      width={map_value(@rail, :width)}
+      panel_attrs={@panel_attrs}
+      collapse_attrs={@collapse_attrs}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    >
+      <:panel :for={panel <- @panels} id={rail_panel_id(panel)}>
+        <%= for child <- rail_panel_children(@element, panel) do %>
+          <.render element={child} event_target={@event_target} />
+        <% end %>
+      </:panel>
+    </LiveUi.Widgets.RightRail.component>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1726,6 +1774,117 @@ defmodule LiveUi.Renderer do
 
   defp metadata_description(%Element{metadata: %{description: description}}), do: description
   defp metadata_description(_element), do: nil
+
+  defp rail_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:rail, Map.get(element.attributes, "rail", %{}))
+    |> case do
+      rail when is_map(rail) -> rail
+      rail when is_list(rail) -> Map.new(rail)
+      _other -> %{}
+    end
+  end
+
+  defp right_rail_panels(rail) do
+    rail
+    |> map_value(:panels, [])
+    |> List.wrap()
+    |> Enum.map(&normalize_panel/1)
+  end
+
+  defp right_rail_active_panel(rail, panels) do
+    map_value(rail, :active_panel) || panels |> List.first() |> rail_panel_id()
+  end
+
+  defp right_rail_panel_attrs(%Element{} = element, event_target, panels) do
+    Map.new(panels, fn panel ->
+      {rail_panel_key(panel), right_rail_panel_interaction_attrs(element, event_target, panel)}
+    end)
+  end
+
+  defp right_rail_panel_interaction_attrs(%Element{} = element, event_target, panel) do
+    panel_id = rail_panel_id(panel)
+
+    if rail_panel_disabled?(panel) do
+      %{}
+    else
+      case {primary_interaction(element, :selection), event_target, panel_id} do
+        {%Interaction{} = interaction, target, id} when not is_nil(target) and not is_nil(id) ->
+          %{
+            :"phx-click" => "canonical_interaction",
+            :"phx-target" => target,
+            :"phx-value-interaction" => encode_interaction(interaction),
+            :"phx-value-element_id" => element_id(element, "right-rail"),
+            :"phx-value-widget" => "right_rail",
+            :"phx-value-panel_id" => to_string(id),
+            :"phx-value-selected_value" => to_string(id)
+          }
+
+        _ ->
+          %{}
+      end
+    end
+  end
+
+  defp right_rail_collapse_attrs(%Element{} = element, event_target) do
+    case {primary_interaction(element, :change), event_target} do
+      {%Interaction{} = interaction, target} when not is_nil(target) ->
+        %{
+          :"phx-click" => "canonical_change_interaction",
+          :"phx-target" => target,
+          :"phx-value-change-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "right-rail"),
+          :"phx-value-widget" => "right_rail"
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp rail_panel_children(%Element{} = element, panel) do
+    slot = rail_panel_slot(panel)
+
+    element.children
+    |> Enum.filter(&(to_string(&1.slot) == to_string(slot)))
+    |> Enum.map(& &1.element)
+    |> Enum.reject(&is_nil/1)
+  end
+
+  defp rail_panel_slot(panel), do: map_value(panel, :content_slot, rail_panel_id(panel))
+  defp rail_panel_id(nil), do: nil
+  defp rail_panel_id(panel), do: map_value(panel, :id)
+
+  defp rail_panel_disabled?(panel) do
+    map_value(panel, :disabled?) || map_value(panel, :disabled) || false
+  end
+
+  defp rail_panel_key(panel) do
+    panel
+    |> rail_panel_id()
+    |> normalize_key()
+  end
+
+  defp normalize_panel(panel) when is_map(panel), do: Map.new(panel)
+  defp normalize_panel(panel) when is_list(panel), do: Map.new(panel)
+  defp normalize_panel(panel), do: %{id: panel, label: panel}
+
+  defp map_value(map, key, default \\ nil)
+  defp map_value(nil, _key, default), do: default
+
+  defp map_value(map, key, default) when is_map(map),
+    do: Map.get(map, key, Map.get(map, to_string(key), default))
+
+  defp map_value(list, key, default) when is_list(list), do: Keyword.get(list, key, default)
+  defp map_value(_other, _key, default), do: default
+
+  defp normalize_key(nil), do: "panel"
+
+  defp normalize_key(value) do
+    value
+    |> to_string()
+    |> String.replace(~r/[^a-zA-Z0-9_-]+/, "-")
+  end
 
   defp context_menu_items(%Element{} = element, event_target) do
     element

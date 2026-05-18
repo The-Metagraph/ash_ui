@@ -73,6 +73,7 @@ defmodule LiveUi.Renderer do
        :stream_widget,
        :supervision_tree_viewer,
        :table,
+       :thread_card,
        :tabs,
        :text,
        :text_input,
@@ -579,6 +580,41 @@ defmodule LiveUi.Renderer do
         <.render element={child} event_target={@event_target} />
       </:actions>
     </LiveUi.Widgets.ArtifactRow.component>
+    """
+  end
+
+  # NOTE: `:thread_card` is a member of `@row_artifact_kinds` and therefore of
+  # `@component_kinds`; keep this native clause before the generic component
+  # fallback so the canonical artifact renders through the dedicated boundary.
+  def render(%{element: %Element{kind: :thread_card}} = assigns) do
+    thread = get_in(assigns.element.attributes, [:thread]) || %{}
+
+    assigns =
+      assigns
+      |> assign(:thread, thread)
+      |> assign(
+        :open_attrs,
+        interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.ThreadCard.component
+      id={element_id(@element, "thread-card")}
+      thread_id={string_value(map_value(@thread, :thread_id), "")}
+      title={string_value(map_value(@thread, :title), "")}
+      reply_count={integer_value(map_value(@thread, :reply_count), 0)}
+      seed_quote={string_value(map_value(@thread, :seed_quote), "")}
+      participants={get_in(@element.attributes, [:participants]) || []}
+      progress_pct={map_value(@thread, :progress_pct)}
+      last_activity_at={map_value(@thread, :last_activity_at)}
+      open_attrs={@open_attrs}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
     """
   end
 
@@ -2667,6 +2703,7 @@ defmodule LiveUi.Renderer do
 
   defp primary_action_interaction(%Element{} = element) do
     primary_interaction(element, :click) ||
+      primary_interaction(element, :open) ||
       primary_interaction(element, :navigation) ||
       primary_interaction(element, :command)
   end

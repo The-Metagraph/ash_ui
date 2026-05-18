@@ -50,6 +50,8 @@ Required behavior:
 
 - Supported canonical kinds match `UnifiedUi.WidgetComponents.kinds/0`.
 - Supported aliases match `UnifiedUi.WidgetComponents.aliases/0`.
+- `thread_card` is a first-class `row_and_artifact` component, not a
+  content-identity component or baseline navigation primitive.
 - Drift is caught by package-boundary tests before release.
 
 ### ash_ui.canonical_widget_components.authoring_admission

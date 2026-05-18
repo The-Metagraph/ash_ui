@@ -349,6 +349,13 @@ defmodule AshUI.Rendering.IURAdapter do
     )
   end
 
+  defp base_attributes(:thread_card, props) do
+    props
+    |> thread_card_opts()
+    |> IURComponents.thread_card()
+    |> Map.fetch!(:attributes)
+  end
+
   defp base_attributes(:pipeline_stepper_horizontal = kind, props) do
     component_attributes(
       kind,
@@ -1019,6 +1026,32 @@ defmodule AshUI.Rendering.IURAdapter do
     |> maybe_put(:active?, first_present(props, [:active?, :active]))
     |> maybe_put(:link_target, first_present(props, [:link_target, :href, :target]))
     |> maybe_put(:action_intent, first_present(props, [:action_intent, :intent]))
+  end
+
+  defp thread_card_opts(props) do
+    thread = props |> fetch(:thread, %{}) |> normalize_map()
+
+    %{
+      id: first_present(props, [:_element_id, :id]),
+      thread_id:
+        first_present(thread, [:thread_id]) || first_present(props, [:thread_id, :row_identity]),
+      title: first_present(thread, [:title]) || first_present(props, [:title, :label, :name]),
+      reply_count:
+        first_present(thread, [:reply_count]) || first_present(props, [:reply_count, :replies]) ||
+          0,
+      seed_quote:
+        first_present(thread, [:seed_quote]) ||
+          first_present(props, [:seed_quote, :quote, :excerpt]),
+      participants: fetch(props, :participants, []),
+      progress_pct:
+        first_present(thread, [:progress_pct]) || first_present(props, [:progress_pct]),
+      last_activity_at:
+        first_present(thread, [:last_activity_at]) ||
+          first_present(props, [:last_activity_at, :updated_at]),
+      open_intent: first_present(props, [:open_intent, :intent]) || :open_thread,
+      open_interaction: fetch(props, :open_interaction)
+    }
+    |> compact_map()
   end
 
   defp workflow_progress_status_card_opts(props) do

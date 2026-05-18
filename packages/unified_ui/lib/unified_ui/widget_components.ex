@@ -100,6 +100,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :thread_card,
+      family: :row_and_artifact,
+      summary:
+        "Conversation thread preview artifact with participants, seed quote, progress, and canonical open interaction.",
+      aliases: []
+    },
+    %{
       kind: :sticky_frosted_header,
       family: :layer_shell_and_callout,
       summary: "Sticky shell header with leading, title, and trailing child positions.",

@@ -9,7 +9,8 @@ defmodule LiveUi.Widgets.Data do
     LiveUi.Widgets.TreeView,
     LiveUi.Widgets.MarkdownViewer,
     LiveUi.Widgets.LogViewer,
-    LiveUi.Widgets.ArtifactRow
+    LiveUi.Widgets.ArtifactRow,
+    LiveUi.Widgets.ThreadCard
   ]
 
   @spec modules() :: [module()]

@@ -1207,6 +1207,40 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "thread_card adapter dispatch" do
+    test "generates dedicated thread_card fallback markup" do
+      iur = %{
+        "type" => "thread_card",
+        "id" => "thread-card-adapter-test",
+        "props" => %{
+          "thread" => %{
+            "thread_id" => "thread:api",
+            "title" => "API design discussion",
+            "reply_count" => 5,
+            "seed_quote" => "Should the runtime own this transition?",
+            "progress_pct" => 0.65
+          },
+          "participants" => [
+            %{"actor_name" => "Pascal", "avatar" => %{"initials" => "PC"}}
+          ]
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-thread-card"
+      assert heex =~ ~s(data-thread-id="thread:api")
+      assert heex =~ "API design discussion"
+      assert heex =~ "Should the runtime own this transition?"
+      assert heex =~ "PC"
+      assert heex =~ ~s(role="progressbar")
+      assert heex =~ ~s(aria-valuenow="65")
+      refute heex =~ "data-live-ui-intent"
+    end
+  end
+
   describe "workflow_progress_status_card adapter dispatch" do
     test "generates dedicated workflow_progress_status_card markup" do
       iur = %{

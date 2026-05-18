@@ -25,6 +25,13 @@ defmodule AshUI.Phase31CanonicalConversionTest do
      %{row_identity: "row-1", column_template: [%{id: :title, label: "Title"}]}, :row},
     {:artifact_row, :row_and_artifact, %{title: "Artifact", meta: %{status: :accepted}},
      :artifact},
+    {:thread_card, :row_and_artifact,
+     %{
+       thread_id: "thread:api",
+       title: "API discussion",
+       reply_count: 2,
+       seed_quote: "Should the runtime own this transition?"
+     }, :thread},
     {:pipeline_stepper_horizontal, :workflow_progress_and_status,
      %{steps: [%{id: :draft, label: "Draft"}], active_index: 0}, :workflow},
     {:segmented_progress_bar, :workflow_progress_and_status,

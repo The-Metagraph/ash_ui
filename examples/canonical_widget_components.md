@@ -11,7 +11,7 @@ AshUI resource authority.
 |---|---|---|
 | Content, identity, and disclosure | `inline_rich_text_heading`, `avatar`, `disclosure` | Use semantic text segments, identity props, and open state as props on element resources. |
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer` | Keep form and composer actions on the owning element through `ui_actions`. |
-| Row and artifact | `list_item_multi_column`, `artifact_row` | Use row identity and column templates as props; avoid custom row shells for cataloged artifact rows. |
+| Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card` | Use row identity, artifact metadata, or thread identity as props; avoid custom row shells for cataloged artifact rows. |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `workflow_progress_status_card` | Keep progress and workflow state in props that canonical validation can check. |
 | Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `right_rail` | Preserve accessible names, open state, message text, and rail panel descriptors in canonical props. |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | Provide explicit segment or token state instead of pre-rendered HTML. |

@@ -31,6 +31,7 @@ Ash UI MUST adopt these canonical widget-component kinds:
 | `segmented_button_group` | form control and composer | - |
 | `list_item_multi_column` | row and artifact | - |
 | `artifact_row` | row and artifact | - |
+| `thread_card` | row and artifact | - |
 | `sticky_frosted_header` | layer shell and callout | - |
 | `pipeline_stepper_horizontal` | workflow progress and status | - |
 | `segmented_progress_bar` | workflow progress and status | - |

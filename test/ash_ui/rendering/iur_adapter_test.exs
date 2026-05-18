@@ -260,7 +260,64 @@ defmodule AshUI.Rendering.IURAdapterTest do
     end
   end
 
-  describe "workflow_progress_status_card IUR routing" do
+  describe "canonical artifact and workflow IUR routing" do
+    test "routes thread_card kind through row_and_artifact family with canonical open interaction" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "thread-card-screen",
+          name: "thread_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:thread_card,
+              id: "thread-card-1",
+              props: %{
+                "thread_id" => "thread:api",
+                "title" => "API design discussion",
+                "reply_count" => 5,
+                "seed_quote" => "Should the runtime own this transition?",
+                "participants" => [
+                  %{"actor_name" => "Pascal", "avatar" => %{"initials" => "PC"}}
+                ],
+                "progress_pct" => 0.5
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :thread_card
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :row_and_artifact
+      assert child.element.attributes.thread.thread_id == "thread:api"
+      assert child.element.attributes.thread.title == "API design discussion"
+
+      assert [%UnifiedIUR.Interaction{family: :open, intent: :open_thread}] =
+               child.element.attributes.interactions
+
+      assert :ok = UnifiedIUR.Validate.element(child.element)
+    end
+
+    test "returns structured conversion errors for invalid thread cards" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "thread-card-screen-invalid",
+          name: "thread_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:thread_card,
+              id: "thread-card-invalid",
+              props: %{"title" => "Missing thread id", "seed_quote" => "Quote"}
+            )
+          ]
+        )
+
+      assert {:error, {:conversion_failed, %ArgumentError{} = error}} =
+               IURAdapter.to_canonical(ash_iur)
+
+      assert error.message =~ "thread_card requires a non-empty :thread_id"
+    end
+
     test "routes workflow_progress_status_card kind through workflow_progress_and_status family" do
       ash_iur =
         IUR.new(:screen,

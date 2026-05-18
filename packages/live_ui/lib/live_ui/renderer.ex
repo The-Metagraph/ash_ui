@@ -271,6 +271,48 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:presence_dot` is a member of `@content_identity_kinds` (and therefore
+  # of `@component_kinds`), so the generic fallback below would shadow any later
+  # `:presence_dot` clause. Keep this specific clause BEFORE the generic
+  # `@component_kinds` fallback — mirrors the placement pattern established by
+  # `:command_palette` above (line 248).
+  def render(%{element: %Element{kind: :presence_dot}} = assigns) do
+    state = get_in(assigns.element.attributes, [:presence, :state]) || :offline
+
+    aria_label_override = get_in(assigns.element.attributes, [:presence, :accessibility_label])
+
+    {aria_hidden, aria_label} =
+      cond do
+        aria_label_override == false ->
+          {"true", nil}
+
+        is_binary(aria_label_override) and aria_label_override != "" ->
+          {nil, aria_label_override}
+
+        true ->
+          {nil, "Presence: #{state}"}
+      end
+
+    assigns =
+      assigns
+      |> assign(:presence_state, state)
+      |> assign(:aria_hidden, aria_hidden)
+      |> assign(:aria_label, aria_label)
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <span
+      id={element_id(@element, "presence-dot")}
+      class={["live-ui-presence-dot", style_class(@element)]}
+      data-live-ui-widget="presence_dot"
+      data-presence-state={@presence_state}
+      aria-hidden={@aria_hidden}
+      aria-label={@aria_label}
+      {@style_attrs}
+    ></span>
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 

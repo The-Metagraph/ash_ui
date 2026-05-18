@@ -212,6 +212,20 @@ defmodule UnifiedUi.WidgetComponents do
       summary:
         "Keyboard-driven command palette overlay with open state, filterable items, and children.",
       aliases: []
+    },
+    %{
+      kind: :needs_you_section,
+      family: :workflow_progress_and_status,
+      summary:
+        "Attention band listing operator-facing blockers; renders a list of blocker_row children with overflow handling.",
+      aliases: []
+    },
+    %{
+      kind: :blocker_row,
+      family: :row_and_artifact,
+      summary:
+        "Single actionable row in a needs_you_section: actor avatar + ask text + scope label + jump action.",
+      aliases: []
     }
   ]
 

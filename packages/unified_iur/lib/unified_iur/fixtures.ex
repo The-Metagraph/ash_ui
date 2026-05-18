@@ -1100,6 +1100,30 @@ defmodule UnifiedIUR.Fixtures do
            [],
            id: "component-command-palette",
            open?: false
+         )},
+        {:content,
+         Components.needs_you_section(
+           [
+             Components.blocker_row(
+               id: "fixture-blocker-row-1",
+               row_id: "fixture-br-1",
+               ask_text: "Review the canonical spec",
+               scope_label: "doc: master-plan.md",
+               severity: :info,
+               actor: %{initials: "PC", actor_name: "Pascal"}
+             ),
+             Components.blocker_row(
+               id: "fixture-blocker-row-2",
+               row_id: "fixture-br-2",
+               ask_text: "Approve the ADR",
+               scope_label: "repo: ariston-ui",
+               severity: :warn,
+               actor: %{initials: "MJ", actor_name: "Matt"}
+             )
+           ],
+           id: "component-needs-you-section",
+           title: "Needs you",
+           max_visible: 5
          )}
       ],
       id: "component-safety-fixture"

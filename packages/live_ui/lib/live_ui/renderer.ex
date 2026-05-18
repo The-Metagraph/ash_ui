@@ -239,6 +239,69 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:needs_you_section` and `:blocker_row` are members of `@component_kinds`
+  # (via `@workflow_kinds` and `@row_artifact_kinds`). Place these dedicated clauses
+  # BEFORE the generic `@component_kinds` fallback to avoid shadowing.
+  def render(%{element: %Element{kind: :needs_you_section}} = assigns) do
+    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+
+    assigns =
+      assign(assigns, :interaction_attrs, interaction_attrs)
+      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+
+    ~H"""
+    <LiveUi.Widgets.NeedsYouSection.component
+      id={element_id(@element, "needs-you-section")}
+      title={string_value(get_in(@element.attributes, [:section, :title]), "Needs you")}
+      empty_state_text={
+        string_value(
+          get_in(@element.attributes, [:section, :empty_state_text]),
+          "You're all caught up."
+        )
+      }
+      max_visible={integer_value(get_in(@element.attributes, [:section, :max_visible]), 5)}
+      items={child_elements(@element, :default)}
+      event_target={@event_target}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
+  def render(%{element: %Element{kind: :blocker_row}} = assigns) do
+    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+
+    assigns =
+      assign(assigns, :interaction_attrs, interaction_attrs)
+      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+
+    # Use element id, falling back to a prefixed row_id so multiple rows in the
+    # same section don't collide on the LiveComponent id requirement.
+    row_id_attr = string_value(get_in(assigns.element.attributes, [:blocker, :row_id]), "row")
+    component_id = element_id(assigns.element, "blocker-row-#{row_id_attr}")
+    assigns = assign(assigns, :component_id, component_id)
+
+    ~H"""
+    <LiveUi.Widgets.BlockerRow.component
+      id={@component_id}
+      row_id={string_value(get_in(@element.attributes, [:blocker, :row_id]), "")}
+      ask_text={string_value(get_in(@element.attributes, [:blocker, :ask_text]), "")}
+      scope_label={string_value(get_in(@element.attributes, [:blocker, :scope_label]), "")}
+      severity={string_value(get_in(@element.attributes, [:blocker, :severity]), "info")}
+      actor={get_in(@element.attributes, [:actor]) || %{}}
+      interaction_attrs={@interaction_attrs}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   # NOTE: `:command_palette` is a member of `@layer_callout_kinds` (and therefore
   # of `@component_kinds`), so the generic fallback below would shadow any later
   # `:command_palette` clause. Keep this specific clause BEFORE the generic

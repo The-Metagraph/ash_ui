@@ -4,7 +4,7 @@ defmodule LiveUi.RendererTest do
   import Phoenix.LiveViewTest
 
   alias UnifiedIUR.{Container, Element, Forms, Interaction, Layout}
-  alias UnifiedIUR.Widgets.{Foundational, Input, Navigation}
+  alias UnifiedIUR.Widgets.{Components, Foundational, Input, Navigation}
 
   test "renderer maps foundational canonical widgets and layouts into native components" do
     element =
@@ -32,6 +32,36 @@ defmodule LiveUi.RendererTest do
     assert html =~ "data-live-ui-widget=\"text\""
     assert html =~ "data-live-ui-widget=\"button\""
     assert html =~ "data-live-ui-widget=\"tabs\""
+  end
+
+  test "renderer maps canonical presence dot through the native component boundary" do
+    element =
+      Components.presence_dot(:do_not_disturb,
+        id: "presence",
+        accessibility_label: "Pascal is in do not disturb"
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget-boundary="presence_dot")
+    assert html =~ ~s(data-live-ui-widget="presence_dot")
+    assert html =~ ~s(data-presence-state="do_not_disturb")
+    assert html =~ ~s(aria-label="Pascal is in do not disturb")
+  end
+
+  test "renderer preserves canonical decorative presence dot semantics" do
+    element =
+      Components.presence_dot(:active,
+        id: "decorative-presence",
+        decorative?: true
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget-boundary="presence_dot")
+    assert html =~ ~s(data-presence-state="active")
+    assert html =~ ~s(aria-hidden="true")
+    refute html =~ "aria-label="
   end
 
   test "renderer maps canonical form constructs through native form and input surfaces" do

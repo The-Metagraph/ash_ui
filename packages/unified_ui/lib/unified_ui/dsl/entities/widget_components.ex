@@ -12,6 +12,7 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   @layer_family :layer_shell_and_callout
   @redline_code_family :redline_and_code
   @composition_behavior_family :composition_behavior
+  @presence_states [:active, :away, :offline, :focus, :do_not_disturb]
 
   @spec entities() :: [Spark.Dsl.Entity.t()]
   def entities do
@@ -54,8 +55,9 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
       leaf(
         :presence_dot,
         @content_identity_family,
-        state: [type: :atom, required: false, default: :quiet],
+        state: [type: {:in, @presence_states}, required: false, default: :offline],
         size: [type: {:in, [:small, :medium, :large]}, required: false, default: :medium],
+        decorative?: [type: :boolean, required: false],
         summary: [type: :string, required: false]
       )
     ]

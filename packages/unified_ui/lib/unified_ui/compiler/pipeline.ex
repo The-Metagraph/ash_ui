@@ -865,8 +865,8 @@ defmodule UnifiedUi.Compiler.Pipeline do
 
         :presence_dot ->
           Widgets.Components.presence_dot(
-            node.state || :quiet,
-            common_opts(node, attachments, [:size, :accessibility_label])
+            node.state || :offline,
+            common_opts(node, attachments, [:size, :accessibility_label, :decorative?])
           )
 
         :segmented_button_group ->

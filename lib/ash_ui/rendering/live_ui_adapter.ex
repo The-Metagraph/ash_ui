@@ -454,11 +454,24 @@ defmodule AshUI.Rendering.LiveUIAdapter do
 
   defp generate_heex(%{"type" => "presence_dot"} = iur, _opts) do
     props = iur["props"] || %{}
-    state = escaped_text_prop(props, ["state", "status"], "unknown")
-    label = escaped_text_prop(props, ["label"], state)
+    state = escaped_text_prop(props, ["state", "status"], "offline")
+
+    label =
+      escaped_text_prop(
+        props,
+        ["label", "accessibility_label", "aria_label"],
+        "Presence: #{state}"
+      )
+
+    aria_attrs =
+      if presence_decorative?(props) do
+        ~s(aria-hidden="true")
+      else
+        ~s(role="img" aria-label="#{label}")
+      end
 
     """
-    <span class="#{css_classes(["ash-presence-dot", "ash-presence-dot-#{state}", prop_class(iur)])}" role="img" aria-label="#{label}" data-state="#{state}"#{style_attr(prop_style(iur))}></span>
+    <span class="#{css_classes(["ash-presence-dot", "ash-presence-dot-#{state}", prop_class(iur)])}" #{aria_attrs} data-state="#{state}"#{style_attr(prop_style(iur))}></span>
     """
   end
 
@@ -2420,6 +2433,13 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       value when value in [true, "true", "open", "visible", 1, "1", "yes"] -> true
       _ -> false
     end
+  end
+
+  defp presence_decorative?(props) do
+    truthy_prop(props, "decorative?", false) ||
+      truthy_prop(props, "decorative", false) ||
+      prop(props, "aria_label") == false ||
+      prop(props, "label") == false
   end
 
   defp text_prop(props, keys, default \\ nil)

@@ -297,6 +297,45 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:presence_dot` is a member of `@content_identity_kinds` (and therefore
+  # of `@component_kinds`), so the generic fallback below would shadow any later
+  # `:presence_dot` clause. Keep this specific clause BEFORE the generic
+  # `@component_kinds` fallback — mirrors the placement pattern established by
+  # `:command_palette` above (line 248).
+  def render(%{element: %Element{kind: :presence_dot}} = assigns) do
+    state = get_in(assigns.element.attributes, [:presence, :state]) || :offline
+
+    aria_label =
+      get_in(assigns.element.attributes, [:accessibility, :label]) ||
+        get_in(assigns.element.attributes, [:presence, :accessibility_label])
+
+    decorative? =
+      get_in(assigns.element.attributes, [:accessibility, :decorative?]) ||
+        get_in(assigns.element.attributes, [:presence, :decorative?]) ||
+        false
+
+    assigns =
+      assigns
+      |> assign(:presence_state, state)
+      |> assign(:aria_label, aria_label)
+      |> assign(:presence_decorative, decorative?)
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.PresenceDot.component
+      id={element_id(@element, "presence-dot")}
+      aria_label={@aria_label}
+      presence_state={@presence_state}
+      decorative?={@presence_decorative}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 

@@ -521,13 +521,17 @@ defmodule UnifiedIUR.Widgets.Components do
       :top_strip,
       :layer_shell_and_callout,
       %{
-        shell: %{
-          position: :top,
-          brand: option(opts, :brand, ""),
-          context: option(opts, :context, ""),
-          theme: option(opts, :theme, :light),
-          pane_open?: option(opts, :pane_open?, false)
-        }
+        shell:
+          %{
+            position: :top,
+            brand: option(opts, :brand, ""),
+            context: option(opts, :context, ""),
+            theme: option(opts, :theme, :light),
+            pane_open?: option(opts, :pane_open?, false)
+          }
+          |> maybe_put(:search_event, option(opts, :search_event))
+          |> maybe_put(:settings_event, option(opts, :settings_event))
+          |> maybe_put(:user_avatar_url, option(opts, :user_avatar_url))
       },
       Map.put(opts, :children, children)
     )

@@ -171,7 +171,7 @@ defmodule UnifiedUi.WidgetComponents do
       kind: :top_strip,
       family: :layer_shell_and_callout,
       summary:
-        "Top shell strip with brand, context, theme controls, and mode navigation children.",
+        "Top shell strip with brand, context, theme controls, mode navigation children, and optional trailing-region affordances (search_event, settings_event, user_avatar_url).",
       aliases: []
     },
     %{

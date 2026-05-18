@@ -104,6 +104,38 @@ defmodule LiveUi.Renderer do
       <%= for child <- child_elements(@element, :default) do %>
         <.render element={child} event_target={@event_target} />
       <% end %>
+      <div class="live-ui-top-strip-trailing">
+        <%= if get_in(@element.attributes, [:shell, :search_event]) do %>
+          <button
+            type="button"
+            class="live-ui-top-strip-search"
+            aria-label="Open search"
+            phx-click={get_in(@element.attributes, [:shell, :search_event])}
+            phx-target={@event_target}
+          >
+            <span class="live-ui-top-strip-search-icon" aria-hidden="true"></span>
+          </button>
+        <% end %>
+        <%= if get_in(@element.attributes, [:shell, :settings_event]) do %>
+          <button
+            type="button"
+            class="live-ui-top-strip-settings"
+            aria-label="Open settings"
+            phx-click={get_in(@element.attributes, [:shell, :settings_event])}
+            phx-target={@event_target}
+          >
+            <span class="live-ui-top-strip-settings-icon" aria-hidden="true"></span>
+          </button>
+        <% end %>
+        <%= if get_in(@element.attributes, [:shell, :user_avatar_url]) do %>
+          <img
+            class="live-ui-top-strip-avatar"
+            src={get_in(@element.attributes, [:shell, :user_avatar_url])}
+            alt="User profile"
+            aria-label="User profile"
+          />
+        <% end %>
+      </div>
     </header>
     """
   end

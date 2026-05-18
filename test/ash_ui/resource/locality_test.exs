@@ -1,6 +1,27 @@
 defmodule AshUI.Resource.LocalityTest do
   use ExUnit.Case, async: true
 
+  # Asserts the binding-locality validator did NOT raise the
+  # "does not expose collection semantics" ArgumentError for the resource
+  # compiled inside `fun`. Any other exception (e.g. the unrelated
+  # domain-registration RuntimeError from the Ash compile-time pipeline)
+  # is treated as proof the validator passed; absence of any exception is
+  # also a pass.
+  defp assert_validator_accepts_list_binding(fun) do
+    fun.()
+    :ok
+  rescue
+    e in ArgumentError ->
+      if e.message =~ "does not expose collection semantics" do
+        flunk("validator rejected list binding it should accept: #{e.message}")
+      else
+        :ok
+      end
+
+    _other ->
+      :ok
+  end
+
   describe "screen-scoped binding exceptions" do
     test "rejects screen bindings that target element-owned props" do
       assert_raise ArgumentError, ~r/screen-scoped binding .* must target/, fn ->
@@ -118,6 +139,50 @@ defmodule AshUI.Resource.LocalityTest do
         end
         """)
       end
+    end
+
+    test "accepts list bindings on custom:* opaque widget types" do
+      # `custom:*` application-extension primitives are outside the canonical
+      # catalog; the validator can't know their collection semantics and
+      # should trust the authoring intent.
+      #
+      # Same testing strategy as the :artifact_row case above.
+      assert_validator_accepts_list_binding(fn ->
+        Code.compile_string("""
+        defmodule ValidCustomWidgetListBinding do
+          use Ash.Resource,
+            domain: AshUI.Test.ResourceAuthorityDomain,
+            data_layer: Ash.DataLayer.Ets
+
+          use AshUI.Resource.DSL.Element
+
+          ets do
+            private?(true)
+          end
+
+          attributes do
+            uuid_primary_key(:id)
+          end
+
+          actions do
+            defaults([:read])
+          end
+
+          ui_element do
+            type "custom:thread_card"
+            props %{label: "Custom row template"}
+          end
+
+          ui_bindings do
+            binding :thread_rows do
+              source %{resource: "Demo.Post", relationship: "comments", id: "post-1"}
+              target "items"
+              binding_type :list
+            end
+          end
+        end
+        """)
+      end)
     end
   end
 

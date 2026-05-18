@@ -370,7 +370,18 @@ defmodule AshUI.Resources.Validations.Authoring do
             "binding #{inspect(Map.get(binding, :id))} targets #{inspect(target)}, which is reserved for screen-scoped bindings"
     end
 
-    if binding_type == :list and not MapSet.member?(@list_widgets, widget_type) do
+    # `custom:*` widget types are application-extension primitives outside the
+    # canonical catalog; the validator can't know their collection semantics
+    # and shouldn't gate the :list binding allow-list on them. Trust the
+    # authoring intent for these explicitly-tagged opaque types. nil
+    # widget_type (`ui_element` block missing entirely) does NOT get the
+    # bypass — that should still surface as a downstream missing-element
+    # error rather than be silently accepted here.
+    custom_widget? =
+      is_binary(widget_type) and String.starts_with?(widget_type, "custom:")
+
+    if binding_type == :list and not custom_widget? and
+         not MapSet.member?(@list_widgets, widget_type) do
       raise ArgumentError,
             "binding #{inspect(Map.get(binding, :id))} declares a list binding on #{inspect(widget_type)}, which does not expose collection semantics"
     end

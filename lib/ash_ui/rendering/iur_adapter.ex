@@ -495,6 +495,27 @@ defmodule AshUI.Rendering.IURAdapter do
     )
   end
 
+  defp base_attributes(:doc_right_rail = kind, props) do
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        rail:
+          compact_map(%{
+            doc_id: first_present(props, [:doc_id]),
+            active_tab: normalize_existing_atom(first_present(props, [:active_tab]) || :sources),
+            on_tab_change: first_present(props, [:on_tab_change]),
+            tabs: normalize_maps(fetch(props, :tabs, [])),
+            position: normalize_existing_atom(first_present(props, [:position]) || :fixed_right),
+            collapsed?: first_present(props, [:collapsed?, :collapsed]) || false,
+            width_variant:
+              normalize_existing_atom(first_present(props, [:width_variant]) || :standard)
+          })
+      },
+      props
+    )
+  end
+
   defp base_attributes(:redline_inline = kind, props) do
     component_attributes(
       kind,

@@ -1155,4 +1155,76 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       "metadata" => %{}
     }
   end
+
+  describe "doc_right_rail dispatch" do
+    test "render/2 dispatches doc_right_rail to the dedicated generate_heex clause" do
+      iur = %{
+        "type" => "screen",
+        "id" => "screen-rail",
+        "name" => "rail_screen",
+        "layout" => "column",
+        "children" => [
+          %{
+            "type" => "doc_right_rail",
+            "id" => "doc-rail-1",
+            "props" => %{
+              "doc_id" => "doc-abc",
+              "on_tab_change" => "tab_changed",
+              "active_tab" => "sources",
+              "tabs" => [
+                %{"kind" => "agents", "label" => "Agents"},
+                %{"kind" => "sources", "label" => "Sources"},
+                %{"kind" => "history", "label" => "History"}
+              ]
+            },
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "bindings" => [],
+        "metadata" => %{}
+      }
+
+      assert {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "ash-doc-right-rail")
+      assert String.contains?(heex, ~s(data-doc-id="doc-abc"))
+      assert String.contains?(heex, ~s(data-active-tab="sources"))
+      assert String.contains?(heex, "Agents")
+      assert String.contains?(heex, "Sources")
+      assert String.contains?(heex, "History")
+      assert String.contains?(heex, ~s(role="tablist"))
+      assert String.contains?(heex, ~s(role="tab"))
+    end
+
+    test "render/2 renders tab count badge when count is provided" do
+      iur = %{
+        "type" => "screen",
+        "id" => "screen-rail-count",
+        "name" => "rail_count_screen",
+        "layout" => "column",
+        "children" => [
+          %{
+            "type" => "doc_right_rail",
+            "id" => "doc-rail-count",
+            "props" => %{
+              "doc_id" => "doc-count",
+              "on_tab_change" => "tab_changed",
+              "tabs" => [
+                %{"kind" => "agents", "label" => "Agents", "count" => 5},
+                %{"kind" => "sources", "label" => "Sources"}
+              ]
+            },
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "bindings" => [],
+        "metadata" => %{}
+      }
+
+      assert {:ok, heex} = LiveUIAdapter.render(iur)
+      assert String.contains?(heex, "ash-doc-right-rail__tab-count")
+      assert String.contains?(heex, "5")
+    end
+  end
 end

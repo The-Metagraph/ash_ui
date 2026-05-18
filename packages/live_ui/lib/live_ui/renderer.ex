@@ -594,7 +594,6 @@ defmodule LiveUi.Renderer do
     """
   end
 
-
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 

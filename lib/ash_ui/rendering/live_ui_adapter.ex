@@ -475,6 +475,41 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "doc_right_rail"} = iur, opts) do
+    props = iur["props"] || %{}
+    doc_id = escaped_text_prop(props, ["doc_id"], "")
+    active_tab = text_prop(props, ["active_tab"], "sources")
+    tabs = prop(props, "tabs", [])
+
+    tabs_html =
+      Enum.map_join(List.wrap(tabs), fn tab ->
+        tab = normalize_item(tab)
+        kind = text_prop(tab, ["kind"], "")
+        label = escaped_text_prop(tab, ["label"], kind)
+        count = prop(tab, "count")
+        selected? = kind == active_tab
+
+        count_html =
+          if count,
+            do:
+              ~s(<span class="ash-doc-right-rail__tab-count" aria-label=", #{count} items">#{count}</span>),
+            else: ""
+
+        """
+        <button type="button" role="tab" class="#{css_classes(["ash-doc-right-rail__tab", selected? && "ash-doc-right-rail__tab--active"])}" data-tab="#{html_attr(kind)}" aria-selected="#{selected?}">
+          <span class="ash-doc-right-rail__tab-label">#{label}</span>#{count_html}
+        </button>
+        """
+      end)
+
+    """
+    <aside class="#{css_classes(["ash-doc-right-rail", prop_class(iur)])}" data-doc-id="#{html_attr(doc_id)}" data-active-tab="#{html_attr(active_tab)}" aria-label="Document companion panel"#{style_attr(prop_style(iur))}>
+      <nav class="ash-doc-right-rail__tab-strip" role="tablist" aria-label="Panel tabs">#{tabs_html}</nav>
+      <div class="ash-doc-right-rail__body" role="tabpanel">#{generate_children(iur["children"], opts)}</div>
+    </aside>
+    """
+  end
+
   defp generate_heex(%{"type" => "runtime_form_shell"} = iur, opts) do
     props = iur["props"] || %{}
     fields = prop(props, "fields", [])

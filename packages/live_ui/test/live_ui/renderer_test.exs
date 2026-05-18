@@ -124,6 +124,27 @@ defmodule LiveUi.RendererTest do
     refute html =~ "aria-label="
   end
 
+  test "renderer maps canonical doc_right_rail through the native component boundary" do
+    element =
+      Components.doc_right_rail(
+        doc_id: "doc-renderer-test",
+        on_tab_change: "tab_changed",
+        active_tab: :sources,
+        id: "doc-rail-renderer"
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="doc-right-rail")
+    assert html =~ ~s(data-doc-id="doc-renderer-test")
+    assert html =~ ~s(data-active-tab="sources")
+    assert html =~ "Agents"
+    assert html =~ "Sources"
+    assert html =~ "History"
+    refute html =~ "data-live-ui-unsupported-native-component"
+    refute html =~ ~s(data-live-ui-component-kind="doc_right_rail")
+  end
+
   test "renderer maps canonical form constructs through native form and input surfaces" do
     element =
       Forms.form_builder(

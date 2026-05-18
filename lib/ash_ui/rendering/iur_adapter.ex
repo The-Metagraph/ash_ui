@@ -329,6 +329,19 @@ defmodule AshUI.Rendering.IURAdapter do
           common_row_attrs(props)
           |> maybe_put(:title, first_present(props, [:title, :label, :name]))
           |> maybe_put(:meta, fetch(props, :meta))
+          |> maybe_put(
+            :kind,
+            normalize_artifact_kind(first_present(props, [:artifact_kind, :artifact_type]))
+          )
+          |> maybe_put(
+            :status_badges,
+            normalize_artifact_status_badges(fetch(props, :status_badges))
+          )
+          |> maybe_put(:counts, normalize_artifact_counts(fetch(props, :counts)))
+          |> maybe_put(
+            :timestamp_at,
+            first_present(props, [:timestamp_at, :updated_at, :created_at])
+          )
       },
       props
     )
@@ -933,6 +946,42 @@ defmodule AshUI.Rendering.IURAdapter do
   end
 
   defp normalize_code_tokens(tokens), do: tokens
+
+  defp normalize_artifact_kind(nil), do: :generic
+  defp normalize_artifact_kind(value), do: normalize_existing_atom(value)
+
+  defp normalize_artifact_status_badges(nil), do: nil
+
+  defp normalize_artifact_status_badges(badges) when is_list(badges) do
+    badges
+    |> normalize_maps()
+    |> empty_to_nil()
+  end
+
+  defp normalize_artifact_status_badges(_badges), do: nil
+
+  defp normalize_artifact_counts(nil), do: nil
+
+  defp normalize_artifact_counts(counts) when is_map(counts) do
+    counts
+    |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
+    |> Enum.map(fn {key, value} -> %{key: key, value: value} end)
+    |> empty_to_nil()
+  end
+
+  defp normalize_artifact_counts(counts) when is_list(counts) do
+    counts
+    |> Enum.map(fn
+      {key, value} -> %{key: key, value: value}
+      count -> normalize_map(count)
+    end)
+    |> empty_to_nil()
+  end
+
+  defp normalize_artifact_counts(_counts), do: nil
+
+  defp empty_to_nil([]), do: nil
+  defp empty_to_nil(value), do: value
 
   defp update_existing_atom_value(map, key) when is_map(map) do
     case Map.fetch(map, key) do

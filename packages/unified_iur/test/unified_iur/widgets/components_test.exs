@@ -25,6 +25,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
 
     assert Components.row_artifact_kinds() == [:list_item_multi_column, :artifact_row]
 
+    assert Components.artifact_kinds() == [:pr, :doc, :spec, :file, :grain, :generic]
+
     assert Components.workflow_kinds() == [
              :pipeline_stepper_horizontal,
              :segmented_progress_bar,
@@ -131,7 +133,11 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     artifact =
       Components.artifact_row("ADR", [Foundational.button("Open")],
         row_identity: :adr,
-        meta: %{status: :accepted}
+        meta: %{status: :accepted},
+        artifact_kind: :doc,
+        status_badges: [%{label: "Accepted", tone: :positive}],
+        counts: %{comments: 2, references: 5},
+        timestamp_at: ~U[2026-05-18 10:00:00Z]
       )
 
     assert segmented.attributes.selection == %{
@@ -175,7 +181,11 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     assert artifact.attributes.artifact == %{
              row_identity: :adr,
              title: "ADR",
-             meta: %{status: :accepted}
+             meta: %{status: :accepted},
+             kind: :doc,
+             status_badges: [%{label: "Accepted", tone: :positive}],
+             counts: [%{key: :comments, value: 2}, %{key: :references, value: 5}],
+             timestamp_at: ~U[2026-05-18 10:00:00Z]
            }
   end
 

@@ -9,6 +9,8 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   @heading_segment_types [:text, :emphasis]
   @redline_states [:keep, :insert, :delete, :accepted, :rejected]
+  @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
+  @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
   def verify(dsl) do
@@ -118,7 +120,16 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     end
   end
 
-  def validate_node(%Node{kind: :artifact_row, id: id, row_identity: row_identity, title: title}) do
+  def validate_node(%Node{
+        kind: :artifact_row,
+        id: id,
+        row_identity: row_identity,
+        title: title,
+        artifact_kind: artifact_kind,
+        status_badges: status_badges,
+        counts: counts,
+        timestamp_at: timestamp_at
+      }) do
     cond do
       not is_binary(title) or title == "" ->
         {:error, [:composition, :artifact_row, id],
@@ -127,6 +138,22 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
       not valid_scalar?(row_identity) ->
         {:error, [:composition, :artifact_row, id],
          "artifact_row #{inspect(id)} row_identity must be a non-empty scalar value"}
+
+      not valid_artifact_kind?(artifact_kind) ->
+        {:error, [:composition, :artifact_row, id],
+         "artifact_row #{inspect(id)} artifact_kind must be one of #{inspect(@artifact_kinds)}"}
+
+      not valid_status_badges?(status_badges) ->
+        {:error, [:composition, :artifact_row, id],
+         "artifact_row #{inspect(id)} status_badges must be a list of maps with label and optional supported tone"}
+
+      not valid_artifact_counts?(counts) ->
+        {:error, [:composition, :artifact_row, id],
+         "artifact_row #{inspect(id)} counts must be a map or a list of maps with key and value"}
+
+      not valid_timestamp?(timestamp_at) ->
+        {:error, [:composition, :artifact_row, id],
+         "artifact_row #{inspect(id)} timestamp_at must be a DateTime, NaiveDateTime, or ISO8601 string"}
 
       true ->
         :ok
@@ -341,6 +368,57 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   defp valid_column_template?(_columns), do: false
+
+  defp valid_artifact_kind?(nil), do: true
+  defp valid_artifact_kind?(kind), do: kind in @artifact_kinds
+
+  defp valid_status_badges?(nil), do: true
+  defp valid_status_badges?([]), do: true
+
+  defp valid_status_badges?(badges) when is_list(badges) do
+    Enum.all?(badges, fn
+      badge when is_map(badge) or is_list(badge) ->
+        badge = normalize_map(badge)
+        tone = Map.get(badge, :tone)
+
+        is_binary(Map.get(badge, :label)) and (is_nil(tone) or tone in @artifact_badge_tones)
+
+      _other ->
+        false
+    end)
+  end
+
+  defp valid_status_badges?(_badges), do: false
+
+  defp valid_artifact_counts?(nil), do: true
+  defp valid_artifact_counts?(counts) when is_map(counts), do: true
+
+  defp valid_artifact_counts?(counts) when is_list(counts) do
+    Enum.all?(counts, fn
+      {key, _value} ->
+        valid_scalar?(key)
+
+      count when is_map(count) or is_list(count) ->
+        count = normalize_map(count)
+        valid_scalar?(Map.get(count, :key)) and Map.has_key?(count, :value)
+
+      _other ->
+        false
+    end)
+  end
+
+  defp valid_artifact_counts?(_counts), do: false
+
+  defp valid_timestamp?(nil), do: true
+  defp valid_timestamp?(%DateTime{}), do: true
+  defp valid_timestamp?(%NaiveDateTime{}), do: true
+
+  defp valid_timestamp?(value) when is_binary(value) do
+    match?({:ok, _datetime, _offset}, DateTime.from_iso8601(value)) or
+      match?({:ok, _datetime}, NaiveDateTime.from_iso8601(value))
+  end
+
+  defp valid_timestamp?(_value), do: false
 
   defp valid_labeled_state_items?(items) when is_list(items) and items != [] do
     Enum.all?(items, fn

@@ -34,6 +34,7 @@ defmodule LiveUi.Renderer do
        :context_menu,
        :date_input,
        :dialog,
+       :disclosure,
        :field,
        :field_group,
        :file_input,
@@ -262,6 +263,41 @@ defmodule LiveUi.Renderer do
       class={style_class(@element)}
       {@style_attrs}
     />
+    """
+  end
+
+  # NOTE: `:disclosure` is a member of `@content_identity_kinds` (and therefore
+  # of `@component_kinds`), so the generic fallback below would shadow any later
+  # `:disclosure` clause. Keep this specific clause BEFORE the generic
+  # `@component_kinds` fallback with the other native content-identity clauses.
+  def render(%{element: %Element{kind: :disclosure}} = assigns) do
+    assigns =
+      assigns
+      |> assign(
+        :open_state,
+        get_in(assigns.element.attributes, [:disclosure, :open?]) || false
+      )
+      |> assign(
+        :summary_label,
+        string_optional(get_in(assigns.element.attributes, [:disclosure, :summary]))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.Disclosure.component
+      id={element_id(@element, "disclosure")}
+      open?={@open_state}
+      label={@summary_label}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    >
+      <:body :for={child <- child_elements(@element, :default)}>
+        <.render element={child} event_target={@event_target} />
+      </:body>
+    </LiveUi.Widgets.Disclosure.component>
     """
   end
 

@@ -19,8 +19,8 @@ defmodule UnifiedUi.ListRepeatCompilerHydrationTest do
         collection?(true)
 
         default([
-          %{id: "adr-1", title: "Widget ADR", status: :accepted},
-          %{id: "adr-2", title: "Compiler ADR", status: :draft}
+          %{id: "adr-1", title: "Widget ADR", status: :accepted, comments: 4},
+          %{id: "adr-2", title: "Compiler ADR", status: :draft, comments: 1}
         ])
       end
     end
@@ -32,13 +32,14 @@ defmodule UnifiedUi.ListRepeatCompilerHydrationTest do
       list_repeat :artifact_repeat do
         repeat_binding(:artifact_rows)
         row_scope(:artifact)
-        row_fields([:id, :title, :status])
+        row_fields([:id, :title, :status, :comments])
         template_identity(:artifact_template)
         identity_strategy(:row_identity)
 
         artifact_row_template :artifact_template do
           title("Artifact")
           meta(%{status: :status})
+          counts([%{key: :comments, value: :comments, label: "Comments"}])
           row_identity(:id)
           action_intent(:open_artifact)
 
@@ -99,7 +100,7 @@ defmodule UnifiedUi.ListRepeatCompilerHydrationTest do
                scope: []
              },
              row_scope: :artifact,
-             row_fields: [:id, :title, :status],
+             row_fields: [:id, :title, :status, :comments],
              template_identity: :artifact_template,
              identity_strategy: :row_identity,
              child_slot: :default,
@@ -120,6 +121,8 @@ defmodule UnifiedUi.ListRepeatCompilerHydrationTest do
              row_identity: "adr-1",
              title: "Artifact",
              meta: %{status: :accepted},
+             kind: :generic,
+             counts: [%{key: :comments, value: 4, label: "Comments"}],
              active?: false,
              action_intent: :open_artifact
            }
@@ -128,7 +131,7 @@ defmodule UnifiedUi.ListRepeatCompilerHydrationTest do
              source_repeat_id: :artifact_repeat,
              row_scope: :artifact,
              row_index: 0,
-             values: %{id: "adr-1", title: "Widget ADR", status: :accepted}
+             values: %{id: "adr-1", title: "Widget ADR", status: :accepted, comments: 4}
            }
 
     assert [%Interaction{family: :click, intent: :open_artifact} = action] =
@@ -143,7 +146,8 @@ defmodule UnifiedUi.ListRepeatCompilerHydrationTest do
     assert nested_button.attributes.repeat_instance.values == %{
              id: "adr-1",
              title: "Widget ADR",
-             status: :accepted
+             status: :accepted,
+             comments: 4
            }
   end
 

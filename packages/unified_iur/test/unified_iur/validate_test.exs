@@ -100,4 +100,37 @@ defmodule UnifiedIUR.ValidateTest do
     assert {:error, [repeat_error]} = Validate.element(invalid_repeat)
     assert repeat_error.code == :invalid_repeat_binding
   end
+
+  test "validates first-class artifact row fields" do
+    valid_artifact =
+      Components.artifact_row("ADR", [],
+        row_identity: :adr,
+        artifact_kind: :spec,
+        status_badges: [%{label: "Accepted", tone: :positive}],
+        counts: [%{key: :comments, value: 3, label: "Comments"}]
+      )
+
+    invalid_artifact =
+      Element.new(:widget, :artifact_row,
+        attributes: %{
+          component: %{family: :row_and_artifact, kind: :artifact_row},
+          artifact: %{
+            title: "ADR",
+            row_identity: :adr,
+            kind: :conversation,
+            status_badges: [%{tone: :unknown}],
+            counts: %{comments: 3}
+          }
+        }
+      )
+
+    assert :ok = Validate.element(valid_artifact)
+    assert {:error, errors} = Validate.element(invalid_artifact)
+
+    assert Enum.map(errors, & &1.code) == [
+             :invalid_artifact_kind,
+             :invalid_artifact_status_badge,
+             :invalid_artifact_count
+           ]
+  end
 end

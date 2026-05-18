@@ -44,6 +44,15 @@ defmodule UnifiedIUR.Widgets.Components do
     :artifact_row
   ]
 
+  @artifact_kinds [
+    :pr,
+    :doc,
+    :spec,
+    :file,
+    :grain,
+    :generic
+  ]
+
   @workflow_kinds [
     :pipeline_stepper_horizontal,
     :segmented_progress_bar,
@@ -80,6 +89,9 @@ defmodule UnifiedIUR.Widgets.Components do
 
   @spec row_artifact_kinds() :: [atom()]
   def row_artifact_kinds, do: @row_artifact_kinds
+
+  @spec artifact_kinds() :: [atom()]
+  def artifact_kinds, do: @artifact_kinds
 
   @spec workflow_kinds() :: [atom()]
   def workflow_kinds, do: @workflow_kinds
@@ -283,6 +295,16 @@ defmodule UnifiedIUR.Widgets.Components do
           common_row_attrs(opts)
           |> maybe_put(:title, title)
           |> maybe_put(:meta, option(opts, :meta))
+          |> maybe_put(
+            :kind,
+            normalize_artifact_kind(option(opts, :artifact_kind, option(opts, :kind)))
+          )
+          |> maybe_put(
+            :status_badges,
+            normalize_artifact_status_badges(option(opts, :status_badges))
+          )
+          |> maybe_put(:counts, normalize_artifact_counts(option(opts, :counts)))
+          |> maybe_put(:timestamp_at, option(opts, :timestamp_at))
       },
       Map.put(opts, :children, children)
     )
@@ -694,6 +716,74 @@ defmodule UnifiedIUR.Widgets.Components do
     |> maybe_put(:link_target, option(opts, :link_target))
     |> maybe_put(:action_intent, option(opts, :action_intent))
   end
+
+  defp normalize_artifact_kind(nil), do: :generic
+  defp normalize_artifact_kind(kind) when kind in @artifact_kinds, do: kind
+
+  defp normalize_artifact_kind(kind) when is_binary(kind) do
+    kind
+    |> String.to_existing_atom()
+    |> normalize_artifact_kind()
+  rescue
+    ArgumentError -> :generic
+  end
+
+  defp normalize_artifact_kind(_other), do: :generic
+
+  defp normalize_artifact_status_badges(nil), do: nil
+
+  defp normalize_artifact_status_badges(badges) when is_list(badges) do
+    badges
+    |> Enum.map(&normalize_artifact_status_badge/1)
+    |> Enum.reject(&(&1 == %{}))
+    |> empty_to_nil()
+  end
+
+  defp normalize_artifact_status_badges(_other), do: nil
+
+  defp normalize_artifact_status_badge(badge) when is_map(badge) or is_list(badge) do
+    badge = normalize_map(badge)
+
+    %{}
+    |> maybe_put(:label, option(badge, :label))
+    |> maybe_put(:tone, option(badge, :tone))
+  end
+
+  defp normalize_artifact_status_badge(_other), do: %{}
+
+  defp normalize_artifact_counts(nil), do: nil
+
+  defp normalize_artifact_counts(counts) when is_map(counts) do
+    counts
+    |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
+    |> Enum.map(fn {key, value} -> %{key: key, value: value} end)
+    |> empty_to_nil()
+  end
+
+  defp normalize_artifact_counts(counts) when is_list(counts) do
+    counts
+    |> Enum.map(&normalize_artifact_count/1)
+    |> Enum.reject(&(&1 == %{}))
+    |> empty_to_nil()
+  end
+
+  defp normalize_artifact_counts(_other), do: nil
+
+  defp normalize_artifact_count({key, value}), do: %{key: key, value: value}
+
+  defp normalize_artifact_count(count) when is_map(count) or is_list(count) do
+    count = normalize_map(count)
+
+    %{}
+    |> maybe_put(:key, option(count, :key))
+    |> maybe_put(:value, option(count, :value))
+    |> maybe_put(:label, option(count, :label))
+  end
+
+  defp normalize_artifact_count(_other), do: %{}
+
+  defp empty_to_nil([]), do: nil
+  defp empty_to_nil(value), do: value
 
   defp normalize_metadata(opts) do
     opts

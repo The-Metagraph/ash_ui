@@ -22,6 +22,7 @@ defmodule LiveUi.Renderer do
   def supported_kinds do
     ([
        :alert_dialog,
+       :artifact_row,
        :bar_chart,
        :box,
        :button,
@@ -369,6 +370,73 @@ defmodule LiveUi.Renderer do
       class={style_class(@element)}
       {@style_attrs}
     />
+    """
+  end
+
+  # NOTE: `:artifact_row` is a member of `@row_artifact_kinds` (and therefore of
+  # `@component_kinds`), so the generic fallback below would shadow a later clause.
+  # Keep this specific clause BEFORE the generic `@component_kinds` fallback with
+  # the other native component-family clauses.
+  def render(%{element: %Element{kind: :artifact_row}} = assigns) do
+    interaction_attrs = interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+
+    assigns =
+      assigns
+      |> assign(
+        :artifact_title,
+        string_value(get_in(assigns.element.attributes, [:artifact, :title]), "")
+      )
+      |> assign(
+        :artifact_subtitle,
+        string_optional(get_in(assigns.element.attributes, [:artifact, :meta]))
+      )
+      |> assign(
+        :artifact_kind,
+        artifact_row_kind(get_in(assigns.element.attributes, [:artifact, :kind]))
+      )
+      |> assign(
+        :artifact_selected,
+        boolean_default(get_in(assigns.element.attributes, [:artifact, :active?]), false)
+      )
+      |> assign(
+        :artifact_badges,
+        List.wrap(get_in(assigns.element.attributes, [:artifact, :status_badges]))
+      )
+      |> assign(
+        :artifact_counts,
+        artifact_row_counts(get_in(assigns.element.attributes, [:artifact, :counts]))
+      )
+      |> assign(
+        :artifact_timestamp,
+        get_in(assigns.element.attributes, [:artifact, :timestamp_at])
+      )
+      |> assign(
+        :artifact_active,
+        boolean_default(get_in(assigns.element.attributes, [:artifact, :active?]), false)
+      )
+      |> assign(:style_attrs, merge_global_attrs(style_rest(assigns.element), interaction_attrs))
+
+    ~H"""
+    <LiveUi.Widgets.ArtifactRow.component
+      id={element_id(@element, "artifact-row")}
+      title={@artifact_title}
+      subtitle={@artifact_subtitle}
+      kind={@artifact_kind}
+      selected?={@artifact_selected}
+      status_badges={@artifact_badges}
+      counts={@artifact_counts}
+      timestamp_at={@artifact_timestamp}
+      active?={@artifact_active}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    >
+      <:actions :for={child <- child_elements(@element, :default)}>
+        <.render element={child} event_target={@event_target} />
+      </:actions>
+    </LiveUi.Widgets.ArtifactRow.component>
     """
   end
 
@@ -1942,4 +2010,28 @@ defmodule LiveUi.Renderer do
   defp interaction_form_id(%Element{} = element, widget_name) when is_binary(widget_name) do
     "#{element_id(element, widget_name)}-interaction-form"
   end
+
+  @artifact_row_kinds [:pr, :doc, :spec, :file, :grain, :generic]
+
+  defp artifact_row_kind(nil), do: :generic
+  defp artifact_row_kind(kind) when kind in @artifact_row_kinds, do: kind
+  defp artifact_row_kind(kind) when is_atom(kind), do: :generic
+
+  defp artifact_row_kind(kind) when is_binary(kind) do
+    atom = String.to_existing_atom(kind)
+    if atom in @artifact_row_kinds, do: atom, else: :generic
+  rescue
+    ArgumentError -> :generic
+  end
+
+  defp artifact_row_counts(nil), do: []
+  defp artifact_row_counts(counts) when is_list(counts), do: counts
+
+  defp artifact_row_counts(counts) when is_map(counts) do
+    counts
+    |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
+    |> Enum.map(fn {key, value} -> %{key: key, value: value} end)
+  end
+
+  defp artifact_row_counts(_other), do: []
 end

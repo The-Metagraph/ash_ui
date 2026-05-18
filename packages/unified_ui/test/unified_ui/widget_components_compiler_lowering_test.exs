@@ -71,6 +71,11 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
         title("Widget ADR")
         row_identity(:adr)
         meta(%{status: :accepted})
+        artifact_kind(:spec)
+        status_badges([%{label: "Accepted", tone: :positive}])
+        counts([%{key: :comments, value: 3, label: "Comments"}])
+        timestamp_at(~U[2026-05-18 10:00:00Z])
+        action_intent(:open_artifact)
       end
 
       pipeline_stepper_horizontal :release_steps do
@@ -131,6 +136,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     form = Tree.find_by_id(iur, :settings_form)
     composer = Tree.find_by_id(iur, :composer)
     row = Tree.find_by_id(iur, :task_row)
+    artifact = Tree.find_by_id(iur, :artifact)
     progress = Tree.find_by_id(iur, :quality_bar)
     panel = Tree.find_by_id(iur, :details_panel)
     code = Tree.find_by_id(iur, :code_sample)
@@ -172,6 +178,18 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              column_template: [%{id: :title, label: "Title"}]
            }
 
+    assert artifact.attributes.artifact == %{
+             row_identity: :adr,
+             active?: false,
+             action_intent: :open_artifact,
+             title: "Widget ADR",
+             meta: %{status: :accepted},
+             kind: :spec,
+             status_badges: [%{label: "Accepted", tone: :positive}],
+             counts: [%{key: :comments, value: 3, label: "Comments"}],
+             timestamp_at: ~U[2026-05-18 10:00:00Z]
+           }
+
     assert progress.attributes.progress == %{
              presentation: :segmented_progress_bar,
              segments: [%{label: "Passing", weight: 8, state: :success}],
@@ -200,6 +218,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     form = Tree.find_by_id(iur, :settings_form)
     composer = Tree.find_by_id(iur, :composer)
     row = Tree.find_by_id(iur, :task_row)
+    artifact = Tree.find_by_id(iur, :artifact)
     stepper = Tree.find_by_id(iur, :release_steps)
     panel = Tree.find_by_id(iur, :details_panel)
     callout = Tree.find_by_id(iur, :incident_callout)
@@ -224,6 +243,11 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              row.attributes.interactions
 
     assert row_action.payload == %{value: "task-1", mapping: %{row_identity: :row_identity}}
+
+    assert [%Interaction{family: :click, intent: :open_artifact} = artifact_action] =
+             artifact.attributes.interactions
+
+    assert artifact_action.payload == %{value: :adr, mapping: %{row_identity: :row_identity}}
 
     assert [%Interaction{family: :navigation, intent: :select_step} = step_navigation] =
              stepper.attributes.interactions

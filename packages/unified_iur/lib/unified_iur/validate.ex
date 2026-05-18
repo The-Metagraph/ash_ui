@@ -109,10 +109,26 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance:
         "Represent list_repeat with a list binding id, row scope, row field list, and template metadata."
+    },
+    invalid_artifact_kind: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent artifact_row kind with the canonical artifact enum: pr, doc, spec, file, grain, or generic."
+    },
+    invalid_artifact_status_badge: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent artifact status badges as maps with a text label and optional canonical tone."
+    },
+    invalid_artifact_count: %{
+      construct_family: :widget_components,
+      guidance: "Represent artifact counts as a list of maps with key, value, and optional label."
     }
   }
 
   @redline_states [:keep, :insert, :delete, :accepted, :rejected]
+  @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
+  @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
   @code_token_types [
     :text,
     :keyword,
@@ -449,6 +465,22 @@ defmodule UnifiedIUR.Validate do
     |> validate_selection_options([:attributes, :selection, :options])
   end
 
+  defp validate_component_contracts(%Element{kind: :artifact_row, attributes: attributes}) do
+    artifact = Map.get(attributes, :artifact, %{})
+
+    []
+    |> Kernel.++(validate_artifact_kind(fetch(artifact, :kind), [:attributes, :artifact, :kind]))
+    |> Kernel.++(
+      validate_artifact_status_badges(
+        fetch(artifact, :status_badges, []),
+        [:attributes, :artifact, :status_badges]
+      )
+    )
+    |> Kernel.++(
+      validate_artifact_counts(fetch(artifact, :counts, []), [:attributes, :artifact, :counts])
+    )
+  end
+
   defp validate_component_contracts(%Element{kind: :meter_thin, attributes: attributes}) do
     meter = Map.get(attributes, :meter, %{})
     current = fetch(meter, :current)
@@ -524,6 +556,83 @@ defmodule UnifiedIUR.Validate do
       Error.new(
         :invalid_selection_option,
         "segmented_button_group options must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_artifact_kind(nil, _path), do: []
+  defp validate_artifact_kind(kind, _path) when kind in @artifact_kinds, do: []
+
+  defp validate_artifact_kind(kind, path) do
+    [
+      Error.new(
+        :invalid_artifact_kind,
+        "artifact_row kind must be one of #{inspect(@artifact_kinds)}",
+        path: path,
+        details: %{kind: inspect(kind)}
+      )
+    ]
+  end
+
+  defp validate_artifact_status_badges([], _path), do: []
+
+  defp validate_artifact_status_badges(badges, path) when is_list(badges) do
+    badges
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {badge, index} ->
+      label = fetch(badge, :label)
+      tone = fetch(badge, :tone)
+
+      maybe_add(
+        [],
+        not is_binary(label) or (not is_nil(tone) and tone not in @artifact_badge_tones),
+        Error.new(
+          :invalid_artifact_status_badge,
+          "artifact_row status_badges must include label and optional supported tone",
+          path: path ++ [index],
+          details: %{label: inspect(label), tone: inspect(tone)}
+        )
+      )
+    end)
+  end
+
+  defp validate_artifact_status_badges(_badges, path) do
+    [
+      Error.new(
+        :invalid_artifact_status_badge,
+        "artifact_row status_badges must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_artifact_counts([], _path), do: []
+
+  defp validate_artifact_counts(counts, path) when is_list(counts) do
+    counts
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {count, index} ->
+      key = fetch(count, :key)
+
+      maybe_add(
+        [],
+        blank?(key) or not has_key?(count, :value),
+        Error.new(
+          :invalid_artifact_count,
+          "artifact_row counts must include key and value",
+          path: path ++ [index],
+          details: %{key: inspect(key)}
+        )
+      )
+    end)
+  end
+
+  defp validate_artifact_counts(_counts, path) do
+    [
+      Error.new(
+        :invalid_artifact_count,
+        "artifact_row counts must be a list",
         path: path
       )
     ]
@@ -658,6 +767,13 @@ defmodule UnifiedIUR.Validate do
     do: source |> Enum.into(%{}) |> fetch(key, default)
 
   defp fetch(_source, _key, default), do: default
+
+  defp has_key?(source, key) when is_map(source) do
+    Map.has_key?(source, key) or Map.has_key?(source, Atom.to_string(key))
+  end
+
+  defp has_key?(source, key) when is_list(source), do: source |> Enum.into(%{}) |> has_key?(key)
+  defp has_key?(_source, _key), do: false
 
   defp blank?(value), do: value in [nil, ""]
 

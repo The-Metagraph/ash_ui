@@ -35,7 +35,11 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
 
       artifact_row :adr_artifact do
         title("Widget component ADR")
-        meta(%{kind: :adr, status: :accepted})
+        meta(%{status: :accepted})
+        artifact_kind(:doc)
+        status_badges([%{label: "Accepted", tone: :positive}])
+        counts(%{comments: 4})
+        timestamp_at("2026-05-18T10:00:00Z")
         row_identity(:adr_widget_components)
         active?(true)
         link_target("/artifacts/widget-components")
@@ -173,8 +177,8 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
     assert Enum.map(by_id.task_row.children, & &1.kind) == [:text, :badge]
 
     assert {by_id.adr_artifact.family, by_id.adr_artifact.kind, by_id.adr_artifact.title,
-            by_id.adr_artifact.meta.status} ==
-             {:row_and_artifact, :artifact_row, "Widget component ADR", :accepted}
+            by_id.adr_artifact.artifact_kind, by_id.adr_artifact.meta.status} ==
+             {:row_and_artifact, :artifact_row, "Widget component ADR", :doc, :accepted}
 
     assert {by_id.release_steps.family, by_id.release_steps.kind,
             by_id.release_steps.active_index, by_id.release_steps.navigation_intent} ==
@@ -209,6 +213,17 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
            } = summary.task_row
 
     assert Enum.map(summary.task_row.children, & &1.kind) == [:text, :badge]
+
+    assert %{
+             family: :row_and_artifact,
+             kind: :artifact_row,
+             title: "Widget component ADR",
+             artifact_kind: :doc,
+             status_badges: [%{label: "Accepted", tone: :positive}],
+             counts: %{comments: 4},
+             timestamp_at: "2026-05-18T10:00:00Z",
+             action_intent: :open_artifact
+           } = summary.adr_artifact
 
     assert %{
              family: :workflow_progress_and_status,
@@ -246,6 +261,17 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              })
 
     assert row_message =~ "column_template must be a non-empty list"
+
+    assert {:error, [:composition, :artifact_row, :bad_artifact], artifact_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :artifact_row,
+               id: :bad_artifact,
+               title: "Bad artifact",
+               row_identity: :artifact,
+               artifact_kind: :conversation
+             })
+
+    assert artifact_message =~ "artifact_kind must be one of"
 
     assert {:error, [:composition, :pipeline_stepper_horizontal, :bad_steps], step_message} =
              ValidateWidgetComponents.validate_node(%Node{

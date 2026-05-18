@@ -923,7 +923,11 @@ defmodule UnifiedUi.Compiler.Pipeline do
               :active?,
               :link_target,
               :action_intent,
-              :meta
+              :meta,
+              :artifact_kind,
+              :status_badges,
+              :counts,
+              :timestamp_at
             ])
           )
 
@@ -1208,9 +1212,43 @@ defmodule UnifiedUi.Compiler.Pipeline do
 
   defp project_repeat_group(attributes, group, row, repeat_node) do
     case Map.fetch(attributes, group) do
-      {:ok, value} -> Map.put(attributes, group, project_repeat_value(value, row, repeat_node))
-      :error -> attributes
+      {:ok, value} when group == :artifact ->
+        Map.put(attributes, group, project_repeat_artifact(value, row, repeat_node))
+
+      {:ok, value} ->
+        Map.put(attributes, group, project_repeat_value(value, row, repeat_node))
+
+      :error ->
+        attributes
     end
+  end
+
+  defp project_repeat_artifact(value, row, repeat_node) when is_map(value) do
+    Map.new(value, fn
+      {:counts, counts} ->
+        {:counts, project_repeat_artifact_counts(counts, row, repeat_node)}
+
+      {key, nested} ->
+        {key, project_repeat_value(nested, row, repeat_node)}
+    end)
+  end
+
+  defp project_repeat_artifact(value, row, repeat_node) do
+    project_repeat_value(value, row, repeat_node)
+  end
+
+  defp project_repeat_artifact_counts(counts, row, repeat_node) when is_list(counts) do
+    Enum.map(counts, fn
+      count when is_map(count) ->
+        Map.update(count, :value, nil, &project_repeat_value(&1, row, repeat_node))
+
+      count ->
+        project_repeat_value(count, row, repeat_node)
+    end)
+  end
+
+  defp project_repeat_artifact_counts(counts, row, repeat_node) do
+    project_repeat_value(counts, row, repeat_node)
   end
 
   defp project_repeat_value(value, row, repeat_node) when is_map(value) do

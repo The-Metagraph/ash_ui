@@ -13,6 +13,7 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   @redline_code_family :redline_and_code
   @composition_behavior_family :composition_behavior
   @presence_states [:active, :away, :offline, :focus, :do_not_disturb]
+  @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
 
   @spec entities() :: [Spark.Dsl.Entity.t()]
   def entities do
@@ -106,6 +107,10 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         @row_artifact_family,
         title: [type: :string, required: true],
         meta: [type: :any, required: false],
+        artifact_kind: [type: {:in, @artifact_kinds}, required: false, default: :generic],
+        status_badges: [type: :any, required: false, default: []],
+        counts: [type: :any, required: false, default: []],
+        timestamp_at: [type: :any, required: false],
         row_identity: [type: :any, required: true],
         active?: [type: :boolean, required: false, default: false],
         link_target: [type: :string, required: false],
@@ -351,6 +356,10 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
             @row_artifact_family,
             title: [type: :string, required: true],
             meta: [type: :any, required: false],
+            artifact_kind: [type: {:in, @artifact_kinds}, required: false, default: :generic],
+            status_badges: [type: :any, required: false, default: []],
+            counts: [type: :any, required: false, default: []],
+            timestamp_at: [type: :any, required: false],
             row_identity: [type: :any, required: true],
             active?: [type: :boolean, required: false, default: false],
             link_target: [type: :string, required: false],

@@ -4,6 +4,7 @@ defmodule LiveUi.Widgets.ContentIdentityAndDisclosure do
   """
 
   @modules [
+    LiveUi.Widgets.Disclosure,
     LiveUi.Widgets.PresenceDot
   ]
 

@@ -49,6 +49,26 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(aria-label="Pascal is in do not disturb")
   end
 
+  test "renderer maps canonical disclosure through the native component boundary" do
+    element =
+      Components.disclosure(
+        "Advanced options",
+        [Foundational.text("Disclosure body", id: "disclosure-body")],
+        id: "advanced-options",
+        open?: true
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget-boundary="disclosure")
+    assert html =~ ~s(data-live-ui-widget="disclosure")
+    assert html =~ ~s(id="advanced-options")
+    assert html =~ "Advanced options"
+    assert html =~ "Disclosure body"
+    assert html =~ " open"
+    refute html =~ "data-live-ui-unsupported-native-component"
+  end
+
   test "renderer preserves canonical decorative presence dot semantics" do
     element =
       Components.presence_dot(:active,

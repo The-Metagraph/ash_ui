@@ -39,7 +39,12 @@ defmodule AshUI.Phase31CanonicalConversionTest do
     {:redline_inline, :redline_and_code, %{segments: [%{state: :insert, text: "new"}]}, :redline},
     {:code_block_syntax_highlighted, :redline_and_code,
      %{language: :elixir, tokens: [%{type: :keyword, text: "def"}]}, :code},
-    {:list_repeat, :composition_behavior, %{repeat_binding: :rows, row_fields: [:id]}, :repeat}
+    {:list_repeat, :composition_behavior, %{repeat_binding: :rows, row_fields: [:id]}, :repeat},
+    {:needs_you_section, :workflow_progress_and_status,
+     %{title: "Needs you", empty_state_text: "All clear", max_visible: 3}, :section},
+    {:blocker_row, :row_and_artifact,
+     %{row_id: "br-1", ask_text: "Review spec", scope_label: "doc: spec.md", severity: :warn},
+     :blocker}
   ]
 
   describe "Section 31.3 - canonical conversion and validation" do

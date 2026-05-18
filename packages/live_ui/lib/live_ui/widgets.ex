@@ -13,19 +13,38 @@ defmodule LiveUi.Widgets do
           | :data
           | :operational
           | :display
+          | :workflow
+          | :row_and_artifact
 
   @type widget_module :: module()
 
   @spec families() :: [family()]
   def families do
-    [:content, :input, :navigation, :feedback, :layout, :overlay, :data, :operational, :display]
+    [
+      :content,
+      :input,
+      :navigation,
+      :feedback,
+      :layout,
+      :overlay,
+      :data,
+      :operational,
+      :display,
+      :workflow,
+      :row_and_artifact
+    ]
   end
 
   @spec modules() :: [widget_module()]
   def modules do
     foundational_modules() ++
       input_modules() ++
-      navigation_modules() ++ advanced_modules() ++ overlay_modules() ++ display_modules()
+      navigation_modules() ++
+      advanced_modules() ++
+      overlay_modules() ++
+      display_modules() ++
+      workflow_modules() ++
+      row_and_artifact_modules()
   end
 
   @spec metadata() :: [LiveUi.Component.Metadata.t()]
@@ -61,6 +80,16 @@ defmodule LiveUi.Widgets do
   @spec display_modules() :: [widget_module()]
   def display_modules do
     LiveUi.Widgets.Display.modules()
+  end
+
+  @spec workflow_modules() :: [widget_module()]
+  def workflow_modules do
+    LiveUi.Widgets.Workflow.modules()
+  end
+
+  @spec row_and_artifact_modules() :: [widget_module()]
+  def row_and_artifact_modules do
+    LiveUi.Widgets.RowAndArtifact.modules()
   end
 
   @spec namespace() :: module()

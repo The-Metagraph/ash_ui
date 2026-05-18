@@ -4,7 +4,7 @@ defmodule LiveUi.RendererTest do
   import Phoenix.LiveViewTest
 
   alias UnifiedIUR.{Container, Element, Forms, Interaction, Layout}
-  alias UnifiedIUR.Widgets.{Foundational, Input, Navigation}
+  alias UnifiedIUR.Widgets.{Components, Foundational, Input, Navigation}
 
   test "renderer maps foundational canonical widgets and layouts into native components" do
     element =
@@ -250,5 +250,61 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(data-live-ui-interaction-form="true")
     assert html =~ ~s(name="element_id" value="profile-name")
     assert html =~ ~s(name="widget" value="text_input")
+  end
+
+  test "renderer maps canonical needs_you_section through the native component boundary" do
+    blocker =
+      Components.blocker_row(
+        id: "br-renderer-test",
+        row_id: "br-1",
+        ask_text: "Review the proposal",
+        scope_label: "doc: ariston-proposal.md",
+        actor: %{initials: "PC", actor_name: "Pascal"}
+      )
+
+    element = Components.needs_you_section([blocker], id: "nys-renderer-test", title: "Needs you")
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget-boundary="needs_you_section")
+    assert html =~ ~s(data-live-ui-widget="needs-you-section")
+    assert html =~ "Needs you"
+    assert html =~ "Review the proposal"
+  end
+
+  test "renderer maps canonical needs_you_section empty state through the native component boundary" do
+    element =
+      Components.needs_you_section([],
+        id: "nys-empty-renderer-test",
+        empty_state_text: "All clear!"
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget-boundary="needs_you_section")
+    assert html =~ ~s(data-live-ui-widget="needs-you-section")
+    assert html =~ "All clear!"
+    refute html =~ "<ul"
+  end
+
+  test "renderer maps canonical blocker_row through the native component boundary" do
+    element =
+      Components.blocker_row(
+        id: "br-renderer-standalone",
+        row_id: "br-standalone-1",
+        ask_text: "Approve the plan",
+        scope_label: "repo: ariston-ui",
+        severity: :warn,
+        actor: %{initials: "MJ", actor_name: "Matt"}
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget-boundary="blocker_row")
+    assert html =~ ~s(data-live-ui-widget="blocker-row")
+    assert html =~ "Approve the plan"
+    assert html =~ "repo: ariston-ui"
+    assert html =~ ~s(aria-label="Approve the plan — repo: ariston-ui")
+    assert html =~ ~s(data-severity="warn")
   end
 end

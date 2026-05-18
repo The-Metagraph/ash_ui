@@ -62,6 +62,53 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
     end
   end
 
+  describe "Section 31.4b - needs_you_section + blocker_row adapter dispatch" do
+    test "LiveUIAdapter renders needs_you_section fallback preserving section semantics" do
+      assert {:ok, canonical} =
+               IUR.new(:needs_you_section,
+                 id: "nys-adapter-test",
+                 props: %{title: "Needs you", empty_state_text: "All clear", max_visible: 5}
+               )
+               |> IURAdapter.to_canonical()
+
+      assert canonical.kind == :needs_you_section
+      assert canonical.attributes.component.family == :workflow_progress_and_status
+      assert canonical.attributes.section.title == "Needs you"
+      assert canonical.attributes.section.empty_state_text == "All clear"
+
+      assert {:ok, heex} = LiveUIAdapter.render(canonical, force_fallback: true)
+      assert heex =~ "ash-needs-you-section"
+      assert heex =~ "Needs you"
+      assert heex =~ "All clear"
+    end
+
+    test "LiveUIAdapter renders blocker_row fallback preserving row semantics" do
+      assert {:ok, canonical} =
+               IUR.new(:blocker_row,
+                 id: "br-adapter-test",
+                 props: %{
+                   row_id: "br-a1",
+                   ask_text: "Approve the plan",
+                   scope_label: "repo: ariston-ui",
+                   severity: :warn,
+                   actor: %{initials: "PC", actor_name: "Pascal"}
+                 }
+               )
+               |> IURAdapter.to_canonical()
+
+      assert canonical.kind == :blocker_row
+      assert canonical.attributes.component.family == :row_and_artifact
+      assert canonical.attributes.blocker.ask_text == "Approve the plan"
+      assert canonical.attributes.blocker.severity == :warn
+
+      assert {:ok, heex} = LiveUIAdapter.render(canonical, force_fallback: true)
+      assert heex =~ "ash-blocker-row"
+      assert heex =~ "Approve the plan"
+      assert heex =~ "repo: ariston-ui"
+      assert heex =~ ~s(aria-label="Approve the plan — repo: ariston-ui")
+    end
+  end
+
   defp canonical_component do
     assert {:ok, canonical} =
              IUR.new(:event_callout,

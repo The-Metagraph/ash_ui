@@ -15,6 +15,12 @@ defmodule LiveUi.NeedsYouSectionTest do
       assert metadata.name == :needs_you_section
     end
 
+    test "is exposed through the workflow widget family" do
+      assert :workflow in LiveUi.Widgets.families()
+      assert LiveUi.Widgets.NeedsYouSection in LiveUi.Widgets.workflow_modules()
+      assert LiveUi.Widgets.NeedsYouSection in LiveUi.Widgets.modules()
+    end
+
     test "renders with needs-you-section widget marker" do
       html =
         render_component(&LiveUi.Widgets.NeedsYouSection.component/1, %{
@@ -150,6 +156,12 @@ defmodule LiveUi.NeedsYouSectionTest do
       assert metadata.mountable?
       assert metadata.component_module == LiveUi.Widgets.BlockerRow.Component
       assert metadata.name == :blocker_row
+    end
+
+    test "is exposed through the row_and_artifact widget family" do
+      assert :row_and_artifact in LiveUi.Widgets.families()
+      assert LiveUi.Widgets.BlockerRow in LiveUi.Widgets.row_and_artifact_modules()
+      assert LiveUi.Widgets.BlockerRow in LiveUi.Widgets.modules()
     end
 
     test "renders with blocker-row widget marker" do

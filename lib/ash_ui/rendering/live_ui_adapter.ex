@@ -549,6 +549,88 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "needs_you_section"} = iur, opts) do
+    props = iur["props"] || %{}
+    section = normalize_item(prop(props, "section", %{}))
+    title = escaped_text_prop(section, ["title", "label"], "Needs you")
+    empty_state_text = escaped_text_prop(section, "empty_state_text", "You&#39;re all caught up.")
+    max_visible = numeric_value(section, "max_visible", 5)
+    children = List.wrap(iur["children"] || [])
+
+    visible_children = Enum.take(children, max_visible)
+    overflow_count = length(children) - max_visible
+
+    rows_html = generate_children(visible_children, opts)
+
+    overflow_html =
+      if overflow_count > 0 do
+        ~s(<button type="button" class="ash-needs-you-section__more" data-live-ui-intent="expand_needs_you_section">show #{overflow_count} more</button>)
+      else
+        ""
+      end
+
+    item_count = length(children)
+
+    count_html =
+      if children != [] do
+        "<span class=\"ash-needs-you-section__count\" aria-hidden=\"true\">(#{item_count})</span>"
+      else
+        ""
+      end
+
+    list_or_empty_html =
+      if children == [] do
+        ~s(<p class="ash-needs-you-section__empty">#{empty_state_text}</p>)
+      else
+        ~s(<ul class="ash-needs-you-section__list" role="list">#{rows_html}</ul>#{overflow_html})
+      end
+
+    """
+    <section class="#{css_classes(["ash-needs-you-section", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <header class="ash-needs-you-section__header">
+        <h2 class="ash-needs-you-section__title">#{title}</h2>#{count_html}
+      </header>
+      #{list_or_empty_html}
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "blocker_row"} = iur, _opts) do
+    props = iur["props"] || %{}
+    blocker = normalize_item(prop(props, "blocker", %{}))
+    actor = normalize_item(prop(props, "actor", %{}))
+
+    ask_text = escaped_text_prop(blocker, ["ask_text", "text", "label"], "")
+    scope_label = escaped_text_prop(blocker, ["scope_label", "scope"], "")
+    severity = escaped_text_prop(blocker, "severity", "info")
+    row_id = html_attr(prop(blocker, "row_id", prop(iur, "id", "")))
+
+    actor_initials = escaped_text_prop(actor, ["initials"], "")
+    actor_name = escaped_text_prop(actor, ["actor_name", "name"], "")
+    actor_image = prop(actor, "image_source")
+
+    aria_label = "#{ask_text} — #{scope_label}"
+
+    avatar_html =
+      if actor_image do
+        ~s(<span class="ash-blocker-row__avatar" aria-hidden="true"><img src="#{html_attr(actor_image)}" alt="" class="ash-blocker-row__avatar-image" /></span>)
+      else
+        ~s(<span class="ash-blocker-row__avatar" aria-hidden="true"><span class="ash-blocker-row__avatar-initials">#{actor_initials}</span></span>)
+      end
+
+    """
+    <button type="button" class="#{css_classes(["ash-blocker-row", "ash-blocker-row--#{severity}", prop_class(iur)])}" data-row-id="#{row_id}" data-severity="#{severity}" aria-label="#{aria_label}"#{style_attr(prop_style(iur))}>
+      #{avatar_html}
+      <span class="ash-blocker-row__actor-name" aria-hidden="true">#{actor_name}</span>
+      <div class="ash-blocker-row__body">
+        <span class="ash-blocker-row__ask">#{ask_text}</span>
+        <span class="ash-blocker-row__scope">#{scope_label}</span>
+      </div>
+      <span class="ash-blocker-row__jump" aria-hidden="true">jump</span>
+    </button>
+    """
+  end
+
   defp generate_heex(%{"type" => "artifact_row"} = iur, opts) do
     props = iur["props"] || %{}
     title = escaped_text_prop(props, ["title", "label"], "Artifact")

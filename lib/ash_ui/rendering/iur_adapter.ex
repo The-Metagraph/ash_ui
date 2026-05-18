@@ -625,6 +625,42 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:canvas, props), do: %{canvas: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:form_builder, props), do: %{form: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:field_group, props), do: %{group: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:needs_you_section = kind, props) do
+    component_attributes(
+      kind,
+      :workflow_progress_and_status,
+      %{
+        section:
+          compact_map(%{
+            title: first_present(props, [:title, :label]),
+            empty_state_text: first_present(props, [:empty_state_text]),
+            max_visible: fetch(props, :max_visible)
+          })
+      },
+      props
+    )
+  end
+
+  defp base_attributes(:blocker_row = kind, props) do
+    component_attributes(
+      kind,
+      :row_and_artifact,
+      %{
+        blocker:
+          compact_map(%{
+            row_id: first_present(props, [:row_id, :id]),
+            ask_text: first_present(props, [:ask_text, :text, :label]),
+            scope_label: first_present(props, [:scope_label, :scope]),
+            scope_intent: first_present(props, [:scope_intent]) || :jump_to_blocker,
+            severity: normalize_existing_atom(first_present(props, [:severity]) || :info)
+          }),
+        actor: normalize_map(fetch(props, :actor))
+      },
+      props
+    )
+  end
+
   defp base_attributes(kind, props), do: %{kind => Map.drop(props, attachment_prop_keys())}
 
   defp style_attributes(props) do

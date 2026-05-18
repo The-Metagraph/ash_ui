@@ -239,6 +239,32 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:avatar` is a member of `@content_identity_kinds` (and therefore
+  # of `@component_kinds`), so the generic fallback below would shadow any later
+  # `:avatar` clause. Keep this specific clause BEFORE the generic
+  # `@component_kinds` fallback — mirrors the pattern used by `:command_palette`,
+  # `:top_strip`, `:mode_nav`, `:sidebar_shell`, `:sidebar_section`,
+  # `:sidebar_item`, and `:unread_badge` above.
+  def render(%{element: %Element{kind: :avatar}} = assigns) do
+    assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.Avatar.component
+      id={element_id(@element, "avatar")}
+      actor_id={string_value(get_in(@element.attributes, [:identity, :actor_id]), element_id(@element, "avatar"))}
+      initials={string_optional(get_in(@element.attributes, [:identity, :initials]))}
+      image_url={string_optional(get_in(@element.attributes, [:identity, :image_source]))}
+      size_variant={avatar_size_variant(get_in(@element.attributes, [:identity, :size]))}
+      label_text={string_optional(get_in(@element.attributes, [:accessibility, :label]))}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   # NOTE: `:command_palette` is a member of `@layer_callout_kinds` (and therefore
   # of `@component_kinds`), so the generic fallback below would shadow any later
   # `:command_palette` clause. Keep this specific clause BEFORE the generic
@@ -1505,6 +1531,14 @@ defmodule LiveUi.Renderer do
   defp label_for(%Element{} = element) do
     string_optional(get_in(element.attributes, [:label, :for]))
   end
+
+  defp avatar_size_variant(:small), do: :small
+  defp avatar_size_variant(:medium), do: :medium
+  defp avatar_size_variant(:large), do: :large
+  defp avatar_size_variant("small"), do: :small
+  defp avatar_size_variant("medium"), do: :medium
+  defp avatar_size_variant("large"), do: :large
+  defp avatar_size_variant(_other), do: :small
 
   defp input_type(:text_input), do: "text"
   defp input_type(:numeric_input), do: "number"

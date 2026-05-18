@@ -4,7 +4,7 @@ defmodule LiveUi.RendererTest do
   import Phoenix.LiveViewTest
 
   alias UnifiedIUR.{Container, Element, Forms, Interaction, Layout}
-  alias UnifiedIUR.Widgets.{Foundational, Input, Navigation}
+  alias UnifiedIUR.Widgets.{Components, Foundational, Input, Navigation}
 
   test "renderer maps foundational canonical widgets and layouts into native components" do
     element =
@@ -250,5 +250,77 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(data-live-ui-interaction-form="true")
     assert html =~ ~s(name="element_id" value="profile-name")
     assert html =~ ~s(name="widget" value="text_input")
+  end
+
+  describe "top_strip trailing-region affordances" do
+    test "renders basic top_strip without trailing affordances" do
+      element = Components.top_strip([], brand: "Ariston", context: "Dashboard")
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ ~s(data-live-ui-shell-position="top")
+      assert html =~ "live-ui-top-strip-brand"
+      assert html =~ "Ariston"
+      assert html =~ "live-ui-top-strip-trailing"
+      refute html =~ "live-ui-top-strip-search"
+      refute html =~ "live-ui-top-strip-settings"
+      refute html =~ "live-ui-top-strip-avatar"
+    end
+
+    test "renders search button when search_event is set" do
+      element = Components.top_strip([], brand: "Ariston", search_event: "open_search")
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ "live-ui-top-strip-search"
+      assert html =~ ~s(aria-label="Open search")
+      assert html =~ ~s(phx-click="open_search")
+      refute html =~ "live-ui-top-strip-settings"
+      refute html =~ "live-ui-top-strip-avatar"
+    end
+
+    test "renders settings button when settings_event is set" do
+      element = Components.top_strip([], brand: "Ariston", settings_event: "open_settings")
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ "live-ui-top-strip-settings"
+      assert html =~ ~s(aria-label="Open settings")
+      assert html =~ ~s(phx-click="open_settings")
+      refute html =~ "live-ui-top-strip-search"
+      refute html =~ "live-ui-top-strip-avatar"
+    end
+
+    test "renders avatar img when user_avatar_url is set" do
+      element =
+        Components.top_strip([],
+          brand: "Ariston",
+          user_avatar_url: "https://example.com/avatar.png"
+        )
+
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ "live-ui-top-strip-avatar"
+      assert html =~ ~s(src="https://example.com/avatar.png")
+      assert html =~ ~s(aria-label="User profile")
+      refute html =~ "live-ui-top-strip-search"
+      refute html =~ "live-ui-top-strip-settings"
+    end
+
+    test "renders all three trailing affordances together" do
+      element =
+        Components.top_strip([],
+          brand: "Ariston",
+          search_event: "open_search",
+          settings_event: "open_settings",
+          user_avatar_url: "https://example.com/avatar.png"
+        )
+
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ "live-ui-top-strip-search"
+      assert html =~ ~s(phx-click="open_search")
+      assert html =~ "live-ui-top-strip-settings"
+      assert html =~ ~s(phx-click="open_settings")
+      assert html =~ "live-ui-top-strip-avatar"
+      assert html =~ ~s(src="https://example.com/avatar.png")
+    end
   end
 end

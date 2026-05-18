@@ -295,6 +295,56 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     assert code.attributes.text_safety == %{content: :plain_text}
   end
 
+  test "top_strip stores trailing-region affordance attrs in shell map" do
+    strip_no_trailing = Components.top_strip([], brand: "Ariston", context: "Dashboard")
+
+    assert strip_no_trailing.kind == :top_strip
+    assert strip_no_trailing.attributes.shell.brand == "Ariston"
+    assert strip_no_trailing.attributes.shell.context == "Dashboard"
+    refute Map.has_key?(strip_no_trailing.attributes.shell, :search_event)
+    refute Map.has_key?(strip_no_trailing.attributes.shell, :settings_event)
+    refute Map.has_key?(strip_no_trailing.attributes.shell, :user_avatar_url)
+
+    strip_with_search =
+      Components.top_strip([], brand: "Ariston", search_event: "open_search")
+
+    assert strip_with_search.attributes.shell.search_event == "open_search"
+    refute Map.has_key?(strip_with_search.attributes.shell, :settings_event)
+    refute Map.has_key?(strip_with_search.attributes.shell, :user_avatar_url)
+
+    strip_with_settings =
+      Components.top_strip([], brand: "Ariston", settings_event: "open_settings")
+
+    assert strip_with_settings.attributes.shell.settings_event == "open_settings"
+
+    strip_with_avatar =
+      Components.top_strip([],
+        brand: "Ariston",
+        user_avatar_url: "https://example.com/avatar.png"
+      )
+
+    assert strip_with_avatar.attributes.shell.user_avatar_url == "https://example.com/avatar.png"
+
+    strip_all_trailing =
+      Components.top_strip([],
+        brand: "Ariston",
+        search_event: "open_search",
+        settings_event: "open_settings",
+        user_avatar_url: "https://example.com/avatar.png"
+      )
+
+    assert strip_all_trailing.attributes.shell == %{
+             position: :top,
+             brand: "Ariston",
+             context: "",
+             theme: :light,
+             pane_open?: false,
+             search_event: "open_search",
+             settings_event: "open_settings",
+             user_avatar_url: "https://example.com/avatar.png"
+           }
+  end
+
   test "represents list repeat metadata and hydrated row children" do
     template = Components.artifact_row("Template", [], row_identity: :id)
 

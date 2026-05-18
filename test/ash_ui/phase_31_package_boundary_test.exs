@@ -62,6 +62,7 @@ defmodule AshUI.Phase31PackageBoundaryTest do
                :sidebar_shell,
                :sidebar_section,
                :sidebar_item,
+               :right_rail,
                :command_palette
              ]
 

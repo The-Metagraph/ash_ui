@@ -44,6 +44,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :sidebar_shell,
                :sidebar_section,
                :sidebar_item,
+               :right_rail,
                :command_palette
              ],
              redline_and_code: [:redline_inline, :code_block_syntax_highlighted],
@@ -51,7 +52,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
            }
   end
 
-  test "7 shell primitive kinds are present in catalog" do
+  test "8 shell primitive kinds are present in catalog" do
     kinds = WidgetComponents.kinds()
 
     assert :top_strip in kinds
@@ -59,6 +60,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert :sidebar_shell in kinds
     assert :sidebar_section in kinds
     assert :sidebar_item in kinds
+    assert :right_rail in kinds
     assert :unread_badge in kinds
     assert :command_palette in kinds
   end

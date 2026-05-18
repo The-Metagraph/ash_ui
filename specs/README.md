@@ -13,7 +13,8 @@ and the remediation phases in [planning/README.md](./planning/README.md).
 the planned adoption target for upgraded Unified IUR structs and canonical
 navigation intent. [ADR-0007](./adr/ADR-0007-canonical-widget-components-adoption.md)
 defines the planned adoption target for the expanded Unified UI canonical
-widget-component catalog.
+widget-component catalog. [ADR-0008](./adr/ADR-0008-canonical-rail-component-adoption.md)
+defines the planned adoption target for the reusable canonical rail component.
 
 ## Directory Structure
 
@@ -50,6 +51,7 @@ specs/
 | `REQ-RENDER-*` | live_ui/elm_ui output | `contracts/rendering_contract.md` |
 | `REQ-NAV-*` | Canonical navigation and IUR adoption | `contracts/canonical_navigation_contract.md` |
 | `REQ-WIDGET-*` | Canonical widget-component catalog adoption | `contracts/canonical_widget_components_contract.md` |
+| `REQ-RAIL-*` | Canonical rail component adoption | `contracts/canonical_rail_component_contract.md` |
 | `REQ-AUTH-*` | Ash Policy integration | `contracts/authorization_contract.md` |
 | `REQ-OBS-*` | Telemetry, events | `contracts/observability_contract.md` |
 | `REQ-EXT-*` | Extensions, plugins | `contracts/extension_contract.md` |

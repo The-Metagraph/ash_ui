@@ -201,6 +201,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :right_rail,
+      family: :layer_shell_and_callout,
+      summary:
+        "Reusable side rail with ordered panels, selected state, collapse intent, and slotted content.",
+      aliases: []
+    },
+    %{
       kind: :unread_badge,
       family: :workflow_progress_and_status,
       summary: "Compact unread count badge with threshold capping.",

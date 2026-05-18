@@ -9,6 +9,7 @@ The active architectural baseline is defined by:
 - `specs/adr/ADR-0005-element-resource-authority-and-relational-screen-composition.md`
 - `specs/adr/ADR-0006-canonical-iur-and-navigation-adoption.md`
 - `specs/adr/ADR-0007-canonical-widget-components-adoption.md`
+- `specs/adr/ADR-0008-canonical-rail-component-adoption.md`
 
 ## Phase Files
 1. [Phase 1 - Core Ash Resource Integration](./phase-01-core-ash-resource-integration.md): implement Ash Resources for storing unified-ui DSL definitions with Ash actions and policies.
@@ -42,6 +43,7 @@ The active architectural baseline is defined by:
 29. [Phase 29 - Tutorial Publication, Governance, and End-to-End Validation](./phase-29-tutorial-publication-governance-and-end-to-end-validation.md): publish the tutorial as a maintained product surface with chapter-to-code validation, release readiness, and end-to-end proof.
 30. [Phase 30 - Canonical IUR And Navigation Adoption](./phase-30-canonical-iur-and-navigation-adoption.md): adopt the upgraded Unified package set, `%UnifiedIUR.Element{}` renderer boundary, and resource-authored canonical navigation intent.
 31. [Phase 31 - Canonical Widget Components Adoption](./phase-31-canonical-widget-components-adoption.md): adopt the expanded Unified UI widget-component catalog as first-class Ash UI resource-authored component input.
+32. [Phase 32 - Canonical Rail Component Adoption](./phase-32-canonical-rail-component-adoption.md): adopt reusable canonical `right_rail` behavior across Unified UI, Unified IUR, runtime renderers, and Ash UI without admitting app-specific document rail vocabulary.
 
 ## Shared Conventions
 - Numbering:
@@ -70,6 +72,8 @@ The active architectural baseline is defined by:
   URLs, router helpers, runtime modules, or modal stack identifiers
 - canonical widget components use the Unified catalog names at renderer-facing
   boundaries, with `custom:*` reserved for non-catalog application extensions
+- canonical rail behavior uses reusable `right_rail` vocabulary, with document
+  rails composed as application-owned panel configurations
 - no backward-compatibility requirement applies to the superseded monolithic
   screen-document authority model
 
@@ -112,3 +116,9 @@ Phase 31 describes the canonical widget-component adoption line introduced by
 the expanded Unified component catalog through Ash resource admission,
 canonical conversion, runtime adapter support, list-repeat composition, and
 documentation/conformance coverage.
+
+Phase 32 describes the canonical rail adoption line introduced by
+[ADR-0008](../adr/ADR-0008-canonical-rail-component-adoption.md). It adopts a
+reusable `right_rail` component through Unified UI DSL/compiler support,
+Unified IUR constructor and validation support, Ash resource conversion,
+runtime renderer handling, documentation, examples, and conformance coverage.

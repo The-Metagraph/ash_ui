@@ -4,6 +4,7 @@ defmodule LiveUi.NavigationWidgetsTest do
   import Phoenix.LiveViewTest
 
   alias LiveUi.Component
+  alias UnifiedIUR.Widgets.Navigation
 
   @moduledoc """
   Regression tests for navigation widgets to verify they preserve
@@ -93,6 +94,74 @@ defmodule LiveUi.NavigationWidgetsTest do
       # The active state is shown via aria-selected attribute
       assert html =~ ~s(aria-selected="true")
       assert html =~ "Tab A"
+    end
+
+    test "tabs component renders count badges when count is set" do
+      html =
+        render_component(&LiveUi.Widgets.Tabs.component/1, %{
+          id: "count-tabs",
+          items: [
+            %{id: "feed", label: "Feed", count: 12},
+            %{id: "threads", label: "Threads", count: 3},
+            %{id: "tasks", label: "Tasks"}
+          ]
+        })
+
+      assert html =~ "Feed"
+      assert html =~ "Threads"
+      assert html =~ "Tasks"
+      assert html =~ ~s(class="live-ui-tabs-item-count")
+      assert html =~ ">12<"
+      assert html =~ ">3<"
+    end
+
+    test "tabs component omits count badge when count is absent" do
+      html =
+        render_component(&LiveUi.Widgets.Tabs.component/1, %{
+          id: "no-count-tabs",
+          items: [
+            %{id: "overview", label: "Overview"},
+            %{id: "details", label: "Details"}
+          ]
+        })
+
+      refute html =~ ~s(class="live-ui-tabs-item-count")
+    end
+
+    test "tabs component renders zero and disabled counts" do
+      html =
+        render_component(&LiveUi.Widgets.Tabs.component/1, %{
+          id: "zero-disabled-count-tabs",
+          items: [
+            %{id: "inbox", label: "Inbox", count: 0},
+            %{id: "archived", label: "Archived", count: 7, disabled: true}
+          ]
+        })
+
+      assert html =~ "Inbox"
+      assert html =~ "Archived"
+      assert html =~ ">0<"
+      assert html =~ ">7<"
+      assert html =~ "disabled"
+    end
+
+    test "canonical tabs count reaches the renderer" do
+      element =
+        Navigation.tabs(
+          [
+            %{id: :feed, label: "Feed", count: 12},
+            %{id: :threads, label: "Threads", count: 3}
+          ],
+          id: "canonical-count-tabs",
+          active_item: :feed
+        )
+
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ ~s(data-live-ui-widget="tabs")
+      assert html =~ ~s(class="live-ui-tabs-item-count")
+      assert html =~ ">12<"
+      assert html =~ ">3<"
     end
   end
 

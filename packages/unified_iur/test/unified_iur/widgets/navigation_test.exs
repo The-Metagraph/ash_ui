@@ -144,4 +144,68 @@ defmodule UnifiedIUR.Widgets.NavigationTest do
       end
     end
   end
+
+  describe "tabs count badge extension" do
+    test "normalizes tab items with count values" do
+      tabs =
+        Navigation.tabs(
+          [
+            [id: :feed, label: "Feed", count: 12],
+            [id: :threads, label: "Threads", count: 3],
+            [id: :tasks, label: "Tasks", count: 0],
+            [id: :archive, label: "Archive"]
+          ],
+          id: "chat-tabs",
+          active_item: :feed
+        )
+
+      assert %Element{
+               kind: :tabs,
+               attributes: %{
+                 navigation: %{
+                   items: [
+                     %{id: :feed, label: "Feed", count: 12},
+                     %{id: :threads, label: "Threads", count: 3},
+                     %{id: :tasks, label: "Tasks", count: 0},
+                     %{id: :archive, label: "Archive"}
+                   ]
+                 }
+               }
+             } = tabs
+
+      items = get_in(tabs.attributes, [:navigation, :items])
+      archive_item = Enum.find(items, &(&1.id == :archive))
+      refute Map.has_key?(archive_item, :count)
+    end
+
+    test "accepts count: nil explicitly (no badge)" do
+      tabs =
+        Navigation.tabs(
+          [[id: :overview, label: "Overview", count: nil]],
+          id: "test-tabs"
+        )
+
+      items = get_in(tabs.attributes, [:navigation, :items])
+      overview = hd(items)
+      refute Map.has_key?(overview, :count)
+    end
+
+    test "rejects negative count values" do
+      assert_raise ArgumentError, ~r/non-negative integer/, fn ->
+        Navigation.tabs(
+          [[id: :bad, label: "Bad", count: -1]],
+          id: "bad-tabs"
+        )
+      end
+    end
+
+    test "rejects non-integer count values" do
+      assert_raise ArgumentError, ~r/non-negative integer/, fn ->
+        Navigation.tabs(
+          [[id: :bad, label: "Bad", count: "12"]],
+          id: "bad-tabs"
+        )
+      end
+    end
+  end
 end

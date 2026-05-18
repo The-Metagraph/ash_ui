@@ -31,9 +31,12 @@ defmodule LiveUi.Widgets.Tabs do
   end
 
   defp render_tab_item(item, active_item) do
+    count = fetch_item(item, :count)
+
     assigns = %{
       item_id: fetch_item(item, :id),
       label: fetch_item(item, :label),
+      count: count,
       selected?: item_selected?(item, active_item),
       disabled?: fetch_item(item, :disabled, false),
       item_class: fetch_item(item, :class),
@@ -52,7 +55,7 @@ defmodule LiveUi.Widgets.Tabs do
         data-item-id={@item_id}
         class={@item_class}
         {@item_attrs}
-      ><%= @label %></button>
+      ><.tab_contents label={@label} count={@count} /></button>
     <% else %>
       <%= case @target do %>
         <% {:patch, target} -> %>
@@ -64,7 +67,7 @@ defmodule LiveUi.Widgets.Tabs do
             data-item-id={@item_id}
             class={@item_class}
             {@item_attrs}
-          ><%= @label %></.link>
+          ><.tab_contents label={@label} count={@count} /></.link>
         <% {:navigate, target} -> %>
           <.link
             navigate={target}
@@ -74,7 +77,7 @@ defmodule LiveUi.Widgets.Tabs do
             data-item-id={@item_id}
             class={@item_class}
             {@item_attrs}
-          ><%= @label %></.link>
+          ><.tab_contents label={@label} count={@count} /></.link>
         <% {:href, target} -> %>
           <.link
             href={target}
@@ -84,7 +87,7 @@ defmodule LiveUi.Widgets.Tabs do
             data-item-id={@item_id}
             class={@item_class}
             {@item_attrs}
-          ><%= @label %></.link>
+          ><.tab_contents label={@label} count={@count} /></.link>
         <% :button -> %>
           <button
             type="button"
@@ -94,9 +97,16 @@ defmodule LiveUi.Widgets.Tabs do
             data-item-id={@item_id}
             class={@item_class}
             {@item_attrs}
-          ><%= @label %></button>
+          ><.tab_contents label={@label} count={@count} /></button>
       <% end %>
     <% end %>
+    """
+  end
+
+  defp tab_contents(assigns) do
+    ~H"""
+    <span class="live-ui-tabs-item-label"><%= @label %></span>
+    <span :if={not is_nil(@count)} class="live-ui-tabs-item-count"><%= @count %></span>
     """
   end
 

@@ -41,7 +41,8 @@ defmodule UnifiedIUR.Widgets.Components do
 
   @row_artifact_kinds [
     :list_item_multi_column,
-    :artifact_row
+    :artifact_row,
+    :blocker_row
   ]
 
   @workflow_kinds [
@@ -49,7 +50,8 @@ defmodule UnifiedIUR.Widgets.Components do
     :segmented_progress_bar,
     :workflow_stage_list_vertical,
     :meter_thin,
-    :unread_badge
+    :unread_badge,
+    :needs_you_section
   ]
 
   @layer_callout_kinds [
@@ -659,6 +661,49 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:select_intent, option(opts, :select_intent))
       },
       Map.put(opts, :children, children)
+    )
+  end
+
+  @spec needs_you_section([Element.t()], opts()) :: Element.t()
+  def needs_you_section(items \\ [], opts \\ []) when is_list(items) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :needs_you_section,
+      :workflow_progress_and_status,
+      %{
+        section:
+          %{}
+          |> maybe_put(:title, option(opts, :title, "Needs you"))
+          |> maybe_put(
+            :empty_state_text,
+            option(opts, :empty_state_text, "You're all caught up.")
+          )
+          |> maybe_put(:max_visible, option(opts, :max_visible, 5))
+      },
+      Map.put(opts, :children, items)
+    )
+  end
+
+  @spec blocker_row(opts()) :: Element.t()
+  def blocker_row(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :blocker_row,
+      :row_and_artifact,
+      %{
+        blocker:
+          %{}
+          |> maybe_put(:row_id, option(opts, :row_id))
+          |> maybe_put(:ask_text, option(opts, :ask_text, ""))
+          |> maybe_put(:scope_label, option(opts, :scope_label, ""))
+          |> maybe_put(:scope_intent, option(opts, :scope_intent, "jump_to_blocker"))
+          |> maybe_put(:scope_value, option(opts, :scope_value))
+          |> maybe_put(:severity, option(opts, :severity, :info)),
+        actor: option(opts, :actor)
+      },
+      opts
     )
   end
 

@@ -6,7 +6,9 @@ defmodule LiveUi.Widgets.Navigation do
   @modules [
     LiveUi.Widgets.Menu,
     LiveUi.Widgets.Tabs,
-    LiveUi.Widgets.CommandPalette
+    LiveUi.Widgets.CommandPalette,
+    LiveUi.Widgets.NeedsYouSection,
+    LiveUi.Widgets.BlockerRow
   ]
 
   @spec modules() :: [module()]

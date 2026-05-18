@@ -23,14 +23,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :mode_nav
            ]
 
-    assert Components.row_artifact_kinds() == [:list_item_multi_column, :artifact_row]
+    assert Components.row_artifact_kinds() == [
+             :list_item_multi_column,
+             :artifact_row,
+             :blocker_row
+           ]
 
     assert Components.workflow_kinds() == [
              :pipeline_stepper_horizontal,
              :segmented_progress_bar,
              :workflow_stage_list_vertical,
              :meter_thin,
-             :unread_badge
+             :unread_badge,
+             :needs_you_section
            ]
 
     assert Components.layer_callout_kinds() == [

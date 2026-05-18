@@ -28,13 +28,14 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :chat_composer,
                :mode_nav
              ],
-             row_and_artifact: [:list_item_multi_column, :artifact_row],
+             row_and_artifact: [:list_item_multi_column, :artifact_row, :blocker_row],
              workflow_progress_and_status: [
                :pipeline_stepper_horizontal,
                :segmented_progress_bar,
                :workflow_stage_list_vertical,
                :meter_thin,
-               :unread_badge
+               :unread_badge,
+               :needs_you_section
              ],
              layer_shell_and_callout: [
                :sticky_frosted_header,

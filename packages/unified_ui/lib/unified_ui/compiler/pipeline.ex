@@ -1101,57 +1101,22 @@ defmodule UnifiedUi.Compiler.Pipeline do
   end
 
   defp lower_right_rail(node, context, visited, attachments) do
-    children = lower_children(node, context, visited)
+    opts =
+      node
+      |> common_opts(attachments, [
+        :side,
+        :panels,
+        :active_panel,
+        :collapsed?,
+        :collapsible?,
+        :density,
+        :width,
+        :accessibility_label,
+        :accessibility_description
+      ])
+      |> Map.put(:children, lower_children(node, context, visited))
 
-    attributes =
-      %{
-        component: %{
-          family: :layer_shell_and_callout,
-          kind: :right_rail
-        },
-        rail:
-          compact_map(%{
-            id: node.id,
-            side: node.side || :right,
-            panels: normalize_list(node.panels),
-            active_panel: node.active_panel,
-            collapsed?: node.collapsed? || false,
-            collapsible?: if(is_nil(node.collapsible?), do: true, else: node.collapsible?),
-            density: node.density,
-            width: node.width
-          })
-      }
-      |> maybe_put(
-        :accessibility,
-        compact_optional_map(%{
-          label: node.accessibility_label,
-          description: node.accessibility_description
-        })
-      )
-      |> maybe_put(
-        :state,
-        compact_optional_map(%{
-          disabled?: node.disabled?,
-          collapsed?: node.collapsed? || false
-        })
-      )
-      |> maybe_put(:style, attachments.style)
-      |> maybe_put(:theme, attachments.theme)
-      |> maybe_put(:bindings, attachments.bindings)
-      |> maybe_put(:interactions, attachments.interactions)
-
-    Element.new(:widget, :right_rail,
-      id: node.id,
-      metadata:
-        Metadata.new(%{
-          authored_ref: node.authored_ref,
-          description: node.summary || node.description,
-          tags: node.tags,
-          annotations: node.annotations
-        }),
-      attributes: attributes,
-      children: children
-    )
+    Widgets.Components.right_rail(opts)
   end
 
   defp repeat_rows(%IURBinding{default: rows}) when is_list(rows) do

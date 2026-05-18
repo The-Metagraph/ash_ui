@@ -69,6 +69,7 @@ defmodule UnifiedIUR.Widgets.Components do
     :sidebar_shell,
     :sidebar_section,
     :sidebar_item,
+    :right_rail,
     :command_palette
   ]
 
@@ -639,6 +640,30 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:item_intent, option(opts, :item_intent))
       },
       Map.put(opts, :children, children)
+    )
+  end
+
+  @spec right_rail(opts()) :: Element.t()
+  def right_rail(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    build_component(
+      :right_rail,
+      :layer_shell_and_callout,
+      %{
+        rail:
+          %{
+            id: option(opts, :rail_id, option(opts, :id)),
+            side: option(opts, :side, :right),
+            panels: normalize_maps(option(opts, :panels, [])),
+            active_panel: option(opts, :active_panel),
+            collapsed?: option(opts, :collapsed?, false),
+            collapsible?: option(opts, :collapsible?, true)
+          }
+          |> maybe_put(:density, option(opts, :density))
+          |> maybe_put(:width, option(opts, :width))
+      },
+      opts
     )
   end
 

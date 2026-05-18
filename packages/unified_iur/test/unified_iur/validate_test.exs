@@ -101,6 +101,52 @@ defmodule UnifiedIUR.ValidateTest do
     assert repeat_error.code == :invalid_repeat_binding
   end
 
+  test "validates canonical right rail shape" do
+    valid_rail =
+      Components.right_rail(
+        id: :workspace_rail,
+        panels: [%{id: :summary, label: "Summary", content_slot: :summary_body}],
+        active_panel: :summary,
+        interactions: [
+          Interaction.selection(
+            intent: :select_panel,
+            element_id: :workspace_rail,
+            selection: :summary,
+            mapping: %{panel_id: :id}
+          )
+        ]
+      )
+
+    invalid_rail =
+      Components.right_rail(
+        id: :workspace_rail,
+        panels: [%{id: :summary, label: "Summary"}],
+        active_panel: :missing
+      )
+
+    event_leak =
+      Element.new(:widget, :right_rail,
+        attributes: %{
+          component: %{family: :layer_shell_and_callout, kind: :right_rail},
+          rail: %{
+            id: :workspace_rail,
+            side: :right,
+            panels: [%{"phx-click" => "select", id: :summary, label: "Summary"}],
+            active_panel: :summary,
+            collapsed?: false,
+            collapsible?: true
+          }
+        }
+      )
+
+    assert :ok = Validate.element(valid_rail)
+    assert {:error, [active_error]} = Validate.element(invalid_rail)
+    assert active_error.code == :invalid_rail_active_panel
+
+    assert {:error, [panel_error]} = Validate.element(event_leak)
+    assert panel_error.code == :invalid_rail_panel
+  end
+
   test "validates first-class artifact row fields" do
     valid_artifact =
       Components.artifact_row("ADR", [],

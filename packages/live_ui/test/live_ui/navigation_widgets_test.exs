@@ -4,6 +4,7 @@ defmodule LiveUi.NavigationWidgetsTest do
   import Phoenix.LiveViewTest
 
   alias LiveUi.Component
+  alias UnifiedIUR.Widgets.Components
   alias UnifiedIUR.Widgets.Navigation
 
   @moduledoc """
@@ -271,6 +272,83 @@ defmodule LiveUi.NavigationWidgetsTest do
       assert html =~ ~s(data-live-ui-widget-boundary="tabs")
       assert html =~ "Tab A"
       assert html =~ "Tab B"
+    end
+  end
+
+  describe "mode_nav glyph rendering" do
+    test "renders mode_nav items without glyph by default" do
+      element =
+        Components.mode_nav(
+          [
+            %{value: :map, label: "Map"},
+            %{value: :chat, label: "Chat"}
+          ],
+          id: "mode-nav-no-glyph",
+          aria_label: "Application modes"
+        )
+
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ "Map"
+      assert html =~ "Chat"
+      refute html =~ "live-ui-mode-nav-item__glyph"
+      refute html =~ "aria-hidden"
+    end
+
+    test "renders mode_nav item glyph with aria-hidden when glyph is provided" do
+      element =
+        Components.mode_nav(
+          [
+            %{value: :map, label: "Map", glyph: "M"},
+            %{value: :chat, label: "Chat", glyph: "C"},
+            %{value: :ask, label: "Ask"}
+          ],
+          id: "mode-nav-with-glyph",
+          aria_label: "Application modes"
+        )
+
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ "M"
+      assert html =~ "C"
+      assert html =~ "Map"
+      assert html =~ "Chat"
+      assert html =~ "Ask"
+      assert html =~ ~s(class="live-ui-mode-nav-item__glyph")
+      assert html =~ ~s(aria-hidden="true")
+    end
+
+    test "glyph span wraps glyph value and label is in separate span" do
+      element =
+        Components.mode_nav(
+          [%{value: :workspace, label: "Workspace", glyph: "W"}],
+          id: "mode-nav-glyph-structure"
+        )
+
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      assert html =~ ~s(<span class="live-ui-mode-nav-item__glyph" aria-hidden="true">W</span>)
+      assert html =~ ~s(<span class="live-ui-mode-nav-item__label">Workspace</span>)
+    end
+
+    test "items without glyph do not render glyph span" do
+      element =
+        Components.mode_nav(
+          [
+            %{value: :a, label: "Alpha", glyph: "A"},
+            %{value: :b, label: "Beta"}
+          ],
+          id: "mode-nav-mixed-glyph"
+        )
+
+      html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+      # Alpha has a glyph
+      assert html =~ ~s(aria-hidden="true")
+      assert html =~ "A"
+      assert html =~ "Alpha"
+      # Beta label still rendered in label span
+      assert html =~ ~s(<span class="live-ui-mode-nav-item__label">Beta</span>)
     end
   end
 

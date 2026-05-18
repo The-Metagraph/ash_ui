@@ -655,7 +655,7 @@ defmodule UnifiedIUR.Widgets.Components do
       %{
         navigation:
           %{
-            items: normalize_maps(items)
+            items: normalize_mode_nav_items(items)
           }
           |> maybe_put(:aria_label, option(opts, :aria_label))
           |> maybe_put(:navigation_intent, option(opts, :navigation_intent))
@@ -1713,6 +1713,27 @@ defmodule UnifiedIUR.Widgets.Components do
       |> maybe_put(:label, option(option_value, :label))
       |> maybe_put(:disabled?, option(option_value, :disabled?))
     end)
+  end
+
+  defp normalize_mode_nav_items(items) when is_list(items) do
+    Enum.map(items, &normalize_mode_nav_item/1)
+  end
+
+  defp normalize_mode_nav_items(_items), do: []
+
+  defp normalize_mode_nav_item(item) do
+    item = normalize_map(item)
+
+    item
+    |> Map.delete("glyph")
+    |> maybe_put(:glyph, normalize_mode_nav_glyph!(option(item, :glyph)))
+  end
+
+  defp normalize_mode_nav_glyph!(nil), do: nil
+  defp normalize_mode_nav_glyph!(glyph) when is_binary(glyph), do: glyph
+
+  defp normalize_mode_nav_glyph!(glyph) do
+    raise ArgumentError, "mode_nav item :glyph must be a string, got: #{inspect(glyph)}"
   end
 
   defp normalize_maps(values) when is_list(values) do

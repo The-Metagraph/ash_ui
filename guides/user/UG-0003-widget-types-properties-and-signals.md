@@ -104,6 +104,10 @@ authoring boundaries and normalize before renderer-facing output.
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
 | Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
 
+`mode_nav` item descriptors may include an optional `glyph` string. Renderers
+treat it as decorative leading display metadata; keep `label` present because it
+remains the accessible item name.
+
 `list_repeat` is not a visual list shell. It is a composition behavior for
 relationship-owned row templates. Declare the repeat list binding through
 `ui_relationships`, keep the row template as an element resource, and use

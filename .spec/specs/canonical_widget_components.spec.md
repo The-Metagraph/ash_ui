@@ -60,6 +60,10 @@ Required behavior:
   for searchable collection selection. It is rail-agnostic and composes inside
   `right_rail` or any other shell; it does not introduce app-specific rail
   names, bundle-specific slots, or renderer event fields.
+- `mode_nav` is a first-class `form_control_and_composer` component for
+  switching application modes. Per-item `glyph` is optional decorative display
+  metadata, uses a free string value, renders as a leading affordance, and does
+  not replace the required item label as the accessible name.
 - Drift is caught by package-boundary tests before release.
 
 ### ash_ui.canonical_widget_components.authoring_admission

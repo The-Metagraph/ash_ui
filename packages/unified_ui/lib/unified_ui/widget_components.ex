@@ -192,7 +192,7 @@ defmodule UnifiedUi.WidgetComponents do
       kind: :mode_nav,
       family: :form_control_and_composer,
       summary:
-        "Navigation control for switching application modes with labeled items and shortcuts.",
+        "Navigation control for switching application modes with labeled items and optional decorative glyphs.",
       aliases: []
     },
     %{

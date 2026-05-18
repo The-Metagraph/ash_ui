@@ -550,6 +550,71 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              repeat.children
   end
 
+  describe "mode_nav constructor" do
+    test "normalizes items and preserves glyph when present" do
+      element =
+        Components.mode_nav(
+          [
+            %{value: :map, label: "Map", glyph: "M"},
+            %{value: :chat, label: "Chat", glyph: "C"},
+            %{value: :ask, label: "Ask"}
+          ],
+          id: "mode-nav-glyph",
+          aria_label: "Application modes",
+          navigation_intent: :switch_mode
+        )
+
+      assert %Element{kind: :mode_nav} = element
+      assert element.id == "mode-nav-glyph"
+
+      items = get_in(element.attributes, [:navigation, :items])
+      assert length(items) == 3
+
+      [map_item, chat_item, ask_item] = items
+      assert map_item.label == "Map"
+      assert map_item.glyph == "M"
+      assert chat_item.label == "Chat"
+      assert chat_item.glyph == "C"
+      assert ask_item.label == "Ask"
+      refute Map.has_key?(ask_item, :glyph)
+    end
+
+    test "normalizes items without glyph as backward-compatible mode_nav items" do
+      element =
+        Components.mode_nav(
+          [
+            %{value: :workspace, label: "Workspace", current?: true},
+            %{value: :settings, label: "Settings"}
+          ],
+          id: "mode-nav-no-glyph",
+          navigation_intent: :switch_mode
+        )
+
+      items = get_in(element.attributes, [:navigation, :items])
+      assert length(items) == 2
+      Enum.each(items, fn item -> refute Map.has_key?(item, :glyph) end)
+    end
+
+    test "normalizes string-keyed glyph onto the canonical atom key" do
+      element =
+        Components.mode_nav(
+          [
+            %{"value" => "map", "label" => "Map", "glyph" => "M"}
+          ],
+          id: "mode-nav-string-glyph"
+        )
+
+      assert [%{glyph: "M"} = item] = get_in(element.attributes, [:navigation, :items])
+      refute Map.has_key?(item, "glyph")
+    end
+
+    test "rejects non-string glyph values" do
+      assert_raise ArgumentError, ~r/mode_nav item :glyph must be a string/, fn ->
+        Components.mode_nav([%{value: :map, label: "Map", glyph: :map}])
+      end
+    end
+  end
+
   test "represents collapsible sidebar sections with semantic change interactions" do
     section =
       Components.sidebar_section("Docs", [],

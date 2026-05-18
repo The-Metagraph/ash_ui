@@ -372,6 +372,37 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:segmented_button_group` is a member of `@component_kinds` through the
+  # `:form_control_and_composer` family, so the generic fallback below would
+  # shadow any later `:segmented_button_group` clause. Keep this specific clause
+  # BEFORE the generic `@component_kinds` fallback with the other native
+  # component-family clauses.
+  def render(%{element: %Element{kind: :segmented_button_group}} = assigns) do
+    assigns =
+      assigns
+      |> assign(
+        :options,
+        segmented_button_group_options(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:selected_value, selection_active_value(assigns.element))
+      |> assign(:label, segmented_button_group_label(assigns.element))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.SegmentedButtonGroup.component
+      id={element_id(@element, "segmented-button-group")}
+      options={@options}
+      selected_value={@selected_value}
+      label={@label}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -1501,6 +1532,89 @@ defmodule LiveUi.Renderer do
       |> maybe_put_item_attrs(collection_item_attrs(element, event_target, command_id))
     end)
   end
+
+  defp segmented_button_group_options(%Element{} = element, event_target) do
+    element.attributes
+    |> get_in([:selection, :options])
+    |> List.wrap()
+    |> Enum.map(fn option ->
+      option = Map.new(option)
+      value = Map.get(option, :value, Map.get(option, "value"))
+      disabled? = Map.get(option, :disabled?, Map.get(option, "disabled?"))
+
+      %{
+        value: value,
+        label: Map.get(option, :label, Map.get(option, "label", "")),
+        disabled?: disabled?,
+        attrs: segmented_button_group_option_attrs(element, event_target, value, disabled?)
+      }
+    end)
+  end
+
+  defp segmented_button_group_option_attrs(_element, _event_target, _value, true), do: %{}
+
+  defp segmented_button_group_option_attrs(%Element{} = element, event_target, value, _disabled?) do
+    case {segmented_button_group_interaction(element), event_target, value} do
+      {%Interaction{} = interaction, target, option_value}
+      when not is_nil(target) and not is_nil(option_value) ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "segmented-button-group"),
+          :"phx-value-widget" => "segmented_button_group",
+          :"phx-value-value" => to_string(option_value),
+          :"phx-value-selected_value" => to_string(option_value)
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp segmented_button_group_interaction(%Element{} = element) do
+    primary_control_interaction(element) ||
+      case selection_intent(element) do
+        nil ->
+          nil
+
+        intent ->
+          Interaction.selection(
+            intent: intent,
+            element_id: element_id(element, "segmented-button-group"),
+            mapping: %{selected_value: :value}
+          )
+      end
+  end
+
+  defp selection_intent(%Element{} = element) do
+    selection = Map.get(element.attributes, :selection, %{})
+    Map.get(selection, :selection_intent, Map.get(selection, "selection_intent"))
+  end
+
+  defp selection_active_value(%Element{} = element) do
+    selection = Map.get(element.attributes, :selection, %{})
+
+    Map.get(
+      selection,
+      :active_value,
+      Map.get(
+        selection,
+        "active_value",
+        Map.get(selection, :selected_value, Map.get(selection, "selected_value"))
+      )
+    )
+  end
+
+  defp segmented_button_group_label(%Element{} = element) do
+    get_in(element.attributes, [:accessibility, :label]) ||
+      get_in(element.attributes, [:selection, :label]) ||
+      metadata_description(element) ||
+      "Segmented control"
+  end
+
+  defp metadata_description(%Element{metadata: %{description: description}}), do: description
+  defp metadata_description(_element), do: nil
 
   defp context_menu_items(%Element{} = element, event_target) do
     element

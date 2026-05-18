@@ -69,6 +69,46 @@ defmodule LiveUi.RendererTest do
     refute html =~ "data-live-ui-unsupported-native-component"
   end
 
+  test "renderer maps canonical segmented button group through the native component boundary" do
+    element =
+      Components.segmented_button_group(
+        [
+          %{value: :all, label: "All"},
+          %{value: :open, label: "Open", disabled?: true},
+          %{value: :closed, label: "Closed"}
+        ],
+        id: "status-filter",
+        active_value: :all,
+        selection_intent: :select_status,
+        accessibility_label: "Status filter"
+      )
+
+    html =
+      render_component(&LiveUi.Renderer.render/1, %{
+        element: element,
+        event_target: "#runtime-host"
+      })
+
+    assert html =~ ~s(data-live-ui-widget-boundary="segmented_button_group")
+    assert html =~ ~s(data-live-ui-widget="segmented_button_group")
+    assert html =~ ~s(role="radiogroup")
+    assert html =~ ~s(aria-label="Status filter")
+    assert html =~ "All"
+    assert html =~ "Open"
+    assert html =~ ~s(data-option-value="all")
+    assert html =~ ~s(aria-checked="true")
+    assert html =~ "is-selected"
+    assert html =~ "disabled"
+    assert html =~ ~s(phx-click="canonical_interaction")
+    assert html =~ ~s(phx-target="#runtime-host")
+    assert html =~ ~s(phx-value-widget="segmented_button_group")
+    assert html =~ ~s(phx-value-element_id="status-filter")
+    assert html =~ ~s(phx-value-value="closed")
+    assert html =~ ~s(phx-value-selected_value="closed")
+    assert html =~ ~s(phx-value-interaction=)
+    refute html =~ "data-live-ui-unsupported-native-component"
+  end
+
   test "renderer preserves canonical decorative presence dot semantics" do
     element =
       Components.presence_dot(:active,

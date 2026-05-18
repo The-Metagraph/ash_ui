@@ -14,6 +14,7 @@ defmodule LiveUi.Widgets do
           | :operational
           | :display
           | :content_identity_and_disclosure
+          | :form_control_and_composer
 
   @type widget_module :: module()
 
@@ -29,7 +30,8 @@ defmodule LiveUi.Widgets do
       :data,
       :operational,
       :display,
-      :content_identity_and_disclosure
+      :content_identity_and_disclosure,
+      :form_control_and_composer
     ]
   end
 
@@ -40,7 +42,8 @@ defmodule LiveUi.Widgets do
       navigation_modules() ++
       advanced_modules() ++
       overlay_modules() ++
-      display_modules() ++ content_identity_and_disclosure_modules()
+      display_modules() ++
+      content_identity_and_disclosure_modules() ++ form_control_and_composer_modules()
   end
 
   @spec metadata() :: [LiveUi.Component.Metadata.t()]
@@ -81,6 +84,11 @@ defmodule LiveUi.Widgets do
   @spec content_identity_and_disclosure_modules() :: [widget_module()]
   def content_identity_and_disclosure_modules do
     LiveUi.Widgets.ContentIdentityAndDisclosure.modules()
+  end
+
+  @spec form_control_and_composer_modules() :: [widget_module()]
+  def form_control_and_composer_modules do
+    LiveUi.Widgets.FormControlAndComposer.modules()
   end
 
   @spec namespace() :: module()

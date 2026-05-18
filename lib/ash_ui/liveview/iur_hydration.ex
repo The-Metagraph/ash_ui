@@ -24,20 +24,21 @@ defmodule AshUI.LiveView.IURHydration do
   end
 
   def hydrate(%{"type" => "screen"} = iur, bindings) do
-    binding_states =
+    all_states =
       bindings
       |> normalize_bindings()
       |> Enum.reject(&BindingRuntime.action_binding?/1)
-      |> Enum.filter(&(BindingRuntime.owner_scope(&1) == :element))
+
+    element_states = Enum.filter(all_states, &(BindingRuntime.owner_scope(&1) == :element))
 
     Map.update(iur, "children", [], fn children ->
-      Enum.map(children, &hydrate_node(&1, binding_states))
+      Enum.map(children, &hydrate_node(&1, element_states, all_states))
     end)
   end
 
   def hydrate(iur, _bindings), do: iur
 
-  defp hydrate_node(%{"id" => element_id} = node, binding_states) do
+  defp hydrate_node(%{"id" => element_id} = node, binding_states, all_states) do
     props = Map.get(node, "props", %{})
 
     hydrated_props =
@@ -50,17 +51,18 @@ defmodule AshUI.LiveView.IURHydration do
     hydrated_children =
       node
       |> Map.get("children", [])
-      |> Enum.map(&hydrate_node(&1, binding_states))
+      |> Enum.map(&hydrate_node(&1, binding_states, all_states))
 
     node
     |> Map.put("props", hydrated_props)
     |> Map.put("children", hydrated_children)
     |> expand_list_repeat()
+    |> expand_repeat_template(all_states)
   end
 
-  defp hydrate_node(node, binding_states) when is_map(node) do
+  defp hydrate_node(node, binding_states, all_states) when is_map(node) do
     Map.update(node, "children", [], fn children ->
-      Enum.map(children, &hydrate_node(&1, binding_states))
+      Enum.map(children, &hydrate_node(&1, binding_states, all_states))
     end)
   end
 
@@ -179,6 +181,107 @@ defmodule AshUI.LiveView.IURHydration do
   end
 
   defp expand_list_repeat(node), do: node
+
+  # Expands a repeat-marked node whose type is NOT "list_repeat" (e.g.
+  # "artifact_row", "custom:doc_block_numbered") but which carries repeat
+  # metadata in `metadata.composition.repeat.binding_id`.  This handles the
+  # case where the repeat directive lives on the screen's or parent element's
+  # `ui_relationships` entry and is compiled by the LiveView's `compile_node`
+  # helper, as opposed to the canonical `list_repeat` widget which carries its
+  # own list binding as an element-scoped binding resolved before hydration.
+  #
+  # Called *after* `expand_list_repeat/1` so that a node with type
+  # "list_repeat" that already expanded (and set props["hydrated?"] = true) is
+  # a no-op here.
+  defp expand_repeat_template(node, all_states) do
+    repeat = get_in(node, ["metadata", "composition", "repeat"])
+
+    with %{} <- repeat,
+         binding_id when not is_nil(binding_id) <-
+           Map.get(repeat, "binding_id") || Map.get(repeat, :binding_id),
+         false <- Map.get(node["props"] || %{}, "hydrated?") == true,
+         {:ok, items} <- find_binding_items(all_states, binding_id) do
+      row_scope = Map.get(repeat, "row_scope") || Map.get(repeat, :row_scope) || "row"
+      row_fields = Map.get(repeat, "row_fields") || Map.get(repeat, :row_fields) || []
+
+      expanded_children =
+        items
+        |> Enum.with_index()
+        |> Enum.map(fn {row, row_index} ->
+          node
+          |> strip_repeat_metadata()
+          |> materialize_repeat_template(
+            row,
+            row_index,
+            row_index,
+            row_scope,
+            row_fields
+          )
+        end)
+
+      # Wrap expanded rows in a synthetic container node. The "hydrated?" flag
+      # prevents re-expansion on subsequent hydrate calls. The wrapper uses
+      # "list_repeat" type so the LiveUIAdapter renders its children as a
+      # contiguous repeat group.
+      %{
+        "type" => "list_repeat",
+        "id" => "#{node["id"]}:repeat_wrapper",
+        "props" => %{
+          "hydrated?" => true,
+          "row_count" => length(items)
+        },
+        "children" => expanded_children,
+        "metadata" => node["metadata"] || %{}
+      }
+    else
+      _ -> node
+    end
+  end
+
+  # Remove the repeat directive from a node's composition metadata so that
+  # cloned row instances do not re-trigger `expand_repeat_template/2`.
+  defp strip_repeat_metadata(%{"metadata" => %{"composition" => composition} = meta} = node)
+       when is_map(composition) do
+    stripped_composition = Map.delete(composition, "repeat") |> Map.delete(:repeat)
+    Map.put(node, "metadata", Map.put(meta, "composition", stripped_composition))
+  end
+
+  defp strip_repeat_metadata(node), do: node
+
+  defp find_binding_items(all_states, binding_id) do
+    binding_id_str = to_string(binding_id)
+
+    matching =
+      Enum.find(all_states, fn state ->
+        id = Map.get(state, :id) || Map.get(state, "id")
+        target = Map.get(state, :target) || Map.get(state, "target")
+
+        to_string(id) == binding_id_str or
+          to_string(target) == binding_id_str
+      end)
+
+    case matching do
+      nil ->
+        :none
+
+      state ->
+        value = Map.get(state, :value) || Map.get(state, "value")
+
+        cond do
+          is_list(value) ->
+            {:ok, value}
+
+          is_map(value) ->
+            items =
+              Map.get(value, :items) || Map.get(value, "items")
+
+            if is_list(items), do: {:ok, items}, else: :none
+
+          true ->
+            :none
+        end
+    end
+  end
 
   defp repeat_items(props) do
     cond do

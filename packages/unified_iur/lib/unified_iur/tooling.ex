@@ -75,7 +75,7 @@ defmodule UnifiedIUR.Tooling do
 
   @spec documentation_surface() :: map()
   def documentation_surface do
-    root = File.cwd!()
+    root = package_root()
 
     present_paths =
       @required_docs
@@ -88,6 +88,13 @@ defmodule UnifiedIUR.Tooling do
       missing_paths: @required_docs -- present_paths,
       complete?: length(present_paths) == length(@required_docs)
     }
+  end
+
+  defp package_root do
+    __DIR__
+    |> Path.expand()
+    |> Path.join("../..")
+    |> Path.expand()
   end
 
   @spec validation_report(map()) :: map()

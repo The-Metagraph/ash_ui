@@ -8,7 +8,7 @@ defmodule UnifiedIUR.Widgets.Feedback do
   alias UnifiedIUR.Element
   alias UnifiedIUR.Metadata
 
-  @kinds [:status, :progress, :gauge, :inline_feedback]
+  @kinds [:status, :progress, :gauge, :inline_feedback, :confidence_indicator]
 
   @spec kinds() :: [atom()]
   def kinds do
@@ -106,6 +106,36 @@ defmodule UnifiedIUR.Widgets.Feedback do
     )
   end
 
+  @spec confidence_indicator(number(), keyword() | map()) :: Element.t()
+  def confidence_indicator(value, opts \\ []) when is_number(value) do
+    opts = normalize_opts(opts)
+    value = value / 1
+    thresholds = normalize_thresholds!(option(opts, :thresholds, %{warn: 0.5, pass: 0.8}))
+    size = normalize_size!(option(opts, :size, :medium))
+
+    unless value >= 0.0 and value <= 1.0 do
+      raise ArgumentError, "confidence_indicator :value must be in 0.0..1.0, got: #{value}"
+    end
+
+    Element.new(:widget, :confidence_indicator,
+      id: option(opts, :id),
+      metadata: normalize_metadata(opts),
+      attributes:
+        %{
+          confidence:
+            %{}
+            |> Map.put(:value, value)
+            |> Map.put(:thresholds, thresholds)
+            |> maybe_put(:label, option(opts, :label))
+            |> Map.put(:show_numeric?, option(opts, :show_numeric?, true))
+            |> Map.put(:show_glyph?, option(opts, :show_glyph?, true))
+            |> Map.put(:size, size)
+        }
+        |> Attachment.merge(opts, component: :confidence_indicator),
+      children: []
+    )
+  end
+
   defp normalize_metadata(opts) do
     opts
     |> option(:metadata)
@@ -121,6 +151,51 @@ defmodule UnifiedIUR.Widgets.Feedback do
 
   defp option(opts, key, default \\ nil) do
     Map.get(opts, key, Map.get(opts, Atom.to_string(key), default))
+  end
+
+  defp normalize_thresholds!(thresholds) when is_list(thresholds) do
+    thresholds
+    |> Enum.into(%{})
+    |> normalize_thresholds!()
+  end
+
+  defp normalize_thresholds!(thresholds) when is_map(thresholds) do
+    warn = option(thresholds, :warn)
+    pass = option(thresholds, :pass)
+
+    unless is_number(warn) and is_number(pass) do
+      raise ArgumentError,
+            "confidence_indicator :thresholds must have numeric :warn and :pass keys"
+    end
+
+    warn = warn / 1
+    pass = pass / 1
+
+    unless warn >= 0.0 and warn <= 1.0 and pass >= 0.0 and pass <= 1.0 do
+      raise ArgumentError, "confidence_indicator :thresholds values must be in 0.0..1.0"
+    end
+
+    unless warn < pass do
+      raise ArgumentError,
+            "confidence_indicator :thresholds.warn must be less than :thresholds.pass"
+    end
+
+    %{warn: warn, pass: pass}
+  end
+
+  defp normalize_thresholds!(_thresholds) do
+    raise ArgumentError, "confidence_indicator :thresholds must be a map"
+  end
+
+  defp normalize_size!(size) when size in [:small, :medium, :large], do: size
+
+  defp normalize_size!(size) when size in ["small", "medium", "large"] do
+    String.to_existing_atom(size)
+  end
+
+  defp normalize_size!(size) do
+    raise ArgumentError,
+          "confidence_indicator :size must be one of :small, :medium, :large, got: #{inspect(size)}"
   end
 
   defp maybe_put(map, _key, nil), do: map

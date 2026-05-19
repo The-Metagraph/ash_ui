@@ -60,6 +60,55 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
       assert widget["diagnostic"]["code"] == "unsupported_component_fallback"
       assert widget["diagnostic"]["component_kind"] == :event_callout
     end
+
+    test "IUR adapter routes confidence_indicator props into baseline feedback attributes" do
+      assert {:ok, canonical} =
+               IUR.new(:confidence_indicator,
+                 id: "ci-test",
+                 props: %{
+                   value: 0.87,
+                   thresholds: %{warn: 0.5, pass: 0.8},
+                   label: "Match confidence"
+                 }
+               )
+               |> IURAdapter.to_canonical()
+
+      assert canonical.kind == :confidence_indicator
+      assert canonical.type == :widget
+      assert %{confidence: confidence} = canonical.attributes
+      assert confidence.value == 0.87
+      assert confidence.thresholds == %{warn: 0.5, pass: 0.8}
+      assert confidence.label == "Match confidence"
+      refute Map.has_key?(canonical.attributes, :component)
+    end
+
+    test "live_ui_adapter fallback renders confidence_indicator with meter semantics" do
+      assert {:ok, canonical} =
+               IUR.new(:screen,
+                 id: "ci-screen",
+                 name: "ci_test",
+                 children: [
+                   IUR.new(:confidence_indicator,
+                     id: "ci-1",
+                     props: %{
+                       value: 0.87,
+                       thresholds: %{warn: 0.5, pass: 0.8},
+                       show_glyph?: false,
+                       show_numeric?: false
+                     }
+                   )
+                 ]
+               )
+               |> IURAdapter.to_canonical()
+
+      assert {:ok, heex} = LiveUIAdapter.render(canonical, force_fallback: true)
+      assert heex =~ "ash-confidence-indicator"
+      assert heex =~ ~s(data-confidence-band="pass")
+      assert heex =~ ~s(role="meter")
+      assert heex =~ ~s(aria-valuenow="87")
+      refute heex =~ "ash-confidence-indicator__glyph"
+      refute heex =~ "ash-confidence-indicator__numeric"
+    end
   end
 
   defp canonical_component do

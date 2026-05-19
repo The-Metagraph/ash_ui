@@ -836,14 +836,14 @@ defmodule UnifiedIUR.Validate do
     []
     |> Kernel.++(
       validate_subject_dependency_edges(
-        fetch(dependencies, :depends_on),
+        fetch(dependencies, :depends_on, []),
         :depends_on,
         path ++ [:depends_on]
       )
     )
     |> Kernel.++(
       validate_subject_dependency_edges(
-        fetch(dependencies, :depended_by),
+        fetch(dependencies, :depended_by, []),
         :depended_by,
         path ++ [:depended_by]
       )

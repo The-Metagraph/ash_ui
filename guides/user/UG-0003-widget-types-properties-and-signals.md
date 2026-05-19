@@ -63,6 +63,7 @@ These are the types currently accepted by `ui_element` validation.
 | `label` | Form or field label copy | `text` or `content` or `label`, optional `for` |
 | `hero` | Large intro section | `eyebrow`, `title`, `message` |
 | `badge` | Small status label | `presentation`, `text` or `label` or `content` |
+| `confidence_indicator` | Confidence score or quality meter | `value`, `thresholds`, `label`, `show_numeric?`, `show_glyph?`, `size` |
 | `stat` | Metric card | `title`, `value`, `message` |
 | `key_value` | Definition row | `label` or `title`, `value`, `description` |
 | `info_list` | Simple list of labeled values | `items`, optional `ordered?` |

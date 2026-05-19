@@ -8,6 +8,7 @@ defmodule LiveUi.Widgets.Feedback do
     LiveUi.Widgets.Progress,
     LiveUi.Widgets.Gauge,
     LiveUi.Widgets.InlineFeedback,
+    LiveUi.Widgets.ConfidenceIndicator,
     LiveUi.Widgets.Sparkline,
     LiveUi.Widgets.BarChart,
     LiveUi.Widgets.LineChart

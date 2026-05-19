@@ -185,7 +185,7 @@ defmodule UnifiedIUR.Reference do
         {:bindings, Enum.map(sort_bindings(bindings), &snapshot_value/1)}
 
       {:interactions, interactions} ->
-        {:interactions, Enum.map(sort_interactions(interactions), &snapshot_value/1)}
+        {:interactions, snapshot_interactions(interactions)}
 
       {:theme, theme} ->
         {:theme, snapshot_map(theme)}
@@ -203,7 +203,7 @@ defmodule UnifiedIUR.Reference do
         {:bindings, Enum.map(sort_bindings(bindings), &snapshot_value/1)}
 
       {:interactions, interactions} ->
-        {:interactions, Enum.map(sort_interactions(interactions), &snapshot_value/1)}
+        {:interactions, snapshot_interactions(interactions)}
 
       {:token_refs, refs} ->
         {:token_refs, Enum.map(sort_token_refs(refs), &snapshot_value/1)}
@@ -233,6 +233,30 @@ defmodule UnifiedIUR.Reference do
         inspect(interaction.target)
       }
     end)
+  end
+
+  defp snapshot_interactions(%Interaction{} = interaction), do: [snapshot_value(interaction)]
+
+  defp snapshot_interactions(interactions) when is_map(interactions) do
+    if interaction_shape?(interactions) do
+      [interactions |> Interaction.new() |> snapshot_value()]
+    else
+      interactions
+      |> Enum.sort_by(fn {key, _interaction} -> to_string(key) end)
+      |> Enum.map(fn {key, interaction} ->
+        {key, interaction |> Interaction.new() |> snapshot_value()}
+      end)
+    end
+  end
+
+  defp snapshot_interactions(interactions) do
+    interactions
+    |> sort_interactions()
+    |> Enum.map(&snapshot_value/1)
+  end
+
+  defp interaction_shape?(interactions) do
+    Map.has_key?(interactions, :family) or Map.has_key?(interactions, "family")
   end
 
   defp sort_token_refs(refs) do

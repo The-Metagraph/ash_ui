@@ -750,6 +750,51 @@ defmodule DesktopUi.Renderer.Mapper do
   end
 
   defp map_element(%Element{type: :widget, kind: kind} = element)
+       when kind in [:confidence_indicator, "confidence_indicator"] do
+    confidence = attr(element, :confidence) || %{}
+    thresholds = Map.get(confidence, :thresholds, Map.get(confidence, "thresholds", %{}))
+    value = first_present([Map.get(confidence, :value), Map.get(confidence, "value")], 0.0)
+    warn = first_present([Map.get(thresholds, :warn), Map.get(thresholds, "warn")], 0.5)
+    pass = first_present([Map.get(thresholds, :pass), Map.get(thresholds, "pass")], 0.8)
+
+    band =
+      cond do
+        value >= pass -> :pass
+        value >= warn -> :warn
+        true -> :fail
+      end
+
+    {:ok,
+     Widget.new(:confidence_indicator,
+       id: element.id,
+       family: :feedback,
+       metadata: Keyword.merge(metadata_opts(element), role: :meter),
+       attributes: %{
+         value: value,
+         thresholds: %{warn: warn, pass: pass},
+         band: band,
+         label: first_present([Map.get(confidence, :label), Map.get(confidence, "label")]),
+         show_numeric?:
+           first_present(
+             [Map.get(confidence, :show_numeric?), Map.get(confidence, "show_numeric?")],
+             true
+           ),
+         show_glyph?:
+           first_present(
+             [Map.get(confidence, :show_glyph?), Map.get(confidence, "show_glyph?")],
+             true
+           ),
+         size: first_present([Map.get(confidence, :size), Map.get(confidence, "size")], :medium)
+       },
+       styles: normalize_styles(attr(element, :styles)),
+       state: %{
+         disabled:
+           first_present([attr(element, :disabled), metadata_attr(element, :disabled)], false)
+       }
+     )}
+  end
+
+  defp map_element(%Element{type: :widget, kind: kind} = element)
        when kind in [:bar_chart, "bar_chart"] do
     {:ok,
      DesktopUi.Widgets.bar_chart(

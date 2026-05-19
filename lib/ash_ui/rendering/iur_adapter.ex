@@ -668,6 +668,25 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:inline_feedback, props),
     do: %{feedback: Map.drop(props, attachment_prop_keys())}
 
+  defp base_attributes(:confidence_indicator, props) do
+    confidence =
+      %{
+        value: first_present(props, [:value, :confidence_value]) || 0.0,
+        thresholds:
+          normalize_optional_map(first_present(props, [:thresholds])) ||
+            %{
+              warn: 0.5,
+              pass: 0.8
+            },
+        show_numeric?: boolean_present(props, [:show_numeric?], true),
+        show_glyph?: boolean_present(props, [:show_glyph?], true),
+        size: normalize_existing_atom(first_present(props, [:size]) || :medium)
+      }
+      |> maybe_put(:label, first_present(props, [:label]))
+
+    %{confidence: confidence}
+  end
+
   defp base_attributes(:dialog, props), do: %{dialog: Map.drop(props, attachment_prop_keys())}
 
   defp base_attributes(:alert_dialog, props),
@@ -1095,6 +1114,15 @@ defmodule AshUI.Rendering.IURAdapter do
       value = fetch(map, key)
 
       if value in [nil, ""], do: nil, else: value
+    end)
+  end
+
+  defp boolean_present(map, keys, default) do
+    Enum.reduce_while(keys, default, fn key, _acc ->
+      case fetch(map, key) do
+        value when value in [nil, ""] -> {:cont, default}
+        value -> {:halt, value}
+      end
     end)
   end
 

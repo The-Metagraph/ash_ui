@@ -4,7 +4,7 @@ defmodule LiveUi.RendererTest do
   import Phoenix.LiveViewTest
 
   alias UnifiedIUR.{Container, Element, Forms, Interaction, Layout}
-  alias UnifiedIUR.Widgets.{Components, Foundational, Input, Navigation}
+  alias UnifiedIUR.Widgets.{Components, Feedback, Foundational, Input, Navigation}
 
   test "renderer maps foundational canonical widgets and layouts into native components" do
     element =
@@ -32,6 +32,23 @@ defmodule LiveUi.RendererTest do
     assert html =~ "data-live-ui-widget=\"text\""
     assert html =~ "data-live-ui-widget=\"button\""
     assert html =~ "data-live-ui-widget=\"tabs\""
+  end
+
+  test "renderer maps confidence_indicator through the native feedback boundary" do
+    element =
+      Feedback.confidence_indicator(0.87,
+        id: "confidence-score",
+        label: "Match confidence",
+        thresholds: %{warn: 0.5, pass: 0.8}
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="confidence-indicator")
+    assert html =~ ~s(role="meter")
+    assert html =~ ~s(aria-valuenow="87")
+    assert html =~ ~s(data-confidence-band="pass")
+    assert html =~ ~s(aria-label="Match confidence")
   end
 
   test "renderer maps canonical presence dot through the native component boundary" do

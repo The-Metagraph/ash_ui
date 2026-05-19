@@ -713,6 +713,49 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "confidence_indicator"} = iur, _opts) do
+    props = iur["props"] || %{}
+
+    confidence =
+      if is_map(prop(props, "confidence")), do: prop(props, "confidence", %{}), else: props
+
+    thresholds =
+      if is_map(prop(confidence, "thresholds")),
+        do: prop(confidence, "thresholds", %{}),
+        else: %{}
+
+    value = confidence_number(prop(confidence, "value", 0.0), 0.0)
+    pct = trunc(value * 100)
+    warn_threshold = confidence_number(prop(thresholds, "warn", 0.5), 0.5)
+    pass_threshold = confidence_number(prop(thresholds, "pass", 0.8), 0.8)
+    label = escaped_text_prop(confidence, "label", "Confidence: #{pct}%")
+    size = escaped_text_prop(confidence, "size", "medium")
+    show_glyph? = truthy_prop(confidence, "show_glyph?", true)
+    show_numeric? = truthy_prop(confidence, "show_numeric?", true)
+
+    band =
+      cond do
+        value >= pass_threshold -> "pass"
+        value >= warn_threshold -> "warn"
+        true -> "fail"
+      end
+
+    glyph =
+      case band do
+        "pass" -> "OK"
+        "warn" -> "!"
+        _band -> "X"
+      end
+
+    """
+    <div class="#{css_classes(["ash-confidence-indicator", "ash-confidence-indicator-#{band}", "ash-confidence-indicator-#{size}", prop_class(iur)])}" data-confidence-band="#{band}" role="meter" aria-valuenow="#{pct}" aria-valuemin="0" aria-valuemax="100" aria-label="#{label}"#{style_attr(prop_style(iur))}>
+      #{if(show_glyph?, do: ~s(<span class="ash-confidence-indicator__glyph" aria-hidden="true">#{glyph}</span>), else: "")}
+      <div class="ash-confidence-indicator__bar"><div class="ash-confidence-indicator__bar-fill" style="width: #{pct}%"></div></div>
+      #{if(show_numeric?, do: ~s(<span class="ash-confidence-indicator__numeric">#{pct}%</span>), else: "")}
+    </div>
+    """
+  end
+
   defp generate_heex(%{"type" => "ask_sidebar"} = iur, _opts) do
     props = iur["props"] || %{}
     sidebar_id = escaped_text_prop(props, ["sidebar_id"], "")
@@ -2826,6 +2869,18 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     </article>
     """
   end
+
+  defp confidence_number(value, _default) when is_integer(value), do: value / 1
+  defp confidence_number(value, _default) when is_float(value), do: value
+
+  defp confidence_number(value, default) when is_binary(value) do
+    case Float.parse(value) do
+      {number, _rest} -> number
+      :error -> default
+    end
+  end
+
+  defp confidence_number(_value, default), do: default
 
   defp metric_model(props) do
     case prop(props, "model", %{}) do

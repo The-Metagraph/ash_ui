@@ -3,6 +3,7 @@ defmodule DesktopUi.RendererTest do
 
   alias UnifiedIUR.Element
   alias UnifiedIUR.Element.Child
+  alias UnifiedIUR.Widgets.Feedback
 
   test "renderer maps foundational canonical widgets and layouts into native desktop widgets" do
     element =
@@ -46,6 +47,23 @@ defmodule DesktopUi.RendererTest do
     assert Enum.at(widget.children, 2).bindings.current == :section
     assert Enum.at(widget.children, 3).events.click.intent == :save_workspace
     assert DesktopUi.Renderer.validation_state() == :advanced_mapper_ready
+  end
+
+  test "renderer maps confidence_indicator as a feedback widget" do
+    element =
+      Feedback.confidence_indicator(0.87,
+        id: "confidence-score",
+        label: "Match confidence",
+        thresholds: %{warn: 0.5, pass: 0.8}
+      )
+
+    assert {:ok, widget} = DesktopUi.Renderer.render(element)
+    assert widget.kind == :confidence_indicator
+    assert widget.family == :feedback
+    assert widget.metadata.role == :meter
+    assert widget.attributes.value == 0.87
+    assert widget.attributes.band == :pass
+    assert widget.attributes.label == "Match confidence"
   end
 
   test "renderer maps advanced canonical widgets, display systems, and layers into native desktop widgets" do

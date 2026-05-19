@@ -254,7 +254,7 @@ defmodule DesktopUi.Widget do
   def family_for(kind) when kind in [:button, :toggle, :link, :command], do: :action
   def family_for(kind) when kind in [:text_input, :checkbox, :radio_group, :select], do: :input
   def family_for(kind) when kind in [:menu, :tabs, :breadcrumbs, :list], do: :navigation
-  def family_for(kind) when kind in [:status], do: :feedback
+  def family_for(kind) when kind in [:status, :confidence_indicator], do: :feedback
   def family_for(_kind), do: :content
 
   defp normalize_map(nil), do: %{}

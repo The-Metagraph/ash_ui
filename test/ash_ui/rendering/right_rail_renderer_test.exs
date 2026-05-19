@@ -31,6 +31,8 @@ defmodule AshUI.Rendering.RightRailRendererTest do
 
     assert rail["diagnostic"] == %{
              "code" => "unsupported_component_fallback",
+             "renderer" => "desktop_ui",
+             "element_id" => "workspace-rail",
              "component_kind" => :right_rail,
              "component_family" => :layer_shell_and_callout,
              "message" => "Desktop fallback preserved canonical component identity."

@@ -341,15 +341,20 @@ defmodule AshUI.Rendering.ElmUIAdapter do
     """
   end
 
-  defp component_diagnostic_attrs(%{"props" => %{"component" => component}})
+  defp component_diagnostic_attrs(%{"props" => %{"component" => component}} = iur)
        when is_map(component) do
     kind = Map.get(component, "kind") || Map.get(component, :kind)
     family = Map.get(component, "family") || Map.get(component, :family)
+    element_id = Map.get(iur, "id") || Map.get(iur, :id) || component_id(component)
 
-    ~s( data-ash-ui-renderer-diagnostic="unsupported_component_fallback" data-component-kind="#{kind}" data-component-family="#{family}")
+    ~s( data-ash-ui-renderer-diagnostic="unsupported_component_fallback" data-renderer="elm_ui" data-component-id="#{element_id}" data-component-kind="#{kind}" data-component-family="#{family}")
   end
 
   defp component_diagnostic_attrs(_iur), do: ""
+
+  defp component_id(component) when is_map(component) do
+    Map.get(component, "id") || Map.get(component, :id) || ""
+  end
 
   defp generate_seo_tags(seo_config) do
     """

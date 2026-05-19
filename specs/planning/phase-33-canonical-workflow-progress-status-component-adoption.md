@@ -202,7 +202,7 @@ canonical elements.
   output through Unified IUR.
 - [x] 33.5.2.5 Subtask - Commit Ash resource admission and canonical conversion.
 
-## [ ] 33.6 Section - Runtime Renderer Support
+## [x] 33.6 Section - Runtime Renderer Support
 
 This section wires native and fallback rendering without making host transport
 part of the canonical contract.
@@ -220,20 +220,20 @@ This task implements the native Live UI component and registry integration.
 - [x] 33.6.1.4 Subtask - Translate semantic interactions into LiveView events
   inside Live UI without storing raw `phx-*` fields in canonical data.
 
-### [ ] 33.6.2 Task - Preserve Or Diagnose Non-Live Runtime Cards
+### [x] 33.6.2 Task - Preserve Or Diagnose Non-Live Runtime Cards
 
 This task keeps Elm and desktop behavior explicit until native card rendering
 exists there.
 
-- [ ] 33.6.2.1 Subtask - Add Elm adapter preservation or structured
+- [x] 33.6.2.1 Subtask - Add Elm adapter preservation or structured
   unsupported-component diagnostics for `workflow_progress_status_card`.
-- [ ] 33.6.2.2 Subtask - Add desktop adapter preservation or structured
+- [x] 33.6.2.2 Subtask - Add desktop adapter preservation or structured
   unsupported-component diagnostics for `workflow_progress_status_card`.
-- [ ] 33.6.2.3 Subtask - Include renderer name, component kind, and element id in
+- [x] 33.6.2.3 Subtask - Include renderer name, component kind, and element id in
   diagnostics.
-- [ ] 33.6.2.4 Subtask - Add tests proving unsupported cards are not silently
+- [x] 33.6.2.4 Subtask - Add tests proving unsupported cards are not silently
   coerced to `custom:*` or generic nodes.
-- [ ] 33.6.2.5 Subtask - Commit runtime renderer support.
+- [x] 33.6.2.5 Subtask - Commit runtime renderer support.
 
 ## [ ] 33.7 Section - Documentation, Examples, And Migration Guidance
 

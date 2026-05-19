@@ -80,7 +80,9 @@ defmodule DesktopUi.Widget do
         :progress,
         :severity,
         :streaming,
-        :paused
+        :paused,
+        :active_filter,
+        :size
       ],
       bindings: [
         :value,
@@ -137,7 +139,13 @@ defmodule DesktopUi.Widget do
         :max_selections,
         :multiple,
         :multiple?,
-        :label_prefix
+        :label_prefix,
+        :new_count,
+        :changed_count,
+        :removed_count,
+        :base_label,
+        :show_filter_chips?,
+        :chips
       ],
       styles: [
         :fg,
@@ -264,7 +272,7 @@ defmodule DesktopUi.Widget do
   def family_for(kind) when kind in [:menu, :tabs, :breadcrumbs, :list, :context_selector],
     do: :navigation
 
-  def family_for(kind) when kind in [:status, :confidence_indicator], do: :feedback
+  def family_for(kind) when kind in [:status, :diff_banner, :confidence_indicator], do: :feedback
   def family_for(_kind), do: :content
 
   defp normalize_map(nil), do: %{}

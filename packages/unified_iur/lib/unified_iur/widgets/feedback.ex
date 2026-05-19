@@ -8,7 +8,9 @@ defmodule UnifiedIUR.Widgets.Feedback do
   alias UnifiedIUR.Element
   alias UnifiedIUR.Metadata
 
-  @kinds [:status, :progress, :gauge, :inline_feedback, :confidence_indicator]
+  @kinds [:status, :progress, :gauge, :inline_feedback, :diff_banner, :confidence_indicator]
+  @diff_filters [:all, :new, :changed, :removed]
+  @diff_sizes [:default, :compact]
 
   @spec kinds() :: [atom()]
   def kinds do
@@ -106,6 +108,43 @@ defmodule UnifiedIUR.Widgets.Feedback do
     )
   end
 
+  @spec diff_banner(keyword() | map()) :: Element.t()
+  def diff_banner(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    Element.new(:widget, :diff_banner,
+      id: option(opts, :id),
+      metadata: normalize_metadata(opts),
+      attributes:
+        %{
+          diff:
+            %{}
+            |> Map.put(
+              :new_count,
+              normalize_non_negative_count!(option(opts, :new_count, 0), :new_count)
+            )
+            |> Map.put(
+              :changed_count,
+              normalize_non_negative_count!(option(opts, :changed_count, 0), :changed_count)
+            )
+            |> Map.put(
+              :removed_count,
+              normalize_non_negative_count!(option(opts, :removed_count, 0), :removed_count)
+            )
+            |> Map.put(:active_filter, normalize_diff_filter!(option(opts, :active_filter, :all)))
+            |> Map.put(:show_filter_chips?, option(opts, :show_filter_chips?, true))
+            |> Map.put(:size, normalize_diff_size!(option(opts, :size, :default)))
+            |> maybe_put(:base_label, option(opts, :base_label))
+            |> maybe_put(
+              :filter_intent,
+              option(opts, :filter_intent, option(opts, :selection_intent))
+            )
+        }
+        |> Attachment.merge(opts, component: :diff_banner),
+      children: []
+    )
+  end
+
   @spec confidence_indicator(number(), keyword() | map()) :: Element.t()
   def confidence_indicator(value, opts \\ []) when is_number(value) do
     opts = normalize_opts(opts)
@@ -151,6 +190,48 @@ defmodule UnifiedIUR.Widgets.Feedback do
 
   defp option(opts, key, default \\ nil) do
     Map.get(opts, key, Map.get(opts, Atom.to_string(key), default))
+  end
+
+  defp normalize_non_negative_count!(value, _field) when is_integer(value) and value >= 0,
+    do: value
+
+  defp normalize_non_negative_count!(value, field) do
+    raise ArgumentError,
+          "diff_banner :#{field} must be a non-negative integer, got: #{inspect(value)}"
+  end
+
+  defp normalize_diff_filter!(value) when value in @diff_filters, do: value
+
+  defp normalize_diff_filter!(value) when is_binary(value) do
+    value
+    |> String.to_existing_atom()
+    |> normalize_diff_filter!()
+  rescue
+    ArgumentError ->
+      raise ArgumentError,
+            "diff_banner :active_filter must be one of #{inspect(@diff_filters)}, got: #{inspect(value)}"
+  end
+
+  defp normalize_diff_filter!(value) do
+    raise ArgumentError,
+          "diff_banner :active_filter must be one of #{inspect(@diff_filters)}, got: #{inspect(value)}"
+  end
+
+  defp normalize_diff_size!(value) when value in @diff_sizes, do: value
+
+  defp normalize_diff_size!(value) when is_binary(value) do
+    value
+    |> String.to_existing_atom()
+    |> normalize_diff_size!()
+  rescue
+    ArgumentError ->
+      raise ArgumentError,
+            "diff_banner :size must be one of #{inspect(@diff_sizes)}, got: #{inspect(value)}"
+  end
+
+  defp normalize_diff_size!(value) do
+    raise ArgumentError,
+          "diff_banner :size must be one of #{inspect(@diff_sizes)}, got: #{inspect(value)}"
   end
 
   defp normalize_thresholds!(thresholds) when is_list(thresholds) do

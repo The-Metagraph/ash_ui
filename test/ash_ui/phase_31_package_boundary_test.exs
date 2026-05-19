@@ -77,6 +77,12 @@ defmodule AshUI.Phase31PackageBoundaryTest do
       refute :context_selector in AshUI.WidgetComponents.kinds()
     end
 
+    test "baseline feedback primitives stay out of the widget-component catalog" do
+      refute :diff_banner in UnifiedUi.WidgetComponents.kinds()
+      refute :diff_banner in UnifiedIUR.Widgets.Components.kinds()
+      refute :diff_banner in AshUI.WidgetComponents.kinds()
+    end
+
     test "unknown names return the upstream catalog diagnostic" do
       assert {:error, diagnostic} = AshUI.WidgetComponents.canonical_kind(:not_in_catalog)
 

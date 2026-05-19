@@ -820,6 +820,27 @@ defmodule DesktopUi.Renderer.Mapper do
   end
 
   defp map_element(%Element{type: :widget, kind: kind} = element)
+       when kind in [:diff_banner, "diff_banner"] do
+    diff = attr(element, :diff) || %{}
+
+    {:ok,
+     DesktopUi.Widgets.diff_banner(
+       element.id,
+       Keyword.merge(
+         base_opts(element),
+         new_count: map_attr(diff, :new_count, 0),
+         changed_count: map_attr(diff, :changed_count, 0),
+         removed_count: map_attr(diff, :removed_count, 0),
+         base_label: map_attr(diff, :base_label, nil),
+         active_filter: map_attr(diff, :active_filter, :all),
+         show_filter_chips?: map_attr(diff, :show_filter_chips?, true),
+         size: map_attr(diff, :size, :default),
+         on_filter: diff_banner_filter_payload(element, diff)
+       )
+     )}
+  end
+
+  defp map_element(%Element{type: :widget, kind: kind} = element)
        when kind in [:bar_chart, "bar_chart"] do
     {:ok,
      DesktopUi.Widgets.bar_chart(
@@ -1487,6 +1508,14 @@ defmodule DesktopUi.Renderer.Mapper do
     map_attr(selector, :multiple?, false) ||
       max_selections in [:unlimited, "unlimited"] ||
       (is_integer(max_selections) and max_selections > 1)
+  end
+
+  defp diff_banner_filter_payload(element, diff) do
+    interaction_payload(element, :selection) ||
+      case map_attr(diff, :filter_intent, nil) do
+        nil -> nil
+        intent -> %{family: :selection, intent: intent, mapping: %{selected_value: :filter}}
+      end
   end
 
   defp map_attr(map, key, default) when is_map(map),

@@ -7,7 +7,16 @@ defmodule DesktopUi.Widgets.Feedback do
 
   @spec kinds() :: [atom()]
   def kinds do
-    [:alert_dialog, :dialog, :inline_feedback, :progress, :sparkline, :status, :toast]
+    [
+      :alert_dialog,
+      :dialog,
+      :diff_banner,
+      :inline_feedback,
+      :progress,
+      :sparkline,
+      :status,
+      :toast
+    ]
   end
 
   @spec sparkline(String.t() | atom(), keyword()) :: Widget.t()
@@ -55,7 +64,8 @@ defmodule DesktopUi.Widgets.Feedback do
         auto_hide: Keyword.get(opts, :auto_hide, true),
         timeout_ms: Keyword.get(opts, :timeout_ms, 3_000)
       },
-      events: events(close: Keyword.get(opts, :on_close), dismiss: Keyword.get(opts, :on_dismiss)),
+      events:
+        events(close: Keyword.get(opts, :on_close), dismiss: Keyword.get(opts, :on_dismiss)),
       styles: styles(opts)
     )
   end
@@ -163,6 +173,29 @@ defmodule DesktopUi.Widgets.Feedback do
         status: Keyword.get(opts, :status, :idle),
         icon: Keyword.get(opts, :icon)
       },
+      styles: styles(opts)
+    )
+  end
+
+  @spec diff_banner(String.t() | atom(), keyword()) :: Widget.t()
+  def diff_banner(id, opts \\ []) do
+    Widget.new(:diff_banner,
+      id: id,
+      metadata: metadata(opts, role: :radiogroup),
+      state:
+        state(opts,
+          active_filter: Keyword.get(opts, :active_filter, :all),
+          size: Keyword.get(opts, :size, :default)
+        ),
+      attributes: %{
+        new_count: Keyword.get(opts, :new_count, 0),
+        changed_count: Keyword.get(opts, :changed_count, 0),
+        removed_count: Keyword.get(opts, :removed_count, 0),
+        base_label: Keyword.get(opts, :base_label),
+        show_filter_chips?: Keyword.get(opts, :show_filter_chips?, true),
+        chips: Keyword.get(opts, :chips, [])
+      },
+      events: events(filter: Keyword.get(opts, :on_filter)),
       styles: styles(opts)
     )
   end

@@ -439,4 +439,32 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(data-selected="true")
     assert html =~ ~s(live-ui-workflow-progress-status-card--selected)
   end
+
+  test "renderer maps canonical diff_banner through native feedback boundary" do
+    element =
+      Feedback.diff_banner(
+        id: "ask-diff",
+        new_count: 3,
+        changed_count: 5,
+        removed_count: 1,
+        active_filter: :new,
+        filter_intent: :filter_diff
+      )
+
+    html =
+      render_component(&LiveUi.Renderer.render/1, %{
+        element: element,
+        event_target: %Phoenix.LiveComponent.CID{cid: 1}
+      })
+
+    assert html =~ ~s(data-live-ui-widget-boundary="diff_banner")
+    assert html =~ ~s(data-live-ui-widget="diff-banner")
+    assert html =~ ~s(data-active-filter="new")
+    assert html =~ "9 all"
+    assert html =~ "3 new"
+    assert html =~ ~s(phx-click="canonical_interaction")
+    assert html =~ ~s(phx-value-widget="diff_banner")
+    assert html =~ ~s(phx-value-selected_value="new")
+    refute html =~ "live_ui_interaction"
+  end
 end

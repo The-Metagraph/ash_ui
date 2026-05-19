@@ -39,7 +39,7 @@ defmodule UnifiedIUR.WidgetsTest do
 
     assert Widgets.data_view_kinds() == Data.kinds()
 
-    assert [:status, :progress, :gauge, :inline_feedback, :confidence_indicator] ==
+    assert [:status, :progress, :gauge, :inline_feedback, :diff_banner, :confidence_indicator] ==
              Widgets.feedback_kinds()
 
     assert Widgets.feedback_kinds() == Feedback.kinds()

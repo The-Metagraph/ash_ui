@@ -224,7 +224,9 @@ defmodule ElmUi.Widget do
     do: :data
 
   def family_for(kind) when kind in [:markdown_viewer, :log_viewer], do: :document
-  def family_for(kind) when kind in [:status, :progress, :inline_feedback], do: :feedback
+
+  def family_for(kind) when kind in [:status, :progress, :inline_feedback, :diff_banner],
+    do: :feedback
 
   def family_for(kind)
       when kind in [:gauge, :sparkline, :bar_chart, :line_chart, :canvas],

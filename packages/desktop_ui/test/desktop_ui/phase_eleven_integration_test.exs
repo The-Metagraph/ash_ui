@@ -8,7 +8,7 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
 
   @moduletag :phase_eleven
 
-  @iur_widget_count 47
+  @iur_widget_count 48
 
   @all_iur_kinds MapSet.new([
                    # Foundational (13)
@@ -50,9 +50,10 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
                    :stat,
                    :table,
                    :tree_view,
-                   # Feedback (6)
+                   # Feedback (7)
                    :alert_dialog,
                    :dialog,
+                   :diff_banner,
                    :inline_feedback,
                    :progress,
                    :status,
@@ -281,7 +282,7 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
     test "canonical mapper supports all feedback and advanced widget kinds" do
       supported = Renderer.supported_kinds() |> MapSet.new()
 
-      feedback_kinds = [:status, :inline_feedback, :progress]
+      feedback_kinds = [:status, :inline_feedback, :progress, :diff_banner]
       advanced_kinds = [:stream_widget, :supervision_tree_viewer, :log_viewer, :process_monitor]
 
       Enum.each(feedback_kinds ++ advanced_kinds, fn kind ->
@@ -292,17 +293,17 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
   end
 
   describe "11.5 Mapper coverage and diagnostics scenarios" do
-    test "canonical mapper handles all 46 IUR widget kinds without fallback" do
+    test "canonical mapper handles all 48 IUR widget kinds without fallback" do
       supported = Renderer.supported_kinds() |> MapSet.new()
 
       # All IUR widget kinds should be supported
       missing_kinds = MapSet.difference(@all_iur_kinds, supported)
 
       assert MapSet.size(missing_kinds) == 0,
-             "Expected all 47 IUR kinds to be supported, but missing: #{inspect(MapSet.to_list(missing_kinds))}"
+             "Expected all 48 IUR kinds to be supported, but missing: #{inspect(MapSet.to_list(missing_kinds))}"
     end
 
-    test "renderer.supported_kinds returns at least 47 kinds" do
+    test "renderer.supported_kinds returns at least 48 kinds" do
       count = length(Renderer.supported_kinds())
 
       assert count >= @iur_widget_count,

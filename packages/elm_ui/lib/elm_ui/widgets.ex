@@ -400,6 +400,11 @@ defmodule ElmUi.Widgets do
     Feedback.inline_feedback(id, message, opts)
   end
 
+  @spec diff_banner(String.t() | atom(), keyword()) :: Widget.t()
+  def diff_banner(id, opts \\ []) do
+    Feedback.diff_banner(id, opts)
+  end
+
   @spec gauge(String.t() | atom(), keyword()) :: Widget.t()
   def gauge(id, opts \\ []) do
     Visualization.gauge(id, opts)

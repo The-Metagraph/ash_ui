@@ -693,6 +693,22 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:inline_feedback, props),
     do: %{feedback: Map.drop(props, attachment_prop_keys())}
 
+  defp base_attributes(:diff_banner, props) do
+    %{
+      diff:
+        compact_map(%{
+          new_count: normalize_count(fetch(props, :new_count, 0)),
+          changed_count: normalize_count(fetch(props, :changed_count, 0)),
+          removed_count: normalize_count(fetch(props, :removed_count, 0)),
+          base_label: first_present(props, [:base_label]),
+          active_filter: normalize_existing_atom(first_present(props, [:active_filter])) || :all,
+          show_filter_chips?: boolean_present(props, [:show_filter_chips?], true),
+          size: normalize_existing_atom(first_present(props, [:size])) || :default,
+          filter_intent: first_present(props, [:filter_intent, :selection_intent])
+        })
+    }
+  end
+
   defp base_attributes(:confidence_indicator, props) do
     confidence =
       %{
@@ -1066,6 +1082,18 @@ defmodule AshUI.Rendering.IURAdapter do
   defp context_selector_multiple?("unlimited"), do: true
   defp context_selector_multiple?(value) when is_integer(value), do: value > 1
   defp context_selector_multiple?(_value), do: false
+
+  defp normalize_count(value) when is_integer(value) and value >= 0, do: value
+  defp normalize_count(value) when is_float(value) and value >= 0, do: round(value)
+
+  defp normalize_count(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {parsed, ""} when parsed >= 0 -> parsed
+      _other -> 0
+    end
+  end
+
+  defp normalize_count(_value), do: 0
 
   defp normalize_optional_map(nil), do: nil
 

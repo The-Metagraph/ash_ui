@@ -35,6 +35,7 @@ defmodule AshUI.Resources.Validations.Authoring do
                     "runtime_form_shell",
                     "segmented_button_group",
                     "chat_composer",
+                    "diff_banner",
                     "context_selector",
                     "right_rail",
                     "workflow_progress_status_card"
@@ -53,6 +54,7 @@ defmodule AshUI.Resources.Validations.Authoring do
     "runtime_form_shell" => [:submit],
     "segmented_button_group" => [:change, :input],
     "chat_composer" => [:change, :input, :submit],
+    "diff_banner" => [:change, :input],
     "context_selector" => [:change, :input],
     "right_rail" => [:change, :toggle, :click],
     "workflow_progress_status_card" => [:click, :change]

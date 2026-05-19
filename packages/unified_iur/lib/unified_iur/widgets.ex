@@ -33,7 +33,7 @@ defmodule UnifiedIUR.Widgets do
   ]
   @navigation_kinds [:menu, :tabs]
   @data_view_kinds [:list, :table, :tree_view, :stat, :key_value, :info_list]
-  @feedback_kinds [:status, :progress, :gauge, :inline_feedback]
+  @feedback_kinds [:status, :progress, :gauge, :inline_feedback, :diff_banner]
   @advanced_kinds [
     :stream_widget,
     :log_viewer,

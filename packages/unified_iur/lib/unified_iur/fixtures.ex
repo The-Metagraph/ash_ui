@@ -732,6 +732,15 @@ defmodule UnifiedIUR.Fixtures do
            id: "feedback-inline",
            title: "Success",
            severity: :success
+         )},
+        {:content,
+         Feedback.diff_banner(
+           id: "diff-banner-widget",
+           new_count: 3,
+           removed_count: 1,
+           changed_count: 2,
+           base_label: "Compared to last run",
+           active_filter: :all
          )}
       ],
       id: "content-grid",
@@ -1100,6 +1109,18 @@ defmodule UnifiedIUR.Fixtures do
            [],
            id: "component-command-palette",
            open?: false
+         )},
+        {:content,
+         Components.repo_progress_card(
+           id: "component-repo-card",
+           name: "metagraph",
+           progress_pct: 0.72,
+           active_count: 3,
+           blocked_count: 1,
+           path: "/Users/mjdecour/apps/TheMetagraph/metagraph",
+           depends_on: [],
+           depended_by: ["metagraph-analysis", "ariston-ui"],
+           selected?: false
          )}
       ],
       id: "component-safety-fixture"

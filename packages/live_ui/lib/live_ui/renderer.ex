@@ -373,6 +373,51 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:repo_progress_card` is a canonical component kind, so keep this native
+  # renderer clause before the generic `@component_kinds` fallback.
+  def render(%{element: %Element{kind: :repo_progress_card}} = assigns) do
+    assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
+
+    repo = get_in(assigns.element.attributes, [:repo]) || %{}
+    open_action = get_in(assigns.element.attributes, [:open_action])
+
+    assigns =
+      assigns
+      |> assign(:repo_name, Map.get(repo, :name, ""))
+      |> assign(:progress_pct, Map.get(repo, :progress_pct, 0.0))
+      |> assign(:active_count, Map.get(repo, :active_count, 0))
+      |> assign(:blocked_count, Map.get(repo, :blocked_count, 0))
+      |> assign(:repo_path, Map.get(repo, :path))
+      |> assign(:depends_on, Map.get(repo, :depends_on, []))
+      |> assign(:depended_by, Map.get(repo, :depended_by, []))
+      |> assign(:selected?, Map.get(repo, :selected?, false))
+      |> assign(:focus_intent, Map.get(repo, :focus_intent, "focus_repo"))
+      |> assign(:last_activity_label, last_activity_label(Map.get(repo, :last_activity_at)))
+      |> assign(:open_action, open_action)
+
+    ~H"""
+    <LiveUi.Widgets.RepoProgressCard.component
+      id={element_id(@element, "repo-progress-card")}
+      name={@repo_name}
+      progress_pct={@progress_pct}
+      active_count={@active_count}
+      blocked_count={@blocked_count}
+      path={@repo_path}
+      last_activity_label={@last_activity_label}
+      depends_on={@depends_on}
+      depended_by={@depended_by}
+      selected?={@selected?}
+      focus_intent={@focus_intent}
+      open_action={@open_action}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   # NOTE: `:artifact_row` is a member of `@row_artifact_kinds` (and therefore of
   # `@component_kinds`), so the generic fallback below would shadow a later clause.
   # Keep this specific clause BEFORE the generic `@component_kinds` fallback with
@@ -2013,6 +2058,22 @@ defmodule LiveUi.Renderer do
 
   defp string_optional(nil), do: nil
   defp string_optional(value), do: to_string(value)
+
+  defp last_activity_label(nil), do: nil
+
+  defp last_activity_label(%DateTime{} = dt) do
+    now = DateTime.utc_now()
+    diff_seconds = DateTime.diff(now, dt, :second)
+
+    cond do
+      diff_seconds < 60 -> "just now"
+      diff_seconds < 3600 -> "#{div(diff_seconds, 60)}m ago"
+      diff_seconds < 86_400 -> "#{div(diff_seconds, 3600)}h ago"
+      true -> "#{div(diff_seconds, 86_400)}d ago"
+    end
+  end
+
+  defp last_activity_label(_other), do: nil
 
   defp boolean_attr(true), do: "true"
   defp boolean_attr(false), do: "false"

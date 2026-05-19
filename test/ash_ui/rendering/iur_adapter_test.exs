@@ -211,6 +211,102 @@ defmodule AshUI.Rendering.IURAdapterTest do
     end
   end
 
+  describe "ask_sidebar IUR routing" do
+    test "routes ask_sidebar kind through layer_shell_and_callout family" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "ask-sidebar-screen",
+          name: "ask_sidebar_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:ask_sidebar,
+              id: "ask-sb-1",
+              props: %{
+                "sidebar_id" => "main-ask-sidebar",
+                "on_map_jump_event" => "switch_to_map"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :ask_sidebar
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :layer_shell_and_callout
+    end
+
+    test "preserves sidebar_id in canonical ask_sidebar attributes" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "ask-sidebar-screen-2",
+          name: "ask_sidebar_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:ask_sidebar,
+              id: "ask-sb-2",
+              props: %{
+                "sidebar_id" => "workspace-ask-sidebar",
+                "on_map_jump_event" => "goto_map"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.attributes.ask_sidebar.sidebar_id == "workspace-ask-sidebar"
+      assert child.element.attributes.ask_sidebar.on_map_jump_event == "goto_map"
+    end
+  end
+
+  describe "repo_progress_card IUR routing" do
+    test "routes repo_progress_card kind through workflow_progress_and_status family" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "repo-card-screen",
+          name: "repo_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:repo_progress_card,
+              id: "rpc-1",
+              props: %{
+                "name" => "metagraph",
+                "progress_pct" => 0.5,
+                "active_count" => 2,
+                "blocked_count" => 0
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :repo_progress_card
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :workflow_progress_and_status
+    end
+
+    test "preserves repo name in canonical attributes" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "repo-card-screen-2",
+          name: "repo_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:repo_progress_card,
+              id: "rpc-2",
+              props: %{"name" => "ash_ui", "progress_pct" => 0.0}
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.attributes.repo.name == "ash_ui"
+    end
+  end
+
   describe "error handling" do
     test "returns error for invalid IUR" do
       invalid_iur = %IUR{type: nil}

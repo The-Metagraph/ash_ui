@@ -624,6 +624,31 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:command_palette, props),
     do: %{command_palette: Map.drop(props, attachment_prop_keys())}
 
+  defp base_attributes(:ask_sidebar = kind, props) do
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        ask_sidebar:
+          compact_map(%{
+            sidebar_id: first_present(props, [:sidebar_id, :id_key]),
+            on_map_jump_event: first_present(props, [:on_map_jump_event, :map_jump_event]),
+            recent_items: fetch(props, :recent_items, []),
+            saved_items: fetch(props, :saved_items, []),
+            blocker_count: fetch(props, :blocker_count, 0),
+            empty_recent_label:
+              first_present(props, [:empty_recent_label]) || "No recent queries",
+            empty_saved_label:
+              first_present(props, [:empty_saved_label]) || "No saved queries yet"
+          })
+          |> maybe_put(:active_item_id, first_present(props, [:active_item_id]))
+          |> maybe_put(:on_new_saved_event, first_present(props, [:on_new_saved_event]))
+          |> maybe_put(:on_see_all_event, first_present(props, [:on_see_all_event]))
+      },
+      props
+    )
+  end
+
   defp base_attributes(:list, props), do: %{list: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:table, props), do: %{table: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:tree_view, props), do: %{tree: Map.drop(props, attachment_prop_keys())}
@@ -641,6 +666,28 @@ defmodule AshUI.Rendering.IURAdapter do
 
   defp base_attributes(:inline_feedback, props),
     do: %{feedback: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:diff_banner = kind, props) do
+    component_attributes(
+      kind,
+      :workflow_progress_and_status,
+      %{
+        diff:
+          compact_map(%{
+            new_count: fetch(props, :new_count, 0),
+            removed_count: fetch(props, :removed_count, 0),
+            changed_count: fetch(props, :changed_count, 0),
+            base_label: first_present(props, [:base_label]),
+            filter_intent_prefix: first_present(props, [:filter_intent_prefix]) || "filter_diff_",
+            active_filter:
+              normalize_existing_atom(first_present(props, [:active_filter])) || :all,
+            show_filter_chips?: fetch(props, :show_filter_chips?, true),
+            size: normalize_existing_atom(first_present(props, [:size])) || :default
+          })
+      },
+      props
+    )
+  end
 
   defp base_attributes(:dialog, props), do: %{dialog: Map.drop(props, attachment_prop_keys())}
 
@@ -662,6 +709,31 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:canvas, props), do: %{canvas: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:form_builder, props), do: %{form: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:field_group, props), do: %{group: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:repo_progress_card = kind, props) do
+    component_attributes(
+      kind,
+      :workflow_progress_and_status,
+      %{
+        repo:
+          compact_map(%{
+            name: first_present(props, [:name]),
+            progress_pct: first_present(props, [:progress_pct]) || 0.0,
+            active_count: first_present(props, [:active_count]) || 0,
+            blocked_count: first_present(props, [:blocked_count]) || 0,
+            path: first_present(props, [:path]),
+            last_activity_at: first_present(props, [:last_activity_at]),
+            depends_on: fetch(props, :depends_on, []),
+            depended_by: fetch(props, :depended_by, []),
+            selected?: first_present(props, [:selected?]) || false,
+            focus_intent: first_present(props, [:focus_intent]) || "focus_repo"
+          }),
+        open_action: normalize_optional_map(first_present(props, [:open_action]))
+      },
+      props
+    )
+  end
+
   defp base_attributes(kind, props), do: %{kind => Map.drop(props, attachment_prop_keys())}
 
   defp style_attributes(props) do

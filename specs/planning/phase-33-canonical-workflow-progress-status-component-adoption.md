@@ -43,35 +43,35 @@ metadata, adds structured repository/dependency/action validation, keeps
 interactions host independent, wires runtime rendering and fallback behavior,
 and closes with documentation and conformance coverage.
 
-## [ ] 33.1 Section - Rebase And Scope Hygiene
+## [x] 33.1 Section - Rebase And Scope Hygiene
 
 This section makes PR #123 usable as an implementation base without carrying
 stale registry conflicts or unrelated wave changes.
 
-### [ ] 33.1.1 Task - Rebase The PR Branch Onto Current Main
+### [x] 33.1.1 Task - Rebase The PR Branch Onto Current Main
 
 This task updates the implementation branch and resolves conflicts against the
 current canonical component registry.
 
-- [ ] 33.1.1.1 Subtask - Fetch current `main` and PR #123 head.
-- [ ] 33.1.1.2 Subtask - Create a Phase 33 implementation branch from current
+- [x] 33.1.1.1 Subtask - Fetch current `main` and PR #123 head.
+- [x] 33.1.1.2 Subtask - Create a Phase 33 implementation branch from current
   `main`.
-- [ ] 33.1.1.3 Subtask - Replay the PR #123 changes onto the Phase 33 branch.
-- [ ] 33.1.1.4 Subtask - Resolve conflicts in
+- [x] 33.1.1.3 Subtask - Replay the PR #123 changes onto the Phase 33 branch.
+- [x] 33.1.1.4 Subtask - Resolve conflicts in
   `packages/live_ui/lib/live_ui/renderer.ex` and
   `packages/live_ui/lib/live_ui/widgets.ex` against the current registry shape.
 
-### [ ] 33.1.2 Task - Remove Unrelated Branch Drift
+### [x] 33.1.2 Task - Remove Unrelated Branch Drift
 
 This task keeps the final PR focused on `repo_progress_card`.
 
-- [ ] 33.1.2.1 Subtask - Remove unrelated `diff_banner` changes from
+- [x] 33.1.2.1 Subtask - Remove unrelated `diff_banner` changes from
   `packages/unified_iur/lib/unified_iur/widgets/feedback.ex`.
-- [ ] 33.1.2.2 Subtask - Drop any generated `_build`, dependency, report, or
+- [x] 33.1.2.2 Subtask - Drop any generated `_build`, dependency, report, or
   tool-version noise.
-- [ ] 33.1.2.3 Subtask - Confirm the branch diff only touches canonical
+- [x] 33.1.2.3 Subtask - Confirm the branch diff only touches canonical
   workflow progress and status adoption files.
-- [ ] 33.1.2.4 Subtask - Commit the clean rebase and scope baseline.
+- [x] 33.1.2.4 Subtask - Commit the clean rebase and scope baseline.
 
 ## [ ] 33.2 Section - Canonical Decision And Family Boundary
 

@@ -219,6 +219,13 @@ defmodule UnifiedUi.WidgetComponents do
       summary:
         "Keyboard-driven command palette overlay with open state, filterable items, and children.",
       aliases: []
+    },
+    %{
+      kind: :repo_progress_card,
+      family: :workflow_progress_and_status,
+      summary:
+        "Composite card representing a single repo: name + path + progress + active/blocked/activity stats + dependency edges.",
+      aliases: []
     }
   ]
 

@@ -82,6 +82,10 @@ defmodule UnifiedIUR.Widgets.Components do
     :list_repeat
   ]
 
+  @workflow_summary_kinds [
+    :repo_progress_card
+  ]
+
   @spec content_identity_kinds() :: [atom()]
   def content_identity_kinds, do: @content_identity_kinds
 
@@ -106,6 +110,9 @@ defmodule UnifiedIUR.Widgets.Components do
   @spec composition_behavior_kinds() :: [atom()]
   def composition_behavior_kinds, do: @composition_behavior_kinds
 
+  @spec workflow_summary_kinds() :: [atom()]
+  def workflow_summary_kinds, do: @workflow_summary_kinds
+
   @spec kinds() :: [atom()]
   def kinds do
     @content_identity_kinds ++
@@ -114,7 +121,8 @@ defmodule UnifiedIUR.Widgets.Components do
       @workflow_kinds ++
       @layer_callout_kinds ++
       @redline_code_kinds ++
-      @composition_behavior_kinds
+      @composition_behavior_kinds ++
+      @workflow_summary_kinds
   end
 
   @spec inline_rich_text_heading(atom(), [keyword() | map()], opts()) :: Element.t()
@@ -679,6 +687,83 @@ defmodule UnifiedIUR.Widgets.Components do
           count: count,
           threshold: option(opts, :threshold, 99)
         }
+      },
+      opts
+    )
+  end
+
+  @spec repo_progress_card(opts()) :: Element.t()
+  def repo_progress_card(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    name = option(opts, :name)
+
+    unless is_binary(name) and byte_size(name) > 0 do
+      raise ArgumentError, "repo_progress_card requires a non-empty :name string"
+    end
+
+    progress_pct = option(opts, :progress_pct, 0.0)
+
+    unless is_float(progress_pct) or is_integer(progress_pct) do
+      raise ArgumentError, "repo_progress_card :progress_pct must be a number"
+    end
+
+    unless progress_pct >= 0.0 and progress_pct <= 1.0 do
+      raise ArgumentError, "repo_progress_card :progress_pct must be in 0.0..1.0"
+    end
+
+    active_count = option(opts, :active_count, 0)
+
+    unless is_integer(active_count) and active_count >= 0 do
+      raise ArgumentError, "repo_progress_card :active_count must be a non-negative integer"
+    end
+
+    blocked_count = option(opts, :blocked_count, 0)
+
+    unless is_integer(blocked_count) and blocked_count >= 0 do
+      raise ArgumentError, "repo_progress_card :blocked_count must be a non-negative integer"
+    end
+
+    open_action = option(opts, :open_action)
+
+    if open_action != nil do
+      unless is_map(open_action) and Map.has_key?(open_action, :label) and
+               Map.has_key?(open_action, :intent) do
+        raise ArgumentError,
+              "repo_progress_card :open_action must have :label and :intent keys"
+      end
+    end
+
+    depends_on = option(opts, :depends_on, [])
+
+    unless is_list(depends_on) and Enum.all?(depends_on, &is_binary/1) do
+      raise ArgumentError, "repo_progress_card :depends_on must be a list of strings"
+    end
+
+    depended_by = option(opts, :depended_by, [])
+
+    unless is_list(depended_by) and Enum.all?(depended_by, &is_binary/1) do
+      raise ArgumentError, "repo_progress_card :depended_by must be a list of strings"
+    end
+
+    build_component(
+      :repo_progress_card,
+      :workflow_progress_and_status,
+      %{
+        repo:
+          %{
+            name: name,
+            progress_pct: progress_pct / 1.0,
+            active_count: active_count,
+            blocked_count: blocked_count,
+            depends_on: depends_on,
+            depended_by: depended_by
+          }
+          |> maybe_put(:path, option(opts, :path))
+          |> maybe_put(:last_activity_at, option(opts, :last_activity_at))
+          |> maybe_put(:selected?, option(opts, :selected?, false))
+          |> maybe_put(:focus_intent, option(opts, :focus_intent, "focus_repo")),
+        open_action: normalize_optional_map(open_action)
       },
       opts
     )

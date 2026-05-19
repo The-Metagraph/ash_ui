@@ -984,6 +984,33 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
         end
       )
     end
+
+    test "generates diff_banner fallback with chip counts and active filter" do
+      iur = %{
+        "type" => "diff_banner",
+        "id" => "ask-diff",
+        "props" => %{
+          "diff" => %{
+            "new_count" => 4,
+            "removed_count" => 2,
+            "changed_count" => 7,
+            "active_filter" => "new",
+            "size" => "default"
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-diff-banner"
+      assert heex =~ "4 new"
+      assert heex =~ "2 removed"
+      assert heex =~ "7 changed"
+      assert heex =~ ~s(data-active-filter="new")
+      assert heex =~ "ash-diff-banner__chip--new"
+    end
   end
 
   describe "Section 7.2.1 - Event Binding Configuration" do
@@ -1154,5 +1181,105 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       ],
       "metadata" => %{}
     }
+  end
+
+  describe "ask_sidebar adapter dispatch" do
+    test "generates dedicated ask_sidebar markup" do
+      iur = %{
+        "type" => "ask_sidebar",
+        "id" => "ask-sb-adapter-test",
+        "props" => %{
+          "sidebar_id" => "main-ask-sidebar",
+          "on_map_jump_event" => "switch_to_map",
+          "recent_items" => [
+            %{"id" => "q1", "query" => "find blockers", "on_open_event" => "open_query"}
+          ],
+          "saved_items" => []
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-ask-sidebar"
+      assert heex =~ ~s(data-live-ui-widget="ask-sidebar")
+      assert heex =~ ~s(data-sidebar-id="main-ask-sidebar")
+      assert heex =~ "aria-label=\"Ask sidebar\""
+      assert heex =~ "Recent"
+      assert heex =~ "find blockers"
+      assert heex =~ "switch_to_map"
+    end
+
+    test "ask_sidebar adapter preserves active item aria-current" do
+      iur = %{
+        "type" => "ask_sidebar",
+        "id" => "ask-sb-active-test",
+        "props" => %{
+          "sidebar_id" => "ask-sb-active",
+          "on_map_jump_event" => "goto_map",
+          "recent_items" => [
+            %{"id" => "active-query", "query" => "active one", "on_open_event" => "open_q"}
+          ],
+          "active_item_id" => "active-query"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ ~s(aria-current="true")
+      assert heex =~ "ash-ask-sidebar__item--active"
+    end
+  end
+
+  describe "repo_progress_card adapter dispatch" do
+    test "generates dedicated repo_progress_card markup" do
+      iur = %{
+        "type" => "repo_progress_card",
+        "id" => "rpc-adapter-test",
+        "props" => %{
+          "repo" => %{
+            "name" => "metagraph",
+            "progress_pct" => 0.65,
+            "active_count" => 3,
+            "blocked_count" => 1
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-repo-progress-card"
+      assert heex =~ ~s(data-repo-card="metagraph")
+      assert heex =~ ~s(role="progressbar")
+      assert heex =~ "65"
+      assert heex =~ "3 active"
+      assert heex =~ "1 blocked"
+    end
+
+    test "repo_progress_card adapter marks selected state" do
+      iur = %{
+        "type" => "repo_progress_card",
+        "id" => "rpc-selected-test",
+        "props" => %{
+          "repo" => %{
+            "name" => "ash_ui",
+            "progress_pct" => 0.4,
+            "selected?" => true
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-repo-progress-card--selected"
+      assert heex =~ ~s(data-selected="true")
+    end
   end
 end

@@ -13,7 +13,14 @@ defmodule AshUI.Resources.Validations.Authoring do
   @allowed_relationship_placements [:append, :prepend]
   @screen_binding_prefixes ["flash.", "screen.", "metadata."]
   @screen_binding_targets ["title"]
-  @list_widgets MapSet.new(["list", "table", "info_list", "select", "list_repeat"])
+  @list_widgets MapSet.new([
+                  "list",
+                  "table",
+                  "info_list",
+                  "select",
+                  "list_repeat",
+                  "context_selector"
+                ])
   @action_widgets MapSet.new([
                     "button",
                     "input",
@@ -28,6 +35,7 @@ defmodule AshUI.Resources.Validations.Authoring do
                     "runtime_form_shell",
                     "segmented_button_group",
                     "chat_composer",
+                    "context_selector",
                     "right_rail",
                     "workflow_progress_status_card"
                   ])
@@ -45,6 +53,7 @@ defmodule AshUI.Resources.Validations.Authoring do
     "runtime_form_shell" => [:submit],
     "segmented_button_group" => [:change, :input],
     "chat_composer" => [:change, :input, :submit],
+    "context_selector" => [:change, :input],
     "right_rail" => [:change, :toggle, :click],
     "workflow_progress_status_card" => [:click, :change]
   }

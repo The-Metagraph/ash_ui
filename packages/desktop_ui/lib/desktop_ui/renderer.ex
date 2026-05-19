@@ -23,7 +23,7 @@ defmodule DesktopUi.Renderer do
   end
 
   @doc """
-  All 45 canonical IUR widget kinds supported by the desktop_ui renderer.
+  All 47 canonical IUR widget kinds supported by the desktop_ui renderer.
   Each kind has dedicated native widget mapping, draw kind handling, and
   SDL3 rendering implementation.
   """
@@ -31,11 +31,11 @@ defmodule DesktopUi.Renderer do
   def supported_kinds do
     # Foundational (13)
     # Input (10)
-    # Navigation (4)
+    # Navigation (5)
     # Data (7)
     # Feedback (6)
     # Operational (7)
-    # Visualization (5)
+    # Visualization (6)
     # Layout & Structure (3)
     # Container (1)
     ([
@@ -63,6 +63,7 @@ defmodule DesktopUi.Renderer do
        :text_input,
        :time_input,
        :breadcrumbs,
+       :context_selector,
        :list,
        :menu,
        :tabs,
@@ -91,6 +92,7 @@ defmodule DesktopUi.Renderer do
        :canvas,
        :gauge,
        :line_chart,
+       :sparkline,
        :timeline,
        :column,
        :row,

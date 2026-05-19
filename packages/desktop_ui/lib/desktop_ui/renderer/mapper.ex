@@ -458,6 +458,31 @@ defmodule DesktopUi.Renderer.Mapper do
   end
 
   defp map_element(%Element{type: :widget, kind: kind} = element)
+       when kind in [:context_selector, "context_selector"] do
+    selector = attr(element, :context_selector) || %{}
+    max_selections = map_attr(selector, :max_selections, 1)
+
+    {:ok,
+     DesktopUi.Widgets.context_selector(
+       element.id,
+       normalize_context_selector_groups(map_attr(selector, :groups, [])),
+       Keyword.merge(
+         base_opts(element),
+         selector_id: map_attr(selector, :selector_id, element.id),
+         placeholder: map_attr(selector, :placeholder, "Select context..."),
+         selected_values: map_attr(selector, :selected_values, []),
+         max_selections: max_selections,
+         multiple?: context_selector_multiple?(selector, max_selections),
+         label_prefix: map_attr(selector, :label_prefix, "context:"),
+         open?: map_attr(selector, :open?, false),
+         binding: binding_name(element),
+         on_select: interaction_payload(element, :selection),
+         on_change: interaction_payload(element, :change)
+       )
+     )}
+  end
+
+  defp map_element(%Element{type: :widget, kind: kind} = element)
        when kind in [:breadcrumbs, "breadcrumbs"] do
     {:ok, map_navigation(:breadcrumbs, element)}
   end
@@ -1445,6 +1470,29 @@ defmodule DesktopUi.Renderer.Mapper do
   defp normalize_map(map) when is_map(map), do: Map.new(map)
   defp normalize_map(list) when is_list(list), do: Enum.into(list, %{})
   defp normalize_map(_other), do: %{}
+
+  defp normalize_context_selector_groups(groups) when is_list(groups) do
+    Enum.map(groups, fn group ->
+      group = normalize_map(group)
+
+      Map.update(group, :items, map_attr(group, :items, []), fn items ->
+        Enum.map(List.wrap(items), &normalize_map/1)
+      end)
+    end)
+  end
+
+  defp normalize_context_selector_groups(_groups), do: []
+
+  defp context_selector_multiple?(selector, max_selections) do
+    map_attr(selector, :multiple?, false) ||
+      max_selections in [:unlimited, "unlimited"] ||
+      (is_integer(max_selections) and max_selections > 1)
+  end
+
+  defp map_attr(map, key, default) when is_map(map),
+    do: Map.get(map, key, Map.get(map, to_string(key), default))
+
+  defp map_attr(_map, _key, default), do: default
 
   defp placeholder_child(id, role) do
     Widget.new(:spacer, id: "#{id}-#{role}-placeholder")

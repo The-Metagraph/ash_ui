@@ -126,6 +126,49 @@ defmodule LiveUi.RendererTest do
     refute html =~ "data-live-ui-unsupported-native-component"
   end
 
+  test "renderer maps canonical context selector through the native navigation boundary" do
+    element =
+      Navigation.context_selector(
+        id: "workspace-context",
+        selector_id: "workspace-context",
+        groups: [
+          %{
+            id: :workspace,
+            label: "Workspace",
+            items: [
+              %{value: :all, label: "All workspaces"},
+              %{value: :active, label: "Active workspace", disabled?: true}
+            ]
+          }
+        ],
+        selected_values: [:all],
+        max_selections: :unlimited,
+        open?: true,
+        selection_intent: :select_context
+      )
+
+    html =
+      render_component(&LiveUi.Renderer.render/1, %{
+        element: element,
+        event_target: "#runtime-host"
+      })
+
+    assert html =~ ~s(data-live-ui-widget-boundary="context_selector")
+    assert html =~ ~s(data-live-ui-widget="context-selector")
+    assert html =~ ~s(role="listbox")
+    assert html =~ ~s(aria-multiselectable="true")
+    assert html =~ "All workspaces"
+    assert html =~ ~s(data-context-value="all")
+    assert html =~ ~s(aria-selected="true")
+    assert html =~ ~s(phx-click="canonical_interaction")
+    assert html =~ ~s(phx-target="#runtime-host")
+    assert html =~ ~s(phx-value-widget="context_selector")
+    assert html =~ ~s(phx-value-element_id="workspace-context")
+    assert html =~ ~s(phx-value-group_id="workspace")
+    assert html =~ ~s(phx-value-selected_value="all")
+    refute html =~ "data-live-ui-unsupported-native-component"
+  end
+
   test "renderer preserves canonical decorative presence dot semantics" do
     element =
       Components.presence_dot(:active,

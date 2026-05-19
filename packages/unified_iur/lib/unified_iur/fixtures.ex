@@ -524,6 +524,28 @@ defmodule UnifiedIUR.Fixtures do
                [id: :activity, label: "Activity"]
              ],
              id: "workspace-tabs"
+           )},
+          {:content,
+           Navigation.context_selector(
+             id: "workspace-context-selector",
+             selector_id: "workspace-context",
+             groups: [
+               %{
+                 id: :workspace,
+                 label: "Workspace",
+                 items: [
+                   %{value: :all, label: "All workspaces", selected?: true},
+                   %{value: :active, label: "Active workspace"}
+                 ]
+               },
+               %{
+                 id: :team,
+                 label: "Team",
+                 items: [%{value: :platform, label: "Platform UI"}]
+               }
+             ],
+             selected_values: [:all],
+             selection_intent: :select_context
            )}
         ],
         id: "navigation-column"

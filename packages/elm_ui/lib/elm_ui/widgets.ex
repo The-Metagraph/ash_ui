@@ -308,6 +308,11 @@ defmodule ElmUi.Widgets do
     Navigation.tabs(id, items, opts)
   end
 
+  @spec context_selector(String.t() | atom(), [keyword() | map()], keyword()) :: Widget.t()
+  def context_selector(id, groups, opts \\ []) do
+    Navigation.context_selector(id, groups, opts)
+  end
+
   @spec overlay(
           String.t() | atom(),
           Widget.t() | map() | keyword(),

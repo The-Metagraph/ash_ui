@@ -9,6 +9,7 @@ defmodule UnifiedIUR.Widgets.Components do
 
   alias UnifiedIUR.Attachment
   alias UnifiedIUR.Element
+  alias UnifiedIUR.Interaction
   alias UnifiedIUR.Metadata
 
   # Spec traceability:
@@ -695,71 +696,279 @@ defmodule UnifiedIUR.Widgets.Components do
       raise ArgumentError, "repo_progress_card requires a non-empty :name string"
     end
 
-    progress_pct = option(opts, :progress_pct, 0.0)
+    repo_id = option(opts, :repo_id, name)
 
-    unless is_float(progress_pct) or is_integer(progress_pct) do
-      raise ArgumentError, "repo_progress_card :progress_pct must be a number"
+    unless is_binary(repo_id) and byte_size(repo_id) > 0 do
+      raise ArgumentError, "repo_progress_card requires a non-empty :repo_id string"
     end
 
-    unless progress_pct >= 0.0 and progress_pct <= 1.0 do
-      raise ArgumentError, "repo_progress_card :progress_pct must be in 0.0..1.0"
-    end
+    progress = normalize_repo_progress!(opts)
+    status_counts = normalize_repo_status_counts!(opts)
+    dependencies = normalize_repo_dependencies!(opts)
+    activity = normalize_repo_activity(opts)
+    actions = normalize_repo_actions!(opts)
+    interactions = normalize_repo_interactions!(opts, repo_id)
+    state = normalize_repo_state!(opts)
 
-    active_count = option(opts, :active_count, 0)
-
-    unless is_integer(active_count) and active_count >= 0 do
-      raise ArgumentError, "repo_progress_card :active_count must be a non-negative integer"
-    end
-
-    blocked_count = option(opts, :blocked_count, 0)
-
-    unless is_integer(blocked_count) and blocked_count >= 0 do
-      raise ArgumentError, "repo_progress_card :blocked_count must be a non-negative integer"
-    end
-
-    open_action = option(opts, :open_action)
-
-    if open_action != nil do
-      unless is_map(open_action) and Map.has_key?(open_action, :label) and
-               Map.has_key?(open_action, :intent) do
-        raise ArgumentError,
-              "repo_progress_card :open_action must have :label and :intent keys"
-      end
-    end
-
-    depends_on = option(opts, :depends_on, [])
-
-    unless is_list(depends_on) and Enum.all?(depends_on, &is_binary/1) do
-      raise ArgumentError, "repo_progress_card :depends_on must be a list of strings"
-    end
-
-    depended_by = option(opts, :depended_by, [])
-
-    unless is_list(depended_by) and Enum.all?(depended_by, &is_binary/1) do
-      raise ArgumentError, "repo_progress_card :depended_by must be a list of strings"
-    end
+    repo =
+      %{
+        id: repo_id,
+        name: name,
+        progress: progress,
+        status_counts: status_counts,
+        dependencies: dependencies
+      }
+      |> maybe_put(:path, option(opts, :path))
+      |> maybe_put(:activity, activity)
+      |> maybe_put(:state, state)
+      |> maybe_put(:actions, empty_map_to_nil(actions))
+      |> maybe_put(:interactions, empty_map_to_nil(interactions))
 
     build_component(
       :repo_progress_card,
       :workflow_progress_and_status,
-      %{
-        repo:
-          %{
-            name: name,
-            progress_pct: progress_pct / 1.0,
-            active_count: active_count,
-            blocked_count: blocked_count,
-            depends_on: depends_on,
-            depended_by: depended_by
-          }
-          |> maybe_put(:path, option(opts, :path))
-          |> maybe_put(:last_activity_at, option(opts, :last_activity_at))
-          |> maybe_put(:selected?, option(opts, :selected?, false))
-          |> maybe_put(:focus_intent, option(opts, :focus_intent, "focus_repo")),
-        open_action: normalize_optional_map(open_action)
-      },
+      %{repo: repo},
       opts
     )
+  end
+
+  defp normalize_repo_progress!(opts) do
+    progress = option(opts, :progress)
+
+    progress =
+      if is_nil(progress) do
+        progress_pct = option(opts, :progress_pct, 0.0)
+
+        unless is_float(progress_pct) or is_integer(progress_pct) do
+          raise ArgumentError, "repo_progress_card :progress_pct must be a number"
+        end
+
+        unless progress_pct >= 0.0 and progress_pct <= 1.0 do
+          raise ArgumentError, "repo_progress_card :progress_pct must be in 0.0..1.0"
+        end
+
+        progress_pct * 100.0
+      else
+        progress
+      end
+
+    unless is_float(progress) or is_integer(progress) do
+      raise ArgumentError, "repo_progress_card :progress must be a number"
+    end
+
+    unless progress >= 0.0 and progress <= 100.0 do
+      raise ArgumentError, "repo_progress_card :progress must be in 0.0..100.0"
+    end
+
+    progress / 1.0
+  end
+
+  defp normalize_repo_status_counts!(opts) do
+    counts = opts |> option(:status_counts, %{}) |> normalize_map()
+
+    active_count = option(opts, :active_count, option(counts, :active, 0))
+    blocked_count = option(opts, :blocked_count, option(counts, :blocked, 0))
+    done_count = option(opts, :done_count, option(counts, :done))
+    failed_count = option(opts, :failed_count, option(counts, :failed))
+    custom_counts = option(opts, :custom_counts, option(counts, :custom))
+
+    unless non_negative_integer?(active_count) do
+      raise ArgumentError, "repo_progress_card :active_count must be a non-negative integer"
+    end
+
+    unless non_negative_integer?(blocked_count) do
+      raise ArgumentError, "repo_progress_card :blocked_count must be a non-negative integer"
+    end
+
+    if not is_nil(done_count) and not non_negative_integer?(done_count) do
+      raise ArgumentError, "repo_progress_card :done_count must be a non-negative integer"
+    end
+
+    if not is_nil(failed_count) and not non_negative_integer?(failed_count) do
+      raise ArgumentError, "repo_progress_card :failed_count must be a non-negative integer"
+    end
+
+    %{
+      active: active_count,
+      blocked: blocked_count
+    }
+    |> maybe_put(:done, done_count)
+    |> maybe_put(:failed, failed_count)
+    |> maybe_put(:custom, normalize_repo_custom_counts!(custom_counts))
+  end
+
+  defp normalize_repo_custom_counts!(nil), do: nil
+
+  defp normalize_repo_custom_counts!(counts) when is_map(counts) do
+    counts
+    |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
+    |> Enum.map(fn {key, value} -> normalize_repo_custom_count!({key, value}) end)
+  end
+
+  defp normalize_repo_custom_counts!(counts) when is_list(counts) do
+    Enum.map(counts, &normalize_repo_custom_count!/1)
+  end
+
+  defp normalize_repo_custom_counts!(_counts) do
+    raise ArgumentError, "repo_progress_card :custom_counts must be a map or list"
+  end
+
+  defp normalize_repo_custom_count!({key, value}) do
+    normalize_repo_custom_count!(%{key: key, value: value})
+  end
+
+  defp normalize_repo_custom_count!(count) when is_map(count) or is_list(count) do
+    count = normalize_map(count)
+    key = option(count, :key)
+    value = option(count, :value)
+
+    unless not is_nil(key) and non_negative_integer?(value) do
+      raise ArgumentError, "repo_progress_card custom counts require :key and non-negative :value"
+    end
+
+    %{
+      key: key,
+      value: value
+    }
+    |> maybe_put(:label, option(count, :label))
+  end
+
+  defp normalize_repo_custom_count!(_count) do
+    raise ArgumentError, "repo_progress_card custom counts must be maps"
+  end
+
+  defp normalize_repo_activity(opts) do
+    activity = opts |> option(:activity, %{}) |> normalize_map()
+
+    activity
+    |> maybe_put(:last_activity_at, option(opts, :last_activity_at))
+    |> empty_map_to_nil()
+  end
+
+  defp normalize_repo_dependencies!(opts) do
+    %{
+      depends_on:
+        opts
+        |> option(:depends_on, [])
+        |> normalize_repo_dependency_edges!(:depends_on),
+      depended_by:
+        opts
+        |> option(:depended_by, [])
+        |> normalize_repo_dependency_edges!(:depended_by)
+    }
+  end
+
+  defp normalize_repo_dependency_edges!(edges, direction) when is_list(edges) do
+    Enum.map(edges, &normalize_repo_dependency_edge!(&1, direction))
+  end
+
+  defp normalize_repo_dependency_edges!(_edges, direction) do
+    raise ArgumentError, "repo_progress_card :#{direction} must be a list of dependency edges"
+  end
+
+  defp normalize_repo_dependency_edge!(edge, direction) when is_binary(edge) do
+    %{id: edge, label: edge, direction: direction}
+  end
+
+  defp normalize_repo_dependency_edge!(edge, direction) when is_map(edge) or is_list(edge) do
+    edge = normalize_map(edge)
+    id = option(edge, :id)
+
+    unless is_binary(id) and byte_size(id) > 0 do
+      raise ArgumentError, "repo_progress_card dependency edges require a non-empty :id string"
+    end
+
+    %{
+      id: id,
+      label: option(edge, :label, id),
+      direction: option(edge, :direction, direction)
+    }
+    |> maybe_put(:state, option(edge, :state))
+    |> maybe_put(:metadata, edge |> option(:metadata) |> normalize_optional_map())
+    |> maybe_put(:interaction, normalize_repo_interaction(option(edge, :interaction)))
+  end
+
+  defp normalize_repo_dependency_edge!(_edge, direction) do
+    raise ArgumentError, "repo_progress_card :#{direction} must be a list of strings or maps"
+  end
+
+  defp normalize_repo_actions!(opts) do
+    %{}
+    |> maybe_put(:open, opts |> option(:open_action) |> normalize_repo_open_action!())
+  end
+
+  defp normalize_repo_open_action!(nil), do: nil
+
+  defp normalize_repo_open_action!(action) when is_map(action) or is_list(action) do
+    action = normalize_map(action)
+    label = option(action, :label)
+    intent = option(action, :intent)
+
+    unless is_binary(label) and byte_size(label) > 0 and not is_nil(intent) do
+      raise ArgumentError, "repo_progress_card :open_action must have :label and :intent keys"
+    end
+
+    %{
+      label: label,
+      intent: intent
+    }
+    |> maybe_put(:visible_when, option(action, :visible_when))
+    |> maybe_put(:metadata, action |> option(:metadata) |> normalize_optional_map())
+    |> maybe_put(:interaction, action |> option(:interaction) |> normalize_repo_interaction())
+  end
+
+  defp normalize_repo_open_action!(_action) do
+    raise ArgumentError, "repo_progress_card :open_action must be a map"
+  end
+
+  defp normalize_repo_interactions!(opts, repo_id) do
+    focus_interaction =
+      case option(opts, :focus_interaction) do
+        nil ->
+          case option(opts, :focus_intent, "focus_repo") do
+            nil -> nil
+            intent -> Interaction.focus(intent: intent, entity: repo_id)
+          end
+
+        interaction ->
+          normalize_repo_interaction(interaction)
+      end
+
+    dependency_select_interaction =
+      case option(opts, :dependency_select_interaction) do
+        nil ->
+          case option(opts, :dependency_select_intent) do
+            nil -> nil
+            intent -> Interaction.selection(intent: intent, entity: repo_id)
+          end
+
+        interaction ->
+          normalize_repo_interaction(interaction)
+      end
+
+    %{}
+    |> maybe_put(:focus, focus_interaction)
+    |> maybe_put(:dependency_select, dependency_select_interaction)
+  end
+
+  defp normalize_repo_interaction(nil), do: nil
+  defp normalize_repo_interaction(%Interaction{} = interaction), do: Interaction.new(interaction)
+
+  defp normalize_repo_interaction(interaction) when is_map(interaction) or is_list(interaction),
+    do: Interaction.new(interaction)
+
+  defp normalize_repo_interaction(_interaction) do
+    raise ArgumentError, "repo_progress_card interactions must be canonical interaction maps"
+  end
+
+  defp normalize_repo_state!(opts) do
+    selected? = option(opts, :selected?, false)
+
+    unless is_boolean(selected?) do
+      raise ArgumentError, "repo_progress_card :selected? must be boolean"
+    end
+
+    %{selected?: selected?}
   end
 
   @spec command_palette(
@@ -887,6 +1096,11 @@ defmodule UnifiedIUR.Widgets.Components do
 
   defp empty_to_nil([]), do: nil
   defp empty_to_nil(value), do: value
+
+  defp empty_map_to_nil(%{} = value) when map_size(value) == 0, do: nil
+  defp empty_map_to_nil(value), do: value
+
+  defp non_negative_integer?(value), do: is_integer(value) and value >= 0
 
   defp normalize_metadata(opts) do
     opts

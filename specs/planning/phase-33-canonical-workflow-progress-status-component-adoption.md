@@ -133,41 +133,41 @@ Ash-authored cards.
   event strings.
 - [x] 33.3.2.4 Subtask - Commit Unified UI authoring and compiler support.
 
-## [ ] 33.4 Section - Unified IUR Constructor And Validation
+## [x] 33.4 Section - Unified IUR Constructor And Validation
 
 This section gives `repo_progress_card` a stable renderer-facing constructor and
 structured validation contract.
 
-### [ ] 33.4.1 Task - Implement The Canonical Constructor
+### [x] 33.4.1 Task - Implement The Canonical Constructor
 
 This task builds canonical `%UnifiedIUR.Element{}` values for valid repository
 card declarations.
 
-- [ ] 33.4.1.1 Subtask - Implement
+- [x] 33.4.1.1 Subtask - Implement
   `UnifiedIUR.Widgets.Components.repo_progress_card/1`.
-- [ ] 33.4.1.2 Subtask - Include `attributes.component.family:
+- [x] 33.4.1.2 Subtask - Include `attributes.component.family:
   :workflow_progress_and_status`.
-- [ ] 33.4.1.3 Subtask - Normalize repository identity, progress, counts,
+- [x] 33.4.1.3 Subtask - Normalize repository identity, progress, counts,
   activity, dependencies, and optional actions consistently.
-- [ ] 33.4.1.4 Subtask - Add positive constructor tests for minimal and full
+- [x] 33.4.1.4 Subtask - Add positive constructor tests for minimal and full
   card declarations.
 
-### [ ] 33.4.2 Task - Validate Repository Card Contracts
+### [x] 33.4.2 Task - Validate Repository Card Contracts
 
 This task makes invalid repository cards fail before renderer dispatch.
 
-- [ ] 33.4.2.1 Subtask - Validate required repository identity and progress
+- [x] 33.4.2.1 Subtask - Validate required repository identity and progress
   bounds.
-- [ ] 33.4.2.2 Subtask - Validate status count maps and optional activity
+- [x] 33.4.2.2 Subtask - Validate status count maps and optional activity
   metadata.
-- [ ] 33.4.2.3 Subtask - Validate dependency edge descriptors and preserve
+- [x] 33.4.2.3 Subtask - Validate dependency edge descriptors and preserve
   ordering.
-- [ ] 33.4.2.4 Subtask - Validate open, focus, and dependency interactions as
+- [x] 33.4.2.4 Subtask - Validate open, focus, and dependency interactions as
   semantic canonical interactions.
-- [ ] 33.4.2.5 Subtask - Add negative tests for missing identity, invalid
+- [x] 33.4.2.5 Subtask - Add negative tests for missing identity, invalid
   progress, malformed dependencies, nil action sentinels, and LiveView event
   leakage.
-- [ ] 33.4.2.6 Subtask - Commit Unified IUR constructor and validation support.
+- [x] 33.4.2.6 Subtask - Commit Unified IUR constructor and validation support.
 
 ## [ ] 33.5 Section - Ash UI Resource Admission And Canonical Conversion
 

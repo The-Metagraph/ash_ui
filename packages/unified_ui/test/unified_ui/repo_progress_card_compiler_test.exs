@@ -55,20 +55,21 @@ defmodule UnifiedUi.RepoProgressCardCompilerTest do
              kind: :repo_progress_card
            }
 
-    assert card.attributes.repo == %{
-             name: "ash_ui",
-             progress_pct: 0.72,
-             active_count: 4,
-             blocked_count: 1,
-             depends_on: ["unified_iur"],
-             depended_by: ["ariston-ui"],
-             path: "The-Metagraph/ash_ui",
-             last_activity_at: ~U[2026-05-19 10:00:00Z],
-             selected?: true,
-             focus_intent: "focus_repo"
+    assert card.attributes.repo.id == "ash_ui"
+    assert card.attributes.repo.name == "ash_ui"
+    assert card.attributes.repo.path == "The-Metagraph/ash_ui"
+    assert card.attributes.repo.progress == 72.0
+    assert card.attributes.repo.status_counts == %{active: 4, blocked: 1}
+    assert card.attributes.repo.activity == %{last_activity_at: ~U[2026-05-19 10:00:00Z]}
+    assert card.attributes.repo.state == %{selected?: true}
+
+    assert card.attributes.repo.dependencies == %{
+             depends_on: [%{id: "unified_iur", label: "unified_iur", direction: :depends_on}],
+             depended_by: [%{id: "ariston-ui", label: "ariston-ui", direction: :depended_by}]
            }
 
-    assert card.attributes.open_action == %{label: "Open", intent: "open_repo"}
+    assert card.attributes.repo.actions.open == %{label: "Open", intent: "open_repo"}
+    assert card.attributes.repo.interactions.focus.intent == "focus_repo"
   end
 
   test "validation rejects invalid progress before renderer dispatch" do

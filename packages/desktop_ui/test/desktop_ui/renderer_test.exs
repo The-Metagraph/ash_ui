@@ -4,6 +4,7 @@ defmodule DesktopUi.RendererTest do
   alias UnifiedIUR.Element
   alias UnifiedIUR.Element.Child
   alias UnifiedIUR.Widgets.Feedback
+  alias UnifiedIUR.Widgets.Navigation
 
   test "renderer maps foundational canonical widgets and layouts into native desktop widgets" do
     element =
@@ -64,6 +65,34 @@ defmodule DesktopUi.RendererTest do
     assert widget.attributes.value == 0.87
     assert widget.attributes.band == :pass
     assert widget.attributes.label == "Match confidence"
+  end
+
+  test "renderer maps context_selector as a navigation widget" do
+    element =
+      Navigation.context_selector(
+        id: "workspace-context",
+        selector_id: "workspace-context",
+        groups: [
+          %{
+            id: :workspace,
+            label: "Workspace",
+            items: [%{value: :all, label: "All workspaces"}]
+          }
+        ],
+        selected_values: [:all],
+        max_selections: :unlimited,
+        open?: true
+      )
+
+    assert {:ok, widget} = DesktopUi.Renderer.render(element)
+    assert widget.kind == :context_selector
+    assert widget.family == :navigation
+    assert widget.metadata.role == :listbox
+    assert widget.state.open
+    assert widget.attributes.selector_id == "workspace-context"
+    assert widget.attributes.selected_values == [:all]
+    assert widget.attributes.multiple?
+    assert [%{label: "Workspace", items: [%{label: "All workspaces"}]}] = widget.attributes.groups
   end
 
   test "renderer maps advanced canonical widgets, display systems, and layers into native desktop widgets" do

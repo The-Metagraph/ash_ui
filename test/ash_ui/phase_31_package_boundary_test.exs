@@ -71,6 +71,12 @@ defmodule AshUI.Phase31PackageBoundaryTest do
       assert families.composition_behavior == [:list_repeat]
     end
 
+    test "baseline navigation primitives stay out of the widget-component catalog" do
+      refute :context_selector in UnifiedUi.WidgetComponents.kinds()
+      refute :context_selector in UnifiedIUR.Widgets.Components.kinds()
+      refute :context_selector in AshUI.WidgetComponents.kinds()
+    end
+
     test "unknown names return the upstream catalog diagnostic" do
       assert {:error, diagnostic} = AshUI.WidgetComponents.canonical_kind(:not_in_catalog)
 

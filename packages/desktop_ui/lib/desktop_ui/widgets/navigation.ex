@@ -39,7 +39,7 @@ defmodule DesktopUi.Widgets.Navigation do
 
   @spec kinds() :: [atom()]
   def kinds do
-    [:breadcrumbs, :list, :menu, :tabs]
+    [:breadcrumbs, :context_selector, :list, :menu, :tabs]
   end
 
   @spec tabs(String.t() | atom(), [map() | keyword()], keyword()) :: Widget.t()
@@ -60,6 +60,47 @@ defmodule DesktopUi.Widgets.Navigation do
   @spec list(String.t() | atom(), [map() | keyword()], keyword()) :: Widget.t()
   def list(id, items, opts \\ []) do
     navigation_widget(:list, id, items, opts)
+  end
+
+  @spec context_selector(String.t() | atom(), [map() | keyword()], keyword()) :: Widget.t()
+  def context_selector(id, groups, opts \\ []) do
+    Widget.new(:context_selector,
+      id: id,
+      metadata:
+        %{
+          focusable: true,
+          role: :listbox,
+          shortcut: Keyword.get(opts, :shortcut),
+          shortcut_scope: Keyword.get(opts, :shortcut_scope, :screen),
+          focus_group: Keyword.get(opts, :focus_group, "#{id}:context_selector"),
+          selection_mode: if(Keyword.get(opts, :multiple?, false), do: :multiple, else: :single)
+        }
+        |> Map.merge(Map.new(Keyword.get(opts, :metadata, []))),
+      state: %{
+        disabled: Keyword.get(opts, :disabled, false),
+        focused: false,
+        open: Keyword.get(opts, :open?, false),
+        selected: Keyword.get(opts, :selected_values, [])
+      },
+      bindings: %{selection: Keyword.get(opts, :binding, :selection)},
+      attributes: %{
+        selector_id: Keyword.get(opts, :selector_id, id),
+        groups: Enum.map(groups, &Map.new/1),
+        placeholder: Keyword.get(opts, :placeholder, "Select context..."),
+        selected_values: Keyword.get(opts, :selected_values, []),
+        max_selections: Keyword.get(opts, :max_selections, 1),
+        multiple?: Keyword.get(opts, :multiple?, false),
+        label_prefix: Keyword.get(opts, :label_prefix, "context:")
+      },
+      styles: Map.new(Keyword.get(opts, :styles, [])),
+      events:
+        %{
+          selection: Keyword.get(opts, :on_select, %{intent: :select_context}),
+          change: Keyword.get(opts, :on_change)
+        }
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
+    )
   end
 
   @doc """
@@ -84,11 +125,13 @@ defmodule DesktopUi.Widgets.Navigation do
   @spec signal_for(keyword()) :: Signal.t() | nil
   def signal_for(opts) when is_list(opts), do: opts |> Enum.into(%{}) |> signal_for()
 
-  def signal_for(%{navigate_to: screen_id} = opts) when is_atom(screen_id) or is_binary(screen_id) do
+  def signal_for(%{navigate_to: screen_id} = opts)
+      when is_atom(screen_id) or is_binary(screen_id) do
     Signal.navigate(screen_id, Map.get(opts, :navigate_params, %{}))
   end
 
-  def signal_for(%{replace_with: screen_id} = opts) when is_atom(screen_id) or is_binary(screen_id) do
+  def signal_for(%{replace_with: screen_id} = opts)
+      when is_atom(screen_id) or is_binary(screen_id) do
     Signal.replace(screen_id, Map.get(opts, :navigate_params, %{}))
   end
 
@@ -100,7 +143,8 @@ defmodule DesktopUi.Widgets.Navigation do
     Signal.go_forward()
   end
 
-  def signal_for(%{open_modal: screen_id} = opts) when is_atom(screen_id) or is_binary(screen_id) do
+  def signal_for(%{open_modal: screen_id} = opts)
+      when is_atom(screen_id) or is_binary(screen_id) do
     Signal.open_modal(screen_id, Map.get(opts, :navigate_params, %{}))
   end
 
@@ -124,7 +168,8 @@ defmodule DesktopUi.Widgets.Navigation do
   @spec event_payload(keyword()) :: map() | nil
   def event_payload(opts) when is_list(opts), do: opts |> Enum.into(%{}) |> event_payload()
 
-  def event_payload(%{navigate_to: screen_id} = opts) when is_atom(screen_id) or is_binary(screen_id) do
+  def event_payload(%{navigate_to: screen_id} = opts)
+      when is_atom(screen_id) or is_binary(screen_id) do
     %{
       family: :navigation,
       type: :navigate_to,
@@ -133,7 +178,8 @@ defmodule DesktopUi.Widgets.Navigation do
     }
   end
 
-  def event_payload(%{replace_with: screen_id} = opts) when is_atom(screen_id) or is_binary(screen_id) do
+  def event_payload(%{replace_with: screen_id} = opts)
+      when is_atom(screen_id) or is_binary(screen_id) do
     %{
       family: :navigation,
       type: :replace_with,
@@ -150,7 +196,8 @@ defmodule DesktopUi.Widgets.Navigation do
     %{family: :navigation, type: :go_forward}
   end
 
-  def event_payload(%{open_modal: screen_id} = opts) when is_atom(screen_id) or is_binary(screen_id) do
+  def event_payload(%{open_modal: screen_id} = opts)
+      when is_atom(screen_id) or is_binary(screen_id) do
     %{
       family: :navigation,
       type: :open_modal,

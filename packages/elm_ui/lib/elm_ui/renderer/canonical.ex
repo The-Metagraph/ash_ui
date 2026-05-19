@@ -353,6 +353,31 @@ defmodule ElmUi.Renderer.Canonical do
   end
 
   defp do_render(%Element{type: :widget, kind: kind} = element)
+       when kind in [:context_selector, "context_selector"] do
+    selector = map_attr(element, :context_selector)
+    max_selections = map_get(selector, :max_selections, 1)
+
+    {:ok,
+     Widgets.context_selector(
+       element.id,
+       normalize_context_selector_groups(map_get(selector, :groups, [])),
+       Keyword.merge(base_opts(element),
+         selector_id: map_get(selector, :selector_id, element.id),
+         placeholder: map_get(selector, :placeholder, "Select context..."),
+         selected_values: map_get(selector, :selected_values, []),
+         max_selections: max_selections,
+         multiple?: context_selector_multiple?(selector, max_selections),
+         label_prefix: map_get(selector, :label_prefix, "context:"),
+         state: %{
+           open: map_get(selector, :open?, false),
+           disabled: map_get(selector, :disabled?, false),
+           selected: map_get(selector, :selected_values, [])
+         }
+       )
+     )}
+  end
+
+  defp do_render(%Element{type: :widget, kind: kind} = element)
        when kind in [:tabs, "tabs"] do
     {:ok,
      Widgets.tabs(
@@ -1460,6 +1485,24 @@ defmodule ElmUi.Renderer.Canonical do
         {:ok, %ElmUi.Widget{attributes: %{items: items}}} -> items
         _other -> []
       end
+  end
+
+  defp normalize_context_selector_groups(groups) when is_list(groups) do
+    Enum.map(groups, fn group ->
+      group = normalize_map(group)
+
+      Map.update(group, :items, map_get(group, :items, []), fn items ->
+        Enum.map(List.wrap(items), &normalize_map/1)
+      end)
+    end)
+  end
+
+  defp normalize_context_selector_groups(_groups), do: []
+
+  defp context_selector_multiple?(selector, max_selections) do
+    map_get(selector, :multiple?, false) ||
+      max_selections in [:unlimited, "unlimited"] ||
+      (is_integer(max_selections) and max_selections > 1)
   end
 
   defp binding_name(%Element{} = element) do

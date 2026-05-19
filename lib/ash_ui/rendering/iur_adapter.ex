@@ -622,6 +622,31 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:menu, props), do: %{navigation: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:tabs, props), do: %{navigation: Map.drop(props, attachment_prop_keys())}
 
+  defp base_attributes(:context_selector, props) do
+    max_selections = first_present(props, [:max_selections]) || 1
+
+    %{
+      context_selector:
+        compact_map(%{
+          selector_id: first_present(props, [:selector_id, :context_id, :id, :_element_id]),
+          groups: normalize_context_selector_groups(fetch(props, :groups, [])),
+          placeholder: first_present(props, [:placeholder]) || "Select context...",
+          selected_values: List.wrap(fetch(props, :selected_values, [])),
+          max_selections: max_selections,
+          multiple?:
+            boolean_present(
+              props,
+              [:multiple?],
+              context_selector_multiple?(max_selections)
+            ),
+          label_prefix: first_present(props, [:label_prefix]) || "context:",
+          open?: boolean_present(props, [:open?], false),
+          disabled?: boolean_present(props, [:disabled?], false),
+          selection_intent: first_present(props, [:selection_intent, :change_intent])
+        })
+    }
+  end
+
   defp base_attributes(:command_palette, props),
     do: %{command_palette: Map.drop(props, attachment_prop_keys())}
 
@@ -1024,6 +1049,23 @@ defmodule AshUI.Rendering.IURAdapter do
   end
 
   defp normalize_maps(values), do: values
+
+  defp normalize_context_selector_groups(groups) when is_list(groups) do
+    Enum.map(groups, fn group ->
+      group = normalize_map(group)
+
+      group
+      |> Map.drop(["items"])
+      |> Map.put(:items, group |> fetch(:items, []) |> normalize_maps())
+    end)
+  end
+
+  defp normalize_context_selector_groups(groups), do: groups
+
+  defp context_selector_multiple?(:unlimited), do: true
+  defp context_selector_multiple?("unlimited"), do: true
+  defp context_selector_multiple?(value) when is_integer(value), do: value > 1
+  defp context_selector_multiple?(_value), do: false
 
   defp normalize_optional_map(nil), do: nil
 

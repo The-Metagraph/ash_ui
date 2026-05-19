@@ -82,6 +82,43 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
       refute Map.has_key?(canonical.attributes, :component)
     end
 
+    test "IUR adapter routes context_selector props into baseline navigation attributes" do
+      assert {:ok, canonical} =
+               IUR.new(:context_selector,
+                 id: "workspace-context",
+                 props: %{
+                   selector_id: "workspace-context",
+                   groups: [
+                     %{
+                       id: :workspace,
+                       label: "Workspace",
+                       items: [%{value: :all, label: "All workspaces"}]
+                     }
+                   ],
+                   selected_values: [:all],
+                   selection_intent: :select_context
+                 }
+               )
+               |> IURAdapter.to_canonical()
+
+      assert canonical.kind == :context_selector
+      assert canonical.type == :widget
+      assert %{context_selector: selector} = canonical.attributes
+      assert selector.selector_id == "workspace-context"
+
+      assert selector.groups == [
+               %{
+                 id: :workspace,
+                 label: "Workspace",
+                 items: [%{value: :all, label: "All workspaces"}]
+               }
+             ]
+
+      assert selector.selected_values == [:all]
+      assert selector.selection_intent == :select_context
+      refute Map.has_key?(canonical.attributes, :component)
+    end
+
     test "live_ui_adapter fallback renders confidence_indicator with meter semantics" do
       assert {:ok, canonical} =
                IUR.new(:screen,
@@ -108,6 +145,42 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
       assert heex =~ ~s(aria-valuenow="87")
       refute heex =~ "ash-confidence-indicator__glyph"
       refute heex =~ "ash-confidence-indicator__numeric"
+    end
+
+    test "live_ui_adapter fallback renders context_selector with listbox semantics" do
+      assert {:ok, canonical} =
+               IUR.new(:screen,
+                 id: "context-screen",
+                 name: "context_test",
+                 children: [
+                   IUR.new(:context_selector,
+                     id: "workspace-context",
+                     props: %{
+                       selector_id: "workspace-context",
+                       groups: [
+                         %{
+                           id: :workspace,
+                           label: "Workspace",
+                           items: [%{value: :all, label: "All workspaces"}]
+                         }
+                       ],
+                       selected_values: [:all],
+                       max_selections: :unlimited,
+                       open?: true
+                     }
+                   )
+                 ]
+               )
+               |> IURAdapter.to_canonical()
+
+      assert {:ok, heex} = LiveUIAdapter.render(canonical, force_fallback: true)
+      assert heex =~ "ash-context-selector"
+      assert heex =~ ~s(data-live-ui-widget="context-selector")
+      assert heex =~ ~s(role="listbox")
+      assert heex =~ ~s(aria-multiselectable="true")
+      assert heex =~ "All workspaces"
+      assert heex =~ ~s(data-context-value="all")
+      assert heex =~ ~s(aria-selected="true")
     end
   end
 

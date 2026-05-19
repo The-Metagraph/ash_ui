@@ -249,6 +249,11 @@ defmodule DesktopUi.Widgets do
     Navigation.list(id, items, opts)
   end
 
+  @spec context_selector(String.t() | atom(), [map() | keyword()], keyword()) :: Widget.t()
+  def context_selector(id, groups, opts \\ []) do
+    Navigation.context_selector(id, groups, opts)
+  end
+
   @spec status(String.t() | atom(), String.t(), keyword()) :: Widget.t()
   def status(id, label, opts \\ []) do
     Builder.status(id, label, opts)

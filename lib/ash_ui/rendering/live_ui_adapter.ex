@@ -1492,6 +1492,76 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "context_selector"} = iur, _opts) do
+    raw_props = iur["props"] || %{}
+    props = prop(raw_props, "context_selector", raw_props)
+    selector_id = escaped_text_prop(props, ["selector_id", "id"], iur["id"] || "context-selector")
+    placeholder = escaped_text_prop(props, "placeholder", "Select context...")
+    label_prefix = escaped_text_prop(props, "label_prefix", "context:")
+    selected_values = prop(props, "selected_values", []) |> List.wrap() |> Enum.map(&to_string/1)
+    open? = truthy_prop(props, "open?", truthy_prop(props, "open", false))
+    disabled? = truthy_prop(props, "disabled?", truthy_prop(props, "disabled", false))
+    multi? = context_selector_multi?(props)
+    groups = prop(props, "groups", [])
+
+    summary =
+      case selected_values do
+        [] -> placeholder
+        [value] -> context_selector_label_for(groups, value) || html_escape(value)
+        values -> "#{length(values)} selected"
+      end
+
+    groups_html =
+      groups
+      |> List.wrap()
+      |> Enum.map_join(fn group ->
+        group_label = escaped_text_prop(group, ["label", "group_label", "id"], "Context")
+        items = prop(group, "items", [])
+
+        item_html =
+          items
+          |> List.wrap()
+          |> Enum.map_join(fn item ->
+            value = text_prop(item, ["value", "id"], "")
+            label = escaped_text_prop(item, ["label", "value", "id"], value)
+            description = escaped_text_prop(item, "description")
+
+            selected? =
+              to_string(value) in selected_values or truthy_prop(item, "selected?", false)
+
+            item_disabled? = truthy_prop(item, "disabled?", truthy_prop(item, "disabled", false))
+
+            """
+            <button type="button" class="#{css_classes(["ash-context-selector-item", selected? && "is-selected"])}" role="option" aria-selected="#{selected?}" data-context-value="#{html_attr(value)}"#{if(item_disabled?, do: " disabled", else: "")}>
+              <span class="ash-context-selector-item-indicator" aria-hidden="true">#{if(selected?, do: "[x]", else: "[ ]")}</span>
+              <span class="ash-context-selector-item-body">
+                <span class="ash-context-selector-item-label">#{label}</span>
+                #{if description, do: "<span class=\"ash-context-selector-item-description\">#{description}</span>", else: ""}
+              </span>
+            </button>
+            """
+          end)
+
+        """
+        <div class="ash-context-selector-group" role="group" aria-label="#{group_label}">
+          <div class="ash-context-selector-group-header">#{group_label}</div>
+          #{item_html}
+        </div>
+        """
+      end)
+
+    """
+    <div class="#{css_classes(["ash-context-selector", disabled? && "is-disabled", prop_class(iur)])}" data-live-ui-widget="context-selector" data-selector-id="#{selector_id}"#{style_attr(prop_style(iur))}>
+      <button type="button" id="#{selector_id}-trigger" class="#{css_classes(["ash-context-selector-trigger", open? && "is-open"])}" aria-haspopup="listbox" aria-expanded="#{open?}" aria-controls="#{selector_id}-panel" aria-label="#{label_prefix} #{summary}"#{if(disabled?, do: " disabled", else: "")}>
+        <span class="ash-context-selector-prefix">#{label_prefix}</span>
+        <span class="ash-context-selector-summary">#{summary}</span>
+        <span class="ash-context-selector-caret" aria-hidden="true">v</span>
+      </button>
+      #{if open?, do: "<div id=\"#{selector_id}-panel\" class=\"ash-context-selector-panel\" role=\"listbox\" aria-labelledby=\"#{selector_id}-trigger\" aria-multiselectable=\"#{multi?}\">#{groups_html}</div>", else: ""}
+    </div>
+    """
+  end
+
   defp generate_heex(%{"type" => "custom:command_palette"} = iur, opts) do
     props = iur["props"] || %{}
     title = text_prop(props, ["title", "label"], "Command palette")
@@ -2702,6 +2772,27 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   defp normalize_choice({label, value}), do: {label, value}
   defp normalize_choice(option) when is_binary(option), do: {option, option}
   defp normalize_choice(option), do: {to_string(option), option}
+
+  defp context_selector_multi?(props) do
+    max_selections = prop(props, "max_selections", 1)
+
+    truthy_prop(props, "multiple?", false) ||
+      max_selections in [:unlimited, "unlimited"] ||
+      (is_integer(max_selections) and max_selections > 1)
+  end
+
+  defp context_selector_label_for(groups, value) do
+    groups
+    |> List.wrap()
+    |> Enum.flat_map(&(prop(&1, "items", []) |> List.wrap()))
+    |> Enum.find_value(fn item ->
+      item_value = text_prop(item, ["value", "id"], "")
+
+      if to_string(item_value) == to_string(value) do
+        escaped_text_prop(item, ["label", "value", "id"], value)
+      end
+    end)
+  end
 
   defp normalize_item(item) when is_map(item), do: item
 

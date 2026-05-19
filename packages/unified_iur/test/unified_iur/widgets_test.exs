@@ -31,7 +31,7 @@ defmodule UnifiedIUR.WidgetsTest do
              Widgets.foundational_kinds()
 
     assert Widgets.foundational_kinds() == Foundational.kinds()
-    assert [:menu, :tabs] == Widgets.navigation_kinds()
+    assert [:menu, :tabs, :context_selector] == Widgets.navigation_kinds()
     assert Widgets.navigation_kinds() == Navigation.kinds()
 
     assert [:list, :table, :tree_view, :stat, :key_value, :info_list] ==

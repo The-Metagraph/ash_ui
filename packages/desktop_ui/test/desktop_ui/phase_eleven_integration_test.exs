@@ -8,31 +8,77 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
 
   @moduletag :phase_eleven
 
-  @iur_widget_count 45
+  @iur_widget_count 47
 
   @all_iur_kinds MapSet.new([
-    # Foundational (13)
-    :badge, :button, :command, :content, :hero, :icon, :image, :label, :link, :separator, :spacer,
-    :text, :toggle,
-    # Input (10)
-    :checkbox, :date_input, :file_input, :numeric_input, :pick_list, :radio_group, :select, :slider,
-    :text_input, :time_input,
-    # Navigation (4)
-    :breadcrumbs, :list, :menu, :tabs,
-    # Data (7)
-    :inspector, :info_list, :key_value, :markdown_viewer, :stat, :table, :tree_view,
-    # Feedback (6)
-    :alert_dialog, :dialog, :inline_feedback, :progress, :status, :toast,
-    # Operational (7)
-    :cluster_dashboard, :command_palette, :log_viewer, :process_monitor, :stream_widget,
-    :supervision_tree_viewer, :window_command,
-    # Visualization (5)
-    :bar_chart, :canvas, :gauge, :line_chart, :timeline,
-    # Layout & Structure (3)
-    :column, :row, :stack,
-    # Container (1)
-    :window
-  ])
+                   # Foundational (13)
+                   :badge,
+                   :button,
+                   :command,
+                   :content,
+                   :hero,
+                   :icon,
+                   :image,
+                   :label,
+                   :link,
+                   :separator,
+                   :spacer,
+                   :text,
+                   :toggle,
+                   # Input (10)
+                   :checkbox,
+                   :date_input,
+                   :file_input,
+                   :numeric_input,
+                   :pick_list,
+                   :radio_group,
+                   :select,
+                   :slider,
+                   :text_input,
+                   :time_input,
+                   # Navigation (5)
+                   :breadcrumbs,
+                   :context_selector,
+                   :list,
+                   :menu,
+                   :tabs,
+                   # Data (7)
+                   :inspector,
+                   :info_list,
+                   :key_value,
+                   :markdown_viewer,
+                   :stat,
+                   :table,
+                   :tree_view,
+                   # Feedback (6)
+                   :alert_dialog,
+                   :dialog,
+                   :inline_feedback,
+                   :progress,
+                   :status,
+                   :toast,
+                   # Operational (7)
+                   :cluster_dashboard,
+                   :command_palette,
+                   :log_viewer,
+                   :process_monitor,
+                   :stream_widget,
+                   :supervision_tree_viewer,
+                   :window_command,
+                   # Visualization (6)
+                   :bar_chart,
+                   :canvas,
+                   :gauge,
+                   :line_chart,
+                   :sparkline,
+                   :timeline,
+                   # Layout & Structure (3)
+                   :column,
+                   :row,
+                   :stack,
+                   # Container (1)
+                   :window
+                 ])
 
   setup_all do
     {:ok, capabilities: ensure_visible_runner_capabilities()}
@@ -79,7 +125,9 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
 
   describe "11.2 Form input completeness scenarios" do
     test "numeric_input, toggle, radio_group, select, pick_list render with proper structure" do
-      numeric_widget = DesktopUi.Widgets.numeric_input("test-numeric", value: 42, min: 0, max: 100)
+      numeric_widget =
+        DesktopUi.Widgets.numeric_input("test-numeric", value: 42, min: 0, max: 100)
+
       assert numeric_widget.kind == :numeric_input
       assert numeric_widget.state.value == 42
       assert numeric_widget.attributes.min == 0
@@ -141,7 +189,13 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
       supported = Renderer.supported_kinds() |> MapSet.new()
 
       input_kinds = [
-        :numeric_input, :slider, :date_input, :time_input, :file_input, :pick_list, :radio_group,
+        :numeric_input,
+        :slider,
+        :date_input,
+        :time_input,
+        :file_input,
+        :pick_list,
+        :radio_group,
         :select
       ]
 
@@ -238,17 +292,17 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
   end
 
   describe "11.5 Mapper coverage and diagnostics scenarios" do
-    test "canonical mapper handles all 45 IUR widget kinds without fallback" do
+    test "canonical mapper handles all 46 IUR widget kinds without fallback" do
       supported = Renderer.supported_kinds() |> MapSet.new()
 
       # All IUR widget kinds should be supported
       missing_kinds = MapSet.difference(@all_iur_kinds, supported)
 
       assert MapSet.size(missing_kinds) == 0,
-             "Expected all 45 IUR kinds to be supported, but missing: #{inspect(MapSet.to_list(missing_kinds))}"
+             "Expected all 47 IUR kinds to be supported, but missing: #{inspect(MapSet.to_list(missing_kinds))}"
     end
 
-    test "renderer.supported_kinds returns exactly 45 kinds" do
+    test "renderer.supported_kinds returns at least 47 kinds" do
       count = length(Renderer.supported_kinds())
 
       assert count >= @iur_widget_count,
@@ -317,7 +371,9 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
             DesktopUi.Widgets.column("phase11-content", [
               # Foundational
               DesktopUi.Widgets.badge("p11-badge", "Complete", variant: :success),
-              DesktopUi.Widgets.hero("p11-hero", "Phase 11", subheadline: "IUR Widget Completeness"),
+              DesktopUi.Widgets.hero("p11-hero", "Phase 11",
+                subheadline: "IUR Widget Completeness"
+              ),
               DesktopUi.Widgets.separator("p11-sep"),
               # Input
               DesktopUi.Widgets.numeric_input("p11-numeric", value: 50, min: 0, max: 100),

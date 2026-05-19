@@ -33,6 +33,7 @@ defmodule LiveUi.Renderer do
        :command_palette,
        :confidence_indicator,
        :content,
+       :context_selector,
        :context_menu,
        :date_input,
        :dialog,
@@ -331,6 +332,38 @@ defmodule LiveUi.Renderer do
       variant={theme_variant(@element)}
       state={style_state(@element)}
       class={style_class(@element)}
+    />
+    """
+  end
+
+  def render(%{element: %Element{kind: :context_selector}} = assigns) do
+    context_selector = context_selector_attributes(assigns.element)
+
+    assigns =
+      assigns
+      |> assign(:context_selector, context_selector)
+      |> assign(
+        :groups,
+        context_selector_groups(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.ContextSelector.component
+      id={element_id(@element, "context-selector")}
+      selector_id={string_value(map_value(@context_selector, :selector_id), element_id(@element, "context-selector"))}
+      groups={@groups}
+      placeholder={string_value(map_value(@context_selector, :placeholder), "Select context...")}
+      selected_values={List.wrap(map_value(@context_selector, :selected_values, []))}
+      max_selections={map_value(@context_selector, :max_selections, 1)}
+      label_prefix={string_value(map_value(@context_selector, :label_prefix), "context:")}
+      open?={boolean_default(map_value(@context_selector, :open?), false)}
+      disabled?={boolean_default(map_value(@context_selector, :disabled?), false)}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
     />
     """
   end
@@ -1878,6 +1911,104 @@ defmodule LiveUi.Renderer do
       "Segmented control"
   end
 
+  defp context_selector_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:context_selector, Map.get(element.attributes, "context_selector", %{}))
+    |> normalize_panel()
+  end
+
+  defp context_selector_groups(%Element{} = element, event_target) do
+    selector = context_selector_attributes(element)
+
+    selector
+    |> map_value(:groups, [])
+    |> List.wrap()
+    |> Enum.map(&context_selector_group(&1, element, event_target))
+  end
+
+  defp context_selector_group(group, element, event_target) do
+    group = normalize_panel(group)
+    group_id = map_value(group, :id, map_value(group, :group_id, "context"))
+
+    %{
+      id: group_id,
+      label: map_value(group, :label, map_value(group, :group_label, group_id)),
+      items:
+        group
+        |> map_value(:items, [])
+        |> List.wrap()
+        |> Enum.map(&context_selector_item(&1, element, event_target, group_id))
+    }
+    |> maybe_put_item_value(:description, map_value(group, :description))
+    |> maybe_put_item_value(:metadata, map_value(group, :metadata))
+  end
+
+  defp context_selector_item(item, element, event_target, group_id) do
+    item = normalize_panel(item)
+    value = map_value(item, :value, map_value(item, :id))
+    disabled? = map_value(item, :disabled?, map_value(item, :disabled, false))
+
+    %{
+      id: map_value(item, :id, value),
+      value: value,
+      label: map_value(item, :label, value),
+      disabled?: disabled?,
+      attrs: context_selector_item_attrs(element, event_target, group_id, value, disabled?)
+    }
+    |> maybe_put_item_value(:description, map_value(item, :description))
+    |> maybe_put_item_value(:selected?, map_value(item, :selected?))
+    |> maybe_put_item_value(:metadata, map_value(item, :metadata))
+  end
+
+  defp context_selector_item_attrs(_element, _event_target, _group_id, _value, true), do: %{}
+
+  defp context_selector_item_attrs(
+         %Element{} = element,
+         event_target,
+         group_id,
+         value,
+         _disabled?
+       ) do
+    case {context_selector_interaction(element), event_target, group_id, value} do
+      {%Interaction{} = interaction, target, item_group_id, item_value}
+      when not is_nil(target) and not is_nil(item_value) ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "context-selector"),
+          :"phx-value-widget" => "context_selector",
+          :"phx-value-group_id" => to_string(item_group_id),
+          :"phx-value-value" => to_string(item_value),
+          :"phx-value-selected_value" => to_string(item_value)
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp context_selector_interaction(%Element{} = element) do
+    primary_control_interaction(element) ||
+      case context_selector_selection_intent(element) do
+        nil ->
+          nil
+
+        intent ->
+          Interaction.selection(
+            intent: intent,
+            element_id: element_id(element, "context-selector"),
+            mapping: %{selected_value: :value}
+          )
+      end
+  end
+
+  defp context_selector_selection_intent(%Element{} = element) do
+    element
+    |> context_selector_attributes()
+    |> map_value(:selection_intent)
+  end
+
   defp metadata_description(%Element{metadata: %{description: description}}), do: description
   defp metadata_description(_element), do: nil
 
@@ -2340,6 +2471,9 @@ defmodule LiveUi.Renderer do
   defp maybe_put_item_attrs(item, attrs) do
     Map.update(item, :attrs, attrs, &Map.merge(Map.new(&1), attrs))
   end
+
+  defp maybe_put_item_value(item, _key, nil), do: item
+  defp maybe_put_item_value(item, key, value), do: Map.put(item, key, value)
 
   defp primary_control_interaction(%Element{} = element) do
     primary_interaction(element, :change) || primary_interaction(element, :selection)

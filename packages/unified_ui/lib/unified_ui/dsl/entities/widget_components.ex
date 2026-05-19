@@ -156,6 +156,22 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         label: [type: :string, required: false],
         state: [type: :atom, required: false],
         summary: [type: :string, required: false]
+      ),
+      leaf(
+        :repo_progress_card,
+        @workflow_family,
+        name: [type: :string, required: true],
+        repo_path: [type: :string, required: false],
+        progress_pct: [type: :any, required: false, default: 0.0],
+        active_count: [type: :integer, required: false, default: 0],
+        blocked_count: [type: :integer, required: false, default: 0],
+        last_activity_at: [type: :any, required: false],
+        depends_on: [type: :any, required: false, default: []],
+        depended_by: [type: :any, required: false, default: []],
+        selected?: [type: :boolean, required: false, default: false],
+        focus_intent: [type: :string, required: false],
+        open_action: [type: :any, required: false],
+        summary: [type: :string, required: false]
       )
     ]
   end

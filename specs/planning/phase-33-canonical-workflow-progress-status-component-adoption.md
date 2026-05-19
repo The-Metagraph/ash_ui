@@ -103,35 +103,35 @@ This task prevents kind and family drift during future catalog updates.
   `:workflow`, `:operational`, or another family.
 - [x] 33.2.2.4 Subtask - Commit catalog and package-boundary alignment.
 
-## [ ] 33.3 Section - Unified UI Authoring And Compiler Support
+## [x] 33.3 Section - Unified UI Authoring And Compiler Support
 
 This section makes the component available through Unified UI surfaces without
 depending on application map-surface vocabulary.
 
-### [ ] 33.3.1 Task - Add Or Confirm Unified UI Authoring Shape
+### [x] 33.3.1 Task - Add Or Confirm Unified UI Authoring Shape
 
 This task exposes reusable repository workflow card metadata through Unified UI.
 
-- [ ] 33.3.1.1 Subtask - Define catalog docs for repository identity, progress,
+- [x] 33.3.1.1 Subtask - Define catalog docs for repository identity, progress,
   status counts, activity, dependencies, and optional actions.
-- [ ] 33.3.1.2 Subtask - Add a DSL entity when the current Unified UI component
+- [x] 33.3.1.2 Subtask - Add a DSL entity when the current Unified UI component
   pattern requires one.
-- [ ] 33.3.1.3 Subtask - Reject route, URL, helper, runtime module, concrete CSS,
+- [x] 33.3.1.3 Subtask - Reject route, URL, helper, runtime module, concrete CSS,
   and LiveView event fields at the authoring boundary.
-- [ ] 33.3.1.4 Subtask - Add Unified UI compiler tests for DSL-authored cards
+- [x] 33.3.1.4 Subtask - Add Unified UI compiler tests for DSL-authored cards
   when DSL support is present.
 
-### [ ] 33.3.2 Task - Lower Cards Into Canonical IUR
+### [x] 33.3.2 Task - Lower Cards Into Canonical IUR
 
 This task ensures Unified UI-authored cards lower to the same canonical shape as
 Ash-authored cards.
 
-- [ ] 33.3.2.1 Subtask - Lower repository identity into `attributes.repo`.
-- [ ] 33.3.2.2 Subtask - Lower progress, count, activity, dependency, and action
+- [x] 33.3.2.1 Subtask - Lower repository identity into `attributes.repo`.
+- [x] 33.3.2.2 Subtask - Lower progress, count, activity, dependency, and action
   data as structured values.
-- [ ] 33.3.2.3 Subtask - Preserve optional semantic interactions without host
+- [x] 33.3.2.3 Subtask - Preserve optional semantic interactions without host
   event strings.
-- [ ] 33.3.2.4 Subtask - Commit Unified UI authoring and compiler support.
+- [x] 33.3.2.4 Subtask - Commit Unified UI authoring and compiler support.
 
 ## [ ] 33.4 Section - Unified IUR Constructor And Validation
 

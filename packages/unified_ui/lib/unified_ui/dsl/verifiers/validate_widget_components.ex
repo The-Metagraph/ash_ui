@@ -26,6 +26,20 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     runtime_module
     url
   ]
+  @repo_forbidden_keys ~w[
+    event
+    helper
+    live_action
+    module
+    on_click
+    path
+    phx-click
+    phx_click
+    phx_event
+    route
+    runtime_module
+    url
+  ]
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
   def verify(dsl) do
@@ -241,6 +255,51 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     else
       {:error, [:composition, :meter_thin, id],
        "meter_thin #{inspect(id)} current, minimum, and maximum must be numeric and current must be within range"}
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :repo_progress_card,
+        id: id,
+        name: name,
+        progress_pct: progress_pct,
+        active_count: active_count,
+        blocked_count: blocked_count,
+        depends_on: depends_on,
+        depended_by: depended_by,
+        open_action: open_action
+      }) do
+    cond do
+      not is_binary(name) or name == "" ->
+        {:error, [:composition, :repo_progress_card, id],
+         "repo_progress_card #{inspect(id)} name must be a non-empty string"}
+
+      not valid_repo_progress?(progress_pct) ->
+        {:error, [:composition, :repo_progress_card, id],
+         "repo_progress_card #{inspect(id)} progress_pct must be a number in 0.0..1.0"}
+
+      not valid_non_negative_integer?(active_count) ->
+        {:error, [:composition, :repo_progress_card, id],
+         "repo_progress_card #{inspect(id)} active_count must be a non-negative integer"}
+
+      not valid_non_negative_integer?(blocked_count) ->
+        {:error, [:composition, :repo_progress_card, id],
+         "repo_progress_card #{inspect(id)} blocked_count must be a non-negative integer"}
+
+      not valid_repo_dependency_names?(depends_on) ->
+        {:error, [:composition, :repo_progress_card, id],
+         "repo_progress_card #{inspect(id)} depends_on must be a list of repository name strings"}
+
+      not valid_repo_dependency_names?(depended_by) ->
+        {:error, [:composition, :repo_progress_card, id],
+         "repo_progress_card #{inspect(id)} depended_by must be a list of repository name strings"}
+
+      not valid_repo_open_action?(open_action) ->
+        {:error, [:composition, :repo_progress_card, id],
+         "repo_progress_card #{inspect(id)} open_action must have label and intent without host-specific event or route fields"}
+
+      true ->
+        :ok
     end
   end
 
@@ -588,6 +647,42 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   end
 
   defp valid_meter_range?(_current, _min, _max), do: false
+
+  defp valid_repo_progress?(nil), do: true
+
+  defp valid_repo_progress?(value) when is_number(value) do
+    value >= 0.0 and value <= 1.0
+  end
+
+  defp valid_repo_progress?(_value), do: false
+
+  defp valid_non_negative_integer?(nil), do: true
+  defp valid_non_negative_integer?(value), do: is_integer(value) and value >= 0
+
+  defp valid_repo_dependency_names?(nil), do: true
+
+  defp valid_repo_dependency_names?(dependencies) when is_list(dependencies) do
+    Enum.all?(dependencies, &is_binary/1)
+  end
+
+  defp valid_repo_dependency_names?(_dependencies), do: false
+
+  defp valid_repo_open_action?(nil), do: true
+
+  defp valid_repo_open_action?(action) when is_map(action) or is_list(action) do
+    action = normalize_map(action)
+
+    is_binary(field(action, :label)) and valid_scalar?(field(action, :intent)) and
+      not has_forbidden_repo_key?(action)
+  end
+
+  defp valid_repo_open_action?(_action), do: false
+
+  defp has_forbidden_repo_key?(map) do
+    map
+    |> Map.keys()
+    |> Enum.any?(&(to_string(&1) in @repo_forbidden_keys))
+  end
 
   defp valid_field_attributes?(nil), do: true
   defp valid_field_attributes?(attributes) when is_map(attributes), do: true

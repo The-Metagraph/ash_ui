@@ -11,6 +11,7 @@ defmodule AshUI.Rendering.IURAdapter do
   alias AshUI.WidgetComponents
   alias UnifiedIUR.{Binding, Element, Metadata, Normalize, Validate}
   alias UnifiedIUR.Element.Child
+  alias UnifiedIUR.Widgets.Components, as: IURComponents
 
   @doc """
   Converts an Ash IUR to canonical unified_iur Screen format.
@@ -624,6 +625,31 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:command_palette, props),
     do: %{command_palette: Map.drop(props, attachment_prop_keys())}
 
+  defp base_attributes(:ask_sidebar = kind, props) do
+    component_attributes(
+      kind,
+      :layer_shell_and_callout,
+      %{
+        ask_sidebar:
+          compact_map(%{
+            sidebar_id: first_present(props, [:sidebar_id, :id_key]),
+            on_map_jump_event: first_present(props, [:on_map_jump_event, :map_jump_event]),
+            recent_items: fetch(props, :recent_items, []),
+            saved_items: fetch(props, :saved_items, []),
+            blocker_count: fetch(props, :blocker_count, 0),
+            empty_recent_label:
+              first_present(props, [:empty_recent_label]) || "No recent queries",
+            empty_saved_label:
+              first_present(props, [:empty_saved_label]) || "No saved queries yet"
+          })
+          |> maybe_put(:active_item_id, first_present(props, [:active_item_id]))
+          |> maybe_put(:on_new_saved_event, first_present(props, [:on_new_saved_event]))
+          |> maybe_put(:on_see_all_event, first_present(props, [:on_see_all_event]))
+      },
+      props
+    )
+  end
+
   defp base_attributes(:list, props), do: %{list: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:table, props), do: %{table: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:tree_view, props), do: %{tree: Map.drop(props, attachment_prop_keys())}
@@ -662,6 +688,14 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:canvas, props), do: %{canvas: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:form_builder, props), do: %{form: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:field_group, props), do: %{group: Map.drop(props, attachment_prop_keys())}
+
+  defp base_attributes(:workflow_progress_status_card, props) do
+    props
+    |> workflow_progress_status_card_opts()
+    |> IURComponents.workflow_progress_status_card()
+    |> Map.fetch!(:attributes)
+  end
+
   defp base_attributes(kind, props), do: %{kind => Map.drop(props, attachment_prop_keys())}
 
   defp style_attributes(props) do
@@ -909,6 +943,33 @@ defmodule AshUI.Rendering.IURAdapter do
     |> maybe_put(:active?, first_present(props, [:active?, :active]))
     |> maybe_put(:link_target, first_present(props, [:link_target, :href, :target]))
     |> maybe_put(:action_intent, first_present(props, [:action_intent, :intent]))
+  end
+
+  defp workflow_progress_status_card_opts(props) do
+    %{
+      subject_id: first_present(props, [:subject_id]),
+      name: first_present(props, [:name, :label]),
+      path: first_present(props, [:subject_path, :path]),
+      progress: first_present(props, [:progress]),
+      progress_pct: first_present(props, [:progress_pct, :progress_percent]),
+      status_counts: normalize_optional_map(fetch(props, :status_counts)),
+      active_count: first_present(props, [:active_count]),
+      blocked_count: first_present(props, [:blocked_count]),
+      done_count: first_present(props, [:done_count]),
+      failed_count: first_present(props, [:failed_count]),
+      custom_counts: first_present(props, [:custom_counts]),
+      activity: normalize_optional_map(fetch(props, :activity)),
+      last_activity_at: first_present(props, [:last_activity_at, :updated_at]),
+      depends_on: fetch(props, :depends_on, []),
+      depended_by: fetch(props, :depended_by, []),
+      selected?: first_present(props, [:selected?]) || false,
+      focus_intent: first_present(props, [:focus_intent]) || "focus_subject",
+      focus_interaction: first_present(props, [:focus_interaction]),
+      dependency_select_intent: first_present(props, [:dependency_select_intent]),
+      dependency_select_interaction: first_present(props, [:dependency_select_interaction]),
+      open_action: normalize_optional_map(first_present(props, [:open_action]))
+    }
+    |> compact_map()
   end
 
   defp normalize_heading_segments(props) do

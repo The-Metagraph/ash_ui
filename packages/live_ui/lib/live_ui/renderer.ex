@@ -373,6 +373,57 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:workflow_progress_status_card` is a canonical component kind, so keep this native
+  # renderer clause before the generic `@component_kinds` fallback.
+  def render(%{element: %Element{kind: :workflow_progress_status_card}} = assigns) do
+    assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
+
+    subject = get_in(assigns.element.attributes, [:subject]) || %{}
+    status_counts = Map.get(subject, :status_counts, %{})
+    dependencies = Map.get(subject, :dependencies, %{})
+    activity = Map.get(subject, :activity, %{})
+    state = Map.get(subject, :state, %{})
+    actions = Map.get(subject, :actions, %{})
+    interactions = Map.get(subject, :interactions, %{})
+    focus_interaction = Map.get(interactions, :focus)
+
+    assigns =
+      assigns
+      |> assign(:subject_name, Map.get(subject, :name, ""))
+      |> assign(:progress_pct, (Map.get(subject, :progress, 0.0) || 0.0) / 100.0)
+      |> assign(:active_count, Map.get(status_counts, :active, 0))
+      |> assign(:blocked_count, Map.get(status_counts, :blocked, 0))
+      |> assign(:subject_path, Map.get(subject, :path))
+      |> assign(:depends_on, dependency_labels(Map.get(dependencies, :depends_on, [])))
+      |> assign(:depended_by, dependency_labels(Map.get(dependencies, :depended_by, [])))
+      |> assign(:selected?, Map.get(state, :selected?, false))
+      |> assign(:focus_intent, interaction_intent(focus_interaction, "focus_subject"))
+      |> assign(:last_activity_label, last_activity_label(Map.get(activity, :last_activity_at)))
+      |> assign(:open_action, Map.get(actions, :open))
+
+    ~H"""
+    <LiveUi.Widgets.WorkflowProgressStatusCard.component
+      id={element_id(@element, "workflow-progress-status-card")}
+      name={@subject_name}
+      progress_pct={@progress_pct}
+      active_count={@active_count}
+      blocked_count={@blocked_count}
+      path={@subject_path}
+      last_activity_label={@last_activity_label}
+      depends_on={@depends_on}
+      depended_by={@depended_by}
+      selected?={@selected?}
+      focus_intent={@focus_intent}
+      open_action={@open_action}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   # NOTE: `:artifact_row` is a member of `@row_artifact_kinds` (and therefore of
   # `@component_kinds`), so the generic fallback below would shadow a later clause.
   # Keep this specific clause BEFORE the generic `@component_kinds` fallback with
@@ -2013,6 +2064,40 @@ defmodule LiveUi.Renderer do
 
   defp string_optional(nil), do: nil
   defp string_optional(value), do: to_string(value)
+
+  defp last_activity_label(nil), do: nil
+
+  defp last_activity_label(%DateTime{} = dt) do
+    now = DateTime.utc_now()
+    diff_seconds = DateTime.diff(now, dt, :second)
+
+    cond do
+      diff_seconds < 60 -> "just now"
+      diff_seconds < 3600 -> "#{div(diff_seconds, 60)}m ago"
+      diff_seconds < 86_400 -> "#{div(diff_seconds, 3600)}h ago"
+      true -> "#{div(diff_seconds, 86_400)}d ago"
+    end
+  end
+
+  defp last_activity_label(_other), do: nil
+
+  defp dependency_labels(edges) when is_list(edges) do
+    Enum.map(edges, fn
+      edge when is_map(edge) ->
+        edge
+        |> Map.get(:label, Map.get(edge, :id))
+        |> to_string()
+
+      edge ->
+        to_string(edge)
+    end)
+  end
+
+  defp dependency_labels(_edges), do: []
+
+  defp interaction_intent(%Interaction{intent: nil}, default), do: default
+  defp interaction_intent(%Interaction{intent: intent}, _default), do: intent
+  defp interaction_intent(_interaction, default), do: default
 
   defp boolean_attr(true), do: "true"
   defp boolean_attr(false), do: "false"

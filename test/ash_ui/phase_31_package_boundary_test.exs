@@ -51,7 +51,8 @@ defmodule AshUI.Phase31PackageBoundaryTest do
                :segmented_progress_bar,
                :workflow_stage_list_vertical,
                :meter_thin,
-               :unread_badge
+               :unread_badge,
+               :workflow_progress_status_card
              ]
 
       assert families.layer_shell_and_callout == [

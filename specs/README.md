@@ -15,6 +15,9 @@ navigation intent. [ADR-0007](./adr/ADR-0007-canonical-widget-components-adoptio
 defines the planned adoption target for the expanded Unified UI canonical
 widget-component catalog. [ADR-0008](./adr/ADR-0008-canonical-rail-component-adoption.md)
 defines the planned adoption target for the reusable canonical rail component.
+[ADR-0009](./adr/ADR-0009-canonical-workflow-progress-status-component-adoption.md)
+defines the planned adoption target for the reusable canonical workflow progress
+and status component.
 
 ## Directory Structure
 
@@ -52,6 +55,7 @@ specs/
 | `REQ-NAV-*` | Canonical navigation and IUR adoption | `contracts/canonical_navigation_contract.md` |
 | `REQ-WIDGET-*` | Canonical widget-component catalog adoption | `contracts/canonical_widget_components_contract.md` |
 | `REQ-RAIL-*` | Canonical rail component adoption | `contracts/canonical_rail_component_contract.md` |
+| `REQ-WFPS-*` | Canonical workflow progress and status component adoption | `contracts/canonical_workflow_progress_status_component_contract.md` |
 | `REQ-AUTH-*` | Ash Policy integration | `contracts/authorization_contract.md` |
 | `REQ-OBS-*` | Telemetry, events | `contracts/observability_contract.md` |
 | `REQ-EXT-*` | Extensions, plugins | `contracts/extension_contract.md` |

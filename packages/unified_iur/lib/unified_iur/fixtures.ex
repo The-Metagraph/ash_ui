@@ -1100,6 +1100,18 @@ defmodule UnifiedIUR.Fixtures do
            [],
            id: "component-command-palette",
            open?: false
+         )},
+        {:content,
+         Components.workflow_progress_status_card(
+           id: "component-workflow-subject-card",
+           name: "metagraph",
+           progress_pct: 0.72,
+           active_count: 3,
+           blocked_count: 1,
+           path: "/workspaces/metagraph",
+           depends_on: [],
+           depended_by: ["metagraph-analysis", "ariston-ui"],
+           selected?: false
          )}
       ],
       id: "component-safety-fixture"

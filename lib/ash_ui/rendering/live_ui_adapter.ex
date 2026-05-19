@@ -670,6 +670,155 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "workflow_progress_status_card"} = iur, _opts) do
+    props = iur["props"] || %{}
+    subject = if is_map(prop(props, "subject")), do: prop(props, "subject", %{}), else: %{}
+
+    status_counts =
+      if is_map(prop(subject, "status_counts")),
+        do: prop(subject, "status_counts", %{}),
+        else: %{}
+
+    state = if is_map(prop(subject, "state")), do: prop(subject, "state", %{}), else: %{}
+
+    name = escaped_text_prop(subject, "name", "")
+    progress_value = prop(subject, "progress", 0.0)
+
+    progress_pct_int =
+      case progress_value do
+        n when is_float(n) -> trunc(n)
+        n when is_integer(n) -> n
+        _ -> 0
+      end
+
+    active_count = numeric_value(status_counts, "active", 0)
+    blocked_count = numeric_value(status_counts, "blocked", 0)
+    path = text_prop(subject, "path")
+    selected = truthy_prop(state, "selected?", false)
+
+    """
+    <article class="#{css_classes(["ash-workflow-progress-status-card", selected && "ash-workflow-progress-status-card--selected", prop_class(iur)])}" data-subject-card="#{name}" data-selected="#{selected}"#{style_attr(prop_style(iur))}>
+      <header class="ash-workflow-progress-status-card__header">
+        <span class="ash-workflow-progress-status-card__title">#{name}</span>
+        #{if path, do: "<span class=\"ash-workflow-progress-status-card__path\">#{html_attr(path)}</span>", else: ""}
+      </header>
+      <div class="ash-workflow-progress-status-card__progress-track" role="progressbar" aria-valuenow="#{progress_pct_int}" aria-valuemin="0" aria-valuemax="100" aria-label="#{name} progress: #{progress_pct_int}%">
+        <div class="ash-workflow-progress-status-card__progress-fill" style="width: #{progress_pct_int}%"></div>
+      </div>
+      <div class="ash-workflow-progress-status-card__stats">
+        <span class="ash-workflow-progress-status-card__stat-chip">#{active_count} active</span>
+        <span class="ash-workflow-progress-status-card__stat-chip" data-loud="#{blocked_count > 0}">#{blocked_count} blocked</span>
+      </div>
+    </article>
+    """
+  end
+
+  defp generate_heex(%{"type" => "ask_sidebar"} = iur, _opts) do
+    props = iur["props"] || %{}
+    sidebar_id = escaped_text_prop(props, ["sidebar_id"], "")
+    on_map_jump_event = escaped_text_prop(props, ["on_map_jump_event"], "switch_to_map")
+    recent_items = List.wrap(prop(props, "recent_items", []))
+    saved_items = List.wrap(prop(props, "saved_items", []))
+    active_item_id = text_prop(props, "active_item_id")
+    blocker_count = trunc(numeric_value(props, "blocker_count", 0))
+    on_new_saved_event = text_prop(props, "on_new_saved_event")
+    on_see_all_event = text_prop(props, "on_see_all_event")
+    empty_recent_label = escaped_text_prop(props, "empty_recent_label", "No recent queries")
+    empty_saved_label = escaped_text_prop(props, "empty_saved_label", "No saved queries yet")
+
+    recent_display = Enum.take(recent_items, 10)
+    show_see_all = on_see_all_event != nil and length(recent_items) > 6
+
+    recent_rows_html =
+      if Enum.empty?(recent_display) do
+        "<p class=\"ash-ask-sidebar__empty\">#{empty_recent_label}</p>"
+      else
+        Enum.map_join(recent_display, fn item ->
+          item = normalize_item(item)
+          item_id = text_prop(item, "id", "")
+          query = html_escape(text_prop(item, "query", ""))
+          on_open_event = text_prop(item, "on_open_event", "")
+
+          active_class =
+            if active_item_id != nil and item_id == active_item_id,
+              do: " ash-ask-sidebar__item--active",
+              else: ""
+
+          aria_current =
+            if active_item_id != nil and item_id == active_item_id, do: "true", else: "false"
+
+          "<button type=\"button\" class=\"ash-ask-sidebar__item ash-ask-sidebar__item--recent#{active_class}\" aria-current=\"#{aria_current}\" data-live-ui-intent=\"#{html_attr(on_open_event)}\" data-live-ui-value=\"#{html_attr(item_id)}\" data-item-id=\"#{html_attr(item_id)}\">#{query}</button>"
+        end)
+      end
+
+    see_all_html =
+      if show_see_all do
+        "<button type=\"button\" class=\"ash-ask-sidebar__see-all\" data-live-ui-intent=\"#{html_attr(on_see_all_event)}\">see all</button>"
+      else
+        ""
+      end
+
+    saved_rows_html =
+      if Enum.empty?(saved_items) do
+        "<p class=\"ash-ask-sidebar__empty\">#{empty_saved_label}</p>"
+      else
+        Enum.map_join(saved_items, fn item ->
+          item = normalize_item(item)
+          item_id = text_prop(item, "id", "")
+          title = html_escape(text_prop(item, "title", ""))
+          on_open_event = text_prop(item, "on_open_event", "")
+
+          active_class =
+            if active_item_id != nil and item_id == active_item_id,
+              do: " ash-ask-sidebar__item--active",
+              else: ""
+
+          aria_current =
+            if active_item_id != nil and item_id == active_item_id, do: "true", else: "false"
+
+          "<button type=\"button\" class=\"ash-ask-sidebar__item ash-ask-sidebar__item--saved#{active_class}\" aria-current=\"#{aria_current}\" data-live-ui-intent=\"#{html_attr(on_open_event)}\" data-live-ui-value=\"#{html_attr(item_id)}\" data-item-id=\"#{html_attr(item_id)}\"><span aria-hidden=\"true\">&#x2605;</span>#{title}</button>"
+        end)
+      end
+
+    new_saved_html =
+      if on_new_saved_event do
+        "<button type=\"button\" class=\"ash-ask-sidebar__new-saved\" data-live-ui-intent=\"#{html_attr(on_new_saved_event)}\">+ new</button>"
+      else
+        ""
+      end
+
+    blocker_badge_html =
+      if blocker_count > 0 do
+        "<span class=\"ash-ask-sidebar__blocker-badge\" aria-label=\"#{blocker_count} blockers\">#{blocker_count}</span>"
+      else
+        ""
+      end
+
+    """
+    <aside class="#{css_classes(["ash-ask-sidebar", prop_class(iur)])}" data-live-ui-widget="ask-sidebar" data-sidebar-id="#{sidebar_id}" aria-label="Ask sidebar"#{style_attr(prop_style(iur))}>
+      <div class="ash-ask-sidebar__scroll">
+        <section class="ash-ask-sidebar__section" aria-labelledby="ask-recent-h-#{sidebar_id}">
+          <div class="ash-ask-sidebar__section-header">
+            <span id="ask-recent-h-#{sidebar_id}" class="ash-ask-sidebar__section-label">Recent</span>
+            #{see_all_html}
+          </div>
+          <div class="ash-ask-sidebar__rail">#{recent_rows_html}</div>
+        </section>
+        <section class="ash-ask-sidebar__section" aria-labelledby="ask-saved-h-#{sidebar_id}">
+          <div class="ash-ask-sidebar__section-header">
+            <span id="ask-saved-h-#{sidebar_id}" class="ash-ask-sidebar__section-label">Saved</span>
+            #{new_saved_html}
+          </div>
+          <div class="ash-ask-sidebar__rail">#{saved_rows_html}</div>
+        </section>
+        <div class="ash-ask-sidebar__map-jump">
+          <button type="button" class="ash-ask-sidebar__map-jump-btn" aria-label="Switch to Map mode" data-live-ui-intent="#{on_map_jump_event}" data-live-ui-value="map">Map#{blocker_badge_html}</button>
+        </div>
+      </div>
+    </aside>
+    """
+  end
+
   defp generate_heex(%{"type" => "sticky_frosted_header"} = iur, opts) do
     props = iur["props"] || %{}
     title = escaped_text_prop(props, ["title", "label"], "")

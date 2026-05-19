@@ -32,7 +32,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :segmented_progress_bar,
              :workflow_stage_list_vertical,
              :meter_thin,
-             :unread_badge
+             :unread_badge,
+             :workflow_progress_status_card
            ]
 
     assert Components.layer_callout_kinds() == [

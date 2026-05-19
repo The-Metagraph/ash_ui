@@ -959,6 +959,23 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:minimum, :maximum, :label, :state])
           )
 
+        :workflow_progress_status_card ->
+          Widgets.Components.workflow_progress_status_card(
+            common_opts(node, attachments,
+              name: node.name,
+              path: node.subject_path,
+              progress_pct: node.progress_pct || 0.0,
+              active_count: node.active_count || 0,
+              blocked_count: node.blocked_count || 0,
+              last_activity_at: node.last_activity_at,
+              depends_on: List.wrap(node.depends_on || []),
+              depended_by: List.wrap(node.depended_by || []),
+              selected?: node.selected? || false,
+              focus_intent: node.focus_intent,
+              open_action: node.open_action
+            )
+          )
+
         :sticky_frosted_header ->
           Widgets.Components.sticky_frosted_header(
             lower_children(node, context, visited),

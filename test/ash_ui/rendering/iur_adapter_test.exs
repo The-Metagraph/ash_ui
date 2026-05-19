@@ -211,6 +211,168 @@ defmodule AshUI.Rendering.IURAdapterTest do
     end
   end
 
+  describe "ask_sidebar IUR routing" do
+    test "routes ask_sidebar kind through layer_shell_and_callout family" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "ask-sidebar-screen",
+          name: "ask_sidebar_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:ask_sidebar,
+              id: "ask-sb-1",
+              props: %{
+                "sidebar_id" => "main-ask-sidebar",
+                "on_map_jump_event" => "switch_to_map"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :ask_sidebar
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :layer_shell_and_callout
+    end
+
+    test "preserves sidebar_id in canonical ask_sidebar attributes" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "ask-sidebar-screen-2",
+          name: "ask_sidebar_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:ask_sidebar,
+              id: "ask-sb-2",
+              props: %{
+                "sidebar_id" => "workspace-ask-sidebar",
+                "on_map_jump_event" => "goto_map"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.attributes.ask_sidebar.sidebar_id == "workspace-ask-sidebar"
+      assert child.element.attributes.ask_sidebar.on_map_jump_event == "goto_map"
+    end
+  end
+
+  describe "workflow_progress_status_card IUR routing" do
+    test "routes workflow_progress_status_card kind through workflow_progress_and_status family" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "subject-card-screen",
+          name: "subject_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:workflow_progress_status_card,
+              id: "rpc-1",
+              props: %{
+                "name" => "metagraph",
+                "progress_pct" => 0.5,
+                "active_count" => 2,
+                "blocked_count" => 0
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :workflow_progress_status_card
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :workflow_progress_and_status
+      assert :ok = UnifiedIUR.Validate.element(child.element)
+    end
+
+    test "maps subject props into canonical attributes without namespace overwrite" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "subject-card-screen-2",
+          name: "subject_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:workflow_progress_status_card,
+              id: "rpc-2",
+              props: %{
+                "name" => "ash_ui",
+                "subject_id" => "subject:ash_ui",
+                "path" => "workspaces/ash_ui",
+                "progress_pct" => 0.72,
+                "active_count" => 4,
+                "blocked_count" => 1,
+                "last_activity_at" => ~U[2026-05-19 10:00:00Z],
+                "depends_on" => ["unified_iur"],
+                "depended_by" => [%{"id" => "ariston-ui", "label" => "Ariston UI"}],
+                "selected?" => true,
+                "open_action" => %{"label" => "Open", "intent" => "open_subject"},
+                "component" => %{"family" => "bad_family"},
+                "subject" => %{"name" => "bad_subject"}
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+
+      assert child.element.attributes.component == %{
+               family: :workflow_progress_and_status,
+               kind: :workflow_progress_status_card
+             }
+
+      assert child.element.attributes.subject.id == "subject:ash_ui"
+      assert child.element.attributes.subject.name == "ash_ui"
+      assert child.element.attributes.subject.path == "workspaces/ash_ui"
+      assert child.element.attributes.subject.progress == 72.0
+      assert child.element.attributes.subject.status_counts == %{active: 4, blocked: 1}
+
+      assert child.element.attributes.subject.activity == %{
+               last_activity_at: ~U[2026-05-19 10:00:00Z]
+             }
+
+      assert child.element.attributes.subject.dependencies == %{
+               depends_on: [%{id: "unified_iur", label: "unified_iur", direction: :depends_on}],
+               depended_by: [
+                 %{id: "ariston-ui", label: "Ariston UI", direction: :depended_by}
+               ]
+             }
+
+      assert child.element.attributes.subject.state == %{selected?: true}
+
+      assert child.element.attributes.subject.actions.open == %{
+               label: "Open",
+               intent: "open_subject"
+             }
+
+      assert child.element.attributes.subject.interactions.focus.intent == "focus_subject"
+      assert :ok = UnifiedIUR.Validate.element(child.element)
+    end
+
+    test "returns structured conversion errors for invalid subject cards" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "subject-card-screen-3",
+          name: "subject_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:workflow_progress_status_card,
+              id: "rpc-3",
+              props: %{"name" => "ash_ui", "progress" => 150}
+            )
+          ]
+        )
+
+      assert {:error, {:conversion_failed, %ArgumentError{} = error}} =
+               IURAdapter.to_canonical(ash_iur)
+
+      assert error.message =~ "progress must be in 0.0..100.0"
+    end
+  end
+
   describe "error handling" do
     test "returns error for invalid IUR" do
       invalid_iur = %IUR{type: nil}

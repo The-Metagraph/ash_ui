@@ -341,4 +341,42 @@ defmodule LiveUi.RendererTest do
     assert html =~ ~s(name="element_id" value="profile-name")
     assert html =~ ~s(name="widget" value="text_input")
   end
+
+  test "renderer maps canonical workflow_progress_status_card through the native component boundary" do
+    element =
+      Components.workflow_progress_status_card(
+        id: "rpc-test",
+        name: "metagraph",
+        progress_pct: 0.65,
+        active_count: 3,
+        blocked_count: 1,
+        path: "lib/metagraph"
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-live-ui-widget="workflow-progress-status-card")
+    assert html =~ ~s(data-subject-card="metagraph")
+    assert html =~ ~s(role="progressbar")
+    assert html =~ ~s(aria-valuenow="65")
+    assert html =~ ~s(3 active)
+    assert html =~ ~s(1 blocked)
+  end
+
+  test "renderer preserves workflow_progress_status_card selected state in native output" do
+    element =
+      Components.workflow_progress_status_card(
+        id: "rpc-selected",
+        name: "ash_ui",
+        progress_pct: 0.5,
+        active_count: 2,
+        blocked_count: 0,
+        selected?: true
+      )
+
+    html = render_component(&LiveUi.Renderer.render/1, %{element: element})
+
+    assert html =~ ~s(data-selected="true")
+    assert html =~ ~s(live-ui-workflow-progress-status-card--selected)
+  end
 end

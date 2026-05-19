@@ -448,9 +448,12 @@ defmodule AshUI.Rendering.DesktopUIAdapter do
     end
   end
 
-  defp component_diagnostic(%{"props" => %{"component" => component}}) when is_map(component) do
+  defp component_diagnostic(%{"props" => %{"component" => component}} = widget)
+       when is_map(component) do
     %{
       "code" => "unsupported_component_fallback",
+      "renderer" => "desktop_ui",
+      "element_id" => Map.get(widget, "id") || Map.get(widget, :id),
       "component_kind" => Map.get(component, "kind") || Map.get(component, :kind),
       "component_family" => Map.get(component, "family") || Map.get(component, :family),
       "message" => "Desktop fallback preserved canonical component identity."

@@ -1155,4 +1155,106 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       "metadata" => %{}
     }
   end
+
+  describe "ask_sidebar adapter dispatch" do
+    test "generates dedicated ask_sidebar markup" do
+      iur = %{
+        "type" => "ask_sidebar",
+        "id" => "ask-sb-adapter-test",
+        "props" => %{
+          "sidebar_id" => "main-ask-sidebar",
+          "on_map_jump_event" => "switch_to_map",
+          "recent_items" => [
+            %{"id" => "q1", "query" => "find blockers", "on_open_event" => "open_query"}
+          ],
+          "saved_items" => []
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-ask-sidebar"
+      assert heex =~ ~s(data-live-ui-widget="ask-sidebar")
+      assert heex =~ ~s(data-sidebar-id="main-ask-sidebar")
+      assert heex =~ "aria-label=\"Ask sidebar\""
+      assert heex =~ "Recent"
+      assert heex =~ "find blockers"
+      assert heex =~ "switch_to_map"
+    end
+
+    test "ask_sidebar adapter preserves active item aria-current" do
+      iur = %{
+        "type" => "ask_sidebar",
+        "id" => "ask-sb-active-test",
+        "props" => %{
+          "sidebar_id" => "ask-sb-active",
+          "on_map_jump_event" => "goto_map",
+          "recent_items" => [
+            %{"id" => "active-query", "query" => "active one", "on_open_event" => "open_q"}
+          ],
+          "active_item_id" => "active-query"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ ~s(aria-current="true")
+      assert heex =~ "ash-ask-sidebar__item--active"
+    end
+  end
+
+  describe "workflow_progress_status_card adapter dispatch" do
+    test "generates dedicated workflow_progress_status_card markup" do
+      iur = %{
+        "type" => "workflow_progress_status_card",
+        "id" => "rpc-adapter-test",
+        "props" => %{
+          "subject" => %{
+            "name" => "metagraph",
+            "progress" => 65,
+            "status_counts" => %{
+              "active" => 3,
+              "blocked" => 1
+            }
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-workflow-progress-status-card"
+      assert heex =~ ~s(data-subject-card="metagraph")
+      assert heex =~ ~s(role="progressbar")
+      assert heex =~ "65"
+      assert heex =~ "3 active"
+      assert heex =~ "1 blocked"
+    end
+
+    test "workflow_progress_status_card adapter marks selected state" do
+      iur = %{
+        "type" => "workflow_progress_status_card",
+        "id" => "rpc-selected-test",
+        "props" => %{
+          "subject" => %{
+            "name" => "ash_ui",
+            "progress" => 40,
+            "state" => %{"selected?" => true}
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-workflow-progress-status-card--selected"
+      assert heex =~ ~s(data-selected="true")
+    end
+  end
 end

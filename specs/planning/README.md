@@ -45,7 +45,7 @@ The active architectural baseline is defined by:
 30. [Phase 30 - Canonical IUR And Navigation Adoption](./phase-30-canonical-iur-and-navigation-adoption.md): adopt the upgraded Unified package set, `%UnifiedIUR.Element{}` renderer boundary, and resource-authored canonical navigation intent.
 31. [Phase 31 - Canonical Widget Components Adoption](./phase-31-canonical-widget-components-adoption.md): adopt the expanded Unified UI widget-component catalog as first-class Ash UI resource-authored component input.
 32. [Phase 32 - Canonical Rail Component Adoption](./phase-32-canonical-rail-component-adoption.md): adopt reusable canonical `right_rail` behavior across Unified UI, Unified IUR, runtime renderers, and Ash UI without admitting app-specific document rail vocabulary.
-33. [Phase 33 - Canonical Workflow Progress And Status Component Adoption](./phase-33-canonical-workflow-progress-status-component-adoption.md): rebase PR #123 and adopt `repo_progress_card` as reusable canonical `:workflow_progress_and_status` vocabulary.
+33. [Phase 33 - Canonical Workflow Progress And Status Component Adoption](./phase-33-canonical-workflow-progress-status-component-adoption.md): rebase PR #123 and adopt `workflow_progress_status_card` as reusable canonical `:workflow_progress_and_status` vocabulary.
 
 ## Shared Conventions
 - Numbering:
@@ -77,7 +77,7 @@ The active architectural baseline is defined by:
 - canonical rail behavior uses reusable `right_rail` vocabulary, with document
   rails composed as application-owned panel configurations
 - canonical workflow progress and status behavior uses reusable
-  `repo_progress_card` vocabulary, with map-surface placement and host action
+  `workflow_progress_status_card` vocabulary, with map-surface placement and host action
   names kept application-owned
 - no backward-compatibility requirement applies to the superseded monolithic
   screen-document authority model
@@ -131,6 +131,6 @@ runtime renderer handling, documentation, examples, and conformance coverage.
 Phase 33 describes the canonical workflow progress and status adoption line
 introduced by
 [ADR-0009](../adr/ADR-0009-canonical-workflow-progress-status-component-adoption.md).
-It rebases PR #123 and adopts `repo_progress_card` through catalog and family
+It rebases PR #123 and adopts `workflow_progress_status_card` through catalog and family
 alignment, Unified IUR validation, Ash resource conversion, runtime renderer
 handling, documentation, examples, and conformance coverage.

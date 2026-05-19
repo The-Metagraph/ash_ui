@@ -158,10 +158,10 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         summary: [type: :string, required: false]
       ),
       leaf(
-        :repo_progress_card,
+        :workflow_progress_status_card,
         @workflow_family,
         name: [type: :string, required: true],
-        repo_path: [type: :string, required: false],
+        subject_path: [type: :string, required: false],
         progress_pct: [type: :any, required: false, default: 0.0],
         active_count: [type: :integer, required: false, default: 0],
         blocked_count: [type: :integer, required: false, default: 0],

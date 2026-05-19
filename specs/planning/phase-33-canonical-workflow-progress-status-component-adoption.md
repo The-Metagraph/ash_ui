@@ -15,7 +15,7 @@ Back to index: [README](./README.md)
 - Runtime renderer adapters for Live, Elm, and desktop targets.
 - `specs/contracts/canonical_workflow_progress_status_component_contract.md`.
 - PR #123 implementation branch
-  `claude/widget-repo-progress-card-wave-3-7-b`.
+  `claude/widget-workflow-progress-status-card-wave-3-7-b`.
 
 ## Relevant Assumptions / Defaults
 
@@ -25,9 +25,9 @@ Back to index: [README](./README.md)
   roots are `%UnifiedIUR.Element{}`.
 - ADR-0007 remains the canonical widget-component catalog baseline.
 - ADR-0008 remains the canonical rail component package-boundary baseline.
-- ADR-0009 defines `repo_progress_card` as reusable canonical
+- ADR-0009 defines `workflow_progress_status_card` as reusable canonical
   `:workflow_progress_and_status` vocabulary.
-- `repo_progress_card` is canonical; map-surface placement, audit labels, and
+- `workflow_progress_status_card` is canonical; map-surface placement, audit labels, and
   host action names are application-owned.
 - Concrete CSS, grid placement, colors, and runtime event names belong to hosts
   or renderers, not canonical IUR.
@@ -36,10 +36,10 @@ Back to index: [README](./README.md)
 
 [ ] 33 Phase 33 - Canonical Workflow Progress And Status Component Adoption
 
-This phase rebases PR #123 onto current main and turns `repo_progress_card` into
+This phase rebases PR #123 onto current main and turns `workflow_progress_status_card` into
 a complete canonical workflow progress and status component. It resolves the
 existing merge conflicts, removes unrelated branch drift, aligns package family
-metadata, adds structured repository/dependency/action validation, keeps
+metadata, adds structured subject/dependency/action validation, keeps
 interactions host independent, wires runtime rendering and fallback behavior,
 and closes with documentation and conformance coverage.
 
@@ -63,7 +63,7 @@ current canonical component registry.
 
 ### [x] 33.1.2 Task - Remove Unrelated Branch Drift
 
-This task keeps the final PR focused on `repo_progress_card`.
+This task keeps the final PR focused on `workflow_progress_status_card`.
 
 - [x] 33.1.2.1 Subtask - Remove unrelated `diff_banner` changes from
   `packages/unified_iur/lib/unified_iur/widgets/feedback.ex`.
@@ -83,9 +83,9 @@ supported.
 
 This task records the canonical kind and family consistently across packages.
 
-- [x] 33.2.1.1 Subtask - Add `repo_progress_card` to the Unified UI catalog with
+- [x] 33.2.1.1 Subtask - Add `workflow_progress_status_card` to the Unified UI catalog with
   family `:workflow_progress_and_status`.
-- [x] 33.2.1.2 Subtask - Add `repo_progress_card` to Unified IUR component kind
+- [x] 33.2.1.2 Subtask - Add `workflow_progress_status_card` to Unified IUR component kind
   metadata under the same family.
 - [x] 33.2.1.3 Subtask - Remove `:workflow` and `:workflow_summary` family
   experiments from the implementation branch.
@@ -96,7 +96,7 @@ This task records the canonical kind and family consistently across packages.
 This task prevents kind and family drift during future catalog updates.
 
 - [x] 33.2.2.1 Subtask - Add package-boundary tests for
-  `repo_progress_card` catalog membership.
+  `workflow_progress_status_card` catalog membership.
 - [x] 33.2.2.2 Subtask - Add package-boundary tests for
   `:workflow_progress_and_status` family consistency.
 - [x] 33.2.2.3 Subtask - Fail tests if Live UI registers the component under
@@ -110,9 +110,9 @@ depending on application map-surface vocabulary.
 
 ### [x] 33.3.1 Task - Add Or Confirm Unified UI Authoring Shape
 
-This task exposes reusable repository workflow card metadata through Unified UI.
+This task exposes reusable workflow subject card metadata through Unified UI.
 
-- [x] 33.3.1.1 Subtask - Define catalog docs for repository identity, progress,
+- [x] 33.3.1.1 Subtask - Define catalog docs for workflow subject identity, progress,
   status counts, activity, dependencies, and optional actions.
 - [x] 33.3.1.2 Subtask - Add a DSL entity when the current Unified UI component
   pattern requires one.
@@ -126,7 +126,7 @@ This task exposes reusable repository workflow card metadata through Unified UI.
 This task ensures Unified UI-authored cards lower to the same canonical shape as
 Ash-authored cards.
 
-- [x] 33.3.2.1 Subtask - Lower repository identity into `attributes.repo`.
+- [x] 33.3.2.1 Subtask - Lower workflow subject identity into `attributes.subject`.
 - [x] 33.3.2.2 Subtask - Lower progress, count, activity, dependency, and action
   data as structured values.
 - [x] 33.3.2.3 Subtask - Preserve optional semantic interactions without host
@@ -135,28 +135,28 @@ Ash-authored cards.
 
 ## [x] 33.4 Section - Unified IUR Constructor And Validation
 
-This section gives `repo_progress_card` a stable renderer-facing constructor and
+This section gives `workflow_progress_status_card` a stable renderer-facing constructor and
 structured validation contract.
 
 ### [x] 33.4.1 Task - Implement The Canonical Constructor
 
-This task builds canonical `%UnifiedIUR.Element{}` values for valid repository
+This task builds canonical `%UnifiedIUR.Element{}` values for workflow subject
 card declarations.
 
 - [x] 33.4.1.1 Subtask - Implement
-  `UnifiedIUR.Widgets.Components.repo_progress_card/1`.
+  `UnifiedIUR.Widgets.Components.workflow_progress_status_card/1`.
 - [x] 33.4.1.2 Subtask - Include `attributes.component.family:
   :workflow_progress_and_status`.
-- [x] 33.4.1.3 Subtask - Normalize repository identity, progress, counts,
+- [x] 33.4.1.3 Subtask - Normalize workflow subject identity, progress, counts,
   activity, dependencies, and optional actions consistently.
 - [x] 33.4.1.4 Subtask - Add positive constructor tests for minimal and full
   card declarations.
 
-### [x] 33.4.2 Task - Validate Repository Card Contracts
+### [x] 33.4.2 Task - Validate Workflow Subject Card Contracts
 
-This task makes invalid repository cards fail before renderer dispatch.
+This task makes invalid workflow subject cards fail before renderer dispatch.
 
-- [x] 33.4.2.1 Subtask - Validate required repository identity and progress
+- [x] 33.4.2.1 Subtask - Validate required workflow subject identity and progress
   bounds.
 - [x] 33.4.2.2 Subtask - Validate status count maps and optional activity
   metadata.
@@ -169,55 +169,55 @@ This task makes invalid repository cards fail before renderer dispatch.
   leakage.
 - [x] 33.4.2.6 Subtask - Commit Unified IUR constructor and validation support.
 
-## [ ] 33.5 Section - Ash UI Resource Admission And Canonical Conversion
+## [x] 33.5 Section - Ash UI Resource Admission And Canonical Conversion
 
 This section admits resource-authored cards and maps them into canonical Unified
 IUR without bypassing Ash resource authority.
 
-### [ ] 33.5.1 Task - Admit Resource And Persisted DSL Cards
+### [x] 33.5.1 Task - Admit Resource And Persisted DSL Cards
 
-This task updates Ash UI authoring validation to accept `repo_progress_card`
+This task updates Ash UI authoring validation to accept `workflow_progress_status_card`
 while preserving the `custom:*` extension boundary.
 
-- [ ] 33.5.1.1 Subtask - Update `AshUI.DSL.Storage.valid_widget_type?/1` to
-  admit `repo_progress_card`.
-- [ ] 33.5.1.2 Subtask - Update resource authoring validation paths for
-  `repo_progress_card`.
-- [ ] 33.5.1.3 Subtask - Reject app-specific repository card names unless they
+- [x] 33.5.1.1 Subtask - Update `AshUI.DSL.Storage.valid_widget_type?/1` to
+  admit `workflow_progress_status_card`.
+- [x] 33.5.1.2 Subtask - Update resource authoring validation paths for
+  `workflow_progress_status_card`.
+- [x] 33.5.1.3 Subtask - Reject app-specific workflow subject card names unless they
   are explicitly authored as `custom:*`.
-- [ ] 33.5.1.4 Subtask - Add authoring tests for valid cards, invalid cards, and
+- [x] 33.5.1.4 Subtask - Add authoring tests for valid cards, invalid cards, and
   custom extension boundaries.
 
-### [ ] 33.5.2 Task - Map Ash Card Props Into Canonical Attributes
+### [x] 33.5.2 Task - Map Ash Card Props Into Canonical Attributes
 
 This task updates `AshUI.Rendering.IURAdapter` so resource cards emit valid
 canonical elements.
 
-- [ ] 33.5.2.1 Subtask - Map resource card props into `attributes.repo`.
-- [ ] 33.5.2.2 Subtask - Preserve Ash resource identity, relationship context,
+- [x] 33.5.2.1 Subtask - Map resource card props into `attributes.subject`.
+- [x] 33.5.2.2 Subtask - Preserve Ash resource identity, relationship context,
   bindings, actions, and policies under Ash-owned metadata.
-- [ ] 33.5.2.3 Subtask - Prevent unknown props from overwriting canonical
-  `component` or `repo` namespaces.
-- [ ] 33.5.2.4 Subtask - Add adapter tests that validate resource-authored card
+- [x] 33.5.2.3 Subtask - Prevent unknown props from overwriting canonical
+  `component` or `subject` namespaces.
+- [x] 33.5.2.4 Subtask - Add adapter tests that validate resource-authored card
   output through Unified IUR.
-- [ ] 33.5.2.5 Subtask - Commit Ash resource admission and canonical conversion.
+- [x] 33.5.2.5 Subtask - Commit Ash resource admission and canonical conversion.
 
 ## [ ] 33.6 Section - Runtime Renderer Support
 
 This section wires native and fallback rendering without making host transport
 part of the canonical contract.
 
-### [ ] 33.6.1 Task - Add Live UI Native Card Rendering
+### [x] 33.6.1 Task - Add Live UI Native Card Rendering
 
 This task implements the native Live UI component and registry integration.
 
-- [ ] 33.6.1.1 Subtask - Add `LiveUi.Widgets.RepoProgressCard` with
+- [x] 33.6.1.1 Subtask - Add `LiveUi.Widgets.WorkflowProgressStatusCard` with
   `:workflow_progress_and_status` family metadata.
-- [ ] 33.6.1.2 Subtask - Register the card in Live UI widget discovery using the
+- [x] 33.6.1.2 Subtask - Register the card in Live UI widget discovery using the
   current family module pattern.
-- [ ] 33.6.1.3 Subtask - Render progress, counts, dependencies, activity,
+- [x] 33.6.1.3 Subtask - Render progress, counts, dependencies, activity,
   optional actions, accessibility labels, and global attrs.
-- [ ] 33.6.1.4 Subtask - Translate semantic interactions into LiveView events
+- [x] 33.6.1.4 Subtask - Translate semantic interactions into LiveView events
   inside Live UI without storing raw `phx-*` fields in canonical data.
 
 ### [ ] 33.6.2 Task - Preserve Or Diagnose Non-Live Runtime Cards
@@ -226,9 +226,9 @@ This task keeps Elm and desktop behavior explicit until native card rendering
 exists there.
 
 - [ ] 33.6.2.1 Subtask - Add Elm adapter preservation or structured
-  unsupported-component diagnostics for `repo_progress_card`.
+  unsupported-component diagnostics for `workflow_progress_status_card`.
 - [ ] 33.6.2.2 Subtask - Add desktop adapter preservation or structured
-  unsupported-component diagnostics for `repo_progress_card`.
+  unsupported-component diagnostics for `workflow_progress_status_card`.
 - [ ] 33.6.2.3 Subtask - Include renderer name, component kind, and element id in
   diagnostics.
 - [ ] 33.6.2.4 Subtask - Add tests proving unsupported cards are not silently
@@ -245,7 +245,7 @@ without reintroducing app-specific canonical vocabulary.
 This task documents authoring, package ownership, renderer behavior, and
 extension boundaries.
 
-- [ ] 33.7.1.1 Subtask - Add user guide coverage for `repo_progress_card`
+- [ ] 33.7.1.1 Subtask - Add user guide coverage for `workflow_progress_status_card`
   identity, progress, status counts, dependencies, actions, and interactions.
 - [ ] 33.7.1.2 Subtask - Add developer guide coverage for package boundaries,
   validation, canonical attributes, and renderer support.
@@ -259,7 +259,7 @@ extension boundaries.
 This task provides proof that the component is reusable outside a single map
 surface.
 
-- [ ] 33.7.2.1 Subtask - Add a compact repository health example.
+- [ ] 33.7.2.1 Subtask - Add a compact workflow health example.
 - [ ] 33.7.2.2 Subtask - Add a dependency-focused example with `depends_on` and
   `depended_by` edges.
 - [ ] 33.7.2.3 Subtask - Add an example with optional open action and dependency
@@ -278,7 +278,7 @@ as one package-spanning path instead of a standalone Live UI widget.
 This task validates Phase 33 across rebase hygiene, catalog, DSL, constructor,
 validation, Ash conversion, runtime rendering, docs, examples, and governance.
 
-- [ ] 33.8.1.1 Subtask - Verify `repo_progress_card` catalog and family metadata
+- [ ] 33.8.1.1 Subtask - Verify `workflow_progress_status_card` catalog and family metadata
   match across packages.
 - [ ] 33.8.1.2 Subtask - Verify Unified UI-authored cards compile into valid
   `%UnifiedIUR.Element{}` output where DSL support is present.

@@ -4,7 +4,7 @@ defmodule LiveUi.Widgets.WorkflowProgressAndStatus do
   """
 
   @modules [
-    LiveUi.Widgets.RepoProgressCard
+    LiveUi.Widgets.WorkflowProgressStatusCard
   ]
 
   @spec modules() :: [module()]

@@ -373,36 +373,42 @@ defmodule LiveUi.Renderer do
     """
   end
 
-  # NOTE: `:repo_progress_card` is a canonical component kind, so keep this native
+  # NOTE: `:workflow_progress_status_card` is a canonical component kind, so keep this native
   # renderer clause before the generic `@component_kinds` fallback.
-  def render(%{element: %Element{kind: :repo_progress_card}} = assigns) do
+  def render(%{element: %Element{kind: :workflow_progress_status_card}} = assigns) do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
-    repo = get_in(assigns.element.attributes, [:repo]) || %{}
-    open_action = get_in(assigns.element.attributes, [:open_action])
+    subject = get_in(assigns.element.attributes, [:subject]) || %{}
+    status_counts = Map.get(subject, :status_counts, %{})
+    dependencies = Map.get(subject, :dependencies, %{})
+    activity = Map.get(subject, :activity, %{})
+    state = Map.get(subject, :state, %{})
+    actions = Map.get(subject, :actions, %{})
+    interactions = Map.get(subject, :interactions, %{})
+    focus_interaction = Map.get(interactions, :focus)
 
     assigns =
       assigns
-      |> assign(:repo_name, Map.get(repo, :name, ""))
-      |> assign(:progress_pct, Map.get(repo, :progress_pct, 0.0))
-      |> assign(:active_count, Map.get(repo, :active_count, 0))
-      |> assign(:blocked_count, Map.get(repo, :blocked_count, 0))
-      |> assign(:repo_path, Map.get(repo, :path))
-      |> assign(:depends_on, Map.get(repo, :depends_on, []))
-      |> assign(:depended_by, Map.get(repo, :depended_by, []))
-      |> assign(:selected?, Map.get(repo, :selected?, false))
-      |> assign(:focus_intent, Map.get(repo, :focus_intent, "focus_repo"))
-      |> assign(:last_activity_label, last_activity_label(Map.get(repo, :last_activity_at)))
-      |> assign(:open_action, open_action)
+      |> assign(:subject_name, Map.get(subject, :name, ""))
+      |> assign(:progress_pct, (Map.get(subject, :progress, 0.0) || 0.0) / 100.0)
+      |> assign(:active_count, Map.get(status_counts, :active, 0))
+      |> assign(:blocked_count, Map.get(status_counts, :blocked, 0))
+      |> assign(:subject_path, Map.get(subject, :path))
+      |> assign(:depends_on, dependency_labels(Map.get(dependencies, :depends_on, [])))
+      |> assign(:depended_by, dependency_labels(Map.get(dependencies, :depended_by, [])))
+      |> assign(:selected?, Map.get(state, :selected?, false))
+      |> assign(:focus_intent, interaction_intent(focus_interaction, "focus_subject"))
+      |> assign(:last_activity_label, last_activity_label(Map.get(activity, :last_activity_at)))
+      |> assign(:open_action, Map.get(actions, :open))
 
     ~H"""
-    <LiveUi.Widgets.RepoProgressCard.component
-      id={element_id(@element, "repo-progress-card")}
-      name={@repo_name}
+    <LiveUi.Widgets.WorkflowProgressStatusCard.component
+      id={element_id(@element, "workflow-progress-status-card")}
+      name={@subject_name}
       progress_pct={@progress_pct}
       active_count={@active_count}
       blocked_count={@blocked_count}
-      path={@repo_path}
+      path={@subject_path}
       last_activity_label={@last_activity_label}
       depends_on={@depends_on}
       depended_by={@depended_by}
@@ -2074,6 +2080,24 @@ defmodule LiveUi.Renderer do
   end
 
   defp last_activity_label(_other), do: nil
+
+  defp dependency_labels(edges) when is_list(edges) do
+    Enum.map(edges, fn
+      edge when is_map(edge) ->
+        edge
+        |> Map.get(:label, Map.get(edge, :id))
+        |> to_string()
+
+      edge ->
+        to_string(edge)
+    end)
+  end
+
+  defp dependency_labels(_edges), do: []
+
+  defp interaction_intent(%Interaction{intent: nil}, default), do: default
+  defp interaction_intent(%Interaction{intent: intent}, _default), do: intent
+  defp interaction_intent(_interaction, default), do: default
 
   defp boolean_attr(true), do: "true"
   defp boolean_attr(false), do: "false"

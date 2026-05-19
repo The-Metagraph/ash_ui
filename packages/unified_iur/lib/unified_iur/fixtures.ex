@@ -1102,13 +1102,13 @@ defmodule UnifiedIUR.Fixtures do
            open?: false
          )},
         {:content,
-         Components.repo_progress_card(
-           id: "component-repo-card",
+         Components.workflow_progress_status_card(
+           id: "component-workflow-subject-card",
            name: "metagraph",
            progress_pct: 0.72,
            active_count: 3,
            blocked_count: 1,
-           path: "/Users/mjdecour/apps/TheMetagraph/metagraph",
+           path: "/workspaces/metagraph",
            depends_on: [],
            depended_by: ["metagraph-analysis", "ariston-ui"],
            selected?: false

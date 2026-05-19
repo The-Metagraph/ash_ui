@@ -20,12 +20,13 @@
 
 ## intent
 
-Ash UI must adopt `repo_progress_card` as a reusable canonical
+Ash UI must adopt `workflow_progress_status_card` as a reusable canonical
 `:workflow_progress_and_status` component only when the complete Unified UI,
 Unified IUR, runtime renderer, Ash rendering, validation, and conformance path is
-aligned. The canonical component may describe repository workflow status, but it
-must not encode application-specific map-surface behavior or LiveView transport
-details.
+aligned. The canonical component may describe many kinds of workflow status,
+including repository-backed work, but it models them as generic workflow subjects
+and must not encode
+application-specific map-surface behavior or LiveView transport details.
 
 ## surfaces
 
@@ -48,21 +49,21 @@ details.
 
 ### ash_ui.canonical_workflow_progress_status.generic_kind
 
-Ash UI adopts `repo_progress_card` as the canonical reusable repository workflow
-status component kind and keeps app-specific map surface vocabulary out of the
-shared package catalog.
+Ash UI adopts `workflow_progress_status_card` as the canonical reusable workflow
+subject progress and status component kind and keeps app-specific map surface
+vocabulary out of the shared package catalog.
 
 Required behavior:
 
-- `repo_progress_card` is the renderer-facing canonical kind.
+- `workflow_progress_status_card` is the renderer-facing canonical kind.
 - map-surface audit labels, placement names, and application action names are
   not canonical component fields.
-- application-specific repository cards may wrap or compose the canonical
+- application-specific workflow subject cards may wrap or compose the canonical
   component without extending the package catalog.
 
 ### ash_ui.canonical_workflow_progress_status.family_alignment
 
-Unified UI, Unified IUR, Live UI, and Ash UI agree that `repo_progress_card`
+Unified UI, Unified IUR, Live UI, and Ash UI agree that `workflow_progress_status_card`
 belongs to `:workflow_progress_and_status`.
 
 Required behavior:
@@ -73,13 +74,13 @@ Required behavior:
 
 ### ash_ui.canonical_workflow_progress_status.canonical_shape
 
-`repo_progress_card` declarations compile into host-independent canonical
-attributes for repository identity, progress, status counts, dependency edges,
+`workflow_progress_status_card` declarations compile into host-independent canonical
+attributes for workflow subject identity, progress, status counts, dependency edges,
 activity metadata, and optional actions.
 
 Required behavior:
 
-- repository identity fields are stable and renderer independent.
+- workflow subject identity fields are stable and renderer independent.
 - progress values are bounded and accessible.
 - counts and activity values are structured data, not formatted display text.
 - dependency edges are ordered descriptors, not comma-joined canonical strings.
@@ -88,7 +89,7 @@ Required behavior:
 
 ### ash_ui.canonical_workflow_progress_status.semantic_interactions
 
-Repository card interactions remain semantic and host independent.
+Workflow subject card interactions remain semantic and host independent.
 
 Required behavior:
 
@@ -100,19 +101,19 @@ Required behavior:
 
 ### ash_ui.canonical_workflow_progress_status.resource_authority
 
-Ash resource declarations own repository card composition, bindings, actions,
+Ash resource declarations own workflow subject card composition, bindings, actions,
 and policies.
 
 Required behavior:
 
 - resource-authored cards compile through `AshUI.Rendering.IURAdapter`.
 - Ash metadata remains namespaced and cannot overwrite canonical component or
-  repository namespaces.
+  subject namespaces.
 - bindings and actions remain actor-aware and policy-mediated where applicable.
 
 ### ash_ui.canonical_workflow_progress_status.runtime_support
 
-Runtime adapters render, preserve, or diagnose `repo_progress_card` without
+Runtime adapters render, preserve, or diagnose `workflow_progress_status_card` without
 losing canonical identity.
 
 Required behavior:
@@ -142,9 +143,9 @@ Required behavior:
 ### planned-tests
 
 - `mix test test/ash_ui/phase_33_package_boundary_test.exs`
-- `mix test packages/unified_iur/test/unified_iur/widgets/repo_progress_card_test.exs`
-- `mix test packages/unified_ui/test/unified_ui/repo_progress_card_compiler_test.exs`
-- `mix test packages/live_ui/test/live_ui/repo_progress_card_test.exs packages/live_ui/test/live_ui/renderer_test.exs`
+- `mix test packages/unified_iur/test/unified_iur/widgets/workflow_progress_status_card_test.exs`
+- `mix test packages/unified_ui/test/unified_ui/workflow_progress_status_card_compiler_test.exs`
+- `mix test packages/live_ui/test/live_ui/workflow_progress_status_card_test.exs packages/live_ui/test/live_ui/renderer_test.exs`
 - `mix test test/ash_ui/rendering/iur_adapter_test.exs test/ash_ui/rendering/live_ui_adapter_test.exs`
 - `mix test test/ash_ui/phase_33_integration_test.exs`
 - `bash ./scripts/validate_specs_governance.sh`
@@ -152,8 +153,8 @@ Required behavior:
 
 ### conformance-checks
 
-- `repo_progress_card` catalog and family metadata match across packages.
-- Unified IUR validates required repository identity, progress, counts,
+- `workflow_progress_status_card` catalog and family metadata match across packages.
+- Unified IUR validates required workflow subject identity, progress, counts,
   dependency edge, action, and interaction fields.
 - Ash resource-authored cards emit valid canonical `%UnifiedIUR.Element{}`
   output.

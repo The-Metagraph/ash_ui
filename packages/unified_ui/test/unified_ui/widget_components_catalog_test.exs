@@ -35,7 +35,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :workflow_stage_list_vertical,
                :meter_thin,
                :unread_badge,
-               :repo_progress_card
+               :workflow_progress_status_card
              ],
              layer_shell_and_callout: [
                :sticky_frosted_header,
@@ -64,7 +64,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert :right_rail in kinds
     assert :unread_badge in kinds
     assert :command_palette in kinds
-    assert :repo_progress_card in kinds
+    assert :workflow_progress_status_card in kinds
   end
 
   test "canonical name lookup accepts AshUi aliases with diagnostics" do

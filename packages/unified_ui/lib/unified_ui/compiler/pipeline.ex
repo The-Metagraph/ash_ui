@@ -959,11 +959,11 @@ defmodule UnifiedUi.Compiler.Pipeline do
             common_opts(node, attachments, [:minimum, :maximum, :label, :state])
           )
 
-        :repo_progress_card ->
-          Widgets.Components.repo_progress_card(
+        :workflow_progress_status_card ->
+          Widgets.Components.workflow_progress_status_card(
             common_opts(node, attachments,
               name: node.name,
-              path: node.repo_path,
+              path: node.subject_path,
               progress_pct: node.progress_pct || 0.0,
               active_count: node.active_count || 0,
               blocked_count: node.blocked_count || 0,

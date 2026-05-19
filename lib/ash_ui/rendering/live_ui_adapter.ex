@@ -670,37 +670,44 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
-  defp generate_heex(%{"type" => "repo_progress_card"} = iur, _opts) do
+  defp generate_heex(%{"type" => "workflow_progress_status_card"} = iur, _opts) do
     props = iur["props"] || %{}
-    repo = if is_map(prop(props, "repo")), do: prop(props, "repo", %{}), else: %{}
+    subject = if is_map(prop(props, "subject")), do: prop(props, "subject", %{}), else: %{}
 
-    name = escaped_text_prop(repo, "name", "")
-    progress_pct_float = prop(repo, "progress_pct", 0.0)
+    status_counts =
+      if is_map(prop(subject, "status_counts")),
+        do: prop(subject, "status_counts", %{}),
+        else: %{}
+
+    state = if is_map(prop(subject, "state")), do: prop(subject, "state", %{}), else: %{}
+
+    name = escaped_text_prop(subject, "name", "")
+    progress_value = prop(subject, "progress", 0.0)
 
     progress_pct_int =
-      case progress_pct_float do
-        n when is_float(n) -> trunc(n * 100)
-        n when is_integer(n) -> n * 100
+      case progress_value do
+        n when is_float(n) -> trunc(n)
+        n when is_integer(n) -> n
         _ -> 0
       end
 
-    active_count = numeric_value(repo, "active_count", 0)
-    blocked_count = numeric_value(repo, "blocked_count", 0)
-    path = text_prop(repo, "path")
-    selected = truthy_prop(repo, "selected?", false)
+    active_count = numeric_value(status_counts, "active", 0)
+    blocked_count = numeric_value(status_counts, "blocked", 0)
+    path = text_prop(subject, "path")
+    selected = truthy_prop(state, "selected?", false)
 
     """
-    <article class="#{css_classes(["ash-repo-progress-card", selected && "ash-repo-progress-card--selected", prop_class(iur)])}" data-repo-card="#{name}" data-selected="#{selected}"#{style_attr(prop_style(iur))}>
-      <header class="ash-repo-progress-card__header">
-        <span class="ash-repo-progress-card__title">#{name}</span>
-        #{if path, do: "<span class=\"ash-repo-progress-card__path\">#{html_attr(path)}</span>", else: ""}
+    <article class="#{css_classes(["ash-workflow-progress-status-card", selected && "ash-workflow-progress-status-card--selected", prop_class(iur)])}" data-subject-card="#{name}" data-selected="#{selected}"#{style_attr(prop_style(iur))}>
+      <header class="ash-workflow-progress-status-card__header">
+        <span class="ash-workflow-progress-status-card__title">#{name}</span>
+        #{if path, do: "<span class=\"ash-workflow-progress-status-card__path\">#{html_attr(path)}</span>", else: ""}
       </header>
-      <div class="ash-repo-progress-card__progress-track" role="progressbar" aria-valuenow="#{progress_pct_int}" aria-valuemin="0" aria-valuemax="100" aria-label="#{name} progress: #{progress_pct_int}%">
-        <div class="ash-repo-progress-card__progress-fill" style="width: #{progress_pct_int}%"></div>
+      <div class="ash-workflow-progress-status-card__progress-track" role="progressbar" aria-valuenow="#{progress_pct_int}" aria-valuemin="0" aria-valuemax="100" aria-label="#{name} progress: #{progress_pct_int}%">
+        <div class="ash-workflow-progress-status-card__progress-fill" style="width: #{progress_pct_int}%"></div>
       </div>
-      <div class="ash-repo-progress-card__stats">
-        <span class="ash-repo-progress-card__stat-chip">#{active_count} active</span>
-        <span class="ash-repo-progress-card__stat-chip" data-loud="#{blocked_count > 0}">#{blocked_count} blocked</span>
+      <div class="ash-workflow-progress-status-card__stats">
+        <span class="ash-workflow-progress-status-card__stat-chip">#{active_count} active</span>
+        <span class="ash-workflow-progress-status-card__stat-chip" data-loud="#{blocked_count > 0}">#{blocked_count} blocked</span>
       </div>
     </article>
     """

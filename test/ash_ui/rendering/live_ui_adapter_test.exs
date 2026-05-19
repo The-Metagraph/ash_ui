@@ -984,7 +984,6 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
         end
       )
     end
-
   end
 
   describe "Section 7.2.1 - Event Binding Configuration" do
@@ -1208,17 +1207,19 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
-  describe "repo_progress_card adapter dispatch" do
-    test "generates dedicated repo_progress_card markup" do
+  describe "workflow_progress_status_card adapter dispatch" do
+    test "generates dedicated workflow_progress_status_card markup" do
       iur = %{
-        "type" => "repo_progress_card",
+        "type" => "workflow_progress_status_card",
         "id" => "rpc-adapter-test",
         "props" => %{
-          "repo" => %{
+          "subject" => %{
             "name" => "metagraph",
-            "progress_pct" => 0.65,
-            "active_count" => 3,
-            "blocked_count" => 1
+            "progress" => 65,
+            "status_counts" => %{
+              "active" => 3,
+              "blocked" => 1
+            }
           }
         },
         "children" => [],
@@ -1227,23 +1228,23 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
 
       {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
 
-      assert heex =~ "ash-repo-progress-card"
-      assert heex =~ ~s(data-repo-card="metagraph")
+      assert heex =~ "ash-workflow-progress-status-card"
+      assert heex =~ ~s(data-subject-card="metagraph")
       assert heex =~ ~s(role="progressbar")
       assert heex =~ "65"
       assert heex =~ "3 active"
       assert heex =~ "1 blocked"
     end
 
-    test "repo_progress_card adapter marks selected state" do
+    test "workflow_progress_status_card adapter marks selected state" do
       iur = %{
-        "type" => "repo_progress_card",
+        "type" => "workflow_progress_status_card",
         "id" => "rpc-selected-test",
         "props" => %{
-          "repo" => %{
+          "subject" => %{
             "name" => "ash_ui",
-            "progress_pct" => 0.4,
-            "selected?" => true
+            "progress" => 40,
+            "state" => %{"selected?" => true}
           }
         },
         "children" => [],
@@ -1252,7 +1253,7 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
 
       {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
 
-      assert heex =~ "ash-repo-progress-card--selected"
+      assert heex =~ "ash-workflow-progress-status-card--selected"
       assert heex =~ ~s(data-selected="true")
     end
   end

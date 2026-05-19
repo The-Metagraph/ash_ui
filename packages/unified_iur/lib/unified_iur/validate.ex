@@ -143,30 +143,30 @@ defmodule UnifiedIUR.Validate do
       guidance:
         "Represent rail panel selection and collapse as UnifiedIUR.Interaction structs, not renderer event names."
     },
-    invalid_repo_contract: %{
+    invalid_workflow_progress_status_card: %{
       construct_family: :widget_components,
       guidance:
-        "Represent repo_progress_card with repo id, name, progress, status_counts, dependencies, and renderer-independent metadata."
+        "Represent workflow_progress_status_card with subject id, name, progress, status_counts, dependencies, and renderer-independent metadata."
     },
-    invalid_repo_status_count: %{
+    invalid_workflow_status_count: %{
       construct_family: :widget_components,
       guidance:
-        "Represent repository status counts as non-negative integer counts with optional custom count descriptors."
+        "Represent workflow status counts as non-negative integer counts with optional custom count descriptors."
     },
-    invalid_repo_dependency: %{
+    invalid_workflow_dependency: %{
       construct_family: :widget_components,
       guidance:
-        "Represent repository dependencies as ordered edge descriptor maps with stable ids and semantic metadata."
+        "Represent workflow dependencies as ordered edge descriptor maps with stable ids and semantic metadata."
     },
-    invalid_repo_action: %{
+    invalid_workflow_action: %{
       construct_family: :interactions,
       guidance:
-        "Represent repository actions as semantic action maps and omit unavailable actions instead of using nil sentinels."
+        "Represent workflow card actions as semantic action maps and omit unavailable actions instead of using nil sentinels."
     },
-    invalid_repo_interaction: %{
+    invalid_workflow_interaction: %{
       construct_family: :interactions,
       guidance:
-        "Represent repository focus, open, and dependency selection interactions as UnifiedIUR.Interaction structs without renderer event fields."
+        "Represent workflow card focus, open, and dependency selection interactions as UnifiedIUR.Interaction structs without renderer event fields."
     }
   }
 
@@ -188,7 +188,7 @@ defmodule UnifiedIUR.Validate do
     runtime_module
     url
   ]
-  @repo_forbidden_keys ~w[
+  @progress_status_card_forbidden_keys ~w[
     event
     helper
     live_action
@@ -604,86 +604,93 @@ defmodule UnifiedIUR.Validate do
     |> Kernel.++(validate_rail_interactions(Map.get(attributes, :interactions, [])))
   end
 
-  defp validate_component_contracts(%Element{kind: :repo_progress_card, attributes: attributes}) do
+  defp validate_component_contracts(%Element{
+         kind: :workflow_progress_status_card,
+         attributes: attributes
+       }) do
     attributes
-    |> Map.get(:repo, %{})
-    |> validate_repo_shape()
+    |> Map.get(:subject, %{})
+    |> validate_subject_shape()
   end
 
   defp validate_component_contracts(_element), do: []
 
-  defp validate_repo_shape(repo) when is_map(repo) do
+  defp validate_subject_shape(subject) when is_map(subject) do
     []
     |> maybe_add(
-      blank?(fetch(repo, :id)) or not is_binary(fetch(repo, :id)),
+      blank?(fetch(subject, :id)) or not is_binary(fetch(subject, :id)),
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card requires repo.id as a non-empty string",
-        path: [:attributes, :repo, :id],
-        details: %{id: inspect(fetch(repo, :id))}
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card requires subject.id as a non-empty string",
+        path: [:attributes, :subject, :id],
+        details: %{id: inspect(fetch(subject, :id))}
       )
     )
     |> maybe_add(
-      blank?(fetch(repo, :name)) or not is_binary(fetch(repo, :name)),
+      blank?(fetch(subject, :name)) or not is_binary(fetch(subject, :name)),
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card requires repo.name as a non-empty string",
-        path: [:attributes, :repo, :name],
-        details: %{name: inspect(fetch(repo, :name))}
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card requires subject.name as a non-empty string",
+        path: [:attributes, :subject, :name],
+        details: %{name: inspect(fetch(subject, :name))}
       )
     )
     |> maybe_add(
-      invalid_repo_progress?(fetch(repo, :progress)),
+      invalid_subject_progress?(fetch(subject, :progress)),
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card repo.progress must be numeric and in 0.0..100.0",
-        path: [:attributes, :repo, :progress],
-        details: %{progress: inspect(fetch(repo, :progress))}
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card subject.progress must be numeric and in 0.0..100.0",
+        path: [:attributes, :subject, :progress],
+        details: %{progress: inspect(fetch(subject, :progress))}
       )
     )
     |> Kernel.++(
-      validate_repo_status_counts(fetch(repo, :status_counts), [
+      validate_subject_status_counts(fetch(subject, :status_counts), [
         :attributes,
-        :repo,
+        :subject,
         :status_counts
       ])
     )
-    |> Kernel.++(validate_repo_activity(fetch(repo, :activity), [:attributes, :repo, :activity]))
-    |> Kernel.++(validate_repo_state(fetch(repo, :state), [:attributes, :repo, :state]))
     |> Kernel.++(
-      validate_repo_dependencies(fetch(repo, :dependencies), [
+      validate_subject_activity(fetch(subject, :activity), [:attributes, :subject, :activity])
+    )
+    |> Kernel.++(validate_subject_state(fetch(subject, :state), [:attributes, :subject, :state]))
+    |> Kernel.++(
+      validate_subject_dependencies(fetch(subject, :dependencies), [
         :attributes,
-        :repo,
+        :subject,
         :dependencies
       ])
     )
-    |> Kernel.++(validate_repo_actions(fetch(repo, :actions), [:attributes, :repo, :actions]))
     |> Kernel.++(
-      validate_repo_interactions(fetch(repo, :interactions), [
+      validate_subject_actions(fetch(subject, :actions), [:attributes, :subject, :actions])
+    )
+    |> Kernel.++(
+      validate_subject_interactions(fetch(subject, :interactions), [
         :attributes,
-        :repo,
+        :subject,
         :interactions
       ])
     )
   end
 
-  defp validate_repo_shape(_repo) do
+  defp validate_subject_shape(_subject) do
     [
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card attributes.repo must be a map",
-        path: [:attributes, :repo]
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card attributes.subject must be a map",
+        path: [:attributes, :subject]
       )
     ]
   end
 
-  defp validate_repo_status_counts(counts, path) when is_map(counts) do
+  defp validate_subject_status_counts(counts, path) when is_map(counts) do
     []
     |> maybe_add(
       not non_negative_integer?(fetch(counts, :active)),
       Error.new(
-        :invalid_repo_status_count,
-        "repo_progress_card status_counts.active must be a non-negative integer",
+        :invalid_workflow_status_count,
+        "workflow_progress_status_card status_counts.active must be a non-negative integer",
         path: path ++ [:active],
         details: %{active: inspect(fetch(counts, :active))}
       )
@@ -691,22 +698,22 @@ defmodule UnifiedIUR.Validate do
     |> maybe_add(
       not non_negative_integer?(fetch(counts, :blocked)),
       Error.new(
-        :invalid_repo_status_count,
-        "repo_progress_card status_counts.blocked must be a non-negative integer",
+        :invalid_workflow_status_count,
+        "workflow_progress_status_card status_counts.blocked must be a non-negative integer",
         path: path ++ [:blocked],
         details: %{blocked: inspect(fetch(counts, :blocked))}
       )
     )
     |> Kernel.++(validate_optional_count(fetch(counts, :done), path ++ [:done]))
     |> Kernel.++(validate_optional_count(fetch(counts, :failed), path ++ [:failed]))
-    |> Kernel.++(validate_repo_custom_counts(fetch(counts, :custom), path ++ [:custom]))
+    |> Kernel.++(validate_subject_custom_counts(fetch(counts, :custom), path ++ [:custom]))
   end
 
-  defp validate_repo_status_counts(_counts, path) do
+  defp validate_subject_status_counts(_counts, path) do
     [
       Error.new(
-        :invalid_repo_status_count,
-        "repo_progress_card status_counts must be a map",
+        :invalid_workflow_status_count,
+        "workflow_progress_status_card status_counts must be a map",
         path: path
       )
     ]
@@ -719,119 +726,123 @@ defmodule UnifiedIUR.Validate do
       [],
       not non_negative_integer?(value),
       Error.new(
-        :invalid_repo_status_count,
-        "repo_progress_card optional status counts must be non-negative integers",
+        :invalid_workflow_status_count,
+        "workflow_progress_status_card optional status counts must be non-negative integers",
         path: path,
         details: %{value: inspect(value)}
       )
     )
   end
 
-  defp validate_repo_custom_counts(nil, _path), do: []
+  defp validate_subject_custom_counts(nil, _path), do: []
 
-  defp validate_repo_custom_counts(counts, path) when is_list(counts) do
+  defp validate_subject_custom_counts(counts, path) when is_list(counts) do
     counts
     |> Enum.with_index()
-    |> Enum.flat_map(fn {count, index} -> validate_repo_custom_count(count, path ++ [index]) end)
+    |> Enum.flat_map(fn {count, index} ->
+      validate_subject_custom_count(count, path ++ [index])
+    end)
   end
 
-  defp validate_repo_custom_counts(_counts, path) do
+  defp validate_subject_custom_counts(_counts, path) do
     [
       Error.new(
-        :invalid_repo_status_count,
-        "repo_progress_card status_counts.custom must be a list",
+        :invalid_workflow_status_count,
+        "workflow_progress_status_card status_counts.custom must be a list",
         path: path
       )
     ]
   end
 
-  defp validate_repo_custom_count(count, path) when is_map(count) or is_list(count) do
+  defp validate_subject_custom_count(count, path) when is_map(count) or is_list(count) do
     count = normalize_map(count)
 
     maybe_add(
       [],
       blank?(fetch(count, :key)) or not non_negative_integer?(fetch(count, :value)),
       Error.new(
-        :invalid_repo_status_count,
-        "repo_progress_card custom counts require key and non-negative value",
+        :invalid_workflow_status_count,
+        "workflow_progress_status_card custom counts require key and non-negative value",
         path: path,
         details: %{key: inspect(fetch(count, :key)), value: inspect(fetch(count, :value))}
       )
     )
   end
 
-  defp validate_repo_custom_count(_count, path) do
+  defp validate_subject_custom_count(_count, path) do
     [
       Error.new(
-        :invalid_repo_status_count,
-        "repo_progress_card custom counts must be maps",
+        :invalid_workflow_status_count,
+        "workflow_progress_status_card custom counts must be maps",
         path: path
       )
     ]
   end
 
-  defp validate_repo_activity(nil, _path), do: []
+  defp validate_subject_activity(nil, _path), do: []
 
-  defp validate_repo_activity(activity, path) when is_map(activity) do
+  defp validate_subject_activity(activity, path) when is_map(activity) do
     maybe_add(
       [],
-      has_forbidden_repo_key?(activity),
+      has_forbidden_progress_card_key?(activity),
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card activity must not include renderer event or host route fields",
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card activity must not include renderer event or host route fields",
         path: path
       )
     )
   end
 
-  defp validate_repo_activity(_activity, path) do
+  defp validate_subject_activity(_activity, path) do
     [
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card activity must be a map",
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card activity must be a map",
         path: path
       )
     ]
   end
 
-  defp validate_repo_state(nil, _path), do: []
+  defp validate_subject_state(nil, _path), do: []
 
-  defp validate_repo_state(state, path) when is_map(state) do
+  defp validate_subject_state(state, path) when is_map(state) do
     selected? = fetch(state, :selected?)
 
     maybe_add(
       [],
       not is_nil(selected?) and not is_boolean(selected?),
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card state.selected? must be boolean when present",
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card state.selected? must be boolean when present",
         path: path ++ [:selected?],
         details: %{selected?: inspect(selected?)}
       )
     )
   end
 
-  defp validate_repo_state(_state, path) do
+  defp validate_subject_state(_state, path) do
     [
       Error.new(
-        :invalid_repo_contract,
-        "repo_progress_card state must be a map",
+        :invalid_workflow_progress_status_card,
+        "workflow_progress_status_card state must be a map",
         path: path
       )
     ]
   end
 
-  defp validate_repo_dependencies(dependencies, path) when is_map(dependencies) do
+  defp validate_subject_dependencies(nil, _path), do: []
+
+  defp validate_subject_dependencies(dependencies, path) when is_map(dependencies) do
     []
     |> Kernel.++(
-      validate_repo_dependency_edges(
+      validate_subject_dependency_edges(
         fetch(dependencies, :depends_on),
         :depends_on,
         path ++ [:depends_on]
       )
     )
     |> Kernel.++(
-      validate_repo_dependency_edges(
+      validate_subject_dependency_edges(
         fetch(dependencies, :depended_by),
         :depended_by,
         path ++ [:depended_by]
@@ -839,43 +850,44 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
-  defp validate_repo_dependencies(_dependencies, path) do
+  defp validate_subject_dependencies(_dependencies, path) do
     [
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependencies must be a map",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependencies must be a map",
         path: path
       )
     ]
   end
 
-  defp validate_repo_dependency_edges(edges, direction, path) when is_list(edges) do
+  defp validate_subject_dependency_edges(edges, direction, path) when is_list(edges) do
     edges
     |> Enum.with_index()
     |> Enum.flat_map(fn {edge, index} ->
-      validate_repo_dependency_edge(edge, direction, path ++ [index])
+      validate_subject_dependency_edge(edge, direction, path ++ [index])
     end)
   end
 
-  defp validate_repo_dependency_edges(_edges, _direction, path) do
+  defp validate_subject_dependency_edges(_edges, _direction, path) do
     [
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependency edges must be lists",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependency edges must be lists",
         path: path
       )
     ]
   end
 
-  defp validate_repo_dependency_edge(edge, direction, path) when is_map(edge) or is_list(edge) do
+  defp validate_subject_dependency_edge(edge, direction, path)
+       when is_map(edge) or is_list(edge) do
     edge = normalize_map(edge)
 
     []
     |> maybe_add(
       blank?(fetch(edge, :id)) or not is_binary(fetch(edge, :id)),
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependency edge requires a non-empty string id",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependency edge requires a non-empty string id",
         path: path ++ [:id],
         details: %{id: inspect(fetch(edge, :id))}
       )
@@ -883,8 +895,8 @@ defmodule UnifiedIUR.Validate do
     |> maybe_add(
       fetch(edge, :direction) != direction,
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependency direction must match its dependency list",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependency direction must match its dependency list",
         path: path ++ [:direction],
         details: %{direction: inspect(fetch(edge, :direction)), expected: direction}
       )
@@ -892,8 +904,8 @@ defmodule UnifiedIUR.Validate do
     |> maybe_add(
       not is_nil(fetch(edge, :label)) and not is_binary(fetch(edge, :label)),
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependency edge label must be a string when present",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependency edge label must be a string when present",
         path: path ++ [:label],
         details: %{label: inspect(fetch(edge, :label))}
       )
@@ -901,106 +913,108 @@ defmodule UnifiedIUR.Validate do
     |> maybe_add(
       not is_nil(fetch(edge, :metadata)) and not is_map(fetch(edge, :metadata)),
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependency edge metadata must be a map when present",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependency edge metadata must be a map when present",
         path: path ++ [:metadata]
       )
     )
     |> maybe_add(
-      has_forbidden_repo_key?(edge),
+      has_forbidden_progress_card_key?(edge),
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependency edges must not include renderer event or host route fields",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependency edges must not include renderer event or host route fields",
         path: path
       )
     )
     |> Kernel.++(
-      validate_repo_interaction(fetch(edge, :interaction), :selection, path ++ [:interaction])
+      validate_subject_interaction(fetch(edge, :interaction), :selection, path ++ [:interaction])
     )
   end
 
-  defp validate_repo_dependency_edge(_edge, _direction, path) do
+  defp validate_subject_dependency_edge(_edge, _direction, path) do
     [
       Error.new(
-        :invalid_repo_dependency,
-        "repo_progress_card dependency edge must be a map",
+        :invalid_workflow_dependency,
+        "workflow_progress_status_card dependency edge must be a map",
         path: path
       )
     ]
   end
 
-  defp validate_repo_actions(nil, _path), do: []
+  defp validate_subject_actions(nil, _path), do: []
 
-  defp validate_repo_actions(actions, path) when is_map(actions) do
+  defp validate_subject_actions(actions, path) when is_map(actions) do
     open_action = fetch(actions, :open)
 
     []
     |> maybe_add(
       has_key?(actions, :open) and is_nil(open_action),
       Error.new(
-        :invalid_repo_action,
-        "repo_progress_card actions.open must be omitted when unavailable",
+        :invalid_workflow_action,
+        "workflow_progress_status_card actions.open must be omitted when unavailable",
         path: path ++ [:open]
       )
     )
-    |> Kernel.++(validate_repo_open_action(open_action, path ++ [:open]))
+    |> Kernel.++(validate_subject_open_action(open_action, path ++ [:open]))
   end
 
-  defp validate_repo_actions(_actions, path) do
+  defp validate_subject_actions(_actions, path) do
     [
       Error.new(
-        :invalid_repo_action,
-        "repo_progress_card actions must be a map",
+        :invalid_workflow_action,
+        "workflow_progress_status_card actions must be a map",
         path: path
       )
     ]
   end
 
-  defp validate_repo_open_action(nil, _path), do: []
+  defp validate_subject_open_action(nil, _path), do: []
 
-  defp validate_repo_open_action(action, path) when is_map(action) or is_list(action) do
+  defp validate_subject_open_action(action, path) when is_map(action) or is_list(action) do
     action = normalize_map(action)
 
     []
     |> maybe_add(
       blank?(fetch(action, :label)) or blank?(fetch(action, :intent)),
       Error.new(
-        :invalid_repo_action,
-        "repo_progress_card actions.open requires label and intent",
+        :invalid_workflow_action,
+        "workflow_progress_status_card actions.open requires label and intent",
         path: path,
         details: %{label: inspect(fetch(action, :label)), intent: inspect(fetch(action, :intent))}
       )
     )
     |> maybe_add(
-      has_forbidden_repo_key?(action),
+      has_forbidden_progress_card_key?(action),
       Error.new(
-        :invalid_repo_action,
-        "repo_progress_card actions.open must not include renderer event or host route fields",
+        :invalid_workflow_action,
+        "workflow_progress_status_card actions.open must not include renderer event or host route fields",
         path: path
       )
     )
     |> Kernel.++(
-      validate_repo_interaction(fetch(action, :interaction), :open, path ++ [:interaction])
+      validate_subject_interaction(fetch(action, :interaction), :open, path ++ [:interaction])
     )
   end
 
-  defp validate_repo_open_action(_action, path) do
+  defp validate_subject_open_action(_action, path) do
     [
       Error.new(
-        :invalid_repo_action,
-        "repo_progress_card actions.open must be a map",
+        :invalid_workflow_action,
+        "workflow_progress_status_card actions.open must be a map",
         path: path
       )
     ]
   end
 
-  defp validate_repo_interactions(nil, _path), do: []
+  defp validate_subject_interactions(nil, _path), do: []
 
-  defp validate_repo_interactions(interactions, path) when is_map(interactions) do
+  defp validate_subject_interactions(interactions, path) when is_map(interactions) do
     []
-    |> Kernel.++(validate_repo_interaction(fetch(interactions, :focus), :focus, path ++ [:focus]))
     |> Kernel.++(
-      validate_repo_interaction(
+      validate_subject_interaction(fetch(interactions, :focus), :focus, path ++ [:focus])
+    )
+    |> Kernel.++(
+      validate_subject_interaction(
         fetch(interactions, :dependency_select),
         :selection,
         path ++ [:dependency_select]
@@ -1008,44 +1022,44 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
-  defp validate_repo_interactions(_interactions, path) do
+  defp validate_subject_interactions(_interactions, path) do
     [
       Error.new(
-        :invalid_repo_interaction,
-        "repo_progress_card interactions must be a map",
+        :invalid_workflow_interaction,
+        "workflow_progress_status_card interactions must be a map",
         path: path
       )
     ]
   end
 
-  defp validate_repo_interaction(nil, _expected_family, _path), do: []
+  defp validate_subject_interaction(nil, _expected_family, _path), do: []
 
-  defp validate_repo_interaction(%Interaction{} = interaction, expected_family, path) do
+  defp validate_subject_interaction(%Interaction{} = interaction, expected_family, path) do
     []
     |> maybe_add(
       interaction.family != expected_family,
       Error.new(
-        :invalid_repo_interaction,
-        "repo_progress_card interaction family must match the canonical interaction slot",
+        :invalid_workflow_interaction,
+        "workflow_progress_status_card interaction family must match the canonical interaction slot",
         path: path ++ [:family],
         details: %{family: inspect(interaction.family), expected: expected_family}
       )
     )
     |> maybe_add(
-      has_forbidden_repo_key_deep?(interaction),
+      has_forbidden_progress_card_key_deep?(interaction),
       Error.new(
-        :invalid_repo_interaction,
-        "repo_progress_card interactions must not include renderer event or host route fields",
+        :invalid_workflow_interaction,
+        "workflow_progress_status_card interactions must not include renderer event or host route fields",
         path: path
       )
     )
   end
 
-  defp validate_repo_interaction(_interaction, _expected_family, path) do
+  defp validate_subject_interaction(_interaction, _expected_family, path) do
     [
       Error.new(
-        :invalid_repo_interaction,
-        "repo_progress_card interactions must be UnifiedIUR.Interaction structs",
+        :invalid_workflow_interaction,
+        "workflow_progress_status_card interactions must be UnifiedIUR.Interaction structs",
         path: path
       )
     ]
@@ -1474,32 +1488,32 @@ defmodule UnifiedIUR.Validate do
     |> Enum.any?(&(to_string(&1) in @rail_forbidden_panel_keys))
   end
 
-  defp has_forbidden_repo_key?(value) when is_map(value) do
+  defp has_forbidden_progress_card_key?(value) when is_map(value) do
     value
     |> Map.keys()
-    |> Enum.any?(&(to_string(&1) in @repo_forbidden_keys))
+    |> Enum.any?(&(to_string(&1) in @progress_status_card_forbidden_keys))
   end
 
-  defp has_forbidden_repo_key?(_value), do: false
+  defp has_forbidden_progress_card_key?(_value), do: false
 
-  defp has_forbidden_repo_key_deep?(%_{} = struct) do
+  defp has_forbidden_progress_card_key_deep?(%_{} = struct) do
     struct
     |> Map.from_struct()
-    |> has_forbidden_repo_key_deep?()
+    |> has_forbidden_progress_card_key_deep?()
   end
 
-  defp has_forbidden_repo_key_deep?(value) when is_map(value) do
-    has_forbidden_repo_key?(value) or
-      Enum.any?(Map.values(value), &has_forbidden_repo_key_deep?/1)
+  defp has_forbidden_progress_card_key_deep?(value) when is_map(value) do
+    has_forbidden_progress_card_key?(value) or
+      Enum.any?(Map.values(value), &has_forbidden_progress_card_key_deep?/1)
   end
 
-  defp has_forbidden_repo_key_deep?(value) when is_list(value) do
-    Enum.any?(value, &has_forbidden_repo_key_deep?/1)
+  defp has_forbidden_progress_card_key_deep?(value) when is_list(value) do
+    Enum.any?(value, &has_forbidden_progress_card_key_deep?/1)
   end
 
-  defp has_forbidden_repo_key_deep?(_value), do: false
+  defp has_forbidden_progress_card_key_deep?(_value), do: false
 
-  defp invalid_repo_progress?(value),
+  defp invalid_subject_progress?(value),
     do: not (is_number(value) and value >= 0.0 and value <= 100.0)
 
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0

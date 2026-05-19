@@ -12,8 +12,8 @@ Phase 33.
 
 ## Context
 
-PR #123 proposes `repo_progress_card` as a reusable widget for repository
-progress, activity, blockers, and dependency state. The current branch is a
+PR #123 proposes `workflow_progress_status_card` as a reusable widget for
+repository progress, activity, blockers, and dependency state. The current branch is a
 draft and conflicts with main, and its implementation mixes canonical package
 changes with LiveView-specific event transport and app-specific map-surface
 language.
@@ -24,15 +24,15 @@ rendering, Ash UI canonical conversion, and renderer fallback behavior.
 
 ## Decision
 
-Ash UI will land `repo_progress_card` only as a first-class canonical
+Ash UI will land `workflow_progress_status_card` only as a first-class canonical
 `:workflow_progress_and_status` component.
 
 The canonical contract must:
 
-- use `repo_progress_card` as the canonical kind;
+- use `workflow_progress_status_card` as the canonical kind;
 - use `:workflow_progress_and_status` consistently across Unified UI,
   Unified IUR, Live UI, and Ash UI;
-- represent repository status, progress, counts, dependencies, and optional
+- represent workflow subject status, progress, counts, dependencies, and optional
   actions as structured canonical attributes;
 - keep LiveView event names, `phx-*` fields, routes, helpers, runtime modules,
   app map placement, and concrete CSS out of canonical data;

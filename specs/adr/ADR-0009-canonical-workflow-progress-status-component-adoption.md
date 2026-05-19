@@ -11,7 +11,7 @@ the canonical rail component baseline.
 
 ## Context
 
-PR #123 proposes `repo_progress_card` as a repository progress, blocker,
+PR #123 proposes `workflow_progress_status_card` as a workflow subject progress, blocker,
 activity, and dependency summary widget. The PR is currently draft and
 conflicting with main. It also mixes useful canonical package work with
 implementation details that do not belong in the renderer-facing contract:
@@ -26,19 +26,19 @@ conformance as one package-spanning feature.
 
 ## Decision
 
-### 1. Adopt `repo_progress_card` As A Canonical Component
+### 1. Adopt `workflow_progress_status_card` As A Canonical Component
 
-Ash UI will adopt `repo_progress_card` as the canonical kind for reusable
-repository workflow progress and status cards.
+Ash UI will adopt `workflow_progress_status_card` as the canonical kind for
+reusable workflow subject progress and status cards.
 
-The canonical component represents a repository-like work unit with identity,
+The canonical component represents a workflow subject with identity,
 path or locator metadata, progress state, active or blocked counts, recent
 activity, dependency edges, and optional semantic actions. It does not represent
 an application-specific map card, grid tile, audit finding, or host placement.
 
 ### 2. Keep The Component In `:workflow_progress_and_status`
 
-`repo_progress_card` belongs to the existing `:workflow_progress_and_status`
+`workflow_progress_status_card` belongs to the existing `:workflow_progress_and_status`
 component family. The implementation must not introduce `:workflow` or
 `:workflow_summary` as package families for this component.
 
@@ -53,9 +53,9 @@ Family assignment must be consistent across:
 
 ### 3. Use Structured Canonical Attributes
 
-The component must expose structured canonical attributes for repository
-identity, progress, status counts, dependency edges, activity state, and optional
-actions.
+The component must expose structured canonical attributes for workflow subject
+identity, progress, status counts, dependency edges, activity state, and
+optional actions.
 
 Dependency data is canonical as ordered edge descriptors, not comma-joined
 display text. Renderers may choose chips, lists, compact text, or other native
@@ -77,9 +77,9 @@ may carry a semantic visibility policy, but `nil` is not a visibility state.
 ### 5. Preserve Resource Authority
 
 Ash screen and element resources remain the authority for composition, bindings,
-actions, authorization, and policies. `repo_progress_card` may be authored as a
+actions, authorization, and policies. `workflow_progress_status_card` may be authored as a
 canonical component, but resource-derived metadata must stay in Ash-owned
-namespaces and must not overwrite canonical `component` or `repo` attributes.
+namespaces and must not overwrite canonical `component` or `subject` attributes.
 
 ### 6. Require Complete Package-Boundary Adoption
 
@@ -121,7 +121,7 @@ Partial adoption that only adds a Live UI component or constructor is not enough
 - Add and maintain a canonical workflow progress and status component contract
   under `specs/contracts/`.
 - Add `.spec` coverage for the canonical adoption line.
-- Implement Phase 33 before treating `repo_progress_card` as supported Ash UI
+- Implement Phase 33 before treating `workflow_progress_status_card` as supported Ash UI
   authoring input.
 - Remove unrelated cross-wave changes from the PR #123 implementation branch.
 

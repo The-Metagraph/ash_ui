@@ -221,10 +221,10 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
-      kind: :repo_progress_card,
+      kind: :workflow_progress_status_card,
       family: :workflow_progress_and_status,
       summary:
-        "Composite card representing a single repo: name + path + progress + active/blocked/activity stats + dependency edges.",
+        "Composite card representing a workflow subject: name + path + progress + active/blocked/activity stats + dependency edges.",
       aliases: []
     }
   ]

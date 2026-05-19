@@ -60,7 +60,7 @@ defmodule UnifiedIUR.Widgets.Components do
     :workflow_stage_list_vertical,
     :meter_thin,
     :unread_badge,
-    :repo_progress_card
+    :workflow_progress_status_card
   ]
 
   @layer_callout_kinds [
@@ -686,33 +686,33 @@ defmodule UnifiedIUR.Widgets.Components do
     )
   end
 
-  @spec repo_progress_card(opts()) :: Element.t()
-  def repo_progress_card(opts \\ []) do
+  @spec workflow_progress_status_card(opts()) :: Element.t()
+  def workflow_progress_status_card(opts \\ []) do
     opts = normalize_opts(opts)
 
     name = option(opts, :name)
 
     unless is_binary(name) and byte_size(name) > 0 do
-      raise ArgumentError, "repo_progress_card requires a non-empty :name string"
+      raise ArgumentError, "workflow_progress_status_card requires a non-empty :name string"
     end
 
-    repo_id = option(opts, :repo_id, name)
+    subject_id = option(opts, :subject_id, name)
 
-    unless is_binary(repo_id) and byte_size(repo_id) > 0 do
-      raise ArgumentError, "repo_progress_card requires a non-empty :repo_id string"
+    unless is_binary(subject_id) and byte_size(subject_id) > 0 do
+      raise ArgumentError, "workflow_progress_status_card requires a non-empty :subject_id string"
     end
 
-    progress = normalize_repo_progress!(opts)
-    status_counts = normalize_repo_status_counts!(opts)
-    dependencies = normalize_repo_dependencies!(opts)
-    activity = normalize_repo_activity(opts)
-    actions = normalize_repo_actions!(opts)
-    interactions = normalize_repo_interactions!(opts, repo_id)
-    state = normalize_repo_state!(opts)
+    progress = normalize_subject_progress!(opts)
+    status_counts = normalize_subject_status_counts!(opts)
+    dependencies = normalize_subject_dependencies!(opts)
+    activity = normalize_subject_activity(opts)
+    actions = normalize_subject_actions!(opts)
+    interactions = normalize_subject_interactions!(opts, subject_id)
+    state = normalize_subject_state!(opts)
 
-    repo =
+    subject =
       %{
-        id: repo_id,
+        id: subject_id,
         name: name,
         progress: progress,
         status_counts: status_counts,
@@ -725,14 +725,14 @@ defmodule UnifiedIUR.Widgets.Components do
       |> maybe_put(:interactions, empty_map_to_nil(interactions))
 
     build_component(
-      :repo_progress_card,
+      :workflow_progress_status_card,
       :workflow_progress_and_status,
-      %{repo: repo},
+      %{subject: subject},
       opts
     )
   end
 
-  defp normalize_repo_progress!(opts) do
+  defp normalize_subject_progress!(opts) do
     progress = option(opts, :progress)
 
     progress =
@@ -740,11 +740,11 @@ defmodule UnifiedIUR.Widgets.Components do
         progress_pct = option(opts, :progress_pct, 0.0)
 
         unless is_float(progress_pct) or is_integer(progress_pct) do
-          raise ArgumentError, "repo_progress_card :progress_pct must be a number"
+          raise ArgumentError, "workflow_progress_status_card :progress_pct must be a number"
         end
 
         unless progress_pct >= 0.0 and progress_pct <= 1.0 do
-          raise ArgumentError, "repo_progress_card :progress_pct must be in 0.0..1.0"
+          raise ArgumentError, "workflow_progress_status_card :progress_pct must be in 0.0..1.0"
         end
 
         progress_pct * 100.0
@@ -753,17 +753,17 @@ defmodule UnifiedIUR.Widgets.Components do
       end
 
     unless is_float(progress) or is_integer(progress) do
-      raise ArgumentError, "repo_progress_card :progress must be a number"
+      raise ArgumentError, "workflow_progress_status_card :progress must be a number"
     end
 
     unless progress >= 0.0 and progress <= 100.0 do
-      raise ArgumentError, "repo_progress_card :progress must be in 0.0..100.0"
+      raise ArgumentError, "workflow_progress_status_card :progress must be in 0.0..100.0"
     end
 
     progress / 1.0
   end
 
-  defp normalize_repo_status_counts!(opts) do
+  defp normalize_subject_status_counts!(opts) do
     counts = opts |> option(:status_counts, %{}) |> normalize_map()
 
     active_count = option(opts, :active_count, option(counts, :active, 0))
@@ -773,19 +773,23 @@ defmodule UnifiedIUR.Widgets.Components do
     custom_counts = option(opts, :custom_counts, option(counts, :custom))
 
     unless non_negative_integer?(active_count) do
-      raise ArgumentError, "repo_progress_card :active_count must be a non-negative integer"
+      raise ArgumentError,
+            "workflow_progress_status_card :active_count must be a non-negative integer"
     end
 
     unless non_negative_integer?(blocked_count) do
-      raise ArgumentError, "repo_progress_card :blocked_count must be a non-negative integer"
+      raise ArgumentError,
+            "workflow_progress_status_card :blocked_count must be a non-negative integer"
     end
 
     if not is_nil(done_count) and not non_negative_integer?(done_count) do
-      raise ArgumentError, "repo_progress_card :done_count must be a non-negative integer"
+      raise ArgumentError,
+            "workflow_progress_status_card :done_count must be a non-negative integer"
     end
 
     if not is_nil(failed_count) and not non_negative_integer?(failed_count) do
-      raise ArgumentError, "repo_progress_card :failed_count must be a non-negative integer"
+      raise ArgumentError,
+            "workflow_progress_status_card :failed_count must be a non-negative integer"
     end
 
     %{
@@ -794,36 +798,37 @@ defmodule UnifiedIUR.Widgets.Components do
     }
     |> maybe_put(:done, done_count)
     |> maybe_put(:failed, failed_count)
-    |> maybe_put(:custom, normalize_repo_custom_counts!(custom_counts))
+    |> maybe_put(:custom, normalize_subject_custom_counts!(custom_counts))
   end
 
-  defp normalize_repo_custom_counts!(nil), do: nil
+  defp normalize_subject_custom_counts!(nil), do: nil
 
-  defp normalize_repo_custom_counts!(counts) when is_map(counts) do
+  defp normalize_subject_custom_counts!(counts) when is_map(counts) do
     counts
     |> Enum.sort_by(fn {key, _value} -> to_string(key) end)
-    |> Enum.map(fn {key, value} -> normalize_repo_custom_count!({key, value}) end)
+    |> Enum.map(fn {key, value} -> normalize_subject_custom_count!({key, value}) end)
   end
 
-  defp normalize_repo_custom_counts!(counts) when is_list(counts) do
-    Enum.map(counts, &normalize_repo_custom_count!/1)
+  defp normalize_subject_custom_counts!(counts) when is_list(counts) do
+    Enum.map(counts, &normalize_subject_custom_count!/1)
   end
 
-  defp normalize_repo_custom_counts!(_counts) do
-    raise ArgumentError, "repo_progress_card :custom_counts must be a map or list"
+  defp normalize_subject_custom_counts!(_counts) do
+    raise ArgumentError, "workflow_progress_status_card :custom_counts must be a map or list"
   end
 
-  defp normalize_repo_custom_count!({key, value}) do
-    normalize_repo_custom_count!(%{key: key, value: value})
+  defp normalize_subject_custom_count!({key, value}) do
+    normalize_subject_custom_count!(%{key: key, value: value})
   end
 
-  defp normalize_repo_custom_count!(count) when is_map(count) or is_list(count) do
+  defp normalize_subject_custom_count!(count) when is_map(count) or is_list(count) do
     count = normalize_map(count)
     key = option(count, :key)
     value = option(count, :value)
 
     unless not is_nil(key) and non_negative_integer?(value) do
-      raise ArgumentError, "repo_progress_card custom counts require :key and non-negative :value"
+      raise ArgumentError,
+            "workflow_progress_status_card custom counts require :key and non-negative :value"
     end
 
     %{
@@ -833,11 +838,11 @@ defmodule UnifiedIUR.Widgets.Components do
     |> maybe_put(:label, option(count, :label))
   end
 
-  defp normalize_repo_custom_count!(_count) do
-    raise ArgumentError, "repo_progress_card custom counts must be maps"
+  defp normalize_subject_custom_count!(_count) do
+    raise ArgumentError, "workflow_progress_status_card custom counts must be maps"
   end
 
-  defp normalize_repo_activity(opts) do
+  defp normalize_subject_activity(opts) do
     activity = opts |> option(:activity, %{}) |> normalize_map()
 
     activity
@@ -845,37 +850,39 @@ defmodule UnifiedIUR.Widgets.Components do
     |> empty_map_to_nil()
   end
 
-  defp normalize_repo_dependencies!(opts) do
+  defp normalize_subject_dependencies!(opts) do
     %{
       depends_on:
         opts
         |> option(:depends_on, [])
-        |> normalize_repo_dependency_edges!(:depends_on),
+        |> normalize_subject_dependency_edges!(:depends_on),
       depended_by:
         opts
         |> option(:depended_by, [])
-        |> normalize_repo_dependency_edges!(:depended_by)
+        |> normalize_subject_dependency_edges!(:depended_by)
     }
   end
 
-  defp normalize_repo_dependency_edges!(edges, direction) when is_list(edges) do
-    Enum.map(edges, &normalize_repo_dependency_edge!(&1, direction))
+  defp normalize_subject_dependency_edges!(edges, direction) when is_list(edges) do
+    Enum.map(edges, &normalize_subject_dependency_edge!(&1, direction))
   end
 
-  defp normalize_repo_dependency_edges!(_edges, direction) do
-    raise ArgumentError, "repo_progress_card :#{direction} must be a list of dependency edges"
+  defp normalize_subject_dependency_edges!(_edges, direction) do
+    raise ArgumentError,
+          "workflow_progress_status_card :#{direction} must be a list of dependency edges"
   end
 
-  defp normalize_repo_dependency_edge!(edge, direction) when is_binary(edge) do
+  defp normalize_subject_dependency_edge!(edge, direction) when is_binary(edge) do
     %{id: edge, label: edge, direction: direction}
   end
 
-  defp normalize_repo_dependency_edge!(edge, direction) when is_map(edge) or is_list(edge) do
+  defp normalize_subject_dependency_edge!(edge, direction) when is_map(edge) or is_list(edge) do
     edge = normalize_map(edge)
     id = option(edge, :id)
 
     unless is_binary(id) and byte_size(id) > 0 do
-      raise ArgumentError, "repo_progress_card dependency edges require a non-empty :id string"
+      raise ArgumentError,
+            "workflow_progress_status_card dependency edges require a non-empty :id string"
     end
 
     %{
@@ -885,27 +892,29 @@ defmodule UnifiedIUR.Widgets.Components do
     }
     |> maybe_put(:state, option(edge, :state))
     |> maybe_put(:metadata, edge |> option(:metadata) |> normalize_optional_map())
-    |> maybe_put(:interaction, normalize_repo_interaction(option(edge, :interaction)))
+    |> maybe_put(:interaction, normalize_subject_interaction(option(edge, :interaction)))
   end
 
-  defp normalize_repo_dependency_edge!(_edge, direction) do
-    raise ArgumentError, "repo_progress_card :#{direction} must be a list of strings or maps"
+  defp normalize_subject_dependency_edge!(_edge, direction) do
+    raise ArgumentError,
+          "workflow_progress_status_card :#{direction} must be a list of strings or maps"
   end
 
-  defp normalize_repo_actions!(opts) do
+  defp normalize_subject_actions!(opts) do
     %{}
-    |> maybe_put(:open, opts |> option(:open_action) |> normalize_repo_open_action!())
+    |> maybe_put(:open, opts |> option(:open_action) |> normalize_subject_open_action!())
   end
 
-  defp normalize_repo_open_action!(nil), do: nil
+  defp normalize_subject_open_action!(nil), do: nil
 
-  defp normalize_repo_open_action!(action) when is_map(action) or is_list(action) do
+  defp normalize_subject_open_action!(action) when is_map(action) or is_list(action) do
     action = normalize_map(action)
     label = option(action, :label)
     intent = option(action, :intent)
 
     unless is_binary(label) and byte_size(label) > 0 and not is_nil(intent) do
-      raise ArgumentError, "repo_progress_card :open_action must have :label and :intent keys"
+      raise ArgumentError,
+            "workflow_progress_status_card :open_action must have :label and :intent keys"
     end
 
     %{
@@ -914,24 +923,24 @@ defmodule UnifiedIUR.Widgets.Components do
     }
     |> maybe_put(:visible_when, option(action, :visible_when))
     |> maybe_put(:metadata, action |> option(:metadata) |> normalize_optional_map())
-    |> maybe_put(:interaction, action |> option(:interaction) |> normalize_repo_interaction())
+    |> maybe_put(:interaction, action |> option(:interaction) |> normalize_subject_interaction())
   end
 
-  defp normalize_repo_open_action!(_action) do
-    raise ArgumentError, "repo_progress_card :open_action must be a map"
+  defp normalize_subject_open_action!(_action) do
+    raise ArgumentError, "workflow_progress_status_card :open_action must be a map"
   end
 
-  defp normalize_repo_interactions!(opts, repo_id) do
+  defp normalize_subject_interactions!(opts, subject_id) do
     focus_interaction =
       case option(opts, :focus_interaction) do
         nil ->
-          case option(opts, :focus_intent, "focus_repo") do
+          case option(opts, :focus_intent, "focus_subject") do
             nil -> nil
-            intent -> Interaction.focus(intent: intent, entity: repo_id)
+            intent -> Interaction.focus(intent: intent, entity: subject_id)
           end
 
         interaction ->
-          normalize_repo_interaction(interaction)
+          normalize_subject_interaction(interaction)
       end
 
     dependency_select_interaction =
@@ -939,11 +948,11 @@ defmodule UnifiedIUR.Widgets.Components do
         nil ->
           case option(opts, :dependency_select_intent) do
             nil -> nil
-            intent -> Interaction.selection(intent: intent, entity: repo_id)
+            intent -> Interaction.selection(intent: intent, entity: subject_id)
           end
 
         interaction ->
-          normalize_repo_interaction(interaction)
+          normalize_subject_interaction(interaction)
       end
 
     %{}
@@ -951,21 +960,25 @@ defmodule UnifiedIUR.Widgets.Components do
     |> maybe_put(:dependency_select, dependency_select_interaction)
   end
 
-  defp normalize_repo_interaction(nil), do: nil
-  defp normalize_repo_interaction(%Interaction{} = interaction), do: Interaction.new(interaction)
+  defp normalize_subject_interaction(nil), do: nil
 
-  defp normalize_repo_interaction(interaction) when is_map(interaction) or is_list(interaction),
+  defp normalize_subject_interaction(%Interaction{} = interaction),
     do: Interaction.new(interaction)
 
-  defp normalize_repo_interaction(_interaction) do
-    raise ArgumentError, "repo_progress_card interactions must be canonical interaction maps"
+  defp normalize_subject_interaction(interaction)
+       when is_map(interaction) or is_list(interaction),
+       do: Interaction.new(interaction)
+
+  defp normalize_subject_interaction(_interaction) do
+    raise ArgumentError,
+          "workflow_progress_status_card interactions must be canonical interaction maps"
   end
 
-  defp normalize_repo_state!(opts) do
+  defp normalize_subject_state!(opts) do
     selected? = option(opts, :selected?, false)
 
     unless is_boolean(selected?) do
-      raise ArgumentError, "repo_progress_card :selected? must be boolean"
+      raise ArgumentError, "workflow_progress_status_card :selected? must be boolean"
     end
 
     %{selected?: selected?}

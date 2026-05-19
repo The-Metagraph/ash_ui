@@ -4,7 +4,7 @@ Back to index: [README](../README.md)
 
 ## Purpose
 
-This contract defines the requirements for adopting `repo_progress_card` as a
+This contract defines the requirements for adopting `workflow_progress_status_card` as a
 reusable canonical workflow progress and status component across the Unified
 package set, runtime renderers, and Ash UI.
 
@@ -20,10 +20,10 @@ authority.
 - `AshUI.Compiler` owns graph-derived IUR assembly from persisted Ash UI
   resources.
 - `AshUI.Rendering` owns conversion from Ash UI IUR into canonical Unified IUR
-  `repo_progress_card` elements.
+  `workflow_progress_status_card` elements.
 - `AshUI.LiveView` and `AshUI.Runtime` own runtime hydration, event bridging,
   and host integration.
-- Unified UI and Unified IUR own the canonical `repo_progress_card` name,
+- Unified UI and Unified IUR own the canonical `workflow_progress_status_card` name,
   family metadata, attribute contract, validation, and renderer-facing
   semantics.
 - Runtime packages own native card rendering and host-specific event transport.
@@ -34,32 +34,32 @@ Ash UI MUST adopt this canonical widget component when Phase 33 lands:
 
 | Canonical kind | Family | Compatibility aliases |
 | --- | --- | --- |
-| `repo_progress_card` | workflow progress and status | - |
+| `workflow_progress_status_card` | workflow progress and status | - |
 
 Application-specific names, map-surface audit labels, placement handles, and
 host action names are not canonical aliases. They may exist as application-local
 wrapper modules, example names, or resource compositions that emit canonical
-`repo_progress_card` output.
+`workflow_progress_status_card` output.
 
 ## Canonical Attribute Shape
 
 The canonical card attributes MUST be renderer independent and grouped under a
-repository-specific namespace.
+workflow-subject namespace.
 
 Required canonical concepts:
 
-- `repo.id`: stable repository or work-unit identity within the screen.
-- `repo.name`: display name.
-- `repo.path`: optional repository path or locator text.
-- `repo.progress`: numeric progress from 0 through 100.
-- `repo.status_counts`: structured active, blocked, done, failed, or custom
+- `subject.id`: stable workflow subject or work-unit identity within the screen.
+- `subject.name`: display name.
+- `subject.path`: optional subject path or locator text.
+- `subject.progress`: numeric progress from 0 through 100.
+- `subject.status_counts`: structured active, blocked, done, failed, or custom
   counts.
-- `repo.activity`: optional recent activity metadata.
-- `repo.dependencies.depends_on`: ordered dependency edge descriptors.
-- `repo.dependencies.depended_by`: ordered reverse dependency edge descriptors.
-- `repo.actions.open`: optional semantic open action.
-- `repo.interactions.focus`: optional semantic focus interaction.
-- `repo.interactions.dependency_select`: optional semantic dependency
+- `subject.activity`: optional recent activity metadata.
+- `subject.dependencies.depends_on`: ordered dependency edge descriptors.
+- `subject.dependencies.depended_by`: ordered reverse dependency edge descriptors.
+- `subject.actions.open`: optional semantic open action.
+- `subject.interactions.focus`: optional semantic focus interaction.
+- `subject.interactions.dependency_select`: optional semantic dependency
   interaction.
 
 Dependency edge descriptors SHOULD support:
@@ -80,24 +80,24 @@ canonical attribute contract.
 
 ### REQ-WFPS-001 - Canonical Name And Scope
 
-Ash UI MUST treat `repo_progress_card` as the canonical component kind for
-reusable repository workflow progress and status behavior.
+Ash UI MUST treat `workflow_progress_status_card` as the canonical component kind for
+reusable workflow subject progress and status behavior.
 
 Acceptance criteria:
 
-- renderer-facing canonical IUR emits `kind: :repo_progress_card`;
+- renderer-facing canonical IUR emits `kind: :workflow_progress_status_card`;
 - map-surface-specific names are not admitted as canonical package aliases;
 - application-specific cards compose or wrap the canonical component instead of
   changing the package catalog.
 
 ### REQ-WFPS-002 - Catalog And Family Alignment
 
-Unified and Ash package metadata MUST agree that `repo_progress_card` belongs to
+Unified and Ash package metadata MUST agree that `workflow_progress_status_card` belongs to
 the workflow progress and status family.
 
 Acceptance criteria:
 
-- `UnifiedUi.WidgetComponents` reports `repo_progress_card` in
+- `UnifiedUi.WidgetComponents` reports `workflow_progress_status_card` in
   `:workflow_progress_and_status`;
 - Unified IUR component metadata uses the same family;
 - Live UI widget metadata and registry discovery use the same family;
@@ -108,13 +108,13 @@ Acceptance criteria:
 ### REQ-WFPS-003 - Unified UI Authoring Path
 
 Unified UI MUST expose catalog metadata and, when DSL authoring is present, a
-first-class DSL/compiler path for `repo_progress_card`.
+first-class DSL/compiler path for `workflow_progress_status_card`.
 
 Acceptance criteria:
 
 - the catalog entry documents the component family and summary;
-- any DSL entity lowers to canonical `repo` attributes;
-- invalid repository progress or dependency declarations fail before renderer
+- any DSL entity lowers to canonical `subject` attributes;
+- invalid workflow subject progress or dependency declarations fail before renderer
   dispatch;
 - DSL examples avoid app-specific map-surface language.
 
@@ -125,9 +125,9 @@ card shape.
 
 Acceptance criteria:
 
-- `UnifiedIUR.Widgets.Components.repo_progress_card/1` builds a canonical
+- `UnifiedIUR.Widgets.Components.workflow_progress_status_card/1` builds a canonical
   `%UnifiedIUR.Element{}`;
-- `UnifiedIUR.Validate.element/1` validates required repository identity,
+- `UnifiedIUR.Validate.element/1` validates required workflow subject identity,
   progress bounds, status count shapes, dependency edge descriptors, and
   optional action shapes;
 - validation rejects renderer-specific event strings as canonical interactions;
@@ -136,32 +136,32 @@ Acceptance criteria:
 
 ### REQ-WFPS-005 - Ash Resource Admission
 
-Ash UI MUST admit `repo_progress_card` through resource-first and persisted DSL
+Ash UI MUST admit `workflow_progress_status_card` through resource-first and persisted DSL
 authoring paths.
 
 Acceptance criteria:
 
-- `AshUI.Resource.DSL.Element` accepts `repo_progress_card`;
-- persisted DSL validation accepts `repo_progress_card`;
+- `AshUI.Resource.DSL.Element` accepts `workflow_progress_status_card`;
+- persisted DSL validation accepts `workflow_progress_status_card`;
 - invalid app-specific names are rejected unless explicitly authored as
   `custom:*`;
 - authoring errors identify the affected resource or element.
 
 ### REQ-WFPS-006 - Ash Canonical Conversion
 
-Ash UI MUST convert resource-authored repository card declarations into the
-canonical `repo_progress_card` attribute shape.
+Ash UI MUST convert resource-authored workflow subject card declarations into the
+canonical `workflow_progress_status_card` attribute shape.
 
 Acceptance criteria:
 
-- `AshUI.Rendering.IURAdapter` maps card props into `attributes.repo`;
+- `AshUI.Rendering.IURAdapter` maps card props into `attributes.subject`;
 - Ash-owned metadata stays under Ash-owned metadata keys;
-- unknown props cannot overwrite canonical `component` or `repo` metadata;
+- unknown props cannot overwrite canonical `component` or `subject` metadata;
 - converted card output validates through Unified IUR.
 
 ### REQ-WFPS-007 - Dependency Edge Semantics
 
-Repository dependencies MUST remain structured and ordered at the canonical
+Workflow subject dependencies MUST remain structured and ordered at the canonical
 boundary.
 
 Acceptance criteria:
@@ -173,7 +173,7 @@ Acceptance criteria:
 
 ### REQ-WFPS-008 - Semantic Actions And Interactions
 
-Repository card actions and interactions MUST be semantic and host independent.
+Workflow subject card actions and interactions MUST be semantic and host independent.
 
 Acceptance criteria:
 
@@ -186,7 +186,7 @@ Acceptance criteria:
 
 ### REQ-WFPS-009 - Runtime Renderer Support
 
-Runtime renderers MUST either render `repo_progress_card` natively or preserve
+Runtime renderers MUST either render `workflow_progress_status_card` natively or preserve
 it with structured diagnostics.
 
 Acceptance criteria:
@@ -230,7 +230,7 @@ and add conformance coverage for the complete adoption path.
 
 Acceptance criteria:
 
-- user guides describe resource authoring and canonical repository card fields;
+- user guides describe resource authoring and canonical workflow subject card fields;
 - developer guides describe package ownership, validation, interactions, and
   renderer responsibilities;
 - package-boundary tests compare catalog and family metadata;

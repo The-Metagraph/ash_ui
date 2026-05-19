@@ -11,6 +11,7 @@ defmodule AshUI.Rendering.IURAdapter do
   alias AshUI.WidgetComponents
   alias UnifiedIUR.{Binding, Element, Metadata, Normalize, Validate}
   alias UnifiedIUR.Element.Child
+  alias UnifiedIUR.Widgets.Components, as: IURComponents
 
   @doc """
   Converts an Ash IUR to canonical unified_iur Screen format.
@@ -688,28 +689,11 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:form_builder, props), do: %{form: Map.drop(props, attachment_prop_keys())}
   defp base_attributes(:field_group, props), do: %{group: Map.drop(props, attachment_prop_keys())}
 
-  defp base_attributes(:repo_progress_card = kind, props) do
-    component_attributes(
-      kind,
-      :workflow_progress_and_status,
-      %{
-        repo:
-          compact_map(%{
-            name: first_present(props, [:name]),
-            progress_pct: first_present(props, [:progress_pct]) || 0.0,
-            active_count: first_present(props, [:active_count]) || 0,
-            blocked_count: first_present(props, [:blocked_count]) || 0,
-            path: first_present(props, [:path]),
-            last_activity_at: first_present(props, [:last_activity_at]),
-            depends_on: fetch(props, :depends_on, []),
-            depended_by: fetch(props, :depended_by, []),
-            selected?: first_present(props, [:selected?]) || false,
-            focus_intent: first_present(props, [:focus_intent]) || "focus_repo"
-          }),
-        open_action: normalize_optional_map(first_present(props, [:open_action]))
-      },
-      props
-    )
+  defp base_attributes(:workflow_progress_status_card, props) do
+    props
+    |> workflow_progress_status_card_opts()
+    |> IURComponents.workflow_progress_status_card()
+    |> Map.fetch!(:attributes)
   end
 
   defp base_attributes(kind, props), do: %{kind => Map.drop(props, attachment_prop_keys())}
@@ -959,6 +943,33 @@ defmodule AshUI.Rendering.IURAdapter do
     |> maybe_put(:active?, first_present(props, [:active?, :active]))
     |> maybe_put(:link_target, first_present(props, [:link_target, :href, :target]))
     |> maybe_put(:action_intent, first_present(props, [:action_intent, :intent]))
+  end
+
+  defp workflow_progress_status_card_opts(props) do
+    %{
+      subject_id: first_present(props, [:subject_id]),
+      name: first_present(props, [:name, :label]),
+      path: first_present(props, [:subject_path, :path]),
+      progress: first_present(props, [:progress]),
+      progress_pct: first_present(props, [:progress_pct, :progress_percent]),
+      status_counts: normalize_optional_map(fetch(props, :status_counts)),
+      active_count: first_present(props, [:active_count]),
+      blocked_count: first_present(props, [:blocked_count]),
+      done_count: first_present(props, [:done_count]),
+      failed_count: first_present(props, [:failed_count]),
+      custom_counts: first_present(props, [:custom_counts]),
+      activity: normalize_optional_map(fetch(props, :activity)),
+      last_activity_at: first_present(props, [:last_activity_at, :updated_at]),
+      depends_on: fetch(props, :depends_on, []),
+      depended_by: fetch(props, :depended_by, []),
+      selected?: first_present(props, [:selected?]) || false,
+      focus_intent: first_present(props, [:focus_intent]) || "focus_subject",
+      focus_interaction: first_present(props, [:focus_interaction]),
+      dependency_select_intent: first_present(props, [:dependency_select_intent]),
+      dependency_select_interaction: first_present(props, [:dependency_select_interaction]),
+      open_action: normalize_optional_map(first_present(props, [:open_action]))
+    }
+    |> compact_map()
   end
 
   defp normalize_heading_segments(props) do

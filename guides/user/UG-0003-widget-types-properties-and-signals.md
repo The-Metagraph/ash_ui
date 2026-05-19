@@ -95,7 +95,7 @@ authoring boundaries and normalize before renderer-facing output.
 | Content, identity, and disclosure | `inline_rich_text_heading`, `disclosure`, `kicker`, `avatar`, `presence_dot` | none |
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
 | Row and artifact | `list_item_multi_column`, `artifact_row` | none |
-| Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge` | none |
+| Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `workflow_progress_status_card` | none |
 | Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
 | Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
@@ -120,6 +120,15 @@ Concrete layout width, responsive behavior, and visual treatment belong to the
 renderer or host application CSS. Document-specific rails should compose
 `right_rail` with document panel resources; do not introduce `doc_right_rail`
 as a canonical widget type.
+
+`workflow_progress_status_card` is the reusable card for a workflow subject.
+Use it for health, progress, dependency, release, or coordination surfaces that
+need the same subject identity plus status shape. Author generic subject props
+such as `subject_id`, `name`, `path`, `progress_pct`, `active_count`,
+`blocked_count`, `depends_on`, `depended_by`, `selected?`, and optional
+`open_action`. The canonical renderer-facing output groups those values under
+`attributes.subject`; it does not expose map placement names, route helpers,
+LiveView event fields, or application-specific card names.
 
 You can also author `custom:*` types. They are accepted as widget types, but the
 shipped validation/runtime does not automatically give them built-in signal

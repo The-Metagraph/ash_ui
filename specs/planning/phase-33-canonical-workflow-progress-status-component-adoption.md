@@ -235,38 +235,38 @@ exists there.
   coerced to `custom:*` or generic nodes.
 - [x] 33.6.2.5 Subtask - Commit runtime renderer support.
 
-## [ ] 33.7 Section - Documentation, Examples, And Migration Guidance
+## [x] 33.7 Section - Documentation, Examples, And Migration Guidance
 
 This section teaches users and reviewers how to use the reusable component
 without reintroducing app-specific canonical vocabulary.
 
-### [ ] 33.7.1 Task - Update User And Developer Guides
+### [x] 33.7.1 Task - Update User And Developer Guides
 
 This task documents authoring, package ownership, renderer behavior, and
 extension boundaries.
 
-- [ ] 33.7.1.1 Subtask - Add user guide coverage for `workflow_progress_status_card`
+- [x] 33.7.1.1 Subtask - Add user guide coverage for `workflow_progress_status_card`
   identity, progress, status counts, dependencies, actions, and interactions.
-- [ ] 33.7.1.2 Subtask - Add developer guide coverage for package boundaries,
+- [x] 33.7.1.2 Subtask - Add developer guide coverage for package boundaries,
   validation, canonical attributes, and renderer support.
-- [ ] 33.7.1.3 Subtask - Document concrete layout and theme ownership by
+- [x] 33.7.1.3 Subtask - Document concrete layout and theme ownership by
   renderers and host applications.
-- [ ] 33.7.1.4 Subtask - Document why map-surface placement and host action names
+- [x] 33.7.1.4 Subtask - Document why map-surface placement and host action names
   are application composition rather than canonical vocabulary.
 
-### [ ] 33.7.2 Task - Add Reviewable Examples
+### [x] 33.7.2 Task - Add Reviewable Examples
 
 This task provides proof that the component is reusable outside a single map
 surface.
 
-- [ ] 33.7.2.1 Subtask - Add a compact workflow health example.
-- [ ] 33.7.2.2 Subtask - Add a dependency-focused example with `depends_on` and
+- [x] 33.7.2.1 Subtask - Add a compact workflow health example.
+- [x] 33.7.2.2 Subtask - Add a dependency-focused example with `depends_on` and
   `depended_by` edges.
-- [ ] 33.7.2.3 Subtask - Add an example with optional open action and dependency
+- [x] 33.7.2.3 Subtask - Add an example with optional open action and dependency
   interactions.
-- [ ] 33.7.2.4 Subtask - Add a canonical signal preview showing open, focus, and
+- [x] 33.7.2.4 Subtask - Add a canonical signal preview showing open, focus, and
   dependency interactions.
-- [ ] 33.7.2.5 Subtask - Commit docs, examples, and migration guidance.
+- [x] 33.7.2.5 Subtask - Commit docs, examples, and migration guidance.
 
 ## [ ] 33.8 Section - Phase 33 Integration Tests And PR Closeout
 

@@ -12,7 +12,7 @@ AshUI resource authority.
 | Content, identity, and disclosure | `inline_rich_text_heading`, `avatar`, `disclosure` | Use semantic text segments, identity props, and open state as props on element resources. |
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer` | Keep form and composer actions on the owning element through `ui_actions`. |
 | Row and artifact | `list_item_multi_column`, `artifact_row` | Use row identity and column templates as props; avoid custom row shells for cataloged artifact rows. |
-| Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin` | Keep progress and workflow state in props that canonical validation can check. |
+| Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `workflow_progress_status_card` | Keep progress and workflow state in props that canonical validation can check. |
 | Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `right_rail` | Preserve accessible names, open state, message text, and rail panel descriptors in canonical props. |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | Provide explicit segment or token state instead of pre-rendered HTML. |
 | Composition behavior | `list_repeat` | Declare repeat ownership through relationships and list bindings. |
@@ -87,6 +87,86 @@ ui_element do
   props(%{steps: [%{id: :draft, label: "Draft"}], active_index: 0})
   metadata(%{id: "release_pipeline"})
 end
+```
+
+```elixir
+ui_element do
+  type(:workflow_progress_status_card)
+
+  props(%{
+    subject_id: "subject:ash_ui",
+    name: "ash_ui",
+    path: "workspaces/ash_ui",
+    progress_pct: 0.72,
+    active_count: 4,
+    blocked_count: 1
+  })
+
+  metadata(%{id: "workflow_health_card"})
+end
+```
+
+Dependency-focused cards keep `depends_on` and `depended_by` as ordered edge
+descriptors, not display text.
+
+```elixir
+ui_element do
+  type(:workflow_progress_status_card)
+
+  props(%{
+    subject_id: "subject:release-readiness",
+    name: "Release readiness",
+    progress_pct: 0.84,
+    active_count: 2,
+    blocked_count: 1,
+    depends_on: [
+      %{id: "subject:unified_iur", label: "Unified IUR", state: :done},
+      %{id: "subject:unified_ui", label: "Unified UI", state: :active}
+    ],
+    depended_by: [
+      %{id: "subject:live_ui", label: "Live UI", state: :blocked}
+    ],
+    selected?: true,
+    open_action: %{label: "Open", intent: :open_subject, visible_when: :when_selected}
+  })
+
+  metadata(%{id: "release_readiness_card"})
+end
+```
+
+Canonical signal previews should show semantic open, focus, and dependency
+selection interactions instead of renderer-specific event attributes.
+
+```elixir
+UnifiedIUR.Widgets.Components.workflow_progress_status_card(
+  id: "release-readiness-card",
+  subject_id: "subject:release-readiness",
+  name: "Release readiness",
+  progress_pct: 0.84,
+  active_count: 2,
+  blocked_count: 1,
+  depends_on: ["subject:unified_iur", "subject:unified_ui"],
+  depended_by: ["subject:live_ui"],
+  focus_interaction:
+    UnifiedIUR.Interaction.focus(
+      intent: :focus_subject,
+      entity: "subject:release-readiness"
+    ),
+  dependency_select_interaction:
+    UnifiedIUR.Interaction.selection(
+      intent: :select_dependency,
+      entity: "subject:release-readiness"
+    ),
+  open_action: %{
+    label: "Open",
+    intent: :open_subject,
+    interaction:
+      UnifiedIUR.Interaction.open(
+        intent: :open_subject,
+        entity: "subject:release-readiness"
+      )
+  }
+)
 ```
 
 ```elixir

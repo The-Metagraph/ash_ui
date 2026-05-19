@@ -159,7 +159,7 @@ Current component attribute namespaces are:
 | Content, identity, and disclosure | `:heading`, `:disclosure`, `:kicker`, `:identity`, `:presence` |
 | Form control and composer | `:form`, `:selection`, `:composer` |
 | Row and artifact | `:row`, `:artifact` |
-| Workflow, progress, and status | `:workflow`, `:progress`, `:meter` |
+| Workflow, progress, and status | `:workflow`, `:progress`, `:meter`, `:subject` |
 | Layer shell and callout | `:shell`, `:panel`, `:callout`, `:rail` |
 | Redline and code | `:redline`, `:code`, `:text_safety` |
 | Composition behavior | `:repeat` |
@@ -189,6 +189,21 @@ Elm UI and desktop adapters currently preserve the canonical component identity
 through structured unsupported-component diagnostics until they grow native
 rail renderers. That is intentional renderer support, not a reason to degrade
 the canonical kind to `custom:*`.
+
+`workflow_progress_status_card` is the canonical reusable card for workflow
+subject health, progress, dependencies, activity, and optional open/focus
+behavior. Unified UI owns the DSL/compiler surface, Unified IUR owns the
+`attributes.subject` contract and validation, and Ash UI maps resource-authored
+props into that namespace. Keep subject identity, status counts, dependency
+edges, activity, and semantic actions structured. Do not add route helpers,
+`phx-*` fields, host event names, map placement, or application-specific card
+vocabulary to the canonical payload.
+
+Live UI renders `workflow_progress_status_card` natively and translates semantic
+interactions inside the renderer. Elm UI and desktop adapters preserve the
+component through unsupported-component diagnostics that include the renderer,
+element id, component kind, and component family until native card renderers
+exist there.
 
 ## Canonical Navigation Flow
 

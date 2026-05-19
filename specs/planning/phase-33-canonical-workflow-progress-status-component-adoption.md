@@ -34,7 +34,7 @@ Back to index: [README](./README.md)
 - Phase 33 should be implemented section by section, with one scoped commit per
   completed section and one PR at the end.
 
-[ ] 33 Phase 33 - Canonical Workflow Progress And Status Component Adoption
+[x] 33 Phase 33 - Canonical Workflow Progress And Status Component Adoption
 
 This phase rebases PR #123 onto current main and turns `workflow_progress_status_card` into
 a complete canonical workflow progress and status component. It resolves the
@@ -268,30 +268,30 @@ surface.
   dependency interactions.
 - [x] 33.7.2.5 Subtask - Commit docs, examples, and migration guidance.
 
-## [ ] 33.8 Section - Phase 33 Integration Tests And PR Closeout
+## [x] 33.8 Section - Phase 33 Integration Tests And PR Closeout
 
 This final section proves canonical workflow progress and status adoption works
 as one package-spanning path instead of a standalone Live UI widget.
 
-### [ ] 33.8.1 Task - Run End-To-End Card Adoption Scenarios
+### [x] 33.8.1 Task - Run End-To-End Card Adoption Scenarios
 
 This task validates Phase 33 across rebase hygiene, catalog, DSL, constructor,
 validation, Ash conversion, runtime rendering, docs, examples, and governance.
 
-- [ ] 33.8.1.1 Subtask - Verify `workflow_progress_status_card` catalog and family metadata
+- [x] 33.8.1.1 Subtask - Verify `workflow_progress_status_card` catalog and family metadata
   match across packages.
-- [ ] 33.8.1.2 Subtask - Verify Unified UI-authored cards compile into valid
+- [x] 33.8.1.2 Subtask - Verify Unified UI-authored cards compile into valid
   `%UnifiedIUR.Element{}` output where DSL support is present.
-- [ ] 33.8.1.3 Subtask - Verify Unified IUR rejects invalid identity, progress,
+- [x] 33.8.1.3 Subtask - Verify Unified IUR rejects invalid identity, progress,
   dependency, action, and interaction shapes.
-- [ ] 33.8.1.4 Subtask - Verify Ash resource-authored cards compile into valid
+- [x] 33.8.1.4 Subtask - Verify Ash resource-authored cards compile into valid
   canonical output.
-- [ ] 33.8.1.5 Subtask - Verify Live UI renders native cards with attrs,
+- [x] 33.8.1.5 Subtask - Verify Live UI renders native cards with attrs,
   accessibility, dependencies, and interactions preserved.
-- [ ] 33.8.1.6 Subtask - Verify Elm and desktop adapters preserve or diagnose
+- [x] 33.8.1.6 Subtask - Verify Elm and desktop adapters preserve or diagnose
   cards explicitly.
-- [ ] 33.8.1.7 Subtask - Verify docs and examples cover reusable workflow status
+- [x] 33.8.1.7 Subtask - Verify docs and examples cover reusable workflow status
   composition and the app-specific map-surface boundary.
-- [ ] 33.8.1.8 Subtask - Run the targeted Phase 33 suite and governance
+- [x] 33.8.1.8 Subtask - Run the targeted Phase 33 suite and governance
   validation before opening the final PR.
-- [ ] 33.8.1.9 Subtask - Commit integration coverage and PR closeout notes.
+- [x] 33.8.1.9 Subtask - Commit integration coverage and PR closeout notes.

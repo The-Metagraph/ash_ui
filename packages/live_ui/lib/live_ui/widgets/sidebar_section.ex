@@ -40,7 +40,7 @@ defmodule LiveUi.Widgets.SidebarSection do
   """
 
   use LiveUi.Component,
-    family: :navigation,
+    family: :layer_shell_and_callout,
     name: :sidebar_section,
     events: [:toggle]
 

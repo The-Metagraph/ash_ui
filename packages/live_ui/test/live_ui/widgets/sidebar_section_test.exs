@@ -31,10 +31,10 @@ defmodule LiveUi.Widgets.SidebarSectionTest do
       assert metadata.name == :sidebar_section
     end
 
-    test "family is navigation (layer-shell navigation widget)" do
+    test "family is layer_shell_and_callout (canonical shell-primitive family)" do
       metadata = Component.metadata(LiveUi.Widgets.SidebarSection)
 
-      assert metadata.family == :navigation
+      assert metadata.family == :layer_shell_and_callout
     end
 
     test "toggle event is declared" do

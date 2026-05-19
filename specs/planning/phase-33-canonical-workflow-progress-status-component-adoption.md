@@ -73,35 +73,35 @@ This task keeps the final PR focused on `repo_progress_card`.
   workflow progress and status adoption files.
 - [x] 33.1.2.4 Subtask - Commit the clean rebase and scope baseline.
 
-## [ ] 33.2 Section - Canonical Decision And Family Boundary
+## [x] 33.2 Section - Canonical Decision And Family Boundary
 
 This section makes the component a first-class canonical
 `:workflow_progress_and_status` kind before runtime rendering is treated as
 supported.
 
-### [ ] 33.2.1 Task - Align Package Catalog Metadata
+### [x] 33.2.1 Task - Align Package Catalog Metadata
 
 This task records the canonical kind and family consistently across packages.
 
-- [ ] 33.2.1.1 Subtask - Add `repo_progress_card` to the Unified UI catalog with
+- [x] 33.2.1.1 Subtask - Add `repo_progress_card` to the Unified UI catalog with
   family `:workflow_progress_and_status`.
-- [ ] 33.2.1.2 Subtask - Add `repo_progress_card` to Unified IUR component kind
+- [x] 33.2.1.2 Subtask - Add `repo_progress_card` to Unified IUR component kind
   metadata under the same family.
-- [ ] 33.2.1.3 Subtask - Remove `:workflow` and `:workflow_summary` family
+- [x] 33.2.1.3 Subtask - Remove `:workflow` and `:workflow_summary` family
   experiments from the implementation branch.
-- [ ] 33.2.1.4 Subtask - Ensure Live UI widget metadata reports the same family.
+- [x] 33.2.1.4 Subtask - Ensure Live UI widget metadata reports the same family.
 
-### [ ] 33.2.2 Task - Add Package Boundary Guardrails
+### [x] 33.2.2 Task - Add Package Boundary Guardrails
 
 This task prevents kind and family drift during future catalog updates.
 
-- [ ] 33.2.2.1 Subtask - Add package-boundary tests for
+- [x] 33.2.2.1 Subtask - Add package-boundary tests for
   `repo_progress_card` catalog membership.
-- [ ] 33.2.2.2 Subtask - Add package-boundary tests for
+- [x] 33.2.2.2 Subtask - Add package-boundary tests for
   `:workflow_progress_and_status` family consistency.
-- [ ] 33.2.2.3 Subtask - Fail tests if Live UI registers the component under
+- [x] 33.2.2.3 Subtask - Fail tests if Live UI registers the component under
   `:workflow`, `:operational`, or another family.
-- [ ] 33.2.2.4 Subtask - Commit catalog and package-boundary alignment.
+- [x] 33.2.2.4 Subtask - Commit catalog and package-boundary alignment.
 
 ## [ ] 33.3 Section - Unified UI Authoring And Compiler Support
 

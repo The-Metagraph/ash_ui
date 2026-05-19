@@ -17,6 +17,7 @@ defmodule LiveUi.Widgets do
           | :form_control_and_composer
           | :composition_behavior
           | :layer_shell_and_callout
+          | :workflow_progress_and_status
 
   @type widget_module :: module()
 
@@ -35,7 +36,8 @@ defmodule LiveUi.Widgets do
       :content_identity_and_disclosure,
       :form_control_and_composer,
       :composition_behavior,
-      :layer_shell_and_callout
+      :layer_shell_and_callout,
+      :workflow_progress_and_status
     ]
   end
 
@@ -50,7 +52,8 @@ defmodule LiveUi.Widgets do
       content_identity_and_disclosure_modules() ++
       form_control_and_composer_modules() ++
       composition_behavior_modules() ++
-      layer_shell_and_callout_modules()
+      layer_shell_and_callout_modules() ++
+      workflow_progress_and_status_modules()
   end
 
   @spec metadata() :: [LiveUi.Component.Metadata.t()]
@@ -106,6 +109,11 @@ defmodule LiveUi.Widgets do
   @spec layer_shell_and_callout_modules() :: [widget_module()]
   def layer_shell_and_callout_modules do
     LiveUi.Widgets.LayerShellAndCallout.modules()
+  end
+
+  @spec workflow_progress_and_status_modules() :: [widget_module()]
+  def workflow_progress_and_status_modules do
+    LiveUi.Widgets.WorkflowProgressAndStatus.modules()
   end
 
   @spec namespace() :: module()

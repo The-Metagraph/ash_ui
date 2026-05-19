@@ -667,28 +667,6 @@ defmodule AshUI.Rendering.IURAdapter do
   defp base_attributes(:inline_feedback, props),
     do: %{feedback: Map.drop(props, attachment_prop_keys())}
 
-  defp base_attributes(:diff_banner = kind, props) do
-    component_attributes(
-      kind,
-      :workflow_progress_and_status,
-      %{
-        diff:
-          compact_map(%{
-            new_count: fetch(props, :new_count, 0),
-            removed_count: fetch(props, :removed_count, 0),
-            changed_count: fetch(props, :changed_count, 0),
-            base_label: first_present(props, [:base_label]),
-            filter_intent_prefix: first_present(props, [:filter_intent_prefix]) || "filter_diff_",
-            active_filter:
-              normalize_existing_atom(first_present(props, [:active_filter])) || :all,
-            show_filter_chips?: fetch(props, :show_filter_chips?, true),
-            size: normalize_existing_atom(first_present(props, [:size])) || :default
-          })
-      },
-      props
-    )
-  end
-
   defp base_attributes(:dialog, props), do: %{dialog: Map.drop(props, attachment_prop_keys())}
 
   defp base_attributes(:alert_dialog, props),

@@ -985,32 +985,6 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       )
     end
 
-    test "generates diff_banner fallback with chip counts and active filter" do
-      iur = %{
-        "type" => "diff_banner",
-        "id" => "ask-diff",
-        "props" => %{
-          "diff" => %{
-            "new_count" => 4,
-            "removed_count" => 2,
-            "changed_count" => 7,
-            "active_filter" => "new",
-            "size" => "default"
-          }
-        },
-        "children" => [],
-        "metadata" => %{}
-      }
-
-      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
-
-      assert heex =~ "ash-diff-banner"
-      assert heex =~ "4 new"
-      assert heex =~ "2 removed"
-      assert heex =~ "7 changed"
-      assert heex =~ ~s(data-active-filter="new")
-      assert heex =~ "ash-diff-banner__chip--new"
-    end
   end
 
   describe "Section 7.2.1 - Event Binding Configuration" do

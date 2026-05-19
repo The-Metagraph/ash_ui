@@ -135,8 +135,8 @@ defmodule UnifiedIUR.Widgets.RepoProgressCardTest do
       end
     end
 
-    test "is included in workflow_summary_kinds" do
-      assert :repo_progress_card in Components.workflow_summary_kinds()
+    test "is included in workflow_kinds" do
+      assert :repo_progress_card in Components.workflow_kinds()
     end
 
     test "is included in Components.kinds()" do

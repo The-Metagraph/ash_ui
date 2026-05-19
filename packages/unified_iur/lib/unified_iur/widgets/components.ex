@@ -58,7 +58,8 @@ defmodule UnifiedIUR.Widgets.Components do
     :segmented_progress_bar,
     :workflow_stage_list_vertical,
     :meter_thin,
-    :unread_badge
+    :unread_badge,
+    :repo_progress_card
   ]
 
   @layer_callout_kinds [
@@ -80,10 +81,6 @@ defmodule UnifiedIUR.Widgets.Components do
 
   @composition_behavior_kinds [
     :list_repeat
-  ]
-
-  @workflow_summary_kinds [
-    :repo_progress_card
   ]
 
   @spec content_identity_kinds() :: [atom()]
@@ -110,9 +107,6 @@ defmodule UnifiedIUR.Widgets.Components do
   @spec composition_behavior_kinds() :: [atom()]
   def composition_behavior_kinds, do: @composition_behavior_kinds
 
-  @spec workflow_summary_kinds() :: [atom()]
-  def workflow_summary_kinds, do: @workflow_summary_kinds
-
   @spec kinds() :: [atom()]
   def kinds do
     @content_identity_kinds ++
@@ -121,8 +115,7 @@ defmodule UnifiedIUR.Widgets.Components do
       @workflow_kinds ++
       @layer_callout_kinds ++
       @redline_code_kinds ++
-      @composition_behavior_kinds ++
-      @workflow_summary_kinds
+      @composition_behavior_kinds
   end
 
   @spec inline_rich_text_heading(atom(), [keyword() | map()], opts()) :: Element.t()

@@ -8,22 +8,15 @@ defmodule LiveUi.Widgets.RepoProgressCard do
   - Stat chips (active dispatches, blocked dispatches, last-activity relative time)
   - Dependency edges (depends-on / depended-by repo name lists)
 
-  Used in Map mode's repo grid; one card per repository. Replaces the raw HEEx
-  `<article data-repo-card>` block in map_surface_component.ex.
-
-  ## Open questions for Pascal (Wave 3.7-B spec)
-
-  1. **Composite vs decomposed**: should this widget internally compose `:progress`
-     + multiple `:text` children as child IUR nodes (compositional purity) OR render
-     the full HTML in this Stage-4 component (current approach, simpler)?
-  2. **Dependency rendering**: comma-joined string (current) vs list of `:text`
-     children with separators (more accessible)?
-  3. **open_action `:visible_when`**: supports `:always` and `:when_selected` shapes;
-     alternatively the surface can pass `nil` when the action should not render.
-  4. **Family**: `:workflow_progress_and_status` (used) vs new `:workflow_summary`?
+  The component belongs to the canonical `:workflow_progress_and_status` family.
+  Host applications own map-surface placement, concrete routes, and runtime event
+  transport.
   """
 
-  use LiveUi.Component, family: :workflow, name: :repo_progress_card, events: [:click]
+  use LiveUi.Component,
+    family: :workflow_progress_and_status,
+    name: :repo_progress_card,
+    events: [:click]
 
   LiveUi.Component.common_attrs()
   attr(:name, :string, required: true)

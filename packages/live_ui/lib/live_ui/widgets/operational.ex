@@ -7,8 +7,7 @@ defmodule LiveUi.Widgets.Operational do
     LiveUi.Widgets.StreamWidget,
     LiveUi.Widgets.ProcessMonitor,
     LiveUi.Widgets.SupervisionTreeViewer,
-    LiveUi.Widgets.ClusterDashboard,
-    LiveUi.Widgets.RepoProgressCard
+    LiveUi.Widgets.ClusterDashboard
   ]
 
   @spec modules() :: [module()]

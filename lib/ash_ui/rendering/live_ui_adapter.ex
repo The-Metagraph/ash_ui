@@ -2089,42 +2089,6 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
-  defp generate_heex(%{"type" => "diff_banner"} = iur, _opts) do
-    props = iur["props"] || %{}
-    diff = prop(props, "diff", %{})
-    new_count = prop(diff, "new_count", 0)
-    removed_count = prop(diff, "removed_count", 0)
-    changed_count = prop(diff, "changed_count", 0)
-    base_label = text_prop(diff, ["base_label", "base"])
-    active_filter = text_prop(diff, ["active_filter"], "all")
-    size = text_prop(diff, ["size"], "default")
-
-    chips =
-      [{"new", new_count}, {"changed", changed_count}, {"removed", removed_count}]
-      |> Enum.map(fn {kind, count} ->
-        active_class = if active_filter == kind, do: " ash-diff-banner__chip--active", else: ""
-
-        "<span class=\"ash-diff-banner__chip ash-diff-banner__chip--#{kind}#{active_class}\" data-kind=\"#{kind}\">#{count} #{kind}</span>"
-      end)
-      |> Enum.join("\n      ")
-
-    base_html =
-      if base_label && size != "compact" do
-        "<span class=\"ash-diff-banner__base\">#{base_label}</span>"
-      else
-        ""
-      end
-
-    """
-    <aside class="#{css_classes(["ash-diff-banner", "ash-diff-banner--#{size}", prop_class(iur)])}" data-active-filter="#{active_filter}"#{style_attr(prop_style(iur))}>
-      #{base_html}
-      <div class="ash-diff-banner__chips">
-      #{chips}
-      </div>
-    </aside>
-    """
-  end
-
   defp generate_heex(%{"type" => "custom:sparkline"} = iur, opts) do
     props = iur["props"] || %{}
     title = text_prop(props, ["title", "label"], "Sparkline")

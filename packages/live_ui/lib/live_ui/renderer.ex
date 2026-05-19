@@ -31,6 +31,7 @@ defmodule LiveUi.Renderer do
        :cluster_dashboard,
        :column,
        :command_palette,
+       :confidence_indicator,
        :content,
        :context_menu,
        :date_input,
@@ -1238,6 +1239,60 @@ defmodule LiveUi.Renderer do
       message={string_value(get_in(@element.attributes, [:feedback, :message]), "")}
       title={string_optional(get_in(@element.attributes, [:feedback, :title]))}
       severity={string_value(get_in(@element.attributes, [:feedback, :severity]), "info")}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
+  def render(%{element: %Element{kind: :confidence_indicator}} = assigns) do
+    thresholds = get_in(assigns.element.attributes, [:confidence, :thresholds]) || %{}
+
+    assigns =
+      assigns
+      |> assign(:style_attrs, style_rest(assigns.element))
+      |> assign(
+        :value,
+        float_value(get_in(assigns.element.attributes, [:confidence, :value]), 0.0)
+      )
+      |> assign(
+        :warn_threshold,
+        float_value(Map.get(thresholds, :warn, Map.get(thresholds, "warn")), 0.5)
+      )
+      |> assign(
+        :pass_threshold,
+        float_value(Map.get(thresholds, :pass, Map.get(thresholds, "pass")), 0.8)
+      )
+      |> assign(
+        :label,
+        string_optional(get_in(assigns.element.attributes, [:confidence, :label]))
+      )
+      |> assign(
+        :show_numeric?,
+        boolean_default(get_in(assigns.element.attributes, [:confidence, :show_numeric?]), true)
+      )
+      |> assign(
+        :show_glyph?,
+        boolean_default(get_in(assigns.element.attributes, [:confidence, :show_glyph?]), true)
+      )
+      |> assign(
+        :size,
+        string_value(get_in(assigns.element.attributes, [:confidence, :size]), "medium")
+      )
+
+    ~H"""
+    <LiveUi.Widgets.ConfidenceIndicator.component
+      id={element_id(@element, "confidence-indicator")}
+      value={@value}
+      warn_threshold={@warn_threshold}
+      pass_threshold={@pass_threshold}
+      label={@label}
+      show_numeric?={@show_numeric?}
+      show_glyph?={@show_glyph?}
+      size={@size}
       tone={style_tone(@element)}
       variant={theme_variant(@element)}
       state={style_state(@element)}

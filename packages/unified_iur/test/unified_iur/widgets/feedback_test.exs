@@ -59,4 +59,46 @@ defmodule UnifiedIUR.Widgets.FeedbackTest do
              }
            } = inline_feedback
   end
+
+  describe "confidence_indicator/2" do
+    test "builds a confidence indicator with thresholds and presentation flags" do
+      element =
+        Feedback.confidence_indicator(0.87,
+          id: "confidence-score",
+          label: "Match confidence",
+          thresholds: %{warn: 0.5, pass: 0.8},
+          show_numeric?: false,
+          show_glyph?: true,
+          size: :small
+        )
+
+      assert %Element{
+               kind: :confidence_indicator,
+               attributes: %{
+                 confidence: %{
+                   value: 0.87,
+                   thresholds: %{warn: 0.5, pass: 0.8},
+                   label: "Match confidence",
+                   show_numeric?: false,
+                   show_glyph?: true,
+                   size: :small
+                 }
+               }
+             } = element
+    end
+
+    test "raises on invalid values, thresholds, and sizes" do
+      assert_raise ArgumentError, ~r/0\.0\.\.1\.0/, fn ->
+        Feedback.confidence_indicator(1.1)
+      end
+
+      assert_raise ArgumentError, ~r/warn.*less than.*pass/, fn ->
+        Feedback.confidence_indicator(0.5, thresholds: %{warn: 0.8, pass: 0.5})
+      end
+
+      assert_raise ArgumentError, ~r/:size/, fn ->
+        Feedback.confidence_indicator(0.5, size: :xl)
+      end
+    end
+  end
 end

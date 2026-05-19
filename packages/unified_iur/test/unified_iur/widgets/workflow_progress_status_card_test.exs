@@ -1,7 +1,7 @@
 defmodule UnifiedIUR.Widgets.WorkflowProgressStatusCardTest do
   use ExUnit.Case, async: true
 
-  alias UnifiedIUR.{Element, Interaction, Validate}
+  alias UnifiedIUR.{Element, Interaction, Normalize, Validate}
   alias UnifiedIUR.Widgets.Components
 
   describe "workflow_progress_status_card constructor" do
@@ -177,6 +177,17 @@ defmodule UnifiedIUR.Widgets.WorkflowProgressStatusCardTest do
                :invalid_workflow_action,
                :invalid_workflow_interaction
              ] = Enum.map(errors, & &1.code)
+    end
+
+    test "normalizes cards with one empty dependency direction" do
+      card =
+        Components.workflow_progress_status_card(
+          name: "metagraph",
+          depends_on: [],
+          depended_by: ["ash_ui"]
+        )
+
+      assert %Element{} = Normalize.element!(card)
     end
 
     test "validates LiveView event leakage in actions and interactions" do

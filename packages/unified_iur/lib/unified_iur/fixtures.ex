@@ -732,6 +732,12 @@ defmodule UnifiedIUR.Fixtures do
            id: "feedback-inline",
            title: "Success",
            severity: :success
+         )},
+        {:content,
+         Feedback.confidence_indicator(0.87,
+           id: "confidence-score",
+           label: "Confidence: 87%",
+           thresholds: %{warn: 0.5, pass: 0.8}
          )}
       ],
       id: "content-grid",
@@ -1090,6 +1096,16 @@ defmodule UnifiedIUR.Fixtures do
              )
            ],
            id: "component-sidebar-shell"
+         )},
+        {:content,
+         Components.right_rail(
+           id: "component-right-rail",
+           panels: [
+             %{id: :summary, label: "Summary", content_slot: :summary_body},
+             %{id: :activity, label: "Activity", disabled?: true}
+           ],
+           active_panel: :summary,
+           collapsed?: false
          )},
         {:content,
          Components.command_palette(

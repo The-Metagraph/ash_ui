@@ -26,6 +26,7 @@ defmodule AshUI.DSL.Storage do
   @valid_widgets [
     "hero",
     "badge",
+    "confidence_indicator",
     "stat",
     "key_value",
     "info_list",

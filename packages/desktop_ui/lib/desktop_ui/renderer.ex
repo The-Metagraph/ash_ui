@@ -81,6 +81,7 @@ defmodule DesktopUi.Renderer do
        :toast,
        :cluster_dashboard,
        :command_palette,
+       :confidence_indicator,
        :log_viewer,
        :process_monitor,
        :stream_widget,

@@ -119,6 +119,38 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
       refute Map.has_key?(canonical.attributes, :component)
     end
 
+    test "IUR adapter routes file_tree_browser props into baseline navigation attributes" do
+      assert {:ok, canonical} =
+               IUR.new(:file_tree_browser,
+                 id: "workspace-files",
+                 props: %{
+                   tree_id: "workspace-tree",
+                   root_label: "Workspace files",
+                   nodes: [
+                     %{
+                       id: "lib",
+                       type: :folder,
+                       children: [%{id: "lib/app.ex", type: :file_leaf, language: "elixir"}]
+                     }
+                   ],
+                   selected_path: "lib/app.ex",
+                   selection_intent: :select_file,
+                   toggle_intent: :toggle_folder
+                 }
+               )
+               |> IURAdapter.to_canonical()
+
+      assert canonical.kind == :file_tree_browser
+      assert canonical.type == :widget
+      assert %{file_tree: file_tree} = canonical.attributes
+      assert file_tree.tree_id == "workspace-tree"
+      assert file_tree.root_label == "Workspace files"
+      assert file_tree.selected_path == "lib/app.ex"
+      assert file_tree.selection_intent == :select_file
+      assert file_tree.toggle_intent == :toggle_folder
+      refute Map.has_key?(canonical.attributes, :component)
+    end
+
     test "IUR adapter routes diff_banner props into baseline feedback attributes" do
       assert {:ok, canonical} =
                IUR.new(:diff_banner,
@@ -205,6 +237,50 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
       assert heex =~ ~s(aria-multiselectable="true")
       assert heex =~ "All workspaces"
       assert heex =~ ~s(data-context-value="all")
+      assert heex =~ ~s(aria-selected="true")
+    end
+
+    test "live_ui_adapter fallback renders file_tree_browser with tree semantics" do
+      assert {:ok, canonical} =
+               IUR.new(:screen,
+                 id: "file-tree-screen",
+                 name: "file_tree_test",
+                 children: [
+                   IUR.new(:file_tree_browser,
+                     id: "workspace-files",
+                     props: %{
+                       tree_id: "workspace-tree",
+                       root_label: "Workspace files",
+                       selected_path: "lib/app.ex",
+                       nodes: [
+                         %{
+                           id: "lib",
+                           type: :folder,
+                           expanded?: true,
+                           children: [
+                             %{
+                               id: "lib/app.ex",
+                               type: :file_leaf,
+                               language: "elixir",
+                               line_count: 42
+                             }
+                           ]
+                         }
+                       ]
+                     }
+                   )
+                 ]
+               )
+               |> IURAdapter.to_canonical()
+
+      assert {:ok, heex} = LiveUIAdapter.render(canonical, force_fallback: true)
+      assert heex =~ "ash-file-tree-browser"
+      assert heex =~ ~s(data-live-ui-widget="file-tree-browser")
+      assert heex =~ ~s(data-tree-id="workspace-tree")
+      assert heex =~ ~s(role="tree")
+      assert heex =~ "lib/"
+      assert heex =~ "app.ex"
+      assert heex =~ "42 lines"
       assert heex =~ ~s(aria-selected="true")
     end
 

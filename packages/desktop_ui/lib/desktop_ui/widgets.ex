@@ -254,6 +254,11 @@ defmodule DesktopUi.Widgets do
     Navigation.context_selector(id, groups, opts)
   end
 
+  @spec file_tree_browser(String.t() | atom(), [map() | keyword()], keyword()) :: Widget.t()
+  def file_tree_browser(id, nodes, opts \\ []) do
+    Navigation.file_tree_browser(id, nodes, opts)
+  end
+
   @spec status(String.t() | atom(), String.t(), keyword()) :: Widget.t()
   def status(id, label, opts \\ []) do
     Builder.status(id, label, opts)

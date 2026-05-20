@@ -483,6 +483,27 @@ defmodule DesktopUi.Renderer.Mapper do
   end
 
   defp map_element(%Element{type: :widget, kind: kind} = element)
+       when kind in [:file_tree_browser, "file_tree_browser"] do
+    file_tree = attr(element, :file_tree) || %{}
+
+    {:ok,
+     DesktopUi.Widgets.file_tree_browser(
+       element.id,
+       normalize_file_tree_nodes(map_attr(file_tree, :nodes, [])),
+       Keyword.merge(
+         base_opts(element),
+         tree_id: map_attr(file_tree, :tree_id, element.id),
+         root_label: map_attr(file_tree, :root_label, "Files"),
+         selected_path: map_attr(file_tree, :selected_path, nil),
+         default_expanded?: map_attr(file_tree, :default_expanded?, true),
+         binding: binding_name(element),
+         on_select: interaction_payload(element, :selection),
+         on_toggle: interaction_payload(element, :change)
+       )
+     )}
+  end
+
+  defp map_element(%Element{type: :widget, kind: kind} = element)
        when kind in [:breadcrumbs, "breadcrumbs"] do
     {:ok, map_navigation(:breadcrumbs, element)}
   end
@@ -1508,6 +1529,24 @@ defmodule DesktopUi.Renderer.Mapper do
     map_attr(selector, :multiple?, false) ||
       max_selections in [:unlimited, "unlimited"] ||
       (is_integer(max_selections) and max_selections > 1)
+  end
+
+  defp normalize_file_tree_nodes(nodes) when is_list(nodes) do
+    Enum.map(nodes, &normalize_file_tree_node/1)
+  end
+
+  defp normalize_file_tree_nodes(_nodes), do: []
+
+  defp normalize_file_tree_node(node) do
+    node = normalize_map(node)
+
+    case map_attr(node, :children, nil) do
+      children when is_list(children) ->
+        Map.put(node, :children, normalize_file_tree_nodes(children))
+
+      _other ->
+        node
+    end
   end
 
   defp diff_banner_filter_payload(element, diff) do

@@ -7,7 +7,8 @@ defmodule LiveUi.Widgets.Navigation do
     LiveUi.Widgets.Menu,
     LiveUi.Widgets.Tabs,
     LiveUi.Widgets.CommandPalette,
-    LiveUi.Widgets.ContextSelector
+    LiveUi.Widgets.ContextSelector,
+    LiveUi.Widgets.FileTreeBrowser
   ]
 
   @spec modules() :: [module()]

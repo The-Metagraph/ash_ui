@@ -169,6 +169,45 @@ defmodule LiveUi.RendererTest do
     refute html =~ "data-live-ui-unsupported-native-component"
   end
 
+  test "renderer maps canonical file tree browser through the native navigation boundary" do
+    element =
+      Navigation.file_tree_browser(
+        id: "workspace-files",
+        tree_id: "workspace-tree",
+        root_label: "Workspace files",
+        selected_path: "lib/app.ex",
+        nodes: [
+          %{
+            id: "lib",
+            type: :folder,
+            expanded?: false,
+            children: [%{id: "lib/app.ex", type: :file_leaf, language: "elixir"}]
+          }
+        ],
+        selection_intent: :select_file,
+        toggle_intent: :toggle_folder
+      )
+
+    html =
+      render_component(&LiveUi.Renderer.render/1, %{
+        element: element,
+        event_target: "#runtime-host"
+      })
+
+    assert html =~ ~s(data-live-ui-widget-boundary="file_tree_browser")
+    assert html =~ ~s(data-live-ui-widget="file-tree-browser")
+    assert html =~ ~s(role="tree")
+    assert html =~ ~s(data-tree-id="workspace-tree")
+    assert html =~ "lib/"
+    assert html =~ ~s(phx-click="canonical_change_interaction")
+    assert html =~ ~s(phx-target="#runtime-host")
+    assert html =~ ~s(phx-value-widget="file_tree_browser")
+    assert html =~ ~s(phx-value-element_id="workspace-files")
+    assert html =~ ~s(phx-value-node_id="lib")
+    assert html =~ ~s(phx-value-expanded="true")
+    refute html =~ "data-live-ui-unsupported-native-component"
+  end
+
   test "renderer preserves canonical decorative presence dot semantics" do
     element =
       Components.presence_dot(:active,

@@ -475,6 +475,22 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "file_tree_browser"} = iur, _opts) do
+    raw_props = iur["props"] || %{}
+    props = prop(raw_props, "file_tree", raw_props)
+    tree_id = escaped_text_prop(props, ["tree_id", "id"], iur["id"] || "file-tree")
+    root_label = escaped_text_prop(props, ["root_label", "label"], "Files")
+    selected_path = text_prop(props, "selected_path")
+    default_expanded? = truthy_prop(props, "default_expanded?", true)
+    nodes = prop(props, "nodes", [])
+
+    """
+    <div class="#{css_classes(["ash-file-tree-browser", prop_class(iur)])}" data-live-ui-widget="file-tree-browser" data-tree-id="#{tree_id}" role="tree" aria-label="#{root_label}"#{style_attr(prop_style(iur))}>
+      #{file_tree_nodes_html(nodes, selected_path, default_expanded?, 0)}
+    </div>
+    """
+  end
+
   defp generate_heex(%{"type" => "runtime_form_shell"} = iur, opts) do
     props = iur["props"] || %{}
     fields = prop(props, "fields", [])
@@ -3016,6 +3032,88 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp confidence_number(_value, default), do: default
+
+  defp file_tree_nodes_html(nodes, selected_path, default_expanded?, depth) do
+    nodes
+    |> List.wrap()
+    |> Enum.map_join(fn node ->
+      node
+      |> normalize_item()
+      |> file_tree_node_html(selected_path, default_expanded?, depth)
+    end)
+  end
+
+  defp file_tree_node_html(node, selected_path, default_expanded?, depth) do
+    case text_prop(node, "type", "file_leaf") do
+      type when type in ["folder", "directory"] ->
+        file_tree_folder_html(node, selected_path, default_expanded?, depth)
+
+      _type ->
+        file_tree_leaf_html(node, selected_path, depth)
+    end
+  end
+
+  defp file_tree_folder_html(node, selected_path, default_expanded?, depth) do
+    id = escaped_text_prop(node, ["id", "path"], "folder")
+    path = escaped_text_prop(node, ["path", "id"], id)
+    name = escaped_text_prop(node, ["name", "label"], Path.basename(path))
+    expanded? = truthy_prop(node, "expanded?", default_expanded?)
+    marker = if expanded?, do: "v", else: ">"
+
+    children =
+      if expanded? do
+        ~s(<div class="ash-file-tree-children" role="group">#{file_tree_nodes_html(prop(node, "children", []), selected_path, default_expanded?, depth + 1)}</div>)
+      else
+        ""
+      end
+
+    """
+    <div class="ash-file-tree-folder" role="none">
+      <div class="#{css_classes(["ash-file-tree-folder-row", expanded? && "is-expanded"])}" role="treeitem" aria-expanded="#{expanded?}" data-node-id="#{id}" data-node-path="#{path}" style="padding-inline-start: #{depth * 12}px">
+        <span class="ash-file-tree-marker" aria-hidden="true">#{marker}</span>
+        <span class="ash-file-tree-folder-name">#{name}/</span>
+      </div>
+      #{children}
+    </div>
+    """
+  end
+
+  defp file_tree_leaf_html(node, selected_path, depth) do
+    id = escaped_text_prop(node, ["id", "path"], "file")
+    path = escaped_text_prop(node, ["path", "id"], id)
+    name = escaped_text_prop(node, ["name", "label"], Path.basename(path))
+    selected? = selected_path && to_string(selected_path) == text_prop(node, ["path", "id"], "")
+    language = escaped_text_prop(node, ["language", "lang"])
+    line_count = text_prop(node, ["line_count", "lines"])
+
+    meta =
+      [language, line_count && "#{html_escape(line_count)} lines"]
+      |> Enum.reject(&nil_or_empty?/1)
+      |> Enum.join(" - ")
+
+    """
+    <div class="#{css_classes(["ash-file-tree-file", selected? && "is-selected"])}" role="treeitem" aria-selected="#{!!selected?}" data-node-id="#{id}" data-file-path="#{path}" style="padding-inline-start: #{depth * 12}px">
+      <span class="ash-file-tree-file-glyph" aria-hidden="true">#{file_tree_file_glyph(node)}</span>
+      <span class="ash-file-tree-file-name">#{name}</span>
+      #{if meta == "", do: "", else: ~s(<span class="ash-file-tree-file-meta">#{meta}</span>)}
+    </div>
+    """
+  end
+
+  defp file_tree_file_glyph(node) do
+    node
+    |> text_prop(["file_kind", "language", "lang", "name", "path"], "")
+    |> case do
+      "elixir" -> "ex"
+      "markdown" -> "md"
+      "json" -> "{}"
+      value -> value |> Path.extname() |> String.trim_leading(".") |> String.slice(0, 3)
+    end
+    |> case do
+      "" -> "-"
+      glyph -> html_escape(glyph)
+    end
+  end
 
   defp numeric_count(value) when is_integer(value), do: value
   defp numeric_count(value) when is_float(value), do: round(value)

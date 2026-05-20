@@ -47,6 +47,32 @@ defmodule ElmUi.RendererTest do
     assert [%{label: "Workspace", items: [%{label: "All workspaces"}]}] = widget.attributes.groups
   end
 
+  test "renderer maps file_tree_browser as a native navigation widget" do
+    element =
+      Navigation.file_tree_browser(
+        id: "workspace-files",
+        tree_id: "workspace-tree",
+        root_label: "Workspace files",
+        selected_path: "lib/app.ex",
+        nodes: [
+          %{
+            id: "lib",
+            type: :folder,
+            expanded?: true,
+            children: [%{id: "lib/app.ex", type: :file_leaf, language: "elixir"}]
+          }
+        ]
+      )
+
+    assert {:ok, %Widget{} = widget} = ElmUi.Renderer.render(element)
+    assert widget.kind == :file_tree_browser
+    assert widget.family == :navigation
+    assert widget.metadata.role == :tree
+    assert widget.attributes.tree_id == "workspace-tree"
+    assert widget.attributes.selected_path == "lib/app.ex"
+    assert [%{children: [%{path: "lib/app.ex"}]}] = widget.attributes.nodes
+  end
+
   test "renderer maps diff_banner as a native feedback widget" do
     element =
       Feedback.diff_banner(

@@ -122,6 +122,19 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
         end
       end
 
+      composer_query_preview :query_preview do
+        composer_id("composer-main")
+        query("release blockers")
+        preview_state(:ready)
+        explanation("Three likely blockers found.")
+        metrics(%{results_count: 3, duration_ms: 42, sources_visited: 8})
+        findings([%{id: "finding-1", n: 1, snippet: "Conformance missing", confidence: 0.91}])
+        max_findings_shown(2)
+        open_intent(:open_query_preview)
+        save_intent(:save_query)
+        dismiss_intent(:dismiss_query_preview)
+      end
+
       redline_inline :copy_redline do
         segments([
           %{state: :keep, text: "Keep this "},
@@ -160,6 +173,7 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout,
+             :composer_query_preview,
              :right_rail
            ]
 
@@ -191,6 +205,10 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
     assert {by_id.details_panel.family, by_id.details_panel.kind, by_id.details_panel.open?,
             by_id.details_panel.modal?} ==
              {:layer_shell_and_callout, :slide_over_panel, true, false}
+
+    assert {by_id.query_preview.family, by_id.query_preview.kind, by_id.query_preview.query,
+            by_id.query_preview.preview_state} ==
+             {:layer_shell_and_callout, :composer_query_preview, "release blockers", :ready}
 
     assert {by_id.copy_redline.family, by_id.copy_redline.kind, by_id.copy_redline.text_safety} ==
              {:redline_and_code, :redline_inline, :plain_text}
@@ -245,6 +263,17 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              modal?: false,
              dismiss_intent: :close_details
            } = summary.details_panel
+
+    assert %{
+             family: :layer_shell_and_callout,
+             kind: :composer_query_preview,
+             composer_id: "composer-main",
+             query: "release blockers",
+             preview_state: :ready,
+             open_intent: :open_query_preview,
+             save_intent: :save_query,
+             dismiss_intent: :dismiss_query_preview
+           } = summary.query_preview
 
     assert %{
              family: :redline_and_code,
@@ -315,6 +344,18 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              })
 
     assert panel_message =~ "must remain non-modal"
+
+    assert {:error, [:composition, :composer_query_preview, :bad_query_preview],
+            query_preview_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :composer_query_preview,
+               id: :bad_query_preview,
+               composer_id: "composer-main",
+               query: "status",
+               preview_state: :ready
+             })
+
+    assert query_preview_message =~ "explanation is required"
 
     assert {:error, [:composition, :redline_inline, :bad_redline], redline_message} =
              ValidateWidgetComponents.validate_node(%Node{

@@ -31,6 +31,7 @@ defmodule LiveUi.Renderer do
        :cluster_dashboard,
        :column,
        :command_palette,
+       :composer_query_preview,
        :confidence_indicator,
        :content,
        :context_selector,
@@ -737,6 +738,48 @@ defmodule LiveUi.Renderer do
         <% end %>
       </:panel>
     </LiveUi.Widgets.RightRail.component>
+    """
+  end
+
+  # NOTE: `:composer_query_preview` is a canonical layer-shell component. Keep
+  # this native renderer clause before the generic component fallback so action
+  # buttons receive canonical interaction transport.
+  def render(%{element: %Element{kind: :composer_query_preview}} = assigns) do
+    preview = query_preview_attributes(assigns.element)
+
+    assigns =
+      assigns
+      |> assign(:preview, preview)
+      |> assign(
+        :action_attrs,
+        query_preview_action_attrs(assigns.element, Map.get(assigns, :event_target), preview)
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.ComposerQueryPreview.component
+      id={element_id(@element, "composer-query-preview")}
+      composer_id={string_value(map_value(@preview, :composer_id), "")}
+      query={string_value(map_value(@preview, :query), "")}
+      preview_state={map_value(@preview, :preview_state, :empty)}
+      explanation={string_optional(map_value(@preview, :explanation))}
+      metrics={map_value(@preview, :metrics)}
+      findings={List.wrap(map_value(@preview, :findings, []))}
+      max_findings_shown={integer_value(map_value(@preview, :max_findings_shown), 2)}
+      error_message={string_optional(map_value(@preview, :error_message))}
+      loading_label={string_value(map_value(@preview, :loading_label), "Searching")}
+      empty_label={string_value(map_value(@preview, :empty_label), "No results for this query.")}
+      open_label={string_value(map_value(@preview, :open_label), "Open query")}
+      save_label={string_value(map_value(@preview, :save_label), "Save query")}
+      dismiss_attrs={Map.get(@action_attrs, :dismiss, %{})}
+      open_attrs={Map.get(@action_attrs, :open, %{})}
+      save_attrs={Map.get(@action_attrs, :save, %{})}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
     """
   end
 
@@ -2331,6 +2374,63 @@ defmodule LiveUi.Renderer do
       _other -> %{}
     end
   end
+
+  defp query_preview_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:query_preview, Map.get(element.attributes, "query_preview", %{}))
+    |> case do
+      preview when is_map(preview) -> preview
+      preview when is_list(preview) -> Map.new(preview)
+      _other -> %{}
+    end
+  end
+
+  defp query_preview_action_attrs(%Element{} = element, event_target, preview) do
+    query = map_value(preview, :query)
+
+    %{
+      dismiss:
+        query_preview_interaction_attrs(
+          element,
+          event_target,
+          primary_interaction(element, :close),
+          query
+        ),
+      open:
+        query_preview_interaction_attrs(
+          element,
+          event_target,
+          primary_interaction(element, :open),
+          query
+        ),
+      save:
+        query_preview_interaction_attrs(
+          element,
+          event_target,
+          primary_interaction(element, :command),
+          query
+        )
+    }
+  end
+
+  defp query_preview_interaction_attrs(
+         %Element{} = element,
+         event_target,
+         %Interaction{} = interaction,
+         query
+       )
+       when not is_nil(event_target) do
+    %{
+      :"phx-click" => "canonical_interaction",
+      :"phx-target" => event_target,
+      :"phx-value-interaction" => encode_interaction(interaction),
+      :"phx-value-element_id" => element_id(element, "composer-query-preview"),
+      :"phx-value-widget" => "composer_query_preview",
+      :"phx-value-query" => to_string(query || "")
+    }
+  end
+
+  defp query_preview_interaction_attrs(_element, _event_target, _interaction, _query), do: %{}
 
   defp right_rail_panels(rail) do
     rail

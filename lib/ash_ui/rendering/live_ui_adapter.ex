@@ -558,6 +558,97 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "composer_query_preview"} = iur, _opts) do
+    props = iur["props"] || %{}
+    preview = props |> prop("query_preview", props) |> normalize_item()
+    composer_id = escaped_text_prop(preview, "composer_id", iur["id"] || "")
+    query = escaped_text_prop(preview, "query", "")
+    preview_state = escaped_text_prop(preview, "preview_state", "empty")
+    explanation = escaped_text_prop(preview, "explanation")
+    error_message = escaped_text_prop(preview, "error_message", "Query failed. Try again.")
+    loading_label = escaped_text_prop(preview, "loading_label", "Searching")
+    empty_label = escaped_text_prop(preview, "empty_label", "No results for this query.")
+    metrics = preview |> prop("metrics", %{}) |> normalize_item()
+    findings = List.wrap(prop(preview, "findings", []))
+    max_findings_shown = max(numeric_count(prop(preview, "max_findings_shown", 2)), 1)
+
+    metrics_html =
+      if metrics == %{} do
+        ""
+      else
+        results_count = escaped_text_prop(metrics, "results_count")
+        duration_ms = prop(metrics, "duration_ms")
+        sources_visited = escaped_text_prop(metrics, "sources_visited")
+
+        duration =
+          case duration_ms do
+            value when is_integer(value) or is_float(value) ->
+              :erlang.float_to_binary(value / 1000, decimals: 2) <> "s"
+
+            value when not is_nil(value) ->
+              html_escape(value)
+
+            _other ->
+              nil
+          end
+
+        """
+        <div class="ash-composer-query-preview__metrics" aria-label="Query statistics">
+          #{if results_count != "", do: "<span><strong>#{results_count}</strong> results</span>", else: ""}
+          #{if duration, do: "<span>#{duration}</span>", else: ""}
+          #{if sources_visited != "", do: "<span>#{sources_visited} sources</span>", else: ""}
+        </div>
+        """
+      end
+
+    findings_html =
+      findings
+      |> Enum.take(max_findings_shown)
+      |> Enum.map_join(fn finding ->
+        finding = normalize_item(finding)
+        id = escaped_text_prop(finding, ["id", "finding_id"], "")
+        n = escaped_text_prop(finding, "n", "")
+        snippet = escaped_text_prop(finding, "snippet", "")
+        confidence = escaped_text_prop(finding, "confidence", "")
+
+        """
+        <li class="ash-composer-query-preview__finding" data-result-id="#{id}">
+          <span class="ash-composer-query-preview__finding-rank">##{n}</span>
+          <span class="ash-composer-query-preview__finding-snippet">#{snippet}</span>
+          <span class="ash-composer-query-preview__finding-confidence">#{confidence}</span>
+        </li>
+        """
+      end)
+
+    body_html =
+      case preview_state do
+        "loading" ->
+          ~s(<div class="ash-composer-query-preview__loading" aria-busy="true">#{loading_label}</div>)
+
+        "ready" ->
+          """
+          #{if explanation, do: "<div class=\"ash-composer-query-preview__explanation\">#{explanation}</div>", else: ""}
+          #{metrics_html}
+          #{if findings_html != "", do: "<ul class=\"ash-composer-query-preview__findings\" aria-label=\"Query preview results\">#{findings_html}</ul>", else: ""}
+          """
+
+        "error" ->
+          ~s(<div class="ash-composer-query-preview__error" role="alert">#{error_message}</div>)
+
+        _other ->
+          ~s(<div class="ash-composer-query-preview__empty">#{empty_label}</div>)
+      end
+
+    """
+    <section class="#{css_classes(["ash-composer-query-preview", prop_class(iur)])}" data-live-ui-widget="composer-query-preview" data-composer-id="#{composer_id}" data-preview-state="#{preview_state}" role="region" aria-label="Query preview: #{query}" aria-live="polite"#{style_attr(prop_style(iur))}>
+      <header class="ash-composer-query-preview__header">
+        <span class="ash-composer-query-preview__query"><q>#{query}</q></span>
+      </header>
+      #{body_html}
+    </section>
+    """
+  end
+
   defp generate_heex(%{"type" => "list_item_multi_column"} = iur, opts) do
     props = iur["props"] || %{}
     active? = truthy_prop(props, "active?", truthy_prop(props, "active", false))

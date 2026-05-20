@@ -1006,6 +1006,25 @@ defmodule UnifiedUi.Compiler.Pipeline do
             ])
           )
 
+        :composer_query_preview ->
+          Widgets.Components.composer_query_preview(
+            common_opts(node, attachments, [
+              :composer_id,
+              :query,
+              :preview_state,
+              :explanation,
+              :metrics,
+              :findings,
+              :max_findings_shown,
+              :error_message,
+              :loading_label,
+              :empty_label,
+              :open_intent,
+              :save_intent,
+              :dismiss_intent
+            ])
+          )
+
         :right_rail ->
           lower_right_rail(node, context, visited, attachments)
 
@@ -1547,6 +1566,7 @@ defmodule UnifiedUi.Compiler.Pipeline do
     )
   end
 
+  defp default_dismiss_interaction(%Node{kind: :composer_query_preview}), do: nil
   defp default_dismiss_interaction(%Node{dismiss_intent: nil}), do: nil
 
   defp default_dismiss_interaction(node) do

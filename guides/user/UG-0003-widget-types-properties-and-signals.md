@@ -100,7 +100,7 @@ authoring boundaries and normalize before renderer-facing output.
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
 | Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card` | none |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `workflow_progress_status_card` | none |
-| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail` | none |
+| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail`, `composer_query_preview` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
 | Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
 
@@ -133,6 +133,13 @@ such as `subject_id`, `name`, `path`, `progress_pct`, `active_count`,
 `open_action`. The canonical renderer-facing output groups those values under
 `attributes.subject`; it does not expose map placement names, route helpers,
 LiveView event fields, or application-specific card names.
+
+`composer_query_preview` is the reusable inline preview band for query results
+adjacent to a composer. Author generic props such as `composer_id`, `query`,
+`preview_state`, `explanation`, `metrics`, `findings`, and
+`max_findings_shown`; use canonical interactions for dismiss, open, and save
+actions. Keep product mode names, keyboard shortcut hints, route helpers, and
+LiveView event fields in the host layer.
 
 You can also author `custom:*` types. They are accepted as widget types, but the
 shipped validation/runtime does not automatically give them built-in signal
@@ -236,6 +243,7 @@ Signal support is type-specific.
 | `form_builder` | `:submit` |
 | `diff_banner` | `:change`, `:input` |
 | `right_rail` | `:change`, `:toggle`, `:click` |
+| `composer_query_preview` | `:click` |
 
 If you declare a signal outside this matrix, authoring validation raises.
 
@@ -269,6 +277,7 @@ The current action-binding-capable widgets are:
 - `context_selector`
 - `file_tree_browser`
 - `right_rail`
+- `composer_query_preview`
 
 ## Compatibility and Normalization Notes
 

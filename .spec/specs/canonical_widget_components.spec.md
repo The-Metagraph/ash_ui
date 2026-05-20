@@ -52,6 +52,10 @@ Required behavior:
 - Supported aliases match `UnifiedUi.WidgetComponents.aliases/0`.
 - `thread_card` is a first-class `row_and_artifact` component, not a
   content-identity component or baseline navigation primitive.
+- `composer_query_preview` is a first-class `layer_shell_and_callout`
+  component for composer-adjacent query result previews; it does not expose
+  product-specific Ask/MGQL names or renderer event fields in its canonical
+  contract.
 - Drift is caught by package-boundary tests before release.
 
 ### ash_ui.canonical_widget_components.authoring_admission

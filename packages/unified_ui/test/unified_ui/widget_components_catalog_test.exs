@@ -46,7 +46,8 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :sidebar_section,
                :sidebar_item,
                :right_rail,
-               :command_palette
+               :command_palette,
+               :composer_query_preview
              ],
              redline_and_code: [:redline_inline, :code_block_syntax_highlighted],
              composition_behavior: [:list_repeat]
@@ -64,6 +65,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert :right_rail in kinds
     assert :unread_badge in kinds
     assert :command_palette in kinds
+    assert :composer_query_preview in kinds
     assert :workflow_progress_status_card in kinds
   end
 

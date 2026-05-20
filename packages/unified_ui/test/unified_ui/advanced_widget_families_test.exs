@@ -181,6 +181,7 @@ defmodule UnifiedUi.AdvancedWidgetFamiliesTest do
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout,
+             :composer_query_preview,
              :right_rail,
              :redline_inline,
              :code_block_syntax_highlighted,

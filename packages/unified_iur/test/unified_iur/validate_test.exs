@@ -147,6 +147,57 @@ defmodule UnifiedIUR.ValidateTest do
     assert panel_error.code == :invalid_rail_panel
   end
 
+  test "validates canonical composer query preview shape" do
+    valid_preview =
+      Components.composer_query_preview(
+        id: :query_preview,
+        composer_id: "composer-main",
+        query: "release blockers",
+        preview_state: :ready,
+        explanation: "Two release checks need attention.",
+        metrics: %{results_count: 2, duration_ms: 34, sources_visited: 4},
+        findings: [%{id: "finding-1", n: 1, snippet: "CI is still pending.", confidence: 0.82}]
+      )
+
+    event_leak =
+      Element.new(:widget, :composer_query_preview,
+        attributes: %{
+          component: %{family: :layer_shell_and_callout, kind: :composer_query_preview},
+          query_preview: %{
+            "on_open_in_ask" => "open",
+            composer_id: "composer-main",
+            query: "release blockers",
+            preview_state: :ready,
+            explanation: "Two release checks need attention.",
+            max_findings_shown: 2,
+            findings: []
+          }
+        }
+      )
+
+    invalid_finding =
+      Element.new(:widget, :composer_query_preview,
+        attributes: %{
+          component: %{family: :layer_shell_and_callout, kind: :composer_query_preview},
+          query_preview: %{
+            composer_id: "composer-main",
+            query: "release blockers",
+            preview_state: :ready,
+            explanation: "Two release checks need attention.",
+            max_findings_shown: 2,
+            findings: [%{id: "finding-1", n: 1, snippet: "", confidence: 1.2}]
+          }
+        }
+      )
+
+    assert :ok = Validate.element(valid_preview)
+    assert {:error, [preview_error]} = Validate.element(event_leak)
+    assert preview_error.code == :invalid_query_preview
+
+    assert {:error, finding_errors} = Validate.element(invalid_finding)
+    assert Enum.all?(finding_errors, &(&1.code == :invalid_query_preview_finding))
+  end
+
   test "validates first-class artifact row fields" do
     valid_artifact =
       Components.artifact_row("ADR", [],

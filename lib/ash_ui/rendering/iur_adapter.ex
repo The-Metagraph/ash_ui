@@ -503,6 +503,13 @@ defmodule AshUI.Rendering.IURAdapter do
     )
   end
 
+  defp base_attributes(:composer_query_preview, props) do
+    props
+    |> composer_query_preview_opts()
+    |> IURComponents.composer_query_preview()
+    |> Map.fetch!(:attributes)
+  end
+
   defp base_attributes(:redline_inline = kind, props) do
     component_attributes(
       kind,
@@ -1050,6 +1057,51 @@ defmodule AshUI.Rendering.IURAdapter do
           first_present(props, [:last_activity_at, :updated_at]),
       open_intent: first_present(props, [:open_intent, :intent]) || :open_thread,
       open_interaction: fetch(props, :open_interaction)
+    }
+    |> compact_map()
+  end
+
+  defp composer_query_preview_opts(props) do
+    preview = props |> fetch(:query_preview, %{}) |> normalize_map()
+
+    %{
+      id: first_present(props, [:_element_id, :id]),
+      composer_id: first_present(preview, [:composer_id]) || first_present(props, [:composer_id]),
+      query:
+        first_present(preview, [:query]) || first_present(props, [:query, :ask_query, :value]),
+      preview_state:
+        normalize_existing_atom(
+          first_present(preview, [:preview_state]) ||
+            first_present(props, [:preview_state]) ||
+            :empty
+        ),
+      explanation:
+        first_present(preview, [:explanation]) ||
+          first_present(props, [:explanation, :explain, :summary]),
+      metrics:
+        normalize_optional_map(
+          first_present(preview, [:metrics]) || first_present(props, [:metrics, :meta])
+        ),
+      findings:
+        first_present(preview, [:findings]) ||
+          first_present(props, [:findings, :preview_findings]) ||
+          [],
+      max_findings_shown:
+        first_present(preview, [:max_findings_shown]) ||
+          first_present(props, [:max_findings_shown]) ||
+          2,
+      error_message:
+        first_present(preview, [:error_message]) || first_present(props, [:error_message]),
+      loading_label:
+        first_present(preview, [:loading_label]) || first_present(props, [:loading_label]),
+      empty_label: first_present(preview, [:empty_label]) || first_present(props, [:empty_label]),
+      open_label: first_present(preview, [:open_label]) || first_present(props, [:open_label]),
+      save_label: first_present(preview, [:save_label]) || first_present(props, [:save_label]),
+      dismiss_intent: first_present(props, [:dismiss_intent]),
+      open_intent: first_present(props, [:open_intent]),
+      save_intent: first_present(props, [:save_intent]),
+      interactions: fetch(props, :interactions),
+      interaction: fetch(props, :interaction)
     }
     |> compact_map()
   end

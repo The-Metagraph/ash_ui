@@ -43,6 +43,17 @@ defmodule AshUI.Phase31CanonicalConversionTest do
     {:sticky_frosted_header, :layer_shell_and_callout, %{title: "Workspace"}, :shell},
     {:slide_over_panel, :layer_shell_and_callout, %{label: "Details", open?: true}, :panel},
     {:event_callout, :layer_shell_and_callout, %{message: "Deployment paused"}, :callout},
+    {:composer_query_preview, :layer_shell_and_callout,
+     %{
+       composer_id: "composer-main",
+       query: "release blockers",
+       preview_state: :ready,
+       explanation: "Three likely blockers found.",
+       metrics: %{results_count: 3, duration_ms: 42, sources_visited: 8},
+       findings: [
+         %{id: "finding-1", n: 1, snippet: "Conformance missing", confidence: 0.91}
+       ]
+     }, :query_preview},
     {:redline_inline, :redline_and_code, %{segments: [%{state: :insert, text: "new"}]}, :redline},
     {:code_block_syntax_highlighted, :redline_and_code,
      %{language: :elixir, tokens: [%{type: :keyword, text: "def"}]}, :code},

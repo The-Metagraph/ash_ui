@@ -647,6 +647,22 @@ defmodule AshUI.Rendering.IURAdapter do
     }
   end
 
+  defp base_attributes(:file_tree_browser, props) do
+    %{
+      file_tree:
+        compact_map(%{
+          tree_id: first_present(props, [:tree_id, :id_key, :id, :_element_id]),
+          root_label: first_present(props, [:root_label, :label]) || "",
+          nodes: normalize_maps(fetch(props, :nodes, [])),
+          selected_path: first_present(props, [:selected_path]),
+          default_expanded?:
+            boolean_present(props, [:default_expanded?, :default_expanded], true),
+          selection_intent: first_present(props, [:selection_intent, :select_intent]),
+          toggle_intent: first_present(props, [:toggle_intent])
+        })
+    }
+  end
+
   defp base_attributes(:command_palette, props),
     do: %{command_palette: Map.drop(props, attachment_prop_keys())}
 

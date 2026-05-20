@@ -8,7 +8,7 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
 
   @moduletag :phase_eleven
 
-  @iur_widget_count 48
+  @iur_widget_count 49
 
   @all_iur_kinds MapSet.new([
                    # Foundational (13)
@@ -36,9 +36,10 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
                    :slider,
                    :text_input,
                    :time_input,
-                   # Navigation (5)
+                   # Navigation (6)
                    :breadcrumbs,
                    :context_selector,
+                   :file_tree_browser,
                    :list,
                    :menu,
                    :tabs,
@@ -293,17 +294,17 @@ defmodule DesktopUi.PhaseElevenIntegrationTest do
   end
 
   describe "11.5 Mapper coverage and diagnostics scenarios" do
-    test "canonical mapper handles all 48 IUR widget kinds without fallback" do
+    test "canonical mapper handles all 49 IUR widget kinds without fallback" do
       supported = Renderer.supported_kinds() |> MapSet.new()
 
       # All IUR widget kinds should be supported
       missing_kinds = MapSet.difference(@all_iur_kinds, supported)
 
       assert MapSet.size(missing_kinds) == 0,
-             "Expected all 48 IUR kinds to be supported, but missing: #{inspect(MapSet.to_list(missing_kinds))}"
+             "Expected all 49 IUR kinds to be supported, but missing: #{inspect(MapSet.to_list(missing_kinds))}"
     end
 
-    test "renderer.supported_kinds returns at least 48 kinds" do
+    test "renderer.supported_kinds returns at least 49 kinds" do
       count = length(Renderer.supported_kinds())
 
       assert count >= @iur_widget_count,

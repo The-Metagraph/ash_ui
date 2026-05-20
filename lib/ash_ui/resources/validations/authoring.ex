@@ -19,7 +19,8 @@ defmodule AshUI.Resources.Validations.Authoring do
                   "info_list",
                   "select",
                   "list_repeat",
-                  "context_selector"
+                  "context_selector",
+                  "file_tree_browser"
                 ])
   @action_widgets MapSet.new([
                     "button",
@@ -37,6 +38,7 @@ defmodule AshUI.Resources.Validations.Authoring do
                     "chat_composer",
                     "diff_banner",
                     "context_selector",
+                    "file_tree_browser",
                     "right_rail",
                     "workflow_progress_status_card"
                   ])
@@ -56,6 +58,7 @@ defmodule AshUI.Resources.Validations.Authoring do
     "chat_composer" => [:change, :input, :submit],
     "diff_banner" => [:change, :input],
     "context_selector" => [:change, :input],
+    "file_tree_browser" => [:change, :input, :toggle],
     "right_rail" => [:change, :toggle, :click],
     "workflow_progress_status_card" => [:click, :change]
   }

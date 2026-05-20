@@ -134,11 +134,15 @@ defmodule DesktopUi.Widget do
         :query,
         :entries,
         :selector_id,
+        :tree_id,
+        :root_label,
         :groups,
+        :selected_path,
         :selected_values,
         :max_selections,
         :multiple,
         :multiple?,
+        :default_expanded?,
         :label_prefix,
         :new_count,
         :changed_count,
@@ -269,8 +273,9 @@ defmodule DesktopUi.Widget do
   def family_for(kind) when kind in [:button, :toggle, :link, :command], do: :action
   def family_for(kind) when kind in [:text_input, :checkbox, :radio_group, :select], do: :input
 
-  def family_for(kind) when kind in [:menu, :tabs, :breadcrumbs, :list, :context_selector],
-    do: :navigation
+  def family_for(kind)
+      when kind in [:menu, :tabs, :breadcrumbs, :list, :context_selector, :file_tree_browser],
+      do: :navigation
 
   def family_for(kind) when kind in [:status, :diff_banner, :confidence_indicator], do: :feedback
   def family_for(_kind), do: :content

@@ -116,6 +116,34 @@ defmodule DesktopUi.RendererTest do
     assert [%{label: "Workspace", items: [%{label: "All workspaces"}]}] = widget.attributes.groups
   end
 
+  test "renderer maps file_tree_browser as a navigation widget" do
+    element =
+      Navigation.file_tree_browser(
+        id: "workspace-files",
+        tree_id: "workspace-tree",
+        root_label: "Workspace files",
+        selected_path: "lib/app.ex",
+        selection_intent: :select_file,
+        toggle_intent: :toggle_folder,
+        nodes: [
+          %{
+            id: "lib",
+            type: :folder,
+            expanded?: true,
+            children: [%{id: "lib/app.ex", type: :file_leaf, language: "elixir"}]
+          }
+        ]
+      )
+
+    assert {:ok, widget} = DesktopUi.Renderer.render(element)
+    assert widget.kind == :file_tree_browser
+    assert widget.family == :navigation
+    assert widget.metadata.role == :tree
+    assert widget.attributes.tree_id == "workspace-tree"
+    assert widget.attributes.selected_path == "lib/app.ex"
+    assert [%{children: [%{path: "lib/app.ex"}]}] = widget.attributes.nodes
+  end
+
   test "renderer maps advanced canonical widgets, display systems, and layers into native desktop widgets" do
     element =
       Element.new(:layer, :multi_window,

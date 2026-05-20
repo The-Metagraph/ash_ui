@@ -41,6 +41,7 @@ defmodule LiveUi.Renderer do
        :disclosure,
        :field,
        :field_group,
+       :file_tree_browser,
        :file_input,
        :form_builder,
        :gauge,
@@ -389,6 +390,32 @@ defmodule LiveUi.Renderer do
       label_prefix={string_value(map_value(@context_selector, :label_prefix), "context:")}
       open?={boolean_default(map_value(@context_selector, :open?), false)}
       disabled?={boolean_default(map_value(@context_selector, :disabled?), false)}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
+  def render(%{element: %Element{kind: :file_tree_browser}} = assigns) do
+    file_tree = file_tree_attributes(assigns.element)
+
+    assigns =
+      assigns
+      |> assign(:file_tree, file_tree)
+      |> assign(:nodes, file_tree_nodes(assigns.element, Map.get(assigns, :event_target)))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.FileTreeBrowser.component
+      id={element_id(@element, "file-tree-browser")}
+      tree_id={string_value(map_value(@file_tree, :tree_id), element_id(@element, "file-tree-browser"))}
+      root_label={string_value(map_value(@file_tree, :root_label), "Files")}
+      nodes={@nodes}
+      selected_path={string_optional(map_value(@file_tree, :selected_path))}
+      default_expanded?={boolean_default(map_value(@file_tree, :default_expanded?), true)}
       tone={style_tone(@element)}
       variant={theme_variant(@element)}
       state={style_state(@element)}
@@ -2107,6 +2134,154 @@ defmodule LiveUi.Renderer do
     |> context_selector_attributes()
     |> map_value(:selection_intent)
   end
+
+  defp file_tree_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:file_tree, Map.get(element.attributes, "file_tree", %{}))
+    |> normalize_panel()
+  end
+
+  defp file_tree_nodes(%Element{} = element, event_target) do
+    element
+    |> file_tree_attributes()
+    |> map_value(:nodes, [])
+    |> List.wrap()
+    |> Enum.map(&file_tree_node(&1, element, event_target))
+  end
+
+  defp file_tree_node(node, element, event_target) do
+    node = normalize_panel(node)
+
+    case file_tree_node_type(map_value(node, :type, :file_leaf)) do
+      :folder ->
+        node
+        |> Map.put(:type, :folder)
+        |> Map.put(:children, file_tree_child_nodes(node, element, event_target))
+        |> maybe_put_node_attrs(
+          :toggle_attrs,
+          file_tree_toggle_attrs(element, event_target, node)
+        )
+
+      :file_leaf ->
+        node
+        |> Map.put(:type, :file_leaf)
+        |> maybe_put_node_attrs(
+          :select_attrs,
+          file_tree_select_attrs(element, event_target, node)
+        )
+    end
+  end
+
+  defp file_tree_child_nodes(node, element, event_target) do
+    node
+    |> map_value(:children, [])
+    |> List.wrap()
+    |> Enum.map(&file_tree_node(&1, element, event_target))
+  end
+
+  defp file_tree_node_type(type) when type in [:folder, "folder", :directory, "directory"],
+    do: :folder
+
+  defp file_tree_node_type(_type), do: :file_leaf
+
+  defp file_tree_select_attrs(%Element{} = element, event_target, node) do
+    case {file_tree_selection_interaction(element), event_target, file_tree_node_id(node),
+          file_tree_node_path(node)} do
+      {%Interaction{} = interaction, target, id, path}
+      when not is_nil(target) and not is_nil(path) ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "file-tree-browser"),
+          :"phx-value-widget" => "file_tree_browser",
+          :"phx-value-node_id" => to_string(id || path),
+          :"phx-value-path" => to_string(path),
+          :"phx-value-selected_value" => to_string(path)
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp file_tree_toggle_attrs(%Element{} = element, event_target, node) do
+    default_expanded? =
+      element
+      |> file_tree_attributes()
+      |> map_value(:default_expanded?, true)
+      |> boolean_default(true)
+
+    expanded? = file_tree_node_expanded?(node, default_expanded?)
+
+    case {file_tree_toggle_interaction(element), event_target, file_tree_node_id(node),
+          not expanded?} do
+      {%Interaction{} = interaction, target, id, next_expanded?}
+      when not is_nil(target) and not is_nil(id) ->
+        %{
+          :"phx-click" => "canonical_change_interaction",
+          :"phx-target" => target,
+          :"phx-value-change-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "file-tree-browser"),
+          :"phx-value-widget" => "file_tree_browser",
+          :"phx-value-node_id" => to_string(id),
+          :"phx-value-expanded" => to_string(next_expanded?)
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp file_tree_selection_interaction(%Element{} = element) do
+    primary_interaction(element, :selection) ||
+      case file_tree_intent(element, :selection_intent) do
+        nil ->
+          nil
+
+        intent ->
+          Interaction.selection(
+            intent: intent,
+            element_id: element_id(element, "file-tree-browser"),
+            mapping: %{node_id: :node_id, selected_path: :path, selected_value: :path}
+          )
+      end
+  end
+
+  defp file_tree_toggle_interaction(%Element{} = element) do
+    primary_interaction(element, :change) ||
+      case file_tree_intent(element, :toggle_intent) do
+        nil ->
+          nil
+
+        intent ->
+          Interaction.change(
+            intent: intent,
+            element_id: element_id(element, "file-tree-browser"),
+            mapping: %{node_id: :node_id, expanded?: :expanded}
+          )
+      end
+  end
+
+  defp file_tree_intent(%Element{} = element, key) do
+    element
+    |> file_tree_attributes()
+    |> map_value(key)
+  end
+
+  defp file_tree_node_id(node), do: map_value(node, :id, file_tree_node_path(node))
+  defp file_tree_node_path(node), do: map_value(node, :path, file_tree_node_id_fallback(node))
+  defp file_tree_node_id_fallback(node), do: map_value(node, :id)
+
+  defp file_tree_node_expanded?(node, default) do
+    case map_value(node, :expanded?) do
+      nil -> default
+      value -> value in [true, "true", 1, "1", "yes", "open"]
+    end
+  end
+
+  defp maybe_put_node_attrs(node, _key, attrs) when attrs == %{}, do: node
+  defp maybe_put_node_attrs(node, key, attrs), do: Map.put(node, key, attrs)
 
   defp metadata_description(%Element{metadata: %{description: description}}), do: description
   defp metadata_description(_element), do: nil

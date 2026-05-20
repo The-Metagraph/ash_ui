@@ -546,6 +546,34 @@ defmodule UnifiedIUR.Fixtures do
              ],
              selected_values: [:all],
              selection_intent: :select_context
+           )},
+          {:content,
+           Navigation.file_tree_browser(
+             id: "workspace-file-tree",
+             tree_id: "workspace-files",
+             root_label: "Workspace files",
+             selected_path: "lib/app.ex",
+             selection_intent: :select_file,
+             toggle_intent: :toggle_folder,
+             nodes: [
+               %{
+                 id: "lib",
+                 type: :folder,
+                 name: "lib",
+                 path: "lib",
+                 expanded?: true,
+                 children: [
+                   %{
+                     id: "lib/app.ex",
+                     type: :file_leaf,
+                     name: "app.ex",
+                     path: "lib/app.ex",
+                     language: "elixir",
+                     line_count: 42
+                   }
+                 ]
+               }
+             ]
            )}
         ],
         id: "navigation-column"

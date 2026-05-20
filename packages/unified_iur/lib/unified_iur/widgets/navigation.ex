@@ -7,7 +7,7 @@ defmodule UnifiedIUR.Widgets.Navigation do
   alias UnifiedIUR.Element
   alias UnifiedIUR.Metadata
 
-  @kinds [:menu, :tabs, :context_selector]
+  @kinds [:menu, :tabs, :context_selector, :file_tree_browser]
 
   @spec kinds() :: [atom()]
   def kinds do
@@ -83,6 +83,46 @@ defmodule UnifiedIUR.Widgets.Navigation do
             |> maybe_put(:selection_intent, option(opts, :selection_intent))
         }
         |> Attachment.merge(opts, component: :context_selector),
+      children: []
+    )
+  end
+
+  @spec file_tree_browser(keyword() | map()) :: Element.t()
+  def file_tree_browser(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    tree_id =
+      normalize_file_tree_string!(option(opts, :tree_id, option(opts, :id)), :tree_id)
+
+    selected_path = option(opts, :selected_path)
+
+    if not is_nil(selected_path) and not is_binary(selected_path) do
+      raise ArgumentError, "file_tree_browser :selected_path must be a string when provided"
+    end
+
+    default_expanded? =
+      normalize_file_tree_boolean!(
+        option(opts, :default_expanded?, option(opts, :default_expanded, true)),
+        :default_expanded?
+      )
+
+    Element.new(:widget, :file_tree_browser,
+      id: option(opts, :id, tree_id),
+      metadata: normalize_metadata(opts),
+      attributes:
+        %{
+          file_tree:
+            %{
+              tree_id: tree_id,
+              root_label: option(opts, :root_label, option(opts, :label, "")),
+              nodes: normalize_file_tree_nodes!(option(opts, :nodes, [])),
+              default_expanded?: default_expanded?
+            }
+            |> maybe_put(:selected_path, selected_path)
+            |> maybe_put(:selection_intent, option(opts, :selection_intent))
+            |> maybe_put(:toggle_intent, option(opts, :toggle_intent))
+        }
+        |> Attachment.merge(opts, component: :file_tree_browser),
       children: []
     )
   end
@@ -192,6 +232,110 @@ defmodule UnifiedIUR.Widgets.Navigation do
 
   defp multiple_selection?(:unlimited), do: true
   defp multiple_selection?(value) when is_integer(value), do: value > 1
+
+  defp normalize_file_tree_nodes!(nodes) when is_list(nodes) do
+    Enum.map(nodes, &normalize_file_tree_node!/1)
+  end
+
+  defp normalize_file_tree_nodes!(_nodes) do
+    raise ArgumentError, "file_tree_browser :nodes must be a list"
+  end
+
+  defp normalize_file_tree_node!(node) when is_map(node) or is_list(node) do
+    node = normalize_opts(node)
+
+    case normalize_file_tree_node_type!(option(node, :type)) do
+      :folder -> normalize_file_tree_folder!(node)
+      :file_leaf -> normalize_file_tree_leaf!(node)
+    end
+  end
+
+  defp normalize_file_tree_node!(_node) do
+    raise ArgumentError, "file_tree_browser nodes must be maps"
+  end
+
+  defp normalize_file_tree_folder!(node) do
+    path = normalize_file_tree_string!(option(node, :path, option(node, :id)), :path)
+    id = normalize_file_tree_string!(option(node, :id, path), :id)
+
+    %{
+      id: id,
+      type: :folder,
+      name: option(node, :name, Path.basename(path)),
+      path: path,
+      children: normalize_file_tree_nodes!(option(node, :children, []))
+    }
+    |> maybe_put(:expanded?, normalize_optional_file_tree_boolean!(option(node, :expanded?)))
+  end
+
+  defp normalize_file_tree_leaf!(node) do
+    path = normalize_file_tree_string!(option(node, :path, option(node, :id)), :path)
+    id = normalize_file_tree_string!(option(node, :id, path), :id)
+
+    %{
+      id: id,
+      type: :file_leaf,
+      name: option(node, :name, Path.basename(path)),
+      path: path
+    }
+    |> maybe_put(:file_kind, option(node, :file_kind, option(node, :kind)))
+    |> maybe_put(:language, option(node, :language, option(node, :lang)))
+    |> maybe_put(
+      :line_count,
+      normalize_optional_line_count!(option(node, :line_count, option(node, :lines)))
+    )
+  end
+
+  defp normalize_file_tree_node_type!(:folder), do: :folder
+  defp normalize_file_tree_node_type!("folder"), do: :folder
+  defp normalize_file_tree_node_type!(:directory), do: :folder
+  defp normalize_file_tree_node_type!("directory"), do: :folder
+  defp normalize_file_tree_node_type!(:file_leaf), do: :file_leaf
+  defp normalize_file_tree_node_type!("file_leaf"), do: :file_leaf
+  defp normalize_file_tree_node_type!(:file), do: :file_leaf
+  defp normalize_file_tree_node_type!("file"), do: :file_leaf
+
+  defp normalize_file_tree_node_type!(type) do
+    raise ArgumentError,
+          "file_tree_browser node type must be :folder or :file_leaf, got: #{inspect(type)}"
+  end
+
+  defp normalize_file_tree_string!(value, field) when is_binary(value) do
+    if String.trim(value) == "" do
+      raise ArgumentError, "file_tree_browser requires a non-empty :#{field}"
+    end
+
+    value
+  end
+
+  defp normalize_file_tree_string!(value, field) when is_atom(value) and not is_nil(value),
+    do: normalize_file_tree_string!(Atom.to_string(value), field)
+
+  defp normalize_file_tree_string!(_value, field) do
+    raise ArgumentError, "file_tree_browser requires a non-empty :#{field}"
+  end
+
+  defp normalize_file_tree_boolean!(value, _field) when is_boolean(value), do: value
+
+  defp normalize_file_tree_boolean!(value, field) do
+    raise ArgumentError, "file_tree_browser :#{field} must be a boolean, got: #{inspect(value)}"
+  end
+
+  defp normalize_optional_file_tree_boolean!(nil), do: nil
+  defp normalize_optional_file_tree_boolean!(value) when is_boolean(value), do: value
+
+  defp normalize_optional_file_tree_boolean!(value) do
+    raise ArgumentError,
+          "file_tree_browser node :expanded? must be a boolean when provided, got: #{inspect(value)}"
+  end
+
+  defp normalize_optional_line_count!(nil), do: nil
+  defp normalize_optional_line_count!(value) when is_integer(value) and value >= 0, do: value
+
+  defp normalize_optional_line_count!(value) do
+    raise ArgumentError,
+          "file_tree_browser node :line_count must be a non-negative integer when provided, got: #{inspect(value)}"
+  end
 
   defp normalize_metadata(opts) do
     opts

@@ -218,7 +218,8 @@ defmodule ElmUi.Widget do
            ],
       do: :input
 
-  def family_for(kind) when kind in [:tabs, :menu, :context_selector], do: :navigation
+  def family_for(kind) when kind in [:tabs, :menu, :context_selector, :file_tree_browser],
+    do: :navigation
 
   def family_for(kind) when kind in [:list, :table, :tree_view, :stat, :key_value, :info_list],
     do: :data

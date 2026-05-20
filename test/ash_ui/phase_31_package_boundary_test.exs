@@ -75,6 +75,10 @@ defmodule AshUI.Phase31PackageBoundaryTest do
       refute :context_selector in UnifiedUi.WidgetComponents.kinds()
       refute :context_selector in UnifiedIUR.Widgets.Components.kinds()
       refute :context_selector in AshUI.WidgetComponents.kinds()
+
+      refute :file_tree_browser in UnifiedUi.WidgetComponents.kinds()
+      refute :file_tree_browser in UnifiedIUR.Widgets.Components.kinds()
+      refute :file_tree_browser in AshUI.WidgetComponents.kinds()
     end
 
     test "baseline feedback primitives stay out of the widget-component catalog" do

@@ -31,7 +31,7 @@ defmodule UnifiedIUR.Widgets do
     :time_input,
     :file_input
   ]
-  @navigation_kinds [:menu, :tabs, :context_selector]
+  @navigation_kinds [:menu, :tabs, :context_selector, :file_tree_browser]
   @data_view_kinds [:list, :table, :tree_view, :stat, :key_value, :info_list]
   @feedback_kinds [
     :status,

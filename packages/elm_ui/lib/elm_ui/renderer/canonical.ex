@@ -378,6 +378,27 @@ defmodule ElmUi.Renderer.Canonical do
   end
 
   defp do_render(%Element{type: :widget, kind: kind} = element)
+       when kind in [:file_tree_browser, "file_tree_browser"] do
+    file_tree = map_attr(element, :file_tree)
+
+    {:ok,
+     Widgets.file_tree_browser(
+       element.id,
+       normalize_file_tree_nodes(map_get(file_tree, :nodes, [])),
+       Keyword.merge(base_opts(element),
+         tree_id: map_get(file_tree, :tree_id, element.id),
+         root_label: map_get(file_tree, :root_label, "Files"),
+         selected_path: map_get(file_tree, :selected_path),
+         default_expanded?: map_get(file_tree, :default_expanded?, true),
+         state: %{
+           disabled: map_get(file_tree, :disabled?, false),
+           selected: map_get(file_tree, :selected_path)
+         }
+       )
+     )}
+  end
+
+  defp do_render(%Element{type: :widget, kind: kind} = element)
        when kind in [:tabs, "tabs"] do
     {:ok,
      Widgets.tabs(
@@ -1522,6 +1543,24 @@ defmodule ElmUi.Renderer.Canonical do
     map_get(selector, :multiple?, false) ||
       max_selections in [:unlimited, "unlimited"] ||
       (is_integer(max_selections) and max_selections > 1)
+  end
+
+  defp normalize_file_tree_nodes(nodes) when is_list(nodes) do
+    Enum.map(nodes, &normalize_file_tree_node/1)
+  end
+
+  defp normalize_file_tree_nodes(_nodes), do: []
+
+  defp normalize_file_tree_node(node) do
+    node = normalize_map(node)
+
+    case map_get(node, :children, nil) do
+      children when is_list(children) ->
+        Map.put(node, :children, normalize_file_tree_nodes(children))
+
+      _other ->
+        node
+    end
   end
 
   defp binding_name(%Element{} = element) do

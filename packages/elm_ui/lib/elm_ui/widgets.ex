@@ -313,6 +313,11 @@ defmodule ElmUi.Widgets do
     Navigation.context_selector(id, groups, opts)
   end
 
+  @spec file_tree_browser(String.t() | atom(), [keyword() | map()], keyword()) :: Widget.t()
+  def file_tree_browser(id, nodes, opts \\ []) do
+    Navigation.file_tree_browser(id, nodes, opts)
+  end
+
   @spec overlay(
           String.t() | atom(),
           Widget.t() | map() | keyword(),

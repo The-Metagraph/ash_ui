@@ -86,6 +86,7 @@ These are the types currently accepted by `ui_element` validation.
 | `switch` | Toggle input | `checked`, `label` or `text` or `content` |
 | `slider` | Range input | no dedicated fallback widget markup |
 | `context_selector` | Grouped semantic context picker | `selector_id`, `groups`, `selected_values`, `max_selections`, `open?` |
+| `file_tree_browser` | Filesystem-like navigation tree | `tree_id`, `root_label`, `nodes`, `selected_path`, `default_expanded?` |
 
 ### Canonical Widget Components
 
@@ -266,6 +267,7 @@ The current action-binding-capable widgets are:
 - `chat_composer`
 - `diff_banner`
 - `context_selector`
+- `file_tree_browser`
 - `right_rail`
 
 ## Compatibility and Normalization Notes
@@ -298,7 +300,7 @@ you want to inspect the maintained behavior for each major family:
 |---|---|---|
 | foundational content | `text`, `button`, `label`, `icon`, `image`, `link` | exact public widgets plus honest custom handling where link semantics are still explicit |
 | forms and inputs | `form_builder`, `field`, `field_group`, `text_input`, `select`, `radio_group`, `toggle` | normalized input naming, composed form shells, and element-local actions/bindings |
-| layout and navigation | `row`, `column`, `grid`, `menu`, `tabs`, `context_selector`, `command_palette` | relationship-first composition with exact and custom navigation shells |
+| layout and navigation | `row`, `column`, `grid`, `menu`, `tabs`, `context_selector`, `file_tree_browser`, `command_palette` | relationship-first composition with exact and custom navigation shells |
 | display and inspection | `viewport`, `scroll_bar`, `split_pane`, `canvas` | example-only display shells that keep state changes on nested public widgets |
 | overlays and data surfaces | `dialog`, `alert_dialog`, `table`, `tree_view`, `markdown_viewer`, `log_viewer` | composed review shells, explicit custom boundaries, and seeded screen persistence |
 | feedback and operational surfaces | `status`, `progress`, `diff_banner`, `confidence_indicator`, `sparkline`, `bar_chart`, `cluster_dashboard` | normalized status treatment, comparison feedback, custom chart shells, and runtime-rich operational review stories |

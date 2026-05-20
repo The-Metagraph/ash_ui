@@ -5,7 +5,7 @@ defmodule ElmUi.Widgets.Navigation do
 
   alias ElmUi.Widgets.Builder
 
-  @kinds [:context_selector, :menu, :tabs]
+  @kinds [:context_selector, :file_tree_browser, :menu, :tabs]
 
   @spec kinds() :: [atom()]
   def kinds, do: @kinds
@@ -69,6 +69,27 @@ defmodule ElmUi.Widgets.Navigation do
     )
   end
 
+  @spec file_tree_browser(String.t() | atom(), [keyword() | map()], keyword() | map()) ::
+          ElmUi.Widget.t()
+  def file_tree_browser(id, nodes, opts \\ []) when is_list(nodes) do
+    opts = Builder.options(Map.put(Builder.options(opts), :id, id))
+
+    Builder.widget(:file_tree_browser,
+      id: id,
+      attributes: %{
+        tree_id: Builder.option(opts, :tree_id, id),
+        root_label: Builder.option(opts, :root_label, "Files"),
+        nodes: normalize_file_tree_nodes(nodes),
+        selected_path: Builder.option(opts, :selected_path),
+        default_expanded?: Builder.option(opts, :default_expanded?, true)
+      },
+      state: Builder.state(opts, [:disabled, :selected]),
+      styles: Builder.styles(opts),
+      events: Builder.events(opts, on_select: :selection, on_toggle: :change),
+      metadata: Builder.metadata(opts, %{native_surface: :navigation, role: :tree})
+    )
+  end
+
   defp normalize_groups(groups) do
     Enum.map(groups, fn group ->
       group = Builder.options(group)
@@ -95,6 +116,26 @@ defmodule ElmUi.Widgets.Navigation do
       |> Builder.maybe_put(:description, Builder.option(item, :description))
       |> Builder.maybe_put(:disabled, Builder.option(item, :disabled))
       |> Builder.maybe_put(:active, Builder.option(item, :active))
+    end)
+  end
+
+  defp normalize_file_tree_nodes(nodes) do
+    Enum.map(nodes, fn node ->
+      node = Builder.options(node)
+
+      %{}
+      |> Builder.maybe_put(:id, Builder.option(node, :id))
+      |> Builder.maybe_put(:type, Builder.option(node, :type, :file_leaf))
+      |> Builder.maybe_put(:name, Builder.option(node, :name))
+      |> Builder.maybe_put(:path, Builder.option(node, :path, Builder.option(node, :id)))
+      |> Builder.maybe_put(:expanded?, Builder.option(node, :expanded?))
+      |> Builder.maybe_put(:file_kind, Builder.option(node, :file_kind))
+      |> Builder.maybe_put(:language, Builder.option(node, :language))
+      |> Builder.maybe_put(:line_count, Builder.option(node, :line_count))
+      |> Builder.maybe_put(
+        :children,
+        normalize_file_tree_nodes(Builder.option(node, :children, []))
+      )
     end)
   end
 end

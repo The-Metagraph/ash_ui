@@ -32,6 +32,7 @@ defmodule AshUI.DSL.Storage do
     "key_value",
     "info_list",
     "context_selector",
+    "file_tree_browser",
     "form_field",
     "form_builder",
     "text",

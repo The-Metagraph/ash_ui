@@ -39,7 +39,7 @@ defmodule DesktopUi.Widgets.Navigation do
 
   @spec kinds() :: [atom()]
   def kinds do
-    [:breadcrumbs, :context_selector, :list, :menu, :tabs]
+    [:breadcrumbs, :context_selector, :file_tree_browser, :list, :menu, :tabs]
   end
 
   @spec tabs(String.t() | atom(), [map() | keyword()], keyword()) :: Widget.t()
@@ -101,6 +101,57 @@ defmodule DesktopUi.Widgets.Navigation do
         |> Enum.reject(fn {_key, value} -> is_nil(value) end)
         |> Map.new()
     )
+  end
+
+  @spec file_tree_browser(String.t() | atom(), [map() | keyword()], keyword()) :: Widget.t()
+  def file_tree_browser(id, nodes, opts \\ []) do
+    Widget.new(:file_tree_browser,
+      id: id,
+      metadata:
+        %{
+          focusable: true,
+          role: :tree,
+          shortcut: Keyword.get(opts, :shortcut),
+          shortcut_scope: Keyword.get(opts, :shortcut_scope, :screen),
+          focus_group: Keyword.get(opts, :focus_group, "#{id}:file_tree")
+        }
+        |> Map.merge(Map.new(Keyword.get(opts, :metadata, []))),
+      state: %{
+        disabled: Keyword.get(opts, :disabled, false),
+        focused: false,
+        selected: Keyword.get(opts, :selected_path)
+      },
+      bindings: %{selection: Keyword.get(opts, :binding, :selection)},
+      attributes: %{
+        tree_id: Keyword.get(opts, :tree_id, id),
+        root_label: Keyword.get(opts, :root_label, "Files"),
+        nodes: normalize_file_tree_nodes(nodes),
+        selected_path: Keyword.get(opts, :selected_path),
+        default_expanded?: Keyword.get(opts, :default_expanded?, true)
+      },
+      styles: Map.new(Keyword.get(opts, :styles, [])),
+      events:
+        %{
+          selection: Keyword.get(opts, :on_select),
+          change: Keyword.get(opts, :on_toggle)
+        }
+        |> Enum.reject(fn {_key, value} -> is_nil(value) end)
+        |> Map.new()
+    )
+  end
+
+  defp normalize_file_tree_nodes(nodes) do
+    Enum.map(nodes, fn node ->
+      node = Map.new(node)
+
+      case Map.get(node, :children, Map.get(node, "children")) do
+        children when is_list(children) ->
+          Map.put(node, :children, normalize_file_tree_nodes(children))
+
+        _other ->
+          node
+      end
+    end)
   end
 
   @doc """

@@ -36,6 +36,7 @@ defmodule LiveUi.Renderer do
        :context_selector,
        :context_menu,
        :date_input,
+       :diff_banner,
        :dialog,
        :disclosure,
        :field,
@@ -332,6 +333,35 @@ defmodule LiveUi.Renderer do
       variant={theme_variant(@element)}
       state={style_state(@element)}
       class={style_class(@element)}
+    />
+    """
+  end
+
+  def render(%{element: %Element{kind: :diff_banner}} = assigns) do
+    diff = diff_banner_attributes(assigns.element)
+
+    assigns =
+      assigns
+      |> assign(:diff, diff)
+      |> assign(:chips, diff_banner_chips(assigns.element, Map.get(assigns, :event_target)))
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.DiffBanner.component
+      id={element_id(@element, "diff-banner")}
+      new_count={map_value(@diff, :new_count, 0)}
+      changed_count={map_value(@diff, :changed_count, 0)}
+      removed_count={map_value(@diff, :removed_count, 0)}
+      base_label={map_value(@diff, :base_label)}
+      active_filter={map_value(@diff, :active_filter, :all)}
+      show_filter_chips?={boolean_default(map_value(@diff, :show_filter_chips?), true)}
+      size={map_value(@diff, :size, :default)}
+      chips={@chips}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
     />
     """
   end
@@ -1909,6 +1939,75 @@ defmodule LiveUi.Renderer do
       get_in(element.attributes, [:selection, :label]) ||
       metadata_description(element) ||
       "Segmented control"
+  end
+
+  defp diff_banner_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:diff, Map.get(element.attributes, "diff", %{}))
+    |> normalize_panel()
+  end
+
+  defp diff_banner_chips(%Element{} = element, event_target) do
+    diff = diff_banner_attributes(element)
+
+    [
+      {:all, "all", diff_banner_total(diff)},
+      {:new, "new", map_value(diff, :new_count, 0)},
+      {:changed, "changed", map_value(diff, :changed_count, 0)},
+      {:removed, "removed", map_value(diff, :removed_count, 0)}
+    ]
+    |> Enum.map(fn {kind, label, count} ->
+      %{
+        kind: kind,
+        label: label,
+        count: count,
+        attrs: diff_banner_chip_attrs(element, event_target, kind)
+      }
+    end)
+  end
+
+  defp diff_banner_total(diff) do
+    map_value(diff, :new_count, 0) + map_value(diff, :changed_count, 0) +
+      map_value(diff, :removed_count, 0)
+  end
+
+  defp diff_banner_chip_attrs(%Element{} = element, event_target, filter) do
+    case {diff_banner_filter_interaction(element), event_target, filter} do
+      {%Interaction{} = interaction, target, selected_filter} when not is_nil(target) ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "diff-banner"),
+          :"phx-value-widget" => "diff_banner",
+          :"phx-value-filter" => to_string(selected_filter),
+          :"phx-value-value" => to_string(selected_filter),
+          :"phx-value-selected_value" => to_string(selected_filter)
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp diff_banner_filter_interaction(%Element{} = element) do
+    primary_control_interaction(element) ||
+      case diff_banner_filter_intent(element) do
+        nil ->
+          nil
+
+        intent ->
+          Interaction.selection(
+            intent: intent,
+            element_id: element_id(element, "diff-banner"),
+            mapping: %{selected_value: :filter}
+          )
+      end
+  end
+
+  defp diff_banner_filter_intent(%Element{} = element) do
+    diff = diff_banner_attributes(element)
+    map_value(diff, :filter_intent, map_value(diff, :selection_intent))
   end
 
   defp context_selector_attributes(%Element{} = element) do

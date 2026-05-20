@@ -315,6 +315,11 @@ defmodule DesktopUi.Widgets do
     Feedback.progress(id, opts)
   end
 
+  @spec diff_banner(String.t() | atom(), keyword()) :: Widget.t()
+  def diff_banner(id, opts \\ []) do
+    Feedback.diff_banner(id, opts)
+  end
+
   @spec sparkline(String.t() | atom(), keyword()) :: Widget.t()
   def sparkline(id, opts \\ []) do
     Feedback.sparkline(id, opts)

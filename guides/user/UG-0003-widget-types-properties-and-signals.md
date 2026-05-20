@@ -64,6 +64,7 @@ These are the types currently accepted by `ui_element` validation.
 | `hero` | Large intro section | `eyebrow`, `title`, `message` |
 | `badge` | Small status label | `presentation`, `text` or `label` or `content` |
 | `confidence_indicator` | Confidence score or quality meter | `value`, `thresholds`, `label`, `show_numeric?`, `show_glyph?`, `size` |
+| `diff_banner` | Comparison summary and filter chips | `new_count`, `changed_count`, `removed_count`, `active_filter`, `base_label`, `size` |
 | `stat` | Metric card | `title`, `value`, `message` |
 | `key_value` | Definition row | `label` or `title`, `value`, `description` |
 | `info_list` | Simple list of labeled values | `items`, optional `ordered?` |
@@ -232,6 +233,7 @@ Signal support is type-specific.
 | `switch` | `:change`, `:toggle` |
 | `slider` | `:change`, `:input` |
 | `form_builder` | `:submit` |
+| `diff_banner` | `:change`, `:input` |
 | `right_rail` | `:change`, `:toggle`, `:click` |
 
 If you declare a signal outside this matrix, authoring validation raises.
@@ -262,6 +264,7 @@ The current action-binding-capable widgets are:
 - `runtime_form_shell`
 - `segmented_button_group`
 - `chat_composer`
+- `diff_banner`
 - `context_selector`
 - `right_rail`
 
@@ -298,7 +301,7 @@ you want to inspect the maintained behavior for each major family:
 | layout and navigation | `row`, `column`, `grid`, `menu`, `tabs`, `context_selector`, `command_palette` | relationship-first composition with exact and custom navigation shells |
 | display and inspection | `viewport`, `scroll_bar`, `split_pane`, `canvas` | example-only display shells that keep state changes on nested public widgets |
 | overlays and data surfaces | `dialog`, `alert_dialog`, `table`, `tree_view`, `markdown_viewer`, `log_viewer` | composed review shells, explicit custom boundaries, and seeded screen persistence |
-| feedback and operational surfaces | `status`, `progress`, `sparkline`, `bar_chart`, `cluster_dashboard` | normalized status treatment, custom chart shells, and runtime-rich operational review stories |
+| feedback and operational surfaces | `status`, `progress`, `diff_banner`, `confidence_indicator`, `sparkline`, `bar_chart`, `cluster_dashboard` | normalized status treatment, comparison feedback, custom chart shells, and runtime-rich operational review stories |
 
 If a directory name differs from the canonical Ash UI type, treat the example
 directory as the review handle and the canonical type as the runtime authoring

@@ -67,6 +67,27 @@ defmodule DesktopUi.RendererTest do
     assert widget.attributes.label == "Match confidence"
   end
 
+  test "renderer maps diff_banner as a feedback widget" do
+    element =
+      Feedback.diff_banner(
+        id: "ask-diff",
+        new_count: 3,
+        changed_count: 5,
+        removed_count: 1,
+        active_filter: :changed,
+        filter_intent: :filter_diff
+      )
+
+    assert {:ok, widget} = DesktopUi.Renderer.render(element)
+    assert widget.kind == :diff_banner
+    assert widget.family == :feedback
+    assert widget.metadata.role == :radiogroup
+    assert widget.attributes.new_count == 3
+    assert widget.attributes.changed_count == 5
+    assert widget.attributes.removed_count == 1
+    assert widget.state.active_filter == :changed
+  end
+
   test "renderer maps context_selector as a navigation widget" do
     element =
       Navigation.context_selector(

@@ -617,6 +617,25 @@ defmodule ElmUi.Renderer.Canonical do
   end
 
   defp do_render(%Element{type: :widget, kind: kind} = element)
+       when kind in [:diff_banner, "diff_banner"] do
+    diff = map_attr(element, :diff)
+
+    {:ok,
+     Widgets.diff_banner(
+       element.id,
+       Keyword.merge(base_opts(element),
+         new_count: map_get(diff, :new_count, 0),
+         changed_count: map_get(diff, :changed_count, 0),
+         removed_count: map_get(diff, :removed_count, 0),
+         base_label: map_get(diff, :base_label),
+         active_filter: map_get(diff, :active_filter, :all),
+         show_filter_chips?: map_get(diff, :show_filter_chips?, true),
+         size: map_get(diff, :size, :default)
+       )
+     )}
+  end
+
+  defp do_render(%Element{type: :widget, kind: kind} = element)
        when kind in [:gauge, "gauge"] do
     {:ok,
      Widgets.gauge(

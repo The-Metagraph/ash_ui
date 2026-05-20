@@ -27,6 +27,7 @@ defmodule AshUI.DSL.Storage do
     "hero",
     "badge",
     "confidence_indicator",
+    "diff_banner",
     "stat",
     "key_value",
     "info_list",

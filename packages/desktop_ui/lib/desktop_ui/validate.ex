@@ -82,7 +82,7 @@ defmodule DesktopUi.Validate do
         :renderer_supports_all_iur_kinds,
         iur_widget_coverage_complete?(),
         %{
-          expected_count: 47,
+          expected_count: 48,
           actual_count: length(DesktopUi.Renderer.supported_kinds()),
           supported_kinds: DesktopUi.Renderer.supported_kinds()
         }
@@ -822,10 +822,10 @@ defmodule DesktopUi.Validate do
 
   defp traceability_includes_direct_prefix?(_result, _prefix), do: false
 
-  # Verifies that all 47 canonical IUR widget kinds are supported by the renderer.
+  # Verifies that all 48 canonical IUR widget kinds are supported by the renderer.
   # Returns true when the renderer supports the complete set of IUR widget kinds.
   defp iur_widget_coverage_complete? do
-    expected_count = 47
+    expected_count = 48
     actual_count = length(DesktopUi.Renderer.supported_kinds())
 
     actual_count >= expected_count and

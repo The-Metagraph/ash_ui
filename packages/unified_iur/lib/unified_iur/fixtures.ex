@@ -756,6 +756,16 @@ defmodule UnifiedIUR.Fixtures do
            severity: :success
          )},
         {:content,
+         Feedback.diff_banner(
+           id: "diff-banner-widget",
+           new_count: 3,
+           changed_count: 2,
+           removed_count: 1,
+           base_label: "Compared to last run",
+           active_filter: :all,
+           filter_intent: :filter_diff
+         )},
+        {:content,
          Feedback.confidence_indicator(0.87,
            id: "confidence-score",
            label: "Confidence: 87%",

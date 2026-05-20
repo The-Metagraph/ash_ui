@@ -756,6 +756,50 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "diff_banner"} = iur, _opts) do
+    props = iur["props"] || %{}
+    diff = if is_map(prop(props, "diff")), do: prop(props, "diff", %{}), else: props
+    new_count = prop(diff, "new_count", 0)
+    changed_count = prop(diff, "changed_count", 0)
+    removed_count = prop(diff, "removed_count", 0)
+
+    total_count =
+      numeric_count(new_count) + numeric_count(changed_count) + numeric_count(removed_count)
+
+    active_filter = text_prop(diff, "active_filter", "all")
+    size = text_prop(diff, "size", "default")
+    base_label = escaped_text_prop(diff, ["base_label", "base"])
+
+    chips =
+      [
+        {"all", total_count},
+        {"new", new_count},
+        {"changed", changed_count},
+        {"removed", removed_count}
+      ]
+      |> Enum.map_join("\n      ", fn {kind, count} ->
+        active_class = if active_filter == kind, do: " ash-diff-banner__chip--active", else: ""
+
+        ~s(<span class="ash-diff-banner__chip ash-diff-banner__chip--#{kind}#{active_class}" data-filter-kind="#{kind}">#{html_escape(count)} #{kind}</span>)
+      end)
+
+    base_html =
+      if base_label && size != "compact" do
+        ~s(<span class="ash-diff-banner__base">#{base_label}</span>)
+      else
+        ""
+      end
+
+    """
+    <aside class="#{css_classes(["ash-diff-banner", "ash-diff-banner--#{size}", prop_class(iur)])}" data-live-ui-widget="diff-banner" data-active-filter="#{html_attr(active_filter)}"#{style_attr(prop_style(iur))}>
+      #{base_html}
+      <div class="ash-diff-banner__chips">
+      #{chips}
+      </div>
+    </aside>
+    """
+  end
+
   defp generate_heex(%{"type" => "ask_sidebar"} = iur, _opts) do
     props = iur["props"] || %{}
     sidebar_id = escaped_text_prop(props, ["sidebar_id"], "")
@@ -2972,6 +3016,18 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp confidence_number(_value, default), do: default
+
+  defp numeric_count(value) when is_integer(value), do: value
+  defp numeric_count(value) when is_float(value), do: round(value)
+
+  defp numeric_count(value) when is_binary(value) do
+    case Integer.parse(value) do
+      {parsed, _rest} -> parsed
+      :error -> 0
+    end
+  end
+
+  defp numeric_count(_value), do: 0
 
   defp metric_model(props) do
     case prop(props, "model", %{}) do

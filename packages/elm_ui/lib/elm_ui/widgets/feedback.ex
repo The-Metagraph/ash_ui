@@ -6,7 +6,7 @@ defmodule ElmUi.Widgets.Feedback do
 
   alias ElmUi.Widgets.Builder
 
-  @kinds [:status, :progress, :inline_feedback]
+  @kinds [:status, :progress, :inline_feedback, :diff_banner]
 
   @spec kinds() :: [atom()]
   def kinds, do: @kinds
@@ -64,6 +64,29 @@ defmodule ElmUi.Widgets.Feedback do
       state: Builder.state(opts, [:disabled]),
       styles: Builder.styles(opts),
       events: Builder.events(opts, on_close: :close),
+      metadata: Builder.metadata(opts, %{native_surface: :feedback})
+    )
+  end
+
+  @spec diff_banner(String.t() | atom(), keyword() | map()) :: ElmUi.Widget.t()
+  def diff_banner(id, opts \\ []) do
+    opts = Builder.options(Map.put(Builder.options(opts), :id, id))
+
+    Builder.widget(:diff_banner,
+      id: id,
+      attributes: %{
+        new_count: Builder.option(opts, :new_count, 0),
+        changed_count: Builder.option(opts, :changed_count, 0),
+        removed_count: Builder.option(opts, :removed_count, 0),
+        base_label: Builder.option(opts, :base_label),
+        show_filter_chips?: Builder.option(opts, :show_filter_chips?, true)
+      },
+      state: %{
+        active_filter: Builder.option(opts, :active_filter, :all),
+        size: Builder.option(opts, :size, :default)
+      },
+      events: Builder.events(opts, on_filter: :selection),
+      styles: Builder.styles(opts),
       metadata: Builder.metadata(opts, %{native_surface: :feedback})
     )
   end

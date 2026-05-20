@@ -119,6 +119,31 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
       refute Map.has_key?(canonical.attributes, :component)
     end
 
+    test "IUR adapter routes diff_banner props into baseline feedback attributes" do
+      assert {:ok, canonical} =
+               IUR.new(:diff_banner,
+                 id: "ask-diff",
+                 props: %{
+                   new_count: 3,
+                   changed_count: 5,
+                   removed_count: 1,
+                   active_filter: :new,
+                   filter_intent: :filter_diff
+                 }
+               )
+               |> IURAdapter.to_canonical()
+
+      assert canonical.kind == :diff_banner
+      assert canonical.type == :widget
+      assert %{diff: diff} = canonical.attributes
+      assert diff.new_count == 3
+      assert diff.changed_count == 5
+      assert diff.removed_count == 1
+      assert diff.active_filter == :new
+      assert diff.filter_intent == :filter_diff
+      refute Map.has_key?(canonical.attributes, :component)
+    end
+
     test "live_ui_adapter fallback renders confidence_indicator with meter semantics" do
       assert {:ok, canonical} =
                IUR.new(:screen,
@@ -181,6 +206,35 @@ defmodule AshUI.Phase31RuntimeAdapterTest do
       assert heex =~ "All workspaces"
       assert heex =~ ~s(data-context-value="all")
       assert heex =~ ~s(aria-selected="true")
+    end
+
+    test "live_ui_adapter fallback renders diff_banner with stable filter chips" do
+      assert {:ok, canonical} =
+               IUR.new(:screen,
+                 id: "diff-screen",
+                 name: "diff_test",
+                 children: [
+                   IUR.new(:diff_banner,
+                     id: "ask-diff",
+                     props: %{
+                       new_count: 4,
+                       changed_count: 7,
+                       removed_count: 2,
+                       active_filter: :changed
+                     }
+                   )
+                 ]
+               )
+               |> IURAdapter.to_canonical()
+
+      assert {:ok, heex} = LiveUIAdapter.render(canonical, force_fallback: true)
+      assert heex =~ "ash-diff-banner"
+      assert heex =~ ~s(data-live-ui-widget="diff-banner")
+      assert heex =~ ~s(data-active-filter="changed")
+      assert heex =~ "13 all"
+      assert heex =~ "4 new"
+      assert heex =~ "7 changed"
+      assert heex =~ "2 removed"
     end
   end
 

@@ -98,7 +98,7 @@ authoring boundaries and normalize before renderer-facing output.
 |---|---|---|
 | Content, identity, and disclosure | `inline_rich_text_heading`, `disclosure`, `kicker`, `avatar`, `presence_dot` | none |
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
-| Row and artifact | `list_item_multi_column`, `artifact_row` | none |
+| Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card` | none |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `workflow_progress_status_card` | none |
 | Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |

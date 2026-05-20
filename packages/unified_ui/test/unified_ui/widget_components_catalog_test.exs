@@ -28,7 +28,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :chat_composer,
                :mode_nav
              ],
-             row_and_artifact: [:list_item_multi_column, :artifact_row],
+             row_and_artifact: [:list_item_multi_column, :artifact_row, :thread_card],
              workflow_progress_and_status: [
                :pipeline_stepper_horizontal,
                :segmented_progress_bar,

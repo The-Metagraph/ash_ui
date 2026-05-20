@@ -42,7 +42,8 @@ defmodule UnifiedIUR.Widgets.Components do
 
   @row_artifact_kinds [
     :list_item_multi_column,
-    :artifact_row
+    :artifact_row,
+    :thread_card
   ]
 
   @artifact_kinds [
@@ -310,6 +311,53 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:timestamp_at, option(opts, :timestamp_at))
       },
       Map.put(opts, :children, children)
+    )
+  end
+
+  @spec thread_card(opts()) :: Element.t()
+  def thread_card(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    thread_id = option(opts, :thread_id)
+    title = option(opts, :title)
+    seed_quote = option(opts, :seed_quote)
+    reply_count = option(opts, :reply_count, 0)
+    progress_pct = normalize_thread_progress!(option(opts, :progress_pct))
+
+    unless non_empty_string?(thread_id) do
+      raise ArgumentError, "thread_card requires a non-empty :thread_id string"
+    end
+
+    unless non_empty_string?(title) do
+      raise ArgumentError, "thread_card requires a non-empty :title string"
+    end
+
+    unless non_empty_string?(seed_quote) do
+      raise ArgumentError, "thread_card requires a non-empty :seed_quote string"
+    end
+
+    unless non_negative_integer?(reply_count) do
+      raise ArgumentError, "thread_card :reply_count must be a non-negative integer"
+    end
+
+    opts = put_thread_open_interaction(opts, thread_id)
+
+    build_component(
+      :thread_card,
+      :row_and_artifact,
+      %{
+        thread:
+          %{
+            thread_id: thread_id,
+            title: title,
+            reply_count: reply_count,
+            seed_quote: seed_quote
+          }
+          |> maybe_put(:progress_pct, progress_pct)
+          |> maybe_put(:last_activity_at, option(opts, :last_activity_at)),
+        participants: normalize_thread_participants!(option(opts, :participants, []))
+      },
+      opts
     )
   end
 
@@ -1107,12 +1155,79 @@ defmodule UnifiedIUR.Widgets.Components do
 
   defp normalize_artifact_count(_other), do: %{}
 
+  defp put_thread_open_interaction(opts, thread_id) do
+    cond do
+      Map.has_key?(opts, :interactions) or Map.has_key?(opts, "interactions") or
+        Map.has_key?(opts, :interaction) or Map.has_key?(opts, "interaction") ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, [thread_open_interaction(opts, thread_id)])
+    end
+  end
+
+  defp thread_open_interaction(opts, thread_id) do
+    case option(opts, :open_interaction) do
+      nil ->
+        Interaction.open(
+          intent: option(opts, :open_intent, :open_thread),
+          element_id: option(opts, :id),
+          entity: thread_id,
+          value: thread_id
+        )
+
+      interaction ->
+        Interaction.new(interaction)
+    end
+  end
+
+  defp normalize_thread_participants!(nil), do: []
+
+  defp normalize_thread_participants!(participants) when is_list(participants) do
+    Enum.map(participants, &normalize_thread_participant!/1)
+  end
+
+  defp normalize_thread_participants!(_other) do
+    raise ArgumentError, "thread_card :participants must be a list of maps"
+  end
+
+  defp normalize_thread_participant!(participant)
+       when is_map(participant) or is_list(participant) do
+    participant = normalize_map(participant)
+    avatar = participant |> option(:avatar) |> normalize_optional_map()
+
+    %{}
+    |> maybe_put(:actor_id, option(participant, :actor_id))
+    |> maybe_put(:actor_name, option(participant, :actor_name))
+    |> maybe_put(:avatar, empty_map_to_nil(avatar))
+  end
+
+  defp normalize_thread_participant!(_other) do
+    raise ArgumentError, "thread_card participants must be maps"
+  end
+
+  defp normalize_thread_progress!(nil), do: nil
+
+  defp normalize_thread_progress!(progress_pct)
+       when is_float(progress_pct) or is_integer(progress_pct) do
+    unless progress_pct >= 0.0 and progress_pct <= 1.0 do
+      raise ArgumentError, "thread_card :progress_pct must be in 0.0..1.0"
+    end
+
+    progress_pct / 1
+  end
+
+  defp normalize_thread_progress!(_other) do
+    raise ArgumentError, "thread_card :progress_pct must be a number"
+  end
+
   defp empty_to_nil([]), do: nil
   defp empty_to_nil(value), do: value
 
   defp empty_map_to_nil(%{} = value) when map_size(value) == 0, do: nil
   defp empty_map_to_nil(value), do: value
 
+  defp non_empty_string?(value), do: is_binary(value) and byte_size(value) > 0
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0
 
   defp normalize_metadata(opts) do

@@ -144,20 +144,23 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
   test "registers authored operational widget component kinds" do
     assert UnifiedUi.Widgets.row_artifact_component_kinds() == [
              :list_item_multi_column,
-             :artifact_row
+             :artifact_row,
+             :thread_card
            ]
 
     assert UnifiedUi.Widgets.workflow_component_kinds() == [
              :pipeline_stepper_horizontal,
              :segmented_progress_bar,
              :workflow_stage_list_vertical,
-             :meter_thin
+             :meter_thin,
+             :workflow_progress_status_card
            ]
 
     assert UnifiedUi.Widgets.layer_callout_component_kinds() == [
              :sticky_frosted_header,
              :slide_over_panel,
-             :event_callout
+             :event_callout,
+             :right_rail
            ]
 
     assert UnifiedUi.Widgets.redline_code_component_kinds() == [

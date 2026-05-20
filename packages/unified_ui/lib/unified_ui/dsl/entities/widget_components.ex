@@ -116,6 +116,19 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         link_target: [type: :string, required: false],
         action_intent: [type: :atom, required: false],
         summary: [type: :string, required: false]
+      ),
+      leaf(
+        :thread_card,
+        @row_artifact_family,
+        thread_id: [type: :string, required: true],
+        title: [type: :string, required: true],
+        reply_count: [type: :integer, required: false, default: 0],
+        seed_quote: [type: :string, required: true],
+        participants: [type: :any, required: false, default: []],
+        progress_pct: [type: :any, required: false],
+        last_activity_at: [type: :any, required: false],
+        open_intent: [type: :any, required: false],
+        summary: [type: :string, required: false]
       )
     ]
   end

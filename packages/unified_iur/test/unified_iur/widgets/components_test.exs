@@ -1,7 +1,7 @@
 defmodule UnifiedIUR.Widgets.ComponentsTest do
   use ExUnit.Case, async: true
 
-  alias UnifiedIUR.Element
+  alias UnifiedIUR.{Element, Interaction}
   alias UnifiedIUR.Widgets
   alias UnifiedIUR.Widgets.{Components, Foundational}
 
@@ -23,7 +23,11 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :mode_nav
            ]
 
-    assert Components.row_artifact_kinds() == [:list_item_multi_column, :artifact_row]
+    assert Components.row_artifact_kinds() == [
+             :list_item_multi_column,
+             :artifact_row,
+             :thread_card
+           ]
 
     assert Components.artifact_kinds() == [:pr, :doc, :spec, :file, :grain, :generic]
 
@@ -142,6 +146,20 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         timestamp_at: ~U[2026-05-18 10:00:00Z]
       )
 
+    thread =
+      Components.thread_card(
+        id: "thread-api",
+        thread_id: "thread:api",
+        title: "API design discussion",
+        reply_count: 5,
+        seed_quote: "Should the runtime own this transition?",
+        participants: [
+          %{actor_name: "Pascal", avatar: %{initials: "PC"}},
+          %{actor_name: "Ash"}
+        ],
+        progress_pct: 0.4
+      )
+
     assert segmented.attributes.selection == %{
              presentation: :segmented_button_group,
              multiple?: false,
@@ -189,6 +207,55 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              counts: [%{key: :comments, value: 2}, %{key: :references, value: 5}],
              timestamp_at: ~U[2026-05-18 10:00:00Z]
            }
+
+    assert thread.attributes.component == %{family: :row_and_artifact, kind: :thread_card}
+
+    assert thread.attributes.thread == %{
+             thread_id: "thread:api",
+             title: "API design discussion",
+             reply_count: 5,
+             seed_quote: "Should the runtime own this transition?",
+             progress_pct: 0.4
+           }
+
+    assert thread.attributes.participants == [
+             %{actor_name: "Pascal", avatar: %{initials: "PC"}},
+             %{actor_name: "Ash"}
+           ]
+
+    assert [%Interaction{family: :open, intent: :open_thread}] = thread.attributes.interactions
+  end
+
+  test "validates canonical thread card identity and progress" do
+    assert_raise ArgumentError, ~r/non-empty :thread_id/, fn ->
+      Components.thread_card(title: "Thread", seed_quote: "Quote")
+    end
+
+    assert_raise ArgumentError, ~r/non-empty :title/, fn ->
+      Components.thread_card(thread_id: "thread:1", seed_quote: "Quote")
+    end
+
+    assert_raise ArgumentError, ~r/non-empty :seed_quote/, fn ->
+      Components.thread_card(thread_id: "thread:1", title: "Thread")
+    end
+
+    assert_raise ArgumentError, ~r/reply_count must be a non-negative integer/, fn ->
+      Components.thread_card(
+        thread_id: "thread:1",
+        title: "Thread",
+        seed_quote: "Quote",
+        reply_count: -1
+      )
+    end
+
+    assert_raise ArgumentError, ~r/progress_pct must be in 0\.0\.\.1\.0/, fn ->
+      Components.thread_card(
+        thread_id: "thread:1",
+        title: "Thread",
+        seed_quote: "Quote",
+        progress_pct: 1.5
+      )
+    end
   end
 
   test "represents workflow, layer, callout, redline, and code components" do

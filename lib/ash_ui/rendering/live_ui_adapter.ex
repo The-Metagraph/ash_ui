@@ -594,6 +594,62 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "thread_card"} = iur, _opts) do
+    props = iur["props"] || %{}
+    thread = props |> prop("thread", %{}) |> normalize_item()
+    participants = List.wrap(prop(props, "participants", []))
+
+    title =
+      escaped_text_prop(thread, "title", escaped_text_prop(props, ["title", "label"], "Thread"))
+
+    thread_id = html_attr(prop(thread, "thread_id", prop(props, "thread_id", iur["id"])))
+
+    seed_quote =
+      escaped_text_prop(thread, "seed_quote", escaped_text_prop(props, "seed_quote", ""))
+
+    reply_count = prop(thread, "reply_count", prop(props, "reply_count", 0))
+    progress_pct = prop(thread, "progress_pct", prop(props, "progress_pct"))
+
+    avatars =
+      participants
+      |> Enum.take(3)
+      |> Enum.map_join(fn participant ->
+        participant = normalize_item(participant)
+        avatar = participant |> prop("avatar", %{}) |> normalize_item()
+
+        initials =
+          escaped_text_prop(avatar, "initials", escaped_text_prop(participant, "actor_name", "?"))
+
+        ~s(<span class="ash-thread-card__avatar">#{initials}</span>)
+      end)
+
+    progress_html =
+      case progress_pct do
+        value when is_integer(value) or is_float(value) ->
+          percent = if value <= 1, do: trunc(value * 100), else: trunc(value)
+
+          ~s(<div class="ash-thread-card__progress" role="progressbar" aria-valuenow="#{percent}" aria-valuemin="0" aria-valuemax="100"><div class="ash-thread-card__progress-fill" style="width: #{percent}%"></div></div>)
+
+        _other ->
+          ""
+      end
+
+    """
+    <article class="#{css_classes(["ash-thread-card", prop_class(iur)])}" data-thread-id="#{thread_id}"#{style_attr(prop_style(iur))}>
+      <header class="ash-thread-card__header">
+        <div class="ash-thread-card__avatars" aria-hidden="true">#{avatars}</div>
+        <h3 class="ash-thread-card__title">#{title}</h3>
+      </header>
+      <blockquote class="ash-thread-card__seed-quote">#{seed_quote}</blockquote>
+      #{progress_html}
+      <footer class="ash-thread-card__footer">
+        <span class="ash-thread-card__meta">#{reply_count} replies</span>
+        <button type="button" class="ash-thread-card__open" aria-label="Open thread: #{title}">Open</button>
+      </footer>
+    </article>
+    """
+  end
+
   defp generate_heex(%{"type" => "pipeline_stepper_horizontal"} = iur, _opts) do
     props = iur["props"] || %{}
     steps = prop(props, "steps", [])

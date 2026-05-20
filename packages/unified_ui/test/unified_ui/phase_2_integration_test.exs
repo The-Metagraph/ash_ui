@@ -307,13 +307,16 @@ defmodule UnifiedUi.Phase2IntegrationTest do
              :chat_composer,
              :list_item_multi_column,
              :artifact_row,
+             :thread_card,
              :pipeline_stepper_horizontal,
              :segmented_progress_bar,
              :workflow_stage_list_vertical,
              :meter_thin,
+             :workflow_progress_status_card,
              :sticky_frosted_header,
              :slide_over_panel,
              :event_callout,
+             :right_rail,
              :redline_inline,
              :code_block_syntax_highlighted,
              :list_repeat
@@ -552,14 +555,24 @@ defmodule UnifiedUi.Phase2IntegrationTest do
   end
 
   defp assert_compile_dsl_error(body, expected_message) do
-    {pid, ref} = spawn_monitor(fn -> compile_module(body) end)
+    try do
+      {_result, diagnostics} = Code.with_diagnostics(fn -> compile_module(body) end)
+      diagnostics_text = Enum.map_join(diagnostics, "\n", &diagnostic_message/1)
 
-    receive do
-      {:DOWN, ^ref, :process, ^pid, :normal} ->
+      if diagnostics_text == "" do
         flunk("expected authored module compilation to fail, but it succeeded")
-
-      {:DOWN, ^ref, :process, ^pid, reason} ->
+      else
+        assert diagnostics_text =~ expected_message
+      end
+    rescue
+      exception ->
+        assert Exception.message(exception) =~ expected_message
+    catch
+      :exit, reason ->
         assert Exception.format_exit(reason) =~ expected_message
     end
   end
+
+  defp diagnostic_message(%{message: message}) when is_binary(message), do: message
+  defp diagnostic_message(diagnostic), do: inspect(diagnostic)
 end

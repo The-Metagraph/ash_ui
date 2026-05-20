@@ -219,6 +219,28 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         action_intent: [type: :atom, required: false],
         summary: [type: :string, required: false]
       ),
+      leaf(
+        :composer_query_preview,
+        @layer_family,
+        composer_id: [type: :string, required: true],
+        query: [type: :string, required: true],
+        preview_state: [
+          type: {:in, [:loading, :ready, :empty, :error]},
+          required: false,
+          default: :empty
+        ],
+        explanation: [type: :string, required: false],
+        metrics: [type: :any, required: false],
+        findings: [type: :any, required: false, default: []],
+        max_findings_shown: [type: :integer, required: false, default: 2],
+        error_message: [type: :string, required: false],
+        loading_label: [type: :string, required: false, default: "Searching"],
+        empty_label: [type: :string, required: false, default: "No results for this query."],
+        open_intent: [type: :atom, required: false],
+        save_intent: [type: :atom, required: false],
+        dismiss_intent: [type: :atom, required: false],
+        summary: [type: :string, required: false]
+      ),
       right_rail_entity()
     ]
   end

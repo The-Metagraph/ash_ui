@@ -40,6 +40,7 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     runtime_module
     url
   ]
+  @query_preview_states [:loading, :ready, :empty, :error]
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
   def verify(dsl) do
@@ -337,6 +338,51 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     end
   end
 
+  def validate_node(%Node{
+        kind: :composer_query_preview,
+        id: id,
+        composer_id: composer_id,
+        query: query,
+        preview_state: preview_state,
+        explanation: explanation,
+        metrics: metrics,
+        findings: findings,
+        max_findings_shown: max_findings_shown
+      }) do
+    cond do
+      not is_binary(composer_id) or composer_id == "" ->
+        {:error, [:composition, :composer_query_preview, id],
+         "composer_query_preview #{inspect(id)} composer_id must be a non-empty string"}
+
+      not is_binary(query) or query == "" ->
+        {:error, [:composition, :composer_query_preview, id],
+         "composer_query_preview #{inspect(id)} query must be a non-empty string"}
+
+      preview_state not in @query_preview_states ->
+        {:error, [:composition, :composer_query_preview, id],
+         "composer_query_preview #{inspect(id)} preview_state must be one of #{inspect(@query_preview_states)}"}
+
+      preview_state == :ready and (not is_binary(explanation) or explanation == "") ->
+        {:error, [:composition, :composer_query_preview, id],
+         "composer_query_preview #{inspect(id)} explanation is required for ready previews"}
+
+      not valid_optional_query_preview_metrics?(metrics) ->
+        {:error, [:composition, :composer_query_preview, id],
+         "composer_query_preview #{inspect(id)} metrics must be a map with non-negative integer counts"}
+
+      not valid_query_preview_findings?(findings) ->
+        {:error, [:composition, :composer_query_preview, id],
+         "composer_query_preview #{inspect(id)} findings must be a list of maps with id, n, snippet, and confidence"}
+
+      not valid_positive_integer?(max_findings_shown) ->
+        {:error, [:composition, :composer_query_preview, id],
+         "composer_query_preview #{inspect(id)} max_findings_shown must be a positive integer"}
+
+      true ->
+        :ok
+    end
+  end
+
   def validate_node(%Node{kind: :redline_inline, id: id, segments: segments}) do
     if valid_redline_segments?(segments) do
       :ok
@@ -615,6 +661,40 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   defp valid_rail_panel?(_panel), do: false
 
+  defp valid_optional_query_preview_metrics?(nil), do: true
+
+  defp valid_optional_query_preview_metrics?(metrics) when is_map(metrics) or is_list(metrics) do
+    metrics = normalize_map(metrics)
+
+    [:results_count, :findings_count, :duration_ms, :sources_visited, :grains_visited]
+    |> Enum.all?(fn key ->
+      case field(metrics, key) do
+        nil -> true
+        value -> valid_non_negative_integer?(value)
+      end
+    end)
+  end
+
+  defp valid_optional_query_preview_metrics?(_metrics), do: false
+
+  defp valid_query_preview_findings?(findings) when is_list(findings) do
+    Enum.all?(findings, &valid_query_preview_finding?/1)
+  end
+
+  defp valid_query_preview_findings?(_findings), do: false
+
+  defp valid_query_preview_finding?(finding) when is_map(finding) or is_list(finding) do
+    finding = normalize_map(finding)
+    id = field(finding, :id) || field(finding, :finding_id)
+    confidence = field(finding, :confidence)
+
+    is_binary(id) and id != "" and valid_positive_integer?(field(finding, :n)) and
+      is_binary(field(finding, :snippet)) and field(finding, :snippet) != "" and
+      is_number(confidence) and confidence >= 0.0 and confidence <= 1.0
+  end
+
+  defp valid_query_preview_finding?(_finding), do: false
+
   defp active_rail_panel?(active_panel, panels) do
     valid_scalar?(active_panel) and
       Enum.any?(panels, fn panel ->
@@ -658,6 +738,7 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   defp valid_non_negative_integer?(nil), do: true
   defp valid_non_negative_integer?(value), do: is_integer(value) and value >= 0
+  defp valid_positive_integer?(value), do: is_integer(value) and value > 0
 
   defp valid_subject_dependency_names?(nil), do: true
 

@@ -228,6 +228,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :composer_query_preview,
+      family: :layer_shell_and_callout,
+      summary:
+        "Inline composer-adjacent query preview with state, result summary, metrics, findings, and canonical actions.",
+      aliases: []
+    },
+    %{
       kind: :workflow_progress_status_card,
       family: :workflow_progress_and_status,
       summary:

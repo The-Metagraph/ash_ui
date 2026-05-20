@@ -143,6 +143,16 @@ defmodule UnifiedIUR.Validate do
       guidance:
         "Represent rail panel selection and collapse as UnifiedIUR.Interaction structs, not renderer event names."
     },
+    invalid_query_preview: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent composer_query_preview with generic composer, query, preview state, metrics, and renderer-independent action intent."
+    },
+    invalid_query_preview_finding: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent composer_query_preview findings as opaque result descriptors with id, ordinal, snippet, and confidence."
+    },
     invalid_workflow_progress_status_card: %{
       construct_family: :widget_components,
       guidance:
@@ -174,6 +184,27 @@ defmodule UnifiedIUR.Validate do
   @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
   @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
   @rail_sides [:right]
+  @query_preview_states [:loading, :ready, :empty, :error]
+  @query_preview_forbidden_keys ~w[
+    ask_query
+    event
+    event_target
+    helper
+    live_action
+    mgql
+    module
+    on_click
+    on_dismiss
+    on_open_in_ask
+    on_save_query
+    path
+    phx-click
+    phx_click
+    phx_event
+    route
+    runtime_module
+    url
+  ]
   @rail_forbidden_panel_keys ~w[
     event
     helper
@@ -602,6 +633,15 @@ defmodule UnifiedIUR.Validate do
     |> Kernel.++(validate_rail_panels(fetch(rail, :panels), [:attributes, :rail, :panels]))
     |> Kernel.++(validate_rail_active_panel(rail))
     |> Kernel.++(validate_rail_interactions(Map.get(attributes, :interactions, [])))
+  end
+
+  defp validate_component_contracts(%Element{
+         kind: :composer_query_preview,
+         attributes: attributes
+       }) do
+    attributes
+    |> Map.get(:query_preview, %{})
+    |> validate_query_preview_shape()
   end
 
   defp validate_component_contracts(%Element{
@@ -1244,6 +1284,173 @@ defmodule UnifiedIUR.Validate do
     ]
   end
 
+  defp validate_query_preview_shape(preview) when is_map(preview) do
+    preview_state = fetch(preview, :preview_state, :empty)
+    max_findings_shown = fetch(preview, :max_findings_shown, 2)
+
+    []
+    |> maybe_add(
+      not non_empty_string?(fetch(preview, :composer_id)),
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview requires composer_id as a non-empty string",
+        path: [:attributes, :query_preview, :composer_id],
+        details: %{composer_id: inspect(fetch(preview, :composer_id))}
+      )
+    )
+    |> maybe_add(
+      not non_empty_string?(fetch(preview, :query)),
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview requires query as a non-empty string",
+        path: [:attributes, :query_preview, :query],
+        details: %{query: inspect(fetch(preview, :query))}
+      )
+    )
+    |> maybe_add(
+      not valid_query_preview_state?(preview_state),
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview preview_state must be one of #{inspect(@query_preview_states)}",
+        path: [:attributes, :query_preview, :preview_state],
+        details: %{preview_state: inspect(preview_state)}
+      )
+    )
+    |> maybe_add(
+      ready_query_preview?(preview_state) and not non_empty_string?(fetch(preview, :explanation)),
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview ready previews require explanation as a non-empty string",
+        path: [:attributes, :query_preview, :explanation]
+      )
+    )
+    |> maybe_add(
+      not positive_integer?(max_findings_shown),
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview max_findings_shown must be a positive integer",
+        path: [:attributes, :query_preview, :max_findings_shown],
+        details: %{max_findings_shown: inspect(max_findings_shown)}
+      )
+    )
+    |> maybe_add(
+      has_forbidden_query_preview_key_deep?(preview),
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview must not include product-specific, renderer event, or host route fields",
+        path: [:attributes, :query_preview]
+      )
+    )
+    |> Kernel.++(validate_query_preview_metrics(fetch(preview, :metrics)))
+    |> Kernel.++(
+      validate_query_preview_findings(
+        fetch(preview, :findings, []),
+        [:attributes, :query_preview, :findings]
+      )
+    )
+  end
+
+  defp validate_query_preview_shape(_preview) do
+    [
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview attributes.query_preview must be a map",
+        path: [:attributes, :query_preview]
+      )
+    ]
+  end
+
+  defp validate_query_preview_metrics(nil), do: []
+
+  defp validate_query_preview_metrics(metrics) when is_map(metrics) or is_list(metrics) do
+    metrics = normalize_map(metrics)
+
+    [:results_count, :findings_count, :duration_ms, :sources_visited, :grains_visited]
+    |> Enum.flat_map(fn key ->
+      value = fetch(metrics, key)
+
+      maybe_add(
+        [],
+        not is_nil(value) and not non_negative_integer?(value),
+        Error.new(
+          :invalid_query_preview,
+          "composer_query_preview metrics must be non-negative integer counts",
+          path: [:attributes, :query_preview, :metrics, key],
+          details: %{value: inspect(value)}
+        )
+      )
+    end)
+  end
+
+  defp validate_query_preview_metrics(_metrics) do
+    [
+      Error.new(
+        :invalid_query_preview,
+        "composer_query_preview metrics must be a map when present",
+        path: [:attributes, :query_preview, :metrics]
+      )
+    ]
+  end
+
+  defp validate_query_preview_findings(findings, path) when is_list(findings) do
+    findings
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {finding, index} ->
+      validate_query_preview_finding(finding, path ++ [index])
+    end)
+  end
+
+  defp validate_query_preview_findings(_findings, path) do
+    [
+      Error.new(
+        :invalid_query_preview_finding,
+        "composer_query_preview findings must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_query_preview_finding(finding, path) when is_map(finding) or is_list(finding) do
+    finding = normalize_map(finding)
+    id = fetch(finding, :id) || fetch(finding, :finding_id)
+    confidence = fetch(finding, :confidence)
+
+    []
+    |> maybe_add(
+      not non_empty_string?(id) or not positive_integer?(fetch(finding, :n)) or
+        not non_empty_string?(fetch(finding, :snippet)),
+      Error.new(
+        :invalid_query_preview_finding,
+        "composer_query_preview finding requires id, positive n, and snippet",
+        path: path,
+        details: %{
+          id: inspect(id),
+          n: inspect(fetch(finding, :n)),
+          snippet: inspect(fetch(finding, :snippet))
+        }
+      )
+    )
+    |> maybe_add(
+      not (is_number(confidence) and confidence >= 0.0 and confidence <= 1.0),
+      Error.new(
+        :invalid_query_preview_finding,
+        "composer_query_preview finding confidence must be in 0.0..1.0",
+        path: path ++ [:confidence],
+        details: %{confidence: inspect(confidence)}
+      )
+    )
+  end
+
+  defp validate_query_preview_finding(_finding, path) do
+    [
+      Error.new(
+        :invalid_query_preview_finding,
+        "composer_query_preview findings must be maps",
+        path: path
+      )
+    ]
+  end
+
   defp validate_selection_options(options, path) when is_list(options) do
     options
     |> Enum.with_index()
@@ -1513,10 +1720,47 @@ defmodule UnifiedIUR.Validate do
 
   defp has_forbidden_progress_card_key_deep?(_value), do: false
 
+  defp has_forbidden_query_preview_key?(value) when is_map(value) do
+    value
+    |> Map.keys()
+    |> Enum.any?(&(to_string(&1) in @query_preview_forbidden_keys))
+  end
+
+  defp has_forbidden_query_preview_key?(_value), do: false
+
+  defp has_forbidden_query_preview_key_deep?(%_{} = struct) do
+    struct
+    |> Map.from_struct()
+    |> has_forbidden_query_preview_key_deep?()
+  end
+
+  defp has_forbidden_query_preview_key_deep?(value) when is_map(value) do
+    has_forbidden_query_preview_key?(value) or
+      Enum.any?(Map.values(value), &has_forbidden_query_preview_key_deep?/1)
+  end
+
+  defp has_forbidden_query_preview_key_deep?(value) when is_list(value) do
+    Enum.any?(value, &has_forbidden_query_preview_key_deep?/1)
+  end
+
+  defp has_forbidden_query_preview_key_deep?(_value), do: false
+
+  defp valid_query_preview_state?(state) when state in @query_preview_states, do: true
+
+  defp valid_query_preview_state?(state) when is_binary(state) do
+    state in Enum.map(@query_preview_states, &Atom.to_string/1)
+  end
+
+  defp valid_query_preview_state?(_state), do: false
+
+  defp ready_query_preview?(state), do: state in [:ready, "ready"]
+
   defp invalid_subject_progress?(value),
     do: not (is_number(value) and value >= 0.0 and value <= 100.0)
 
+  defp non_empty_string?(value), do: is_binary(value) and value != ""
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0
+  defp positive_integer?(value), do: is_integer(value) and value > 0
 
   defp active_panel_in_panels?(active_panel, panels) when is_list(panels) do
     Enum.any?(panels, fn

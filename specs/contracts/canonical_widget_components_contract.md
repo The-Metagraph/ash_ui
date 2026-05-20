@@ -39,6 +39,7 @@ Ash UI MUST adopt these canonical widget-component kinds:
 | `meter_thin` | workflow progress and status | - |
 | `slide_over_panel` | layer shell and callout | - |
 | `event_callout` | layer shell and callout | - |
+| `composer_query_preview` | layer shell and callout | - |
 | `redline_inline` | redline and code | - |
 | `code_block_syntax_highlighted` | redline and code | - |
 | `chat_composer` | form control and composer | - |

@@ -73,8 +73,11 @@ defmodule UnifiedIUR.Widgets.Components do
     :sidebar_section,
     :sidebar_item,
     :right_rail,
-    :command_palette
+    :command_palette,
+    :composer_query_preview
   ]
+
+  @query_preview_states [:loading, :ready, :empty, :error]
 
   @redline_code_kinds [
     :redline_inline,
@@ -1057,6 +1060,63 @@ defmodule UnifiedIUR.Widgets.Components do
     )
   end
 
+  @spec composer_query_preview(opts()) :: Element.t()
+  def composer_query_preview(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    composer_id =
+      required_string!(
+        opts,
+        :composer_id,
+        "composer_query_preview requires a non-empty :composer_id string"
+      )
+
+    query =
+      required_string!(
+        opts,
+        :query,
+        "composer_query_preview requires a non-empty :query string"
+      )
+
+    preview_state = normalize_query_preview_state!(option(opts, :preview_state, :empty))
+    max_findings_shown = option(opts, :max_findings_shown, 2)
+    validate_positive_integer!(max_findings_shown, "max_findings_shown")
+
+    explanation = option(opts, :explanation)
+    metrics = normalize_query_preview_metrics!(option(opts, :metrics))
+    findings = normalize_query_preview_findings!(option(opts, :findings, []))
+
+    if preview_state == :ready and not non_empty_string?(explanation) do
+      raise ArgumentError,
+            "composer_query_preview requires a non-empty :explanation string when preview_state is :ready"
+    end
+
+    opts = put_query_preview_interactions(opts, composer_id, query)
+
+    build_component(
+      :composer_query_preview,
+      :layer_shell_and_callout,
+      %{
+        query_preview:
+          %{
+            composer_id: composer_id,
+            query: query,
+            preview_state: preview_state,
+            max_findings_shown: max_findings_shown,
+            findings: findings
+          }
+          |> maybe_put(:explanation, explanation)
+          |> maybe_put(:metrics, metrics)
+          |> maybe_put(:error_message, option(opts, :error_message))
+          |> maybe_put(:loading_label, option(opts, :loading_label, "Searching"))
+          |> maybe_put(:empty_label, option(opts, :empty_label, "No results for this query."))
+          |> maybe_put(:open_label, option(opts, :open_label, "Open query"))
+          |> maybe_put(:save_label, option(opts, :save_label, "Save query"))
+      },
+      opts
+    )
+  end
+
   defp build_component(kind, family, kind_attributes, opts) do
     opts = normalize_opts(opts)
 
@@ -1181,6 +1241,41 @@ defmodule UnifiedIUR.Widgets.Components do
     end
   end
 
+  defp put_query_preview_interactions(opts, composer_id, query) do
+    cond do
+      Map.has_key?(opts, :interactions) or Map.has_key?(opts, "interactions") or
+        Map.has_key?(opts, :interaction) or Map.has_key?(opts, "interaction") ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, query_preview_interactions(opts, composer_id, query))
+    end
+  end
+
+  defp query_preview_interactions(opts, composer_id, query) do
+    [
+      Interaction.close(
+        intent: option(opts, :dismiss_intent, :dismiss_query_preview),
+        element_id: option(opts, :id),
+        entity: composer_id,
+        value: query
+      ),
+      Interaction.open(
+        intent: option(opts, :open_intent, :open_query_preview),
+        element_id: option(opts, :id),
+        entity: composer_id,
+        value: query
+      ),
+      Interaction.command(
+        intent: option(opts, :save_intent, :save_query),
+        element_id: option(opts, :id),
+        entity: composer_id,
+        command: :save_query,
+        value: query
+      )
+    ]
+  end
+
   defp normalize_thread_participants!(nil), do: []
 
   defp normalize_thread_participants!(participants) when is_list(participants) do
@@ -1221,6 +1316,111 @@ defmodule UnifiedIUR.Widgets.Components do
     raise ArgumentError, "thread_card :progress_pct must be a number"
   end
 
+  defp normalize_query_preview_state!(state) when state in @query_preview_states, do: state
+
+  defp normalize_query_preview_state!(state) when is_binary(state) do
+    state
+    |> String.to_existing_atom()
+    |> normalize_query_preview_state!()
+  rescue
+    ArgumentError ->
+      raise ArgumentError,
+            "composer_query_preview :preview_state must be one of #{inspect(@query_preview_states)}"
+  end
+
+  defp normalize_query_preview_state!(_state) do
+    raise ArgumentError,
+          "composer_query_preview :preview_state must be one of #{inspect(@query_preview_states)}"
+  end
+
+  defp normalize_query_preview_metrics!(nil), do: nil
+
+  defp normalize_query_preview_metrics!(metrics) when is_map(metrics) or is_list(metrics) do
+    metrics = normalize_map(metrics)
+    results_count = option(metrics, :results_count, option(metrics, :findings_count))
+    duration_ms = option(metrics, :duration_ms)
+    sources_visited = option(metrics, :sources_visited, option(metrics, :grains_visited))
+
+    %{}
+    |> maybe_put(:results_count, normalize_non_negative_integer!(results_count, "results_count"))
+    |> maybe_put(:duration_ms, normalize_non_negative_integer!(duration_ms, "duration_ms"))
+    |> maybe_put(
+      :sources_visited,
+      normalize_non_negative_integer!(sources_visited, "sources_visited")
+    )
+    |> empty_map_to_nil()
+  end
+
+  defp normalize_query_preview_metrics!(_metrics) do
+    raise ArgumentError, "composer_query_preview :metrics must be a map"
+  end
+
+  defp normalize_query_preview_findings!(findings) when is_list(findings) do
+    Enum.map(findings, &normalize_query_preview_finding!/1)
+  end
+
+  defp normalize_query_preview_findings!(_findings) do
+    raise ArgumentError, "composer_query_preview :findings must be a list of maps"
+  end
+
+  defp normalize_query_preview_finding!(finding) when is_map(finding) or is_list(finding) do
+    finding = normalize_map(finding)
+    id = option(finding, :id, option(finding, :finding_id))
+    n = option(finding, :n)
+    snippet = option(finding, :snippet)
+    confidence = option(finding, :confidence)
+
+    unless non_empty_string?(id) do
+      raise ArgumentError, "composer_query_preview findings require a non-empty :id string"
+    end
+
+    unless positive_integer?(n) do
+      raise ArgumentError, "composer_query_preview findings require positive integer :n values"
+    end
+
+    unless non_empty_string?(snippet) do
+      raise ArgumentError, "composer_query_preview findings require non-empty :snippet strings"
+    end
+
+    unless normalized_confidence?(confidence) do
+      raise ArgumentError, "composer_query_preview finding :confidence must be in 0.0..1.0"
+    end
+
+    %{
+      id: id,
+      n: n,
+      snippet: snippet,
+      confidence: confidence / 1
+    }
+  end
+
+  defp normalize_query_preview_finding!(_finding) do
+    raise ArgumentError, "composer_query_preview findings must be maps"
+  end
+
+  defp required_string!(opts, key, message) do
+    case option(opts, key) do
+      value when is_binary(value) and value != "" -> value
+      _other -> raise ArgumentError, message
+    end
+  end
+
+  defp validate_positive_integer!(value, field) do
+    unless positive_integer?(value) do
+      raise ArgumentError, "composer_query_preview :#{field} must be a positive integer"
+    end
+  end
+
+  defp normalize_non_negative_integer!(nil, _field), do: nil
+
+  defp normalize_non_negative_integer!(value, _field) when is_integer(value) and value >= 0 do
+    value
+  end
+
+  defp normalize_non_negative_integer!(_value, field) do
+    raise ArgumentError, "composer_query_preview metrics.#{field} must be a non-negative integer"
+  end
+
   defp empty_to_nil([]), do: nil
   defp empty_to_nil(value), do: value
 
@@ -1229,6 +1429,13 @@ defmodule UnifiedIUR.Widgets.Components do
 
   defp non_empty_string?(value), do: is_binary(value) and byte_size(value) > 0
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0
+  defp positive_integer?(value), do: is_integer(value) and value > 0
+
+  defp normalized_confidence?(value) when is_integer(value) or is_float(value) do
+    value >= 0.0 and value <= 1.0
+  end
+
+  defp normalized_confidence?(_value), do: false
 
   defp normalize_metadata(opts) do
     opts

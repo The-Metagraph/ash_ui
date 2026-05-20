@@ -1241,6 +1241,74 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "composer_query_preview adapter dispatch" do
+    test "generates dedicated composer_query_preview fallback markup" do
+      iur = %{
+        "type" => "composer_query_preview",
+        "id" => "query-preview-adapter-test",
+        "props" => %{
+          "query_preview" => %{
+            "composer_id" => "composer-main",
+            "query" => "release blockers",
+            "preview_state" => "ready",
+            "explanation" => "Three likely blockers found.",
+            "metrics" => %{
+              "results_count" => 3,
+              "duration_ms" => 42,
+              "sources_visited" => 8
+            },
+            "findings" => [
+              %{
+                "id" => "finding-1",
+                "n" => 1,
+                "snippet" => "Conformance missing",
+                "confidence" => 0.91
+              }
+            ]
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-composer-query-preview"
+      assert heex =~ ~s(data-live-ui-widget="composer-query-preview")
+      assert heex =~ ~s(data-composer-id="composer-main")
+      assert heex =~ "Three likely blockers found."
+      assert heex =~ "Conformance missing"
+      assert heex =~ "3"
+      assert heex =~ "0.04s"
+      refute heex =~ "data-live-ui-intent"
+      refute heex =~ "open in Ask"
+    end
+
+    test "escapes query preview fallback content" do
+      iur = %{
+        "type" => "composer_query_preview",
+        "id" => "query-preview-escape-test",
+        "props" => %{
+          "query_preview" => %{
+            "composer_id" => "composer-main",
+            "query" => "<script>alert(1)</script>",
+            "preview_state" => "error",
+            "error_message" => "<b>bad</b>"
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "&lt;script&gt;alert(1)&lt;/script&gt;"
+      assert heex =~ "&lt;b&gt;bad&lt;/b&gt;"
+      refute heex =~ "<script>"
+      refute heex =~ "<b>bad</b>"
+    end
+  end
+
   describe "workflow_progress_status_card adapter dispatch" do
     test "generates dedicated workflow_progress_status_card markup" do
       iur = %{

@@ -206,6 +206,17 @@ defmodule UnifiedUi.Dsl.Node do
           collapsible?: boolean() | nil,
           panel_select_intent: atom() | nil,
           collapse_intent: atom() | nil,
+          composer_id: String.t() | nil,
+          query: String.t() | nil,
+          preview_state: atom() | nil,
+          explanation: String.t() | nil,
+          findings: list() | nil,
+          max_findings_shown: integer() | nil,
+          error_message: String.t() | nil,
+          loading_label: String.t() | nil,
+          empty_label: String.t() | nil,
+          open_intent: atom() | nil,
+          save_intent: atom() | nil,
           density: atom() | nil,
           children: [t()]
         }
@@ -392,6 +403,17 @@ defmodule UnifiedUi.Dsl.Node do
             collapsible?: nil,
             panel_select_intent: nil,
             collapse_intent: nil,
+            composer_id: nil,
+            query: nil,
+            preview_state: nil,
+            explanation: nil,
+            findings: nil,
+            max_findings_shown: nil,
+            error_message: nil,
+            loading_label: nil,
+            empty_label: nil,
+            open_intent: nil,
+            save_intent: nil,
             density: nil,
             children: []
 
@@ -500,6 +522,18 @@ defmodule UnifiedUi.Dsl.Node do
       collapsible?: node.collapsible?,
       panel_select_intent: node.panel_select_intent,
       collapse_intent: node.collapse_intent,
+      composer_id: node.composer_id,
+      query: node.query,
+      preview_state: node.preview_state,
+      explanation: node.explanation,
+      metrics: summary_metrics(node),
+      findings: node.findings,
+      max_findings_shown: node.max_findings_shown,
+      error_message: node.error_message,
+      loading_label: node.loading_label,
+      empty_label: node.empty_label,
+      open_intent: node.open_intent,
+      save_intent: node.save_intent,
       density: node.density,
       current: node.current,
       minimum: node.minimum,
@@ -541,5 +575,15 @@ defmodule UnifiedUi.Dsl.Node do
     dismiss_intent
   end
 
+  defp summary_dismiss_intent(%__MODULE__{
+         kind: :composer_query_preview,
+         dismiss_intent: dismiss_intent
+       }) do
+    dismiss_intent
+  end
+
   defp summary_dismiss_intent(_node), do: nil
+
+  defp summary_metrics(%__MODULE__{kind: :composer_query_preview, metrics: metrics}), do: metrics
+  defp summary_metrics(_node), do: nil
 end

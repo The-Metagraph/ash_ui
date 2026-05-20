@@ -64,7 +64,8 @@ defmodule AshUI.Phase31PackageBoundaryTest do
                :sidebar_section,
                :sidebar_item,
                :right_rail,
-               :command_palette
+               :command_palette,
+               :composer_query_preview
              ]
 
       assert families.redline_and_code == [:redline_inline, :code_block_syntax_highlighted]

@@ -49,7 +49,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :sidebar_section,
              :sidebar_item,
              :right_rail,
-             :command_palette
+             :command_palette,
+             :composer_query_preview
            ]
 
     assert Components.redline_code_kinds() == [
@@ -258,6 +259,40 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     end
   end
 
+  test "validates canonical composer query preview shape" do
+    assert_raise ArgumentError, ~r/non-empty :composer_id/, fn ->
+      Components.composer_query_preview(query: "status")
+    end
+
+    assert_raise ArgumentError, ~r/non-empty :query/, fn ->
+      Components.composer_query_preview(composer_id: "composer-main")
+    end
+
+    assert_raise ArgumentError, ~r/preview_state must be one of/, fn ->
+      Components.composer_query_preview(
+        composer_id: "composer-main",
+        query: "status",
+        preview_state: :stale
+      )
+    end
+
+    assert_raise ArgumentError, ~r/explanation.*ready/, fn ->
+      Components.composer_query_preview(
+        composer_id: "composer-main",
+        query: "status",
+        preview_state: :ready
+      )
+    end
+
+    assert_raise ArgumentError, ~r/confidence must be in 0\.0\.\.1\.0/, fn ->
+      Components.composer_query_preview(
+        composer_id: "composer-main",
+        query: "status",
+        findings: [%{id: "finding-1", n: 1, snippet: "bad", confidence: 1.2}]
+      )
+    end
+  end
+
   test "represents workflow, layer, callout, redline, and code components" do
     stepper =
       Components.pipeline_stepper_horizontal(
@@ -298,6 +333,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
       Components.event_callout("Paused", [Foundational.button("Inspect")],
         tone: :warning,
         action_intent: :inspect_event
+      )
+
+    query_preview =
+      Components.composer_query_preview(
+        id: "preview-search",
+        composer_id: "composer-main",
+        query: "release blockers",
+        preview_state: :ready,
+        explanation: "Three likely blockers found.",
+        metrics: %{results_count: 3, duration_ms: 42, sources_visited: 8},
+        findings: [
+          %{id: "finding-1", n: 1, snippet: "Conformance missing", confidence: 0.91}
+        ]
       )
 
     redline = Components.redline_inline([%{state: :insert, text: "new"}])
@@ -364,6 +412,34 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            }
 
     assert [%{element: %Element{kind: :button}}] = callout.children
+
+    assert query_preview.attributes.component == %{
+             family: :layer_shell_and_callout,
+             kind: :composer_query_preview
+           }
+
+    assert query_preview.attributes.query_preview == %{
+             composer_id: "composer-main",
+             query: "release blockers",
+             preview_state: :ready,
+             max_findings_shown: 2,
+             findings: [
+               %{id: "finding-1", n: 1, snippet: "Conformance missing", confidence: 0.91}
+             ],
+             explanation: "Three likely blockers found.",
+             metrics: %{results_count: 3, duration_ms: 42, sources_visited: 8},
+             loading_label: "Searching",
+             empty_label: "No results for this query.",
+             open_label: "Open query",
+             save_label: "Save query"
+           }
+
+    assert [
+             %Interaction{family: :close, intent: :dismiss_query_preview},
+             %Interaction{family: :open, intent: :open_query_preview},
+             %Interaction{family: :command, intent: :save_query}
+           ] = query_preview.attributes.interactions
+
     assert redline.attributes.redline == %{segments: [%{state: :insert, text: "new"}]}
     assert redline.attributes.text_safety == %{content: :plain_text}
 

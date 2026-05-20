@@ -40,6 +40,7 @@ defmodule AshUI.Resources.Validations.Authoring do
                     "context_selector",
                     "file_tree_browser",
                     "right_rail",
+                    "composer_query_preview",
                     "workflow_progress_status_card"
                   ])
   @signal_capabilities %{
@@ -60,6 +61,7 @@ defmodule AshUI.Resources.Validations.Authoring do
     "context_selector" => [:change, :input],
     "file_tree_browser" => [:change, :input, :toggle],
     "right_rail" => [:change, :toggle, :click],
+    "composer_query_preview" => [:click],
     "workflow_progress_status_card" => [:click, :change]
   }
 

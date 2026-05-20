@@ -96,7 +96,8 @@ defmodule UnifiedUi.Dsl.Placement do
     :workflow_stage_list_vertical,
     :meter_thin,
     :redline_inline,
-    :code_block_syntax_highlighted
+    :code_block_syntax_highlighted,
+    :composer_query_preview
   ]
 
   @advanced_leaf_kinds [

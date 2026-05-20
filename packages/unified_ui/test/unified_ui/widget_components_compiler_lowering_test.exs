@@ -117,6 +117,18 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
         action_intent(:inspect_event)
       end
 
+      composer_query_preview :query_preview do
+        composer_id("composer-main")
+        query("release blockers")
+        preview_state(:ready)
+        explanation("Two release checks need attention.")
+        metrics(%{results_count: 2, duration_ms: 34, sources_visited: 4})
+        findings([%{id: "finding-1", n: 1, snippet: "CI is still pending.", confidence: 0.82}])
+        open_intent(:open_query_preview)
+        save_intent(:save_query)
+        dismiss_intent(:dismiss_query_preview)
+      end
+
       right_rail :workspace_rail do
         side(:right)
 
@@ -160,6 +172,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     artifact = Tree.find_by_id(iur, :artifact)
     progress = Tree.find_by_id(iur, :quality_bar)
     panel = Tree.find_by_id(iur, :details_panel)
+    query_preview = Tree.find_by_id(iur, :query_preview)
     rail = Tree.find_by_id(iur, :workspace_rail)
     code = Tree.find_by_id(iur, :code_sample)
 
@@ -227,6 +240,27 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              dismiss_intent: :close_panel
            }
 
+    assert query_preview.attributes.component == %{
+             family: :layer_shell_and_callout,
+             kind: :composer_query_preview
+           }
+
+    assert query_preview.attributes.query_preview == %{
+             composer_id: "composer-main",
+             query: "release blockers",
+             preview_state: :ready,
+             explanation: "Two release checks need attention.",
+             metrics: %{results_count: 2, duration_ms: 34, sources_visited: 4},
+             findings: [
+               %{id: "finding-1", n: 1, snippet: "CI is still pending.", confidence: 0.82}
+             ],
+             max_findings_shown: 2,
+             loading_label: "Searching",
+             empty_label: "No results for this query.",
+             open_label: "Open query",
+             save_label: "Save query"
+           }
+
     assert rail.attributes.component == %{
              family: :layer_shell_and_callout,
              kind: :right_rail
@@ -265,6 +299,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     stepper = Tree.find_by_id(iur, :release_steps)
     panel = Tree.find_by_id(iur, :details_panel)
     callout = Tree.find_by_id(iur, :incident_callout)
+    query_preview = Tree.find_by_id(iur, :query_preview)
     rail = Tree.find_by_id(iur, :workspace_rail)
 
     assert [%Interaction{family: :selection, intent: :select_status} = selection] =
@@ -305,6 +340,12 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
 
     assert [%Interaction{family: :click, intent: :inspect_event}] =
              callout.attributes.interactions
+
+    assert Enum.map(query_preview.attributes.interactions, &{&1.family, &1.intent}) == [
+             {:close, :dismiss_query_preview},
+             {:open, :open_query_preview},
+             {:command, :save_query}
+           ]
 
     assert [
              %Interaction{family: :selection, intent: :select_rail_panel} = panel_select,

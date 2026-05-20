@@ -170,6 +170,7 @@ defmodule UnifiedUi.AdvancedWidgetFamiliesTest do
              :segmented_button_group,
              :runtime_form_shell,
              :chat_composer,
+             :collection_picker,
              :list_item_multi_column,
              :artifact_row,
              :thread_card,

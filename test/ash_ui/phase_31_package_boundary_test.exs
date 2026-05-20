@@ -41,6 +41,7 @@ defmodule AshUI.Phase31PackageBoundaryTest do
                :runtime_form_shell,
                :segmented_button_group,
                :chat_composer,
+               :collection_picker,
                :mode_nav
              ]
 

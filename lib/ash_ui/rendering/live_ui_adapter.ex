@@ -558,6 +558,61 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "collection_picker"} = iur, _opts) do
+    raw_props = iur["props"] || %{}
+
+    nested_props =
+      case prop(raw_props, "collection_picker", %{}) do
+        nested when is_map(nested) -> nested
+        _other -> %{}
+      end
+
+    props = Map.merge(raw_props, nested_props)
+    picker_id = text_prop(props, ["picker_id", "collection_id", "id"], iur["id"] || "collection")
+    title = escaped_text_prop(props, ["title", "label"])
+    query = html_attr(text_prop(props, ["query", "search_query"], ""))
+
+    placeholder =
+      html_attr(text_prop(props, ["placeholder", "search_placeholder"], "Search collection"))
+
+    empty_label =
+      escaped_text_prop(props, ["empty_label", "empty_state_message"], "No matching items.")
+
+    filters = prop(props, "filters", prop(props, "filter_chips", []))
+    items = prop(props, "items", [])
+    suggestions = prop(props, "suggestions", prop(props, "agent_suggestions", []))
+
+    filters_html =
+      filters
+      |> List.wrap()
+      |> Enum.map_join(&render_collection_picker_filter/1)
+
+    items_html =
+      case List.wrap(items) do
+        [] -> ~s(<li class="ash-collection-picker-empty">#{empty_label}</li>)
+        collection -> Enum.map_join(collection, &render_collection_picker_item/1)
+      end
+
+    suggestions_html =
+      suggestions
+      |> List.wrap()
+      |> Enum.map_join(&render_collection_picker_suggestion/1)
+
+    """
+    <section class="#{css_classes(["ash-collection-picker", prop_class(iur)])}" data-widget-type="collection_picker"#{attr("data-picker-id", html_attr(picker_id))}#{style_attr(prop_style(iur))}>
+      #{if title, do: "<header class=\"ash-collection-picker-header\"><h2 class=\"ash-collection-picker-title\">#{title}</h2></header>", else: ""}
+      <div class="ash-collection-picker-search">
+        <input type="search" name="query" value="#{query}" placeholder="#{placeholder}" class="ash-collection-picker-search-input" />
+      </div>
+      #{if filters_html == "", do: "", else: "<div class=\"ash-collection-picker-filters\" role=\"group\" aria-label=\"Collection filters\">#{filters_html}</div>"}
+      <ul class="ash-collection-picker-items" role="listbox" aria-label="Collection items">
+        #{items_html}
+      </ul>
+      #{if suggestions_html == "", do: "", else: "<div class=\"ash-collection-picker-suggestions\" aria-label=\"Suggestions\">#{suggestions_html}</div>"}
+    </section>
+    """
+  end
+
   defp generate_heex(%{"type" => "composer_query_preview"} = iur, _opts) do
     props = iur["props"] || %{}
     preview = props |> prop("query_preview", props) |> normalize_item()
@@ -3051,6 +3106,58 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       </div>
       #{if meta, do: "<span class=\"ash-list-item-meta\">#{meta}</span>", else: ""}
     </li>
+    """
+  end
+
+  defp render_collection_picker_filter(filter) do
+    filter = normalize_item(filter)
+    filter_id = escaped_text_prop(filter, ["id", "filter_id", "value"], "filter")
+    label = escaped_text_prop(filter, ["label", "title", "name", "value"], filter_id)
+    count = escaped_text_prop(filter, "count")
+    selected? = truthy_prop(filter, "selected?", false) || truthy_prop(filter, "selected", false)
+
+    """
+    <button type="button" class="#{css_classes(["ash-collection-picker-filter", selected? && "is-selected"])}" aria-pressed="#{selected?}"#{attr("data-filter-id", filter_id)}>
+      <span class="ash-collection-picker-filter-label">#{label}</span>
+      #{if count, do: "<span class=\"ash-collection-picker-filter-count\">#{count}</span>", else: ""}
+    </button>
+    """
+  end
+
+  defp render_collection_picker_item(item) do
+    item = normalize_item(item)
+    item_id = escaped_text_prop(item, ["id", "item_id", "value"], "item")
+    label = escaped_text_prop(item, ["label", "title", "name", "value"], item_id)
+    description = escaped_text_prop(item, ["description", "summary", "subtitle"])
+    selected? = truthy_prop(item, "selected?", false) || truthy_prop(item, "selected", false)
+
+    """
+    <li class="#{css_classes(["ash-collection-picker-item", selected? && "is-selected"])}" role="option" aria-selected="#{selected?}"#{attr("data-item-id", item_id)}>
+      <span class="ash-collection-picker-item-label">#{label}</span>
+      #{if description, do: "<span class=\"ash-collection-picker-item-description\">#{description}</span>", else: ""}
+    </li>
+    """
+  end
+
+  defp render_collection_picker_suggestion(suggestion) do
+    suggestion = normalize_item(suggestion)
+    suggestion_id = escaped_text_prop(suggestion, ["id", "suggestion_id", "value"], "suggestion")
+    label = escaped_text_prop(suggestion, ["label", "title", "name", "value"], suggestion_id)
+    description = escaped_text_prop(suggestion, ["description", "summary", "subtitle"])
+    source = escaped_text_prop(suggestion, ["source", "agent"])
+
+    """
+    <article class="ash-collection-picker-suggestion"#{attr("data-suggestion-id", suggestion_id)}>
+      <div class="ash-collection-picker-suggestion-body">
+        <span class="ash-collection-picker-suggestion-label">#{label}</span>
+        #{if description, do: "<span class=\"ash-collection-picker-suggestion-description\">#{description}</span>", else: ""}
+        #{if source, do: "<span class=\"ash-collection-picker-suggestion-source\">#{source}</span>", else: ""}
+      </div>
+      <div class="ash-collection-picker-suggestion-actions">
+        <button type="button" class="ash-collection-picker-suggestion-accept">Accept</button>
+        <button type="button" class="ash-collection-picker-suggestion-dismiss">Dismiss</button>
+      </div>
+    </article>
     """
   end
 

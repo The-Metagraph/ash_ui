@@ -56,6 +56,10 @@ Required behavior:
   component for composer-adjacent query result previews; it does not expose
   product-specific Ask/MGQL names or renderer event fields in its canonical
   contract.
+- `collection_picker` is a first-class `form_control_and_composer` component
+  for searchable collection selection. It is rail-agnostic and composes inside
+  `right_rail` or any other shell; it does not introduce app-specific rail
+  names, bundle-specific slots, or renderer event fields.
 - Drift is caught by package-boundary tests before release.
 
 ### ash_ui.canonical_widget_components.authoring_admission

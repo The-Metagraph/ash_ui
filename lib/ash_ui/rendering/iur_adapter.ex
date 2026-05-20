@@ -309,6 +309,13 @@ defmodule AshUI.Rendering.IURAdapter do
     )
   end
 
+  defp base_attributes(:collection_picker, props) do
+    props
+    |> collection_picker_opts()
+    |> IURComponents.collection_picker()
+    |> Map.fetch!(:attributes)
+  end
+
   defp base_attributes(:list_item_multi_column = kind, props) do
     component_attributes(
       kind,
@@ -1106,6 +1113,116 @@ defmodule AshUI.Rendering.IURAdapter do
     |> compact_map()
   end
 
+  defp collection_picker_opts(props) do
+    picker = props |> fetch(:collection_picker, %{}) |> normalize_map()
+
+    %{
+      id: first_present(props, [:_element_id, :id]),
+      picker_id:
+        string_identifier(
+          first_present(picker, [:picker_id]) ||
+            first_present(props, [
+              :picker_id,
+              :collection_id,
+              :bundle_id,
+              :rail_id,
+              :id,
+              :_element_id
+            ])
+        ),
+      title: first_present(picker, [:title]) || first_present(props, [:title, :label]),
+      query:
+        first_present(picker, [:query]) ||
+          first_present(props, [:query, :search_query, :value]) ||
+          "",
+      placeholder:
+        first_present(picker, [:placeholder]) ||
+          first_present(props, [:placeholder, :search_placeholder]),
+      filters:
+        collection_picker_entries(
+          first_present(picker, [:filters]) ||
+            first_present(props, [:filters, :filter_chips]) ||
+            [],
+          :filter
+        ),
+      items:
+        collection_picker_entries(
+          first_present(picker, [:items]) || first_present(props, [:items]) || [],
+          :item
+        ),
+      suggestions:
+        collection_picker_entries(
+          first_present(picker, [:suggestions]) ||
+            first_present(props, [:suggestions, :agent_suggestions]) ||
+            [],
+          :suggestion
+        ),
+      empty_label:
+        first_present(picker, [:empty_label]) ||
+          first_present(props, [:empty_label, :empty_state_message]),
+      loading?: first_present(picker, [:loading?]) || first_present(props, [:loading?]),
+      density:
+        normalize_existing_atom(first_present(picker, [:density]) || fetch(props, :density)),
+      change_intent: first_present(props, [:change_intent]),
+      selection_intent: first_present(props, [:selection_intent, :select_intent]),
+      filter_toggle_intent: first_present(props, [:filter_toggle_intent]),
+      suggestion_accept_intent: first_present(props, [:suggestion_accept_intent]),
+      suggestion_dismiss_intent: first_present(props, [:suggestion_dismiss_intent]),
+      interactions: fetch(props, :interactions),
+      interaction: fetch(props, :interaction)
+    }
+    |> compact_map()
+  end
+
+  defp collection_picker_entries(entries, kind) when is_list(entries) do
+    Enum.map(entries, &collection_picker_entry(&1, kind))
+  end
+
+  defp collection_picker_entries(_entries, _kind), do: []
+
+  defp collection_picker_entry(entry, kind) when is_map(entry) or is_list(entry) do
+    entry = normalize_map(entry)
+    id = collection_picker_entry_id(entry, kind)
+
+    %{
+      id: id,
+      label: collection_picker_entry_label(entry, id)
+    }
+    |> maybe_put(:description, first_present(entry, [:description, :subtitle, :body]))
+    |> maybe_put(:meta, normalize_optional_map(first_present(entry, [:meta, :metadata])))
+    |> maybe_put(:selected?, first_present(entry, [:selected?, :selected, :active?]))
+    |> maybe_put(:disabled?, first_present(entry, [:disabled?, :disabled]))
+    |> maybe_put(:draggable?, first_present(entry, [:draggable?]))
+    |> maybe_put(:count, first_present(entry, [:count]))
+    |> maybe_put(:source, first_present(entry, [:source, :agent]))
+    |> maybe_put(:confidence, first_present(entry, [:confidence]))
+    |> compact_map()
+  end
+
+  defp collection_picker_entry(entry, kind) do
+    id = string_identifier(entry) || Atom.to_string(kind)
+    %{id: id, label: id}
+  end
+
+  defp collection_picker_entry_id(entry, :filter) do
+    string_identifier(first_present(entry, [:id, :filter_id, :value, :key]))
+  end
+
+  defp collection_picker_entry_id(entry, :item) do
+    string_identifier(first_present(entry, [:id, :item_id, :value, :key]))
+  end
+
+  defp collection_picker_entry_id(entry, :suggestion) do
+    string_identifier(first_present(entry, [:id, :suggestion_id, :value, :key]))
+  end
+
+  defp collection_picker_entry_label(entry, fallback) do
+    case first_present(entry, [:label, :title, :name, :text]) do
+      nil -> fallback
+      value -> to_string(value)
+    end
+  end
+
   defp workflow_progress_status_card_opts(props) do
     %{
       subject_id: first_present(props, [:subject_id]),
@@ -1278,6 +1395,16 @@ defmodule AshUI.Rendering.IURAdapter do
   end
 
   defp normalize_existing_atom(value), do: value
+
+  defp string_identifier(nil), do: nil
+  defp string_identifier(value) when is_binary(value) and value != "", do: value
+
+  defp string_identifier(value) when is_atom(value) and not is_nil(value),
+    do: Atom.to_string(value)
+
+  defp string_identifier(value) when is_integer(value), do: Integer.to_string(value)
+  defp string_identifier(value) when is_float(value), do: :erlang.float_to_binary(value)
+  defp string_identifier(value), do: to_string(value)
 
   defp first_present(map, keys) do
     keys

@@ -77,6 +77,18 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 | SCN-164 | List Repeat Relationship Hydration | test/ash_ui/liveview/list_repeat_hydration_test.exs, test/ash_ui/phase_31_integration_test.exs |
 | SCN-165 | Canonical Widget Guide And Example Coverage | test/ash_ui/phase_31_docs_conformance_test.exs |
 | SCN-166 | Phase 31 Conformance And Drift Detection | test/ash_ui/phase_31_package_boundary_test.exs, test/ash_ui/phase_31_resource_admission_test.exs, test/ash_ui/phase_31_canonical_conversion_test.exs, test/ash_ui/phase_31_runtime_adapter_test.exs, test/ash_ui/liveview/list_repeat_hydration_test.exs, test/ash_ui/phase_31_docs_conformance_test.exs, test/ash_ui/phase_31_integration_test.exs |
+| SCN-171 | Rail Catalog Boundary | test/ash_ui/phase_32_package_boundary_test.exs |
+| SCN-172 | Rail Unified Authoring And IUR Validation | test/ash_ui/phase_32_package_boundary_test.exs, test/ash_ui/rendering/right_rail_iur_adapter_test.exs |
+| SCN-173 | Rail Ash Admission And Conversion | test/ash_ui/phase_32_resource_admission_test.exs, test/ash_ui/rendering/right_rail_iur_adapter_test.exs |
+| SCN-174 | Rail Runtime Renderer Support | test/ash_ui/rendering/right_rail_renderer_test.exs |
+| SCN-175 | Rail Documentation And Examples | test/ash_ui/phase_32_docs_examples_test.exs |
+| SCN-176 | Phase 32 Conformance And Drift Detection | test/ash_ui/phase_32_package_boundary_test.exs, test/ash_ui/phase_32_resource_admission_test.exs, test/ash_ui/rendering/right_rail_iur_adapter_test.exs, test/ash_ui/rendering/right_rail_renderer_test.exs, test/ash_ui/phase_32_docs_examples_test.exs |
+| SCN-181 | Workflow Progress Catalog Boundary | test/ash_ui/phase_33_package_boundary_test.exs |
+| SCN-182 | Workflow Progress Unified Authoring And IUR Validation | test/ash_ui/phase_33_package_boundary_test.exs, test/ash_ui/phase_33_integration_test.exs |
+| SCN-183 | Workflow Progress Ash Admission And Conversion | test/ash_ui/phase_33_resource_admission_test.exs, test/ash_ui/phase_33_integration_test.exs |
+| SCN-184 | Workflow Progress Runtime Renderer Support | test/ash_ui/phase_33_integration_test.exs |
+| SCN-185 | Workflow Progress Documentation And Examples | test/ash_ui/phase_33_docs_conformance_test.exs |
+| SCN-186 | Phase 33 Conformance And Scope Hygiene | test/ash_ui/phase_33_package_boundary_test.exs, test/ash_ui/phase_33_resource_admission_test.exs, test/ash_ui/phase_33_integration_test.exs, test/ash_ui/phase_33_docs_conformance_test.exs |
 
 ## Notes
 
@@ -87,3 +99,5 @@ This document maps each conformance scenario (`SCN-*`) to the executable test fi
 - Phase 22 adds explicit example-suite runtime, theme-shell, and governance traceability.
 - Phase 30 adds canonical IUR and navigation adoption traceability.
 - Phase 31 adds canonical widget-component catalog adoption traceability.
+- Phase 32 adds canonical rail component adoption traceability.
+- Phase 33 adds canonical workflow progress and status component adoption traceability.

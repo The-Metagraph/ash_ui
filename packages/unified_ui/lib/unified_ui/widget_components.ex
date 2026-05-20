@@ -168,6 +168,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :collection_picker,
+      family: :form_control_and_composer,
+      summary:
+        "Rail-agnostic searchable collection picker with filters, selectable items, suggestions, and canonical interactions.",
+      aliases: []
+    },
+    %{
       kind: :list_repeat,
       family: :composition_behavior,
       summary:

@@ -4,7 +4,8 @@ defmodule LiveUi.Widgets.FormControlAndComposer do
   """
 
   @modules [
-    LiveUi.Widgets.SegmentedButtonGroup
+    LiveUi.Widgets.SegmentedButtonGroup,
+    LiveUi.Widgets.CollectionPicker
   ]
 
   @spec modules() :: [module()]

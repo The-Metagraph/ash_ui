@@ -198,6 +198,53 @@ defmodule UnifiedIUR.ValidateTest do
     assert Enum.all?(finding_errors, &(&1.code == :invalid_query_preview_finding))
   end
 
+  test "validates canonical collection picker shape" do
+    valid_picker =
+      Components.collection_picker(
+        id: :source_picker,
+        picker_id: "sources",
+        query: "adr",
+        filters: [%{id: "all", label: "All", selected?: true}],
+        items: [%{id: "adr-1", label: "ADR 1", description: "Architecture decision"}],
+        suggestions: [%{id: "suggestion-1", label: "Add ADR 2", confidence: 0.8}]
+      )
+
+    event_leak =
+      Element.new(:widget, :collection_picker,
+        attributes: %{
+          component: %{family: :form_control_and_composer, kind: :collection_picker},
+          collection_picker: %{
+            picker_id: "sources",
+            query: "",
+            filters: [%{"on_toggle_event" => "toggle", id: "all", label: "All"}],
+            items: [%{id: "adr-1", label: "ADR 1"}],
+            suggestions: []
+          }
+        }
+      )
+
+    invalid_item =
+      Element.new(:widget, :collection_picker,
+        attributes: %{
+          component: %{family: :form_control_and_composer, kind: :collection_picker},
+          collection_picker: %{
+            picker_id: "sources",
+            filters: [],
+            items: [%{"bundle_item_card" => "card", id: "adr-1"}],
+            suggestions: []
+          }
+        }
+      )
+
+    assert :ok = Validate.element(valid_picker)
+    assert {:error, errors} = Validate.element(event_leak)
+    assert Enum.any?(errors, &(&1.code == :invalid_collection_picker))
+    assert Enum.any?(errors, &(&1.code == :invalid_collection_picker_filter))
+
+    assert {:error, item_errors} = Validate.element(invalid_item)
+    assert Enum.any?(item_errors, &(&1.code == :invalid_collection_picker_item))
+  end
+
   test "validates first-class artifact row fields" do
     valid_artifact =
       Components.artifact_row("ADR", [],

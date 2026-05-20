@@ -43,6 +43,7 @@ Ash UI MUST adopt these canonical widget-component kinds:
 | `redline_inline` | redline and code | - |
 | `code_block_syntax_highlighted` | redline and code | - |
 | `chat_composer` | form control and composer | - |
+| `collection_picker` | form control and composer | - |
 | `list_repeat` | composition behavior | `repeat`, `ui_relationship_repeat` |
 
 ## Requirements

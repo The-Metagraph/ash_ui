@@ -902,6 +902,29 @@ defmodule UnifiedUi.Compiler.Pipeline do
             ])
           )
 
+        :collection_picker ->
+          Widgets.Components.collection_picker(
+            common_opts(node, attachments, [
+              :picker_id,
+              :title,
+              :query,
+              :placeholder,
+              :filters,
+              :items,
+              :suggestions,
+              :empty_label,
+              :loading?,
+              :density,
+              :change_intent,
+              :selection_intent,
+              :filter_toggle_intent,
+              :suggestion_accept_intent,
+              :suggestion_dismiss_intent,
+              :accessibility_label,
+              :accessibility_description
+            ])
+          )
+
         :list_item_multi_column ->
           Widgets.Components.list_item_multi_column(
             lower_children(node, context, visited),
@@ -1522,6 +1545,7 @@ defmodule UnifiedUi.Compiler.Pipeline do
   end
 
   defp default_change_interaction(%Node{change_intent: nil}), do: nil
+  defp default_change_interaction(%Node{kind: :collection_picker}), do: nil
 
   defp default_change_interaction(node) do
     Interaction.change(
@@ -1533,6 +1557,7 @@ defmodule UnifiedUi.Compiler.Pipeline do
   end
 
   defp default_selection_interaction(%Node{selection_intent: nil}), do: nil
+  defp default_selection_interaction(%Node{kind: :collection_picker}), do: nil
 
   defp default_selection_interaction(node) do
     Interaction.selection(

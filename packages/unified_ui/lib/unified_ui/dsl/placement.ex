@@ -91,6 +91,7 @@ defmodule UnifiedUi.Dsl.Placement do
     :presence_dot,
     :segmented_button_group,
     :runtime_form_shell,
+    :collection_picker,
     :pipeline_stepper_horizontal,
     :segmented_progress_bar,
     :workflow_stage_list_vertical,

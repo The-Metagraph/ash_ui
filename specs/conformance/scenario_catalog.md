@@ -1253,6 +1253,222 @@ Each scenario includes:
 **Expected Outcome**:
 - Catalog drift, admission drift, conversion drift, renderer drift, repeat drift, and docs drift are caught before release
 
+#### SCN-171: Rail Catalog Boundary
+
+**Requirements**: REQ-RAIL-001, REQ-RAIL-002
+
+**Preconditions**:
+- Unified UI and Ash UI package catalogs are available
+- `right_rail` is expected to remain in the layer shell and callout family
+
+**Steps**:
+1. Inspect canonical package catalogs and family metadata
+2. Verify `doc_right_rail` is not admitted as canonical package vocabulary
+3. Verify application-specific document rails are treated as compositions over `right_rail`
+
+**Expected Outcome**:
+- `right_rail` is the reusable canonical rail kind
+- The component remains in the layer shell and callout family
+- Document-specific rail names stay outside canonical aliases
+
+#### SCN-172: Rail Unified Authoring And IUR Validation
+
+**Requirements**: REQ-RAIL-003, REQ-RAIL-004, REQ-RAIL-007, REQ-RAIL-008
+
+**Preconditions**:
+- Unified UI DSL and Unified IUR constructors are available
+- Rail examples include slots, active panel state, collapse state, and semantic actions
+
+**Steps**:
+1. Author `right_rail` through Unified UI DSL
+2. Lower the DSL into canonical `%UnifiedIUR.Element{}` output
+3. Validate rail attributes, slots, children, and semantic interactions
+
+**Expected Outcome**:
+- Unified UI emits canonical `right_rail` elements
+- Unified IUR rejects malformed rail attributes
+- Slots and interactions remain structured and host independent
+
+#### SCN-173: Rail Ash Admission And Conversion
+
+**Requirements**: REQ-RAIL-004, REQ-RAIL-005, REQ-RAIL-006
+
+**Preconditions**:
+- Ash resource and persisted DSL authoring paths are available
+- Ash IUR conversion can produce renderer-facing Unified IUR
+
+**Steps**:
+1. Admit `right_rail` through resource and persisted DSL validation
+2. Reject `doc_right_rail` unless explicitly authored as `custom:*`
+3. Convert Ash-authored rail props into canonical rail attributes
+
+**Expected Outcome**:
+- Ash authoring accepts `right_rail` and rejects accidental app-specific canonical names
+- Ash-owned metadata cannot overwrite canonical component or rail metadata
+- Converted rails validate as canonical Unified IUR
+
+#### SCN-174: Rail Runtime Renderer Support
+
+**Requirements**: REQ-RAIL-007, REQ-RAIL-008, REQ-RAIL-009, REQ-RAIL-010
+
+**Preconditions**:
+- Live, Elm, and desktop renderer adapters are available
+- A canonical rail includes children, slots, and semantic interaction data
+
+**Steps**:
+1. Render the rail through the Live UI adapter
+2. Render or preserve the rail through Elm and desktop adapters
+3. Inspect renderer output for canonical kind, slot, interaction, and diagnostic data
+
+**Expected Outcome**:
+- Live UI renders the rail natively
+- Elm and desktop adapters preserve or diagnose the canonical kind explicitly
+- Concrete theme and layout choices remain outside canonical attributes
+
+#### SCN-175: Rail Documentation And Examples
+
+**Requirements**: REQ-RAIL-011
+
+**Preconditions**:
+- User guide, developer guide, and canonical widget examples are available
+- Document rail examples compose over canonical `right_rail`
+
+**Steps**:
+1. Inspect user guide coverage for `right_rail`
+2. Inspect developer guide coverage for the canonical rail namespace and renderer behavior
+3. Inspect example coverage for document-oriented rail composition
+
+**Expected Outcome**:
+- Documentation names `right_rail` as reusable canonical vocabulary
+- Guides explain why `doc_right_rail` is application composition
+- Examples emit canonical `right_rail` rather than app-specific canonical kinds
+
+#### SCN-176: Phase 32 Conformance And Drift Detection
+
+**Requirements**: REQ-RAIL-012
+
+**Preconditions**:
+- Phase 32 package, admission, conversion, runtime, docs, and example tests exist
+- Specs governance is available
+
+**Steps**:
+1. Run the targeted Phase 32 test files
+2. Run specs governance
+3. Inspect the Phase 32 plan and contract traceability
+
+**Expected Outcome**:
+- Rail catalog, admission, conversion, renderer, docs, and examples drift is caught before release
+- The implementation remains scoped to reusable canonical rail adoption
+- Contract requirements are traceable to conformance scenarios
+
+#### SCN-181: Workflow Progress Catalog Boundary
+
+**Requirements**: REQ-WFPS-001, REQ-WFPS-002
+
+**Preconditions**:
+- Unified UI, Unified IUR, Ash UI, and Live UI package catalogs are available
+- `workflow_progress_status_card` is expected to remain in the canonical workflow progress and status family
+
+**Steps**:
+1. Inspect canonical package catalogs and family metadata
+2. Inspect widget discovery metadata for the Live UI native component
+3. Verify app-specific workflow names are not introduced as canonical component kinds
+
+**Expected Outcome**:
+- `workflow_progress_status_card` is the shared canonical kind across packages
+- The component remains in the workflow progress and status family
+- No parallel workflow or workflow-summary family is introduced
+
+#### SCN-182: Workflow Progress Unified Authoring And IUR Validation
+
+**Requirements**: REQ-WFPS-003, REQ-WFPS-004, REQ-WFPS-007, REQ-WFPS-008
+
+**Preconditions**:
+- Unified UI DSL and Unified IUR constructors are available
+- Workflow progress subject examples include progress, dependencies, and semantic interactions
+
+**Steps**:
+1. Author `workflow_progress_status_card` through Unified UI DSL
+2. Lower the DSL into canonical `%UnifiedIUR.Element{}` output
+3. Validate identity, progress, dependency, action, and interaction payloads
+
+**Expected Outcome**:
+- Unified UI emits canonical `workflow_progress_status_card` elements
+- Unified IUR rejects malformed subject, dependency, action, and interaction data
+- Dependency and interaction semantics stay structured and host independent
+
+#### SCN-183: Workflow Progress Ash Admission And Conversion
+
+**Requirements**: REQ-WFPS-004, REQ-WFPS-005, REQ-WFPS-006
+
+**Preconditions**:
+- Ash resource and persisted DSL authoring paths are available
+- Ash IUR conversion can produce renderer-facing Unified IUR
+
+**Steps**:
+1. Admit `workflow_progress_status_card` through resource and persisted DSL validation
+2. Convert Ash-authored card props into canonical `attributes.subject`
+3. Validate converted output through Unified IUR
+
+**Expected Outcome**:
+- Ash authoring accepts the canonical component kind
+- Ash-owned metadata cannot overwrite canonical component or subject metadata
+- Converted cards validate as canonical Unified IUR
+
+#### SCN-184: Workflow Progress Runtime Renderer Support
+
+**Requirements**: REQ-WFPS-007, REQ-WFPS-008, REQ-WFPS-009, REQ-WFPS-010
+
+**Preconditions**:
+- Live, Elm, and desktop renderer adapters are available
+- A canonical workflow progress card includes dependency and interaction data
+
+**Steps**:
+1. Render the card through the Live UI adapter
+2. Render or preserve the card through Elm and desktop adapters
+3. Inspect renderer output for canonical kind, dependency, interaction, and diagnostic data
+
+**Expected Outcome**:
+- Live UI renders the card natively
+- Elm and desktop adapters preserve or diagnose the canonical kind explicitly
+- Concrete theme and layout choices remain outside canonical attributes
+
+#### SCN-185: Workflow Progress Documentation And Examples
+
+**Requirements**: REQ-WFPS-010, REQ-WFPS-012
+
+**Preconditions**:
+- User guide, developer guide, and canonical widget examples are available
+- Workflow progress examples include semantic dependencies and actions
+
+**Steps**:
+1. Inspect user guide coverage for `workflow_progress_status_card`
+2. Inspect developer guide coverage for canonical subject attributes and renderer diagnostics
+3. Inspect example coverage for reusable workflow status composition
+
+**Expected Outcome**:
+- Documentation names `workflow_progress_status_card` as reusable canonical vocabulary
+- Guides preserve the theme, layout, and host-runtime boundary
+- Examples avoid app-specific canonical component names
+
+#### SCN-186: Phase 33 Conformance And Scope Hygiene
+
+**Requirements**: REQ-WFPS-011, REQ-WFPS-012
+
+**Preconditions**:
+- Phase 33 package, admission, conversion, runtime, docs, and integration tests exist
+- Specs governance is available
+
+**Steps**:
+1. Run the targeted Phase 33 test files
+2. Run specs governance
+3. Inspect the Phase 33 plan and contract traceability
+
+**Expected Outcome**:
+- Phase 33 drift is caught before release
+- The implementation remains scoped to canonical workflow progress status adoption
+- Contract requirements are traceable to conformance scenarios
+
 ## Scenario Index
 
 | SCN ID | Name | Requirements | Component |
@@ -1328,6 +1544,18 @@ Each scenario includes:
 | SCN-164 | List Repeat Relationship Hydration | REQ-WIDGET-008 | Canonical Widgets |
 | SCN-165 | Canonical Widget Guide And Example Coverage | REQ-WIDGET-009 | Canonical Widgets |
 | SCN-166 | Phase 31 Conformance And Drift Detection | REQ-WIDGET-010 | Canonical Widgets |
+| SCN-171 | Rail Catalog Boundary | REQ-RAIL-001, REQ-RAIL-002 | Canonical Rail |
+| SCN-172 | Rail Unified Authoring And IUR Validation | REQ-RAIL-003, REQ-RAIL-004, REQ-RAIL-007, REQ-RAIL-008 | Canonical Rail |
+| SCN-173 | Rail Ash Admission And Conversion | REQ-RAIL-004, REQ-RAIL-005, REQ-RAIL-006 | Canonical Rail |
+| SCN-174 | Rail Runtime Renderer Support | REQ-RAIL-007, REQ-RAIL-008, REQ-RAIL-009, REQ-RAIL-010 | Canonical Rail |
+| SCN-175 | Rail Documentation And Examples | REQ-RAIL-011 | Canonical Rail |
+| SCN-176 | Phase 32 Conformance And Drift Detection | REQ-RAIL-012 | Canonical Rail |
+| SCN-181 | Workflow Progress Catalog Boundary | REQ-WFPS-001, REQ-WFPS-002 | Canonical Workflow Progress |
+| SCN-182 | Workflow Progress Unified Authoring And IUR Validation | REQ-WFPS-003, REQ-WFPS-004, REQ-WFPS-007, REQ-WFPS-008 | Canonical Workflow Progress |
+| SCN-183 | Workflow Progress Ash Admission And Conversion | REQ-WFPS-004, REQ-WFPS-005, REQ-WFPS-006 | Canonical Workflow Progress |
+| SCN-184 | Workflow Progress Runtime Renderer Support | REQ-WFPS-007, REQ-WFPS-008, REQ-WFPS-009, REQ-WFPS-010 | Canonical Workflow Progress |
+| SCN-185 | Workflow Progress Documentation And Examples | REQ-WFPS-010, REQ-WFPS-012 | Canonical Workflow Progress |
+| SCN-186 | Phase 33 Conformance And Scope Hygiene | REQ-WFPS-011, REQ-WFPS-012 | Canonical Workflow Progress |
 
 ## Related Specifications
 

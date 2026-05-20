@@ -20,6 +20,7 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :segmented_button_group,
              :runtime_form_shell,
              :chat_composer,
+             :collection_picker,
              :mode_nav
            ]
 
@@ -129,6 +130,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         send_intent: :send_message
       )
 
+    picker =
+      Components.collection_picker(
+        id: "source-picker",
+        picker_id: "sources",
+        title: "Sources",
+        query: "adr",
+        filters: [%{id: :all, label: "All", selected?: true, count: 2}],
+        items: [%{id: :adr_1, label: "ADR 1", description: "Architecture decision"}],
+        suggestions: [
+          %{id: :suggestion_1, label: "Add ADR 2", source: "system", confidence: 0.82}
+        ]
+      )
+
     row =
       Components.list_item_multi_column([Foundational.text("Title")],
         row_identity: "row-1",
@@ -191,6 +205,34 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            }
 
     assert [%{element: %Element{kind: :button}}] = composer.children
+
+    assert picker.attributes.component == %{
+             family: :form_control_and_composer,
+             kind: :collection_picker
+           }
+
+    assert picker.attributes.collection_picker == %{
+             picker_id: "sources",
+             title: "Sources",
+             query: "adr",
+             placeholder: "Search collection",
+             filters: [%{id: "all", label: "All", selected?: true, count: 2}],
+             items: [
+               %{id: "adr_1", label: "ADR 1", description: "Architecture decision"}
+             ],
+             suggestions: [
+               %{id: "suggestion_1", label: "Add ADR 2", source: "system", confidence: 0.82}
+             ],
+             empty_label: "No matching items."
+           }
+
+    assert Enum.map(picker.attributes.interactions, &{&1.family, &1.intent}) == [
+             {:change, :change_collection_query},
+             {:selection, :select_collection_item},
+             {:command, :toggle_collection_filter},
+             {:command, :accept_collection_suggestion},
+             {:command, :dismiss_collection_suggestion}
+           ]
 
     assert row.attributes.row == %{
              row_identity: "row-1",
@@ -255,6 +297,26 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         title: "Thread",
         seed_quote: "Quote",
         progress_pct: 1.5
+      )
+    end
+  end
+
+  test "validates canonical collection picker shape" do
+    assert_raise ArgumentError, ~r/non-empty :picker_id/, fn ->
+      Components.collection_picker(items: [])
+    end
+
+    assert_raise ArgumentError, ~r/filter :count must be a non-negative integer/, fn ->
+      Components.collection_picker(
+        picker_id: "sources",
+        filters: [%{id: "all", label: "All", count: -1}]
+      )
+    end
+
+    assert_raise ArgumentError, ~r/suggestion :confidence must be in 0\.0\.\.1\.0/, fn ->
+      Components.collection_picker(
+        picker_id: "sources",
+        suggestions: [%{id: "s1", label: "Suggestion", confidence: 1.2}]
       )
     end
   end

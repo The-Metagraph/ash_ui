@@ -523,4 +523,59 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
 
     assert [%{slot: :default, element: %Element{id: :sources_body, kind: :text}}] = rail.children
   end
+
+  describe "segmented_button_group count prop" do
+    test "passes count through to normalized options when present" do
+      element =
+        Components.segmented_button_group(
+          [
+            %{value: :adrs, label: "ADRs", count: 12},
+            %{value: :specs, label: "Specs", count: 8},
+            %{value: :plans, label: "Plans"}
+          ],
+          active_value: :adrs
+        )
+
+      [adrs, specs, plans] = element.attributes.selection.options
+
+      assert adrs == %{value: :adrs, label: "ADRs", count: 12}
+      assert specs == %{value: :specs, label: "Specs", count: 8}
+      # no count key when absent (maybe_put drops nil)
+      refute Map.has_key?(plans, :count)
+    end
+
+    test "count of zero is preserved in normalized options" do
+      element =
+        Components.segmented_button_group([%{value: :empty, label: "Empty", count: 0}])
+
+      [opt] = element.attributes.selection.options
+      assert opt.count == 0
+    end
+
+    test "explicit count nil is omitted from normalized options" do
+      element =
+        Components.segmented_button_group([%{value: :a, label: "A", count: nil}])
+
+      [opt] = element.attributes.selection.options
+      refute Map.has_key?(opt, :count)
+    end
+
+    test "negative count raises ArgumentError" do
+      assert_raise ArgumentError, ~r/non-negative integer/, fn ->
+        Components.segmented_button_group([%{value: :a, label: "A", count: -1}])
+      end
+    end
+
+    test "non-integer count raises ArgumentError" do
+      assert_raise ArgumentError, ~r/non-negative integer/, fn ->
+        Components.segmented_button_group([%{value: :a, label: "A", count: "12"}])
+      end
+    end
+
+    test "float count raises ArgumentError" do
+      assert_raise ArgumentError, ~r/non-negative integer/, fn ->
+        Components.segmented_button_group([%{value: :a, label: "A", count: 3.5}])
+      end
+    end
+  end
 end

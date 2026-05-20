@@ -874,6 +874,104 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "top_strip"} = iur, opts) do
+    props = iur["props"] || %{}
+    title = escaped_text_prop(props, ["title", "label"], "")
+    brand = escaped_text_prop(props, "brand", "")
+    context = escaped_text_prop(props, "context", "")
+
+    """
+    <header class="#{css_classes(["ash-top-strip", prop_class(iur)])}" data-live-ui-shell-position="top"#{style_attr(prop_style(iur))}>
+      #{if brand != "", do: "<span class=\"ash-top-strip-brand\">#{brand}</span>", else: ""}
+      #{if title != "", do: "<h2 class=\"ash-top-strip-title\">#{title}</h2>", else: ""}
+      #{if context != "", do: "<span class=\"ash-top-strip-context\">#{context}</span>", else: ""}
+      #{generate_children(iur["children"], opts)}
+    </header>
+    """
+  end
+
+  defp generate_heex(%{"type" => "sidebar_section"} = iur, opts) do
+    props = iur["props"] || %{}
+    label = escaped_text_prop(props, "label", "")
+    action_label = escaped_text_prop(props, ["action_label", "action_glyph"], "+")
+    action_intent = truthy_prop(props, "action_intent", false)
+
+    action_html =
+      if action_intent do
+        ~s(<button type="button" class="ash-sidebar-section-action">#{action_label}</button>)
+      else
+        ""
+      end
+
+    """
+    <section class="#{css_classes(["ash-sidebar-section", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <div class="ash-sidebar-section-header">
+        <h3 class="ash-sidebar-section-label">#{label}</h3>
+        #{action_html}
+      </div>
+      #{generate_children(iur["children"], opts)}
+    </section>
+    """
+  end
+
+  defp generate_heex(%{"type" => "sidebar_item"} = iur, opts) do
+    props = iur["props"] || %{}
+    label = escaped_text_prop(props, "label", "")
+    selected? = truthy_prop(props, "selected?", truthy_prop(props, "selected", false))
+    aria_current = if selected?, do: ~s( aria-current="page"), else: ""
+
+    """
+    <li class="#{css_classes(["ash-sidebar-item", selected? && "ash-sidebar-item--selected", prop_class(iur)])}"#{style_attr(prop_style(iur))}>
+      <button type="button" class="ash-sidebar-item-button"#{aria_current}>
+        #{label}
+        #{generate_children(iur["children"], opts)}
+      </button>
+    </li>
+    """
+  end
+
+  defp generate_heex(%{"type" => "tabs"} = iur, _opts) do
+    props = iur["props"] || %{}
+    items = prop(props, "items", []) |> List.wrap()
+    active_item_id = text_prop(props, "active_item_id")
+
+    tabs_html =
+      Enum.map_join(items, fn item ->
+        item = normalize_item(item)
+        item_id = text_prop(item, ["id", "item_id"], "")
+        item_label = escaped_text_prop(item, "label", "")
+        selected? = active_item_id && to_string(item_id) == to_string(active_item_id)
+        aria_selected = if selected?, do: "true", else: "false"
+        tab_index = if selected?, do: "0", else: "-1"
+
+        ~s(<button type="button" role="tab" aria-selected="#{aria_selected}" tabindex="#{tab_index}" data-item-id="#{html_attr(item_id)}">#{item_label}</button>)
+      end)
+
+    """
+    <div class="#{css_classes(["ash-tabs", prop_class(iur)])}" data-live-ui-widget="tabs"#{style_attr(prop_style(iur))}>
+      <div role="tablist">
+        #{tabs_html}
+      </div>
+    </div>
+    """
+  end
+
+  defp generate_heex(%{"type" => "tree_view"} = iur, _opts) do
+    props = iur["props"] || %{}
+    nodes = prop(props, "nodes", []) |> List.wrap()
+    selection_mode = escaped_text_prop(props, "selection_mode", "single")
+
+    nodes_html = render_tree_nodes(nodes)
+
+    """
+    <section class="#{css_classes(["ash-tree-view", prop_class(iur)])}" data-live-ui-widget="tree-view" data-live-ui-selection-mode="#{selection_mode}"#{style_attr(prop_style(iur))}>
+      <ul>
+        #{nodes_html}
+      </ul>
+    </section>
+    """
+  end
+
   defp generate_heex(%{"type" => "slide_over_panel"} = iur, opts) do
     props = iur["props"] || %{}
     label = escaped_text_prop(props, ["label", "title"], "Panel")

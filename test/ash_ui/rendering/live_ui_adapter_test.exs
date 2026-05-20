@@ -1257,4 +1257,171 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert heex =~ ~s(data-selected="true")
     end
   end
+
+  describe "shell-primitive generate_heex clauses (gap-1)" do
+    test "top_strip renders header with ash-top-strip class and brand/context spans" do
+      iur = %{
+        "type" => "top_strip",
+        "id" => "top-strip-1",
+        "props" => %{"title" => "Dashboard", "brand" => "Ariston", "context" => "dev"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "<header"
+      assert heex =~ "ash-top-strip"
+      assert heex =~ "ash-top-strip-brand"
+      assert heex =~ "Ariston"
+      assert heex =~ "ash-top-strip-context"
+      assert heex =~ "dev"
+    end
+
+    test "top_strip renders children inside the header" do
+      iur = %{
+        "type" => "top_strip",
+        "id" => "top-strip-2",
+        "props" => %{"brand" => "Ariston"},
+        "children" => [
+          %{
+            "type" => "text",
+            "id" => "action-1",
+            "props" => %{"content" => "Actions"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-top-strip"
+      assert heex =~ "Actions"
+    end
+
+    test "sidebar_section renders section with heading label and children" do
+      iur = %{
+        "type" => "sidebar_section",
+        "id" => "sidebar-section-1",
+        "props" => %{"label" => "Navigation"},
+        "children" => [
+          %{
+            "type" => "text",
+            "id" => "nav-item-1",
+            "props" => %{"content" => "Home"},
+            "children" => [],
+            "metadata" => %{}
+          }
+        ],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "<section"
+      assert heex =~ "ash-sidebar-section"
+      assert heex =~ "<h3"
+      assert heex =~ "Navigation"
+      assert heex =~ "Home"
+    end
+
+    test "sidebar_section renders action button when action_intent is set" do
+      iur = %{
+        "type" => "sidebar_section",
+        "id" => "sidebar-section-2",
+        "props" => %{"label" => "Workspaces", "action_intent" => true, "action_label" => "Add"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-sidebar-section-action"
+      assert heex =~ "Add"
+    end
+
+    test "sidebar_item renders li with button and label" do
+      iur = %{
+        "type" => "sidebar_item",
+        "id" => "sidebar-item-1",
+        "props" => %{"label" => "Proposals"},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "<li"
+      assert heex =~ "ash-sidebar-item"
+      assert heex =~ "<button"
+      assert heex =~ "Proposals"
+    end
+
+    test "sidebar_item marks selected state with aria-current and is-selected class" do
+      iur = %{
+        "type" => "sidebar_item",
+        "id" => "sidebar-item-2",
+        "props" => %{"label" => "Specs", "selected?" => true},
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-sidebar-item--selected"
+      assert heex =~ ~s(aria-current="page")
+    end
+
+    test "tabs renders tablist with tab buttons for each item" do
+      iur = %{
+        "type" => "tabs",
+        "id" => "tabs-1",
+        "props" => %{
+          "items" => [
+            %{"id" => "tab-a", "label" => "Overview"},
+            %{"id" => "tab-b", "label" => "Details"}
+          ],
+          "active_item_id" => "tab-a"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-tabs"
+      assert heex =~ ~s(role="tablist")
+      assert heex =~ ~s(role="tab")
+      assert heex =~ "Overview"
+      assert heex =~ "Details"
+      assert heex =~ ~s(aria-selected="true")
+    end
+
+    test "tree_view renders section with ul and li nodes" do
+      iur = %{
+        "type" => "tree_view",
+        "id" => "tree-1",
+        "props" => %{
+          "nodes" => [
+            %{"id" => "node-1", "label" => "Root Node"},
+            %{"id" => "node-2", "label" => "Other Node"}
+          ],
+          "selection_mode" => "single"
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "<section"
+      assert heex =~ "ash-tree-view"
+      assert heex =~ "<ul"
+      assert heex =~ "<li"
+      assert heex =~ "Root Node"
+      assert heex =~ "Other Node"
+    end
+  end
 end

@@ -21,6 +21,14 @@ defmodule AshUI.Phase31CanonicalConversionTest do
      %{options: [%{value: :all, label: "All"}], active_value: :all}, :selection},
     {:chat_composer, :form_control_and_composer, %{value: "Draft", send_intent: :send_message},
      :composer},
+    {:collection_picker, :form_control_and_composer,
+     %{
+       picker_id: "sources",
+       query: "adr",
+       filters: [%{id: "all", label: "All"}],
+       items: [%{id: "adr-1", label: "ADR 1"}],
+       suggestions: [%{id: "suggestion-1", label: "Add ADR 2", confidence: 0.8}]
+     }, :collection_picker},
     {:list_item_multi_column, :row_and_artifact,
      %{row_identity: "row-1", column_template: [%{id: :title, label: "Title"}]}, :row},
     {:artifact_row, :row_and_artifact, %{title: "Artifact", meta: %{status: :accepted}},

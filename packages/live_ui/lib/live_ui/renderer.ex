@@ -32,6 +32,7 @@ defmodule LiveUi.Renderer do
        :column,
        :command_palette,
        :composer_query_preview,
+       :collection_picker,
        :confidence_indicator,
        :content,
        :context_selector,
@@ -641,6 +642,72 @@ defmodule LiveUi.Renderer do
       options={@options}
       selected_value={@selected_value}
       label={@label}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
+  # NOTE: `:collection_picker` is a canonical form-control component. Keep the
+  # native renderer clause before the generic component fallback so the search,
+  # selection, and command controls receive canonical interaction transport.
+  def render(%{element: %Element{kind: :collection_picker}} = assigns) do
+    picker = collection_picker_attributes(assigns.element)
+    event_target = Map.get(assigns, :event_target)
+
+    assigns =
+      assigns
+      |> assign(:picker, picker)
+      |> assign(:filters, collection_picker_filters(picker))
+      |> assign(:items, collection_picker_items(picker))
+      |> assign(:suggestions, collection_picker_suggestions(picker))
+      |> assign(:query_attrs, collection_picker_query_attrs(assigns.element, event_target))
+      |> assign(
+        :filter_attrs,
+        collection_picker_filter_attrs(assigns.element, event_target, picker)
+      )
+      |> assign(:item_attrs, collection_picker_item_attrs(assigns.element, event_target, picker))
+      |> assign(
+        :suggestion_accept_attrs,
+        collection_picker_suggestion_attrs(
+          assigns.element,
+          event_target,
+          picker,
+          :accept_suggestion
+        )
+      )
+      |> assign(
+        :suggestion_dismiss_attrs,
+        collection_picker_suggestion_attrs(
+          assigns.element,
+          event_target,
+          picker,
+          :dismiss_suggestion
+        )
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.CollectionPicker.component
+      id={element_id(@element, "collection-picker")}
+      picker_id={string_value(map_value(@picker, :picker_id), element_id(@element, "collection-picker"))}
+      title={string_optional(map_value(@picker, :title))}
+      query={string_value(map_value(@picker, :query), "")}
+      placeholder={string_value(map_value(@picker, :placeholder), "Search collection")}
+      filters={@filters}
+      items={@items}
+      suggestions={@suggestions}
+      empty_label={string_value(map_value(@picker, :empty_label), "No matching items.")}
+      loading?={boolean_default(map_value(@picker, :loading?), false)}
+      density={map_value(@picker, :density)}
+      query_attrs={@query_attrs}
+      filter_attrs={@filter_attrs}
+      item_attrs={@item_attrs}
+      suggestion_accept_attrs={@suggestion_accept_attrs}
+      suggestion_dismiss_attrs={@suggestion_dismiss_attrs}
       tone={style_tone(@element)}
       variant={theme_variant(@element)}
       state={style_state(@element)}
@@ -2045,6 +2112,154 @@ defmodule LiveUi.Renderer do
       get_in(element.attributes, [:selection, :label]) ||
       metadata_description(element) ||
       "Segmented control"
+  end
+
+  defp collection_picker_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:collection_picker, Map.get(element.attributes, "collection_picker", %{}))
+    |> normalize_panel()
+  end
+
+  defp collection_picker_filters(picker) do
+    picker
+    |> map_value(:filters, [])
+    |> List.wrap()
+    |> Enum.map(&normalize_panel/1)
+  end
+
+  defp collection_picker_items(picker) do
+    picker
+    |> map_value(:items, [])
+    |> List.wrap()
+    |> Enum.map(&normalize_panel/1)
+  end
+
+  defp collection_picker_suggestions(picker) do
+    picker
+    |> map_value(:suggestions, [])
+    |> List.wrap()
+    |> Enum.map(&normalize_panel/1)
+  end
+
+  defp collection_picker_query_attrs(%Element{} = element, event_target) do
+    case {primary_interaction(element, :change), event_target} do
+      {%Interaction{} = interaction, target} when not is_nil(target) ->
+        %{
+          :"phx-input" => "canonical_change_interaction",
+          :"phx-change" => "canonical_change_interaction",
+          :"phx-target" => target,
+          :"phx-value-change-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "collection-picker"),
+          :"phx-value-widget" => "collection_picker"
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp collection_picker_filter_attrs(%Element{} = element, event_target, picker) do
+    picker
+    |> collection_picker_filters()
+    |> Map.new(fn filter ->
+      {collection_picker_entry_key(filter),
+       collection_picker_command_attrs(element, event_target, filter, :toggle_filter, :filter_id)}
+    end)
+  end
+
+  defp collection_picker_item_attrs(%Element{} = element, event_target, picker) do
+    picker
+    |> collection_picker_items()
+    |> Map.new(fn item ->
+      {collection_picker_entry_key(item),
+       collection_picker_selection_attrs(element, event_target, item)}
+    end)
+  end
+
+  defp collection_picker_suggestion_attrs(%Element{} = element, event_target, picker, command) do
+    picker
+    |> collection_picker_suggestions()
+    |> Map.new(fn suggestion ->
+      {collection_picker_entry_key(suggestion),
+       collection_picker_command_attrs(element, event_target, suggestion, command, :suggestion_id)}
+    end)
+  end
+
+  defp collection_picker_selection_attrs(%Element{} = element, event_target, item) do
+    item_id = collection_picker_entry_id(item)
+
+    if collection_picker_entry_disabled?(item) do
+      %{}
+    else
+      case {primary_interaction(element, :selection), event_target, item_id} do
+        {%Interaction{} = interaction, target, id} when not is_nil(target) and not is_nil(id) ->
+          %{
+            :"phx-click" => "canonical_interaction",
+            :"phx-target" => target,
+            :"phx-value-interaction" => encode_interaction(interaction),
+            :"phx-value-element_id" => element_id(element, "collection-picker"),
+            :"phx-value-widget" => "collection_picker",
+            :"phx-value-item_id" => to_string(id),
+            :"phx-value-selected_value" => to_string(id)
+          }
+
+        _ ->
+          %{}
+      end
+    end
+  end
+
+  defp collection_picker_command_attrs(
+         %Element{} = element,
+         event_target,
+         entry,
+         command,
+         id_attr
+       ) do
+    entry_id = collection_picker_entry_id(entry)
+
+    if collection_picker_entry_disabled?(entry) do
+      %{}
+    else
+      case {collection_picker_command_interaction(element, command), event_target, entry_id} do
+        {%Interaction{} = interaction, target, id} when not is_nil(target) and not is_nil(id) ->
+          %{
+            :"phx-click" => "canonical_interaction",
+            :"phx-target" => target,
+            :"phx-value-interaction" => encode_interaction(interaction),
+            :"phx-value-element_id" => element_id(element, "collection-picker"),
+            :"phx-value-widget" => "collection_picker",
+            :"phx-value-command" => to_string(command),
+            String.to_atom("phx-value-#{id_attr}") => to_string(id)
+          }
+
+        _ ->
+          %{}
+      end
+    end
+  end
+
+  defp collection_picker_command_interaction(%Element{} = element, command) do
+    element.attributes
+    |> Map.get(:interactions, [])
+    |> List.wrap()
+    |> Enum.find(fn
+      %Interaction{family: :command, payload: payload} ->
+        map_value(payload, :command) == command or
+          to_string(map_value(payload, :command)) == to_string(command)
+
+      _interaction ->
+        false
+    end)
+  end
+
+  defp collection_picker_entry_id(entry), do: map_value(entry, :id)
+
+  defp collection_picker_entry_key(entry),
+    do: entry |> collection_picker_entry_id() |> normalize_key()
+
+  defp collection_picker_entry_disabled?(entry) do
+    map_value(entry, :disabled?) || map_value(entry, :disabled) || false
   end
 
   defp diff_banner_attributes(%Element{} = element) do

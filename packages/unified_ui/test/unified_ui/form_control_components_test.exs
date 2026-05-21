@@ -61,6 +61,18 @@ defmodule UnifiedUi.FormControlComponentsTest do
           label("Attach")
         end
       end
+
+      collection_picker :source_picker do
+        picker_id("sources")
+        title("Sources")
+        query("adr")
+        filters([%{id: "all", label: "All", selected?: true}])
+        items([%{id: "adr-1", label: "ADR 1", description: "Architecture decision"}])
+        suggestions([%{id: "suggestion-1", label: "Add ADR 2", confidence: 0.8}])
+        change_intent(:change_source_query)
+        selection_intent(:select_source)
+        filter_toggle_intent(:toggle_source_filter)
+      end
     end
   end
 
@@ -68,16 +80,19 @@ defmodule UnifiedUi.FormControlComponentsTest do
     assert UnifiedUi.Widgets.form_control_component_kinds() == [
              :segmented_button_group,
              :runtime_form_shell,
-             :chat_composer
+             :chat_composer,
+             :collection_picker
            ]
 
     assert :segmented_button_group in UnifiedUi.Widgets.kinds()
     assert :runtime_form_shell in UnifiedUi.Widgets.kinds()
     assert :chat_composer in UnifiedUi.Widgets.kinds()
+    assert :collection_picker in UnifiedUi.Widgets.kinds()
   end
 
   test "stores form control and composer components in the composition tree" do
-    [segmented, form, composer] = Extension.get_entities(FormControlScreen, [:composition])
+    [segmented, form, composer, picker] =
+      Extension.get_entities(FormControlScreen, [:composition])
 
     assert {segmented.family, segmented.kind, segmented.active_value, segmented.selection_intent,
             segmented.disabled?} ==
@@ -99,6 +114,13 @@ defmodule UnifiedUi.FormControlComponentsTest do
              {:form_control_and_composer, :chat_composer, :message, 4, :send_message, true}
 
     assert Enum.map(composer.children, & &1.kind) == [:button]
+
+    assert {picker.family, picker.kind, picker.picker_id, picker.query, picker.change_intent,
+            picker.selection_intent, picker.filter_toggle_intent} ==
+             {:form_control_and_composer, :collection_picker, "sources", "adr",
+              :change_source_query, :select_source, :toggle_source_filter}
+
+    assert Enum.map(picker.items, & &1.label) == ["ADR 1"]
   end
 
   test "summarizes form control and composer components without a renderer runtime" do
@@ -140,6 +162,22 @@ defmodule UnifiedUi.FormControlComponentsTest do
                children: [
                  %{id: :attach_tool, family: :foundational, kind: :button, label: "Attach"}
                ]
+             },
+             %{
+               id: :source_picker,
+               family: :form_control_and_composer,
+               kind: :collection_picker,
+               title: "Sources",
+               picker_id: "sources",
+               query: "adr",
+               filters: [%{id: "all", label: "All", selected?: true}],
+               items: [%{id: "adr-1", label: "ADR 1", description: "Architecture decision"}],
+               suggestions: [%{id: "suggestion-1", label: "Add ADR 2", confidence: 0.8}],
+               empty_label: "No matching items.",
+               loading?: false,
+               change_intent: :change_source_query,
+               selection_intent: :select_source,
+               filter_toggle_intent: :toggle_source_filter
              }
            ]
   end
@@ -172,6 +210,16 @@ defmodule UnifiedUi.FormControlComponentsTest do
              })
 
     assert composer_message == "chat_composer :composer rows must be a positive integer"
+
+    assert {:error, [:composition, :collection_picker, :picker], picker_message} =
+             ValidateWidgetComponents.validate_node(%Node{
+               kind: :collection_picker,
+               id: :picker,
+               picker_id: "",
+               items: []
+             })
+
+    assert picker_message =~ "picker_id must be a non-empty string"
   end
 
   test "tooling links the form control family to widget and signal specs" do

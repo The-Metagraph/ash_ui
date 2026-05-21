@@ -26,6 +26,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :runtime_form_shell,
                :segmented_button_group,
                :chat_composer,
+               :collection_picker,
                :mode_nav
              ],
              row_and_artifact: [:list_item_multi_column, :artifact_row, :thread_card],
@@ -66,6 +67,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert :unread_badge in kinds
     assert :command_palette in kinds
     assert :composer_query_preview in kinds
+    assert :collection_picker in kinds
     assert :workflow_progress_status_card in kinds
   end
 

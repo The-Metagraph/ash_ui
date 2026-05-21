@@ -153,6 +153,26 @@ defmodule UnifiedIUR.Validate do
       guidance:
         "Represent composer_query_preview findings as opaque result descriptors with id, ordinal, snippet, and confidence."
     },
+    invalid_collection_picker: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent collection_picker with generic picker id, query, filters, items, suggestions, and renderer-independent interactions."
+    },
+    invalid_collection_picker_filter: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent collection_picker filters as stable descriptors with id, label, optional count, selected, and disabled state."
+    },
+    invalid_collection_picker_item: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent collection_picker items as generic selectable descriptors with id, label, optional description, meta, state, and no product-specific slots."
+    },
+    invalid_collection_picker_suggestion: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent collection_picker suggestions as generic descriptors with id, label, optional source, confidence, and renderer-independent command interactions."
+    },
     invalid_workflow_progress_status_card: %{
       construct_family: :widget_components,
       guidance:
@@ -185,6 +205,35 @@ defmodule UnifiedIUR.Validate do
   @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
   @rail_sides [:right]
   @query_preview_states [:loading, :ready, :empty, :error]
+  @collection_picker_forbidden_keys ~w[
+    bundle
+    bundle_id
+    bundle_item
+    bundle_item_card
+    bundle_rail
+    drag_drop_hook
+    event
+    event_target
+    helper
+    item_slot
+    live_action
+    module
+    on_accept_event
+    on_change
+    on_click
+    on_dismiss_event
+    on_search_change
+    on_toggle_event
+    path
+    phx-change
+    phx-click
+    phx_change
+    phx_click
+    phx_event
+    route
+    runtime_module
+    url
+  ]
   @query_preview_forbidden_keys ~w[
     ask_query
     event
@@ -642,6 +691,15 @@ defmodule UnifiedIUR.Validate do
     attributes
     |> Map.get(:query_preview, %{})
     |> validate_query_preview_shape()
+  end
+
+  defp validate_component_contracts(%Element{
+         kind: :collection_picker,
+         attributes: attributes
+       }) do
+    attributes
+    |> Map.get(:collection_picker, %{})
+    |> validate_collection_picker_shape()
   end
 
   defp validate_component_contracts(%Element{
@@ -1451,6 +1509,353 @@ defmodule UnifiedIUR.Validate do
     ]
   end
 
+  defp validate_collection_picker_shape(picker) when is_map(picker) do
+    []
+    |> maybe_add(
+      not non_empty_string?(fetch(picker, :picker_id)),
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker requires picker_id as a non-empty string",
+        path: [:attributes, :collection_picker, :picker_id],
+        details: %{picker_id: inspect(fetch(picker, :picker_id))}
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(picker, :query)) and not is_binary(fetch(picker, :query)),
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker query must be a string when present",
+        path: [:attributes, :collection_picker, :query],
+        details: %{query: inspect(fetch(picker, :query))}
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(picker, :placeholder)) and not is_binary(fetch(picker, :placeholder)),
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker placeholder must be a string when present",
+        path: [:attributes, :collection_picker, :placeholder]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(picker, :title)) and not is_binary(fetch(picker, :title)),
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker title must be a string when present",
+        path: [:attributes, :collection_picker, :title]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(picker, :empty_label)) and not is_binary(fetch(picker, :empty_label)),
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker empty_label must be a string when present",
+        path: [:attributes, :collection_picker, :empty_label]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(picker, :loading?)) and not is_boolean(fetch(picker, :loading?)),
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker loading? must be boolean when present",
+        path: [:attributes, :collection_picker, :loading?]
+      )
+    )
+    |> maybe_add(
+      has_forbidden_collection_picker_key_deep?(picker),
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker must not include bundle-specific, renderer event, or host route fields",
+        path: [:attributes, :collection_picker]
+      )
+    )
+    |> Kernel.++(
+      validate_collection_picker_filters(
+        fetch(picker, :filters, []),
+        [:attributes, :collection_picker, :filters]
+      )
+    )
+    |> Kernel.++(
+      validate_collection_picker_items(
+        fetch(picker, :items, []),
+        [:attributes, :collection_picker, :items]
+      )
+    )
+    |> Kernel.++(
+      validate_collection_picker_suggestions(
+        fetch(picker, :suggestions, []),
+        [:attributes, :collection_picker, :suggestions]
+      )
+    )
+  end
+
+  defp validate_collection_picker_shape(_picker) do
+    [
+      Error.new(
+        :invalid_collection_picker,
+        "collection_picker attributes.collection_picker must be a map",
+        path: [:attributes, :collection_picker]
+      )
+    ]
+  end
+
+  defp validate_collection_picker_filters(filters, path) when is_list(filters) do
+    filters
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {filter, index} ->
+      validate_collection_picker_filter(filter, path ++ [index])
+    end)
+  end
+
+  defp validate_collection_picker_filters(_filters, path) do
+    [
+      Error.new(
+        :invalid_collection_picker_filter,
+        "collection_picker filters must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_collection_picker_filter(filter, path) when is_map(filter) or is_list(filter) do
+    filter = normalize_map(filter)
+
+    []
+    |> maybe_add(
+      not non_empty_string?(fetch(filter, :id)) or not non_empty_string?(fetch(filter, :label)),
+      Error.new(
+        :invalid_collection_picker_filter,
+        "collection_picker filters require id and label strings",
+        path: path,
+        details: %{id: inspect(fetch(filter, :id)), label: inspect(fetch(filter, :label))}
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(filter, :selected?)) and not is_boolean(fetch(filter, :selected?)),
+      Error.new(
+        :invalid_collection_picker_filter,
+        "collection_picker filter selected? must be boolean when present",
+        path: path ++ [:selected?]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(filter, :disabled?)) and not is_boolean(fetch(filter, :disabled?)),
+      Error.new(
+        :invalid_collection_picker_filter,
+        "collection_picker filter disabled? must be boolean when present",
+        path: path ++ [:disabled?]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(filter, :count)) and not non_negative_integer?(fetch(filter, :count)),
+      Error.new(
+        :invalid_collection_picker_filter,
+        "collection_picker filter count must be a non-negative integer when present",
+        path: path ++ [:count]
+      )
+    )
+    |> maybe_add(
+      has_forbidden_collection_picker_key_deep?(filter),
+      Error.new(
+        :invalid_collection_picker_filter,
+        "collection_picker filters must not include bundle-specific, renderer event, or host route fields",
+        path: path
+      )
+    )
+  end
+
+  defp validate_collection_picker_filter(_filter, path) do
+    [
+      Error.new(
+        :invalid_collection_picker_filter,
+        "collection_picker filters must be maps",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_collection_picker_items(items, path) when is_list(items) do
+    items
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {item, index} ->
+      validate_collection_picker_item(item, path ++ [index])
+    end)
+  end
+
+  defp validate_collection_picker_items(_items, path) do
+    [
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker items must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_collection_picker_item(item, path) when is_map(item) or is_list(item) do
+    item = normalize_map(item)
+
+    []
+    |> maybe_add(
+      not non_empty_string?(fetch(item, :id)) or not non_empty_string?(fetch(item, :label)),
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker items require id and label strings",
+        path: path,
+        details: %{id: inspect(fetch(item, :id)), label: inspect(fetch(item, :label))}
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(item, :description)) and not is_binary(fetch(item, :description)),
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker item description must be a string when present",
+        path: path ++ [:description]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(item, :meta)) and not is_map(fetch(item, :meta)),
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker item meta must be a map when present",
+        path: path ++ [:meta]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(item, :selected?)) and not is_boolean(fetch(item, :selected?)),
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker item selected? must be boolean when present",
+        path: path ++ [:selected?]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(item, :disabled?)) and not is_boolean(fetch(item, :disabled?)),
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker item disabled? must be boolean when present",
+        path: path ++ [:disabled?]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(item, :draggable?)) and not is_boolean(fetch(item, :draggable?)),
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker item draggable? must be boolean when present",
+        path: path ++ [:draggable?]
+      )
+    )
+    |> maybe_add(
+      has_forbidden_collection_picker_key_deep?(item),
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker items must not include bundle-specific, renderer event, or host route fields",
+        path: path
+      )
+    )
+  end
+
+  defp validate_collection_picker_item(_item, path) do
+    [
+      Error.new(
+        :invalid_collection_picker_item,
+        "collection_picker items must be maps",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_collection_picker_suggestions(suggestions, path) when is_list(suggestions) do
+    suggestions
+    |> Enum.with_index()
+    |> Enum.flat_map(fn {suggestion, index} ->
+      validate_collection_picker_suggestion(suggestion, path ++ [index])
+    end)
+  end
+
+  defp validate_collection_picker_suggestions(_suggestions, path) do
+    [
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestions must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_collection_picker_suggestion(suggestion, path)
+       when is_map(suggestion) or is_list(suggestion) do
+    suggestion = normalize_map(suggestion)
+    confidence = fetch(suggestion, :confidence)
+
+    []
+    |> maybe_add(
+      not non_empty_string?(fetch(suggestion, :id)) or
+        not non_empty_string?(fetch(suggestion, :label)),
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestions require id and label strings",
+        path: path,
+        details: %{
+          id: inspect(fetch(suggestion, :id)),
+          label: inspect(fetch(suggestion, :label))
+        }
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(suggestion, :description)) and
+        not is_binary(fetch(suggestion, :description)),
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestion description must be a string when present",
+        path: path ++ [:description]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(suggestion, :source)) and not is_binary(fetch(suggestion, :source)),
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestion source must be a string when present",
+        path: path ++ [:source]
+      )
+    )
+    |> maybe_add(
+      not is_nil(confidence) and
+        not (is_number(confidence) and confidence >= 0.0 and confidence <= 1.0),
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestion confidence must be in 0.0..1.0 when present",
+        path: path ++ [:confidence]
+      )
+    )
+    |> maybe_add(
+      not is_nil(fetch(suggestion, :disabled?)) and not is_boolean(fetch(suggestion, :disabled?)),
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestion disabled? must be boolean when present",
+        path: path ++ [:disabled?]
+      )
+    )
+    |> maybe_add(
+      has_forbidden_collection_picker_key_deep?(suggestion),
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestions must not include bundle-specific, renderer event, or host route fields",
+        path: path
+      )
+    )
+  end
+
+  defp validate_collection_picker_suggestion(_suggestion, path) do
+    [
+      Error.new(
+        :invalid_collection_picker_suggestion,
+        "collection_picker suggestions must be maps",
+        path: path
+      )
+    ]
+  end
+
   defp validate_selection_options(options, path) when is_list(options) do
     options
     |> Enum.with_index()
@@ -1744,6 +2149,31 @@ defmodule UnifiedIUR.Validate do
   end
 
   defp has_forbidden_query_preview_key_deep?(_value), do: false
+
+  defp has_forbidden_collection_picker_key?(value) when is_map(value) do
+    value
+    |> Map.keys()
+    |> Enum.any?(&(to_string(&1) in @collection_picker_forbidden_keys))
+  end
+
+  defp has_forbidden_collection_picker_key?(_value), do: false
+
+  defp has_forbidden_collection_picker_key_deep?(%_{} = struct) do
+    struct
+    |> Map.from_struct()
+    |> has_forbidden_collection_picker_key_deep?()
+  end
+
+  defp has_forbidden_collection_picker_key_deep?(value) when is_map(value) do
+    has_forbidden_collection_picker_key?(value) or
+      Enum.any?(Map.values(value), &has_forbidden_collection_picker_key_deep?/1)
+  end
+
+  defp has_forbidden_collection_picker_key_deep?(value) when is_list(value) do
+    Enum.any?(value, &has_forbidden_collection_picker_key_deep?/1)
+  end
+
+  defp has_forbidden_collection_picker_key_deep?(_value), do: false
 
   defp valid_query_preview_state?(state) when state in @query_preview_states, do: true
 

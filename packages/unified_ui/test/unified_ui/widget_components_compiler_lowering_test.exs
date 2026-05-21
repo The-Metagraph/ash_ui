@@ -56,6 +56,20 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
         end
       end
 
+      collection_picker :source_picker do
+        picker_id("sources")
+        title("Sources")
+        query("adr")
+        filters([%{id: "all", label: "All", selected?: true}])
+        items([%{id: "adr-1", label: "ADR 1", description: "Architecture decision"}])
+        suggestions([%{id: "suggestion-1", label: "Add ADR 2", confidence: 0.8}])
+        change_intent(:change_source_query)
+        selection_intent(:select_source)
+        filter_toggle_intent(:toggle_source_filter)
+        suggestion_accept_intent(:accept_source_suggestion)
+        suggestion_dismiss_intent(:dismiss_source_suggestion)
+      end
+
       list_item_multi_column :task_row do
         row_identity("task-1")
         column_template([%{id: :title, label: "Title"}])
@@ -168,6 +182,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     disclosure = Tree.find_by_id(iur, :details)
     form = Tree.find_by_id(iur, :settings_form)
     composer = Tree.find_by_id(iur, :composer)
+    picker = Tree.find_by_id(iur, :source_picker)
     row = Tree.find_by_id(iur, :task_row)
     artifact = Tree.find_by_id(iur, :artifact)
     progress = Tree.find_by_id(iur, :quality_bar)
@@ -205,6 +220,23 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
            }
 
     assert [%{element: %{kind: :button}}] = composer.children
+
+    assert picker.attributes.component == %{
+             family: :form_control_and_composer,
+             kind: :collection_picker
+           }
+
+    assert picker.attributes.collection_picker == %{
+             picker_id: "sources",
+             title: "Sources",
+             query: "adr",
+             placeholder: "Search collection",
+             filters: [%{id: "all", label: "All", selected?: true}],
+             items: [%{id: "adr-1", label: "ADR 1", description: "Architecture decision"}],
+             suggestions: [%{id: "suggestion-1", label: "Add ADR 2", confidence: 0.8}],
+             empty_label: "No matching items.",
+             loading?: false
+           }
 
     assert row.attributes.row == %{
              row_identity: "task-1",
@@ -294,6 +326,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     segmented = Tree.find_by_id(iur, :status_filter)
     form = Tree.find_by_id(iur, :settings_form)
     composer = Tree.find_by_id(iur, :composer)
+    picker = Tree.find_by_id(iur, :source_picker)
     row = Tree.find_by_id(iur, :task_row)
     artifact = Tree.find_by_id(iur, :artifact)
     stepper = Tree.find_by_id(iur, :release_steps)
@@ -316,6 +349,14 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     assert Enum.map(composer.attributes.interactions, &{&1.family, &1.intent}) == [
              {:change, :update_message},
              {:submit, :send_message}
+           ]
+
+    assert Enum.map(picker.attributes.interactions, &{&1.family, &1.intent}) == [
+             {:change, :change_source_query},
+             {:selection, :select_source},
+             {:command, :toggle_source_filter},
+             {:command, :accept_source_suggestion},
+             {:command, :dismiss_source_suggestion}
            ]
 
     assert [%Interaction{family: :click, intent: :open_task} = row_action] =

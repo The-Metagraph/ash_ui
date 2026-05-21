@@ -128,6 +128,40 @@ The matrix provides complete traceability from:
 | REQ-WIDGET-009 | Documentation And Examples | contracts/canonical_widget_components_contract.md, guides/user/UG-0003-widget-types-properties-and-signals.md, guides/user/UG-0008-migration-from-older-ash-ui-models.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md, examples/canonical_widget_components.md | SCN-165 |
 | REQ-WIDGET-010 | Conformance And Drift Detection | contracts/canonical_widget_components_contract.md, planning/phase-31-canonical-widget-components-adoption.md | SCN-166 |
 
+### REQ-RAIL-*: Canonical Rail Component Contract
+
+| REQ | Description | Component Specs | Scenarios |
+|---|---|---|---|
+| REQ-RAIL-001 | Generic Canonical Name | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-171 |
+| REQ-RAIL-002 | Catalog And Family Alignment | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-171 |
+| REQ-RAIL-003 | Unified UI Authoring Path | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-172 |
+| REQ-RAIL-004 | Unified IUR Constructor And Validation | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-172, SCN-173 |
+| REQ-RAIL-005 | Ash Resource Admission | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-173 |
+| REQ-RAIL-006 | Ash Canonical Conversion | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-173 |
+| REQ-RAIL-007 | Slot And Child Preservation | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-172, SCN-174 |
+| REQ-RAIL-008 | Semantic Interactions | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-172, SCN-174 |
+| REQ-RAIL-009 | Runtime Renderer Support | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-174 |
+| REQ-RAIL-010 | Theme And Layout Boundary | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md | SCN-174 |
+| REQ-RAIL-011 | Documentation And Examples | contracts/canonical_rail_component_contract.md, guides/user/UG-0003-widget-types-properties-and-signals.md, guides/user/UG-0006-advanced-composition.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md, examples/canonical_widget_components.md | SCN-175 |
+| REQ-RAIL-012 | Conformance And Drift Detection | contracts/canonical_rail_component_contract.md, planning/phase-32-canonical-rail-component-adoption.md | SCN-176 |
+
+### REQ-WFPS-*: Canonical Workflow Progress And Status Component Contract
+
+| REQ | Description | Component Specs | Scenarios |
+|---|---|---|---|
+| REQ-WFPS-001 | Canonical Name And Scope | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-181 |
+| REQ-WFPS-002 | Catalog And Family Alignment | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-181 |
+| REQ-WFPS-003 | Unified UI Authoring Path | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-182 |
+| REQ-WFPS-004 | Unified IUR Constructor And Validation | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-182, SCN-183 |
+| REQ-WFPS-005 | Ash Resource Admission | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-183 |
+| REQ-WFPS-006 | Ash Canonical Conversion | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-183 |
+| REQ-WFPS-007 | Dependency Edge Semantics | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-182, SCN-184 |
+| REQ-WFPS-008 | Semantic Actions And Interactions | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-182, SCN-184 |
+| REQ-WFPS-009 | Runtime Renderer Support | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-184 |
+| REQ-WFPS-010 | Theme And Layout Boundary | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md | SCN-184, SCN-185 |
+| REQ-WFPS-011 | PR Rebase And Scope Hygiene | contracts/canonical_workflow_progress_status_component_contract.md, planning/phase-33-canonical-workflow-progress-status-component-adoption.md | SCN-186 |
+| REQ-WFPS-012 | Documentation And Conformance | contracts/canonical_workflow_progress_status_component_contract.md, guides/user/UG-0003-widget-types-properties-and-signals.md, guides/developer/DG-0003-compiler-canonical-iur-and-renderers.md, examples/canonical_widget_components.md | SCN-185, SCN-186 |
+
 ## Runtime Control Plane
 
 ### REQ-SCREEN-*: Screen Contract
@@ -185,10 +219,13 @@ The matrix provides complete traceability from:
 | Compilation | 10 | 9 | 9 | 90% |
 | Rendering | 12 | 9 | 9 | 75% |
 | Navigation | 10 | 10 | 10 | 100% |
+| Widget Components | 10 | 10 | 10 | 100% |
+| Rail Component | 12 | 12 | 12 | 100% |
+| Workflow Progress And Status | 12 | 12 | 12 | 100% |
 | Runtime | 10 | 10 | 10 | 100% |
 | Extension | 6 | 4 | 4 | 67% |
 | Observability | 12 | 9 | 8 | 67% |
-| **TOTAL** | **90** | **79** | **75** | **83%** |
+| **TOTAL** | **124** | **113** | **109** | **88%** |
 
 ## Coverage Milestones
 
@@ -220,4 +257,6 @@ The matrix provides complete traceability from:
 - Phase 16 adds explicit traceability for element-resource authority and relationship-driven composition
 - Phase 22 adds explicit traceability for the maintained example suite, shared theme shell, and governance gates
 - Phase 30 adds explicit traceability for canonical IUR structs and resource-authored navigation intent
+- Phase 32 adds explicit traceability for canonical rail component adoption
+- Phase 33 adds explicit traceability for canonical workflow progress and status component adoption
 - Coverage percentages should be updated whenever scenarios or conformance-tagged tests change

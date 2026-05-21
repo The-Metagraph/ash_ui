@@ -37,6 +37,7 @@ defmodule UnifiedIUR.Widgets.Components do
     :segmented_button_group,
     :runtime_form_shell,
     :chat_composer,
+    :collection_picker,
     :mode_nav
   ]
 
@@ -261,6 +262,41 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:change_intent, option(opts, :change_intent))
       },
       Map.put(opts, :children, children)
+    )
+  end
+
+  @spec collection_picker(opts()) :: Element.t()
+  def collection_picker(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    picker_id =
+      required_string!(
+        opts,
+        :picker_id,
+        "collection_picker requires a non-empty :picker_id string"
+      )
+
+    opts = put_collection_picker_interactions(opts, picker_id)
+
+    build_component(
+      :collection_picker,
+      :form_control_and_composer,
+      %{
+        collection_picker:
+          %{
+            picker_id: picker_id,
+            query: option(opts, :query, ""),
+            placeholder: option(opts, :placeholder, "Search collection"),
+            filters: normalize_collection_filters!(option(opts, :filters, [])),
+            items: normalize_collection_items!(option(opts, :items, [])),
+            suggestions: normalize_collection_suggestions!(option(opts, :suggestions, [])),
+            empty_label: option(opts, :empty_label, "No matching items.")
+          }
+          |> maybe_put(:title, option(opts, :title))
+          |> maybe_put(:loading?, option(opts, :loading?))
+          |> maybe_put(:density, option(opts, :density))
+      },
+      opts
     )
   end
 
@@ -1274,6 +1310,171 @@ defmodule UnifiedIUR.Widgets.Components do
         value: query
       )
     ]
+  end
+
+  defp put_collection_picker_interactions(opts, picker_id) do
+    cond do
+      Map.has_key?(opts, :interactions) or Map.has_key?(opts, "interactions") or
+        Map.has_key?(opts, :interaction) or Map.has_key?(opts, "interaction") ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, collection_picker_interactions(opts, picker_id))
+    end
+  end
+
+  defp collection_picker_interactions(opts, picker_id) do
+    [
+      Interaction.change(
+        intent: option(opts, :change_intent, :change_collection_query),
+        element_id: option(opts, :id),
+        entity: picker_id,
+        mapping: %{query: :value}
+      ),
+      Interaction.selection(
+        intent: option(opts, :selection_intent, :select_collection_item),
+        element_id: option(opts, :id),
+        entity: picker_id,
+        mapping: %{item_id: :item_id, selected_value: :item_id}
+      ),
+      Interaction.command(
+        intent: option(opts, :filter_toggle_intent, :toggle_collection_filter),
+        element_id: option(opts, :id),
+        entity: picker_id,
+        command: :toggle_filter,
+        mapping: %{filter_id: :filter_id}
+      ),
+      Interaction.command(
+        intent: option(opts, :suggestion_accept_intent, :accept_collection_suggestion),
+        element_id: option(opts, :id),
+        entity: picker_id,
+        command: :accept_suggestion,
+        mapping: %{suggestion_id: :suggestion_id}
+      ),
+      Interaction.command(
+        intent: option(opts, :suggestion_dismiss_intent, :dismiss_collection_suggestion),
+        element_id: option(opts, :id),
+        entity: picker_id,
+        command: :dismiss_suggestion,
+        mapping: %{suggestion_id: :suggestion_id}
+      )
+    ]
+  end
+
+  defp normalize_collection_filters!(nil), do: []
+
+  defp normalize_collection_filters!(filters) when is_list(filters) do
+    Enum.map(filters, &normalize_collection_filter!/1)
+  end
+
+  defp normalize_collection_filters!(_filters) do
+    raise ArgumentError, "collection_picker :filters must be a list of maps"
+  end
+
+  defp normalize_collection_filter!(filter) when is_map(filter) or is_list(filter) do
+    filter = normalize_map(filter)
+    id = normalize_required_collection_id!(filter, :id, "filter")
+    label = normalize_required_collection_label!(filter, id, "filter")
+    count = option(filter, :count)
+
+    if not is_nil(count) and not non_negative_integer?(count) do
+      raise ArgumentError, "collection_picker filter :count must be a non-negative integer"
+    end
+
+    %{
+      id: id,
+      label: label
+    }
+    |> maybe_put(:selected?, option(filter, :selected?))
+    |> maybe_put(:count, count)
+    |> maybe_put(:disabled?, option(filter, :disabled?))
+  end
+
+  defp normalize_collection_filter!(_filter) do
+    raise ArgumentError, "collection_picker filters must be maps"
+  end
+
+  defp normalize_collection_items!(nil), do: []
+
+  defp normalize_collection_items!(items) when is_list(items) do
+    Enum.map(items, &normalize_collection_item!/1)
+  end
+
+  defp normalize_collection_items!(_items) do
+    raise ArgumentError, "collection_picker :items must be a list of maps"
+  end
+
+  defp normalize_collection_item!(item) when is_map(item) or is_list(item) do
+    item = normalize_map(item)
+    id = normalize_required_collection_id!(item, :id, "item")
+    label = normalize_required_collection_label!(item, id, "item")
+
+    %{
+      id: id,
+      label: label
+    }
+    |> maybe_put(:description, option(item, :description))
+    |> maybe_put(:meta, normalize_optional_map(option(item, :meta)))
+    |> maybe_put(:selected?, option(item, :selected?))
+    |> maybe_put(:disabled?, option(item, :disabled?))
+    |> maybe_put(:draggable?, option(item, :draggable?))
+  end
+
+  defp normalize_collection_item!(_item) do
+    raise ArgumentError, "collection_picker items must be maps"
+  end
+
+  defp normalize_collection_suggestions!(nil), do: []
+
+  defp normalize_collection_suggestions!(suggestions) when is_list(suggestions) do
+    Enum.map(suggestions, &normalize_collection_suggestion!/1)
+  end
+
+  defp normalize_collection_suggestions!(_suggestions) do
+    raise ArgumentError, "collection_picker :suggestions must be a list of maps"
+  end
+
+  defp normalize_collection_suggestion!(suggestion)
+       when is_map(suggestion) or is_list(suggestion) do
+    suggestion = normalize_map(suggestion)
+    id = normalize_required_collection_id!(suggestion, :id, "suggestion")
+    label = normalize_required_collection_label!(suggestion, id, "suggestion")
+    confidence = option(suggestion, :confidence)
+
+    if not is_nil(confidence) and not normalized_confidence?(confidence) do
+      raise ArgumentError, "collection_picker suggestion :confidence must be in 0.0..1.0"
+    end
+
+    %{
+      id: id,
+      label: label
+    }
+    |> maybe_put(:description, option(suggestion, :description))
+    |> maybe_put(:source, option(suggestion, :source))
+    |> maybe_put(:confidence, if(is_nil(confidence), do: nil, else: confidence / 1))
+    |> maybe_put(:disabled?, option(suggestion, :disabled?))
+  end
+
+  defp normalize_collection_suggestion!(_suggestion) do
+    raise ArgumentError, "collection_picker suggestions must be maps"
+  end
+
+  defp normalize_required_collection_id!(map, key, label) do
+    case option(map, key) do
+      value when is_binary(value) and value != "" -> value
+      value when is_atom(value) and not is_nil(value) -> Atom.to_string(value)
+      value when is_integer(value) -> Integer.to_string(value)
+      _other -> raise ArgumentError, "collection_picker #{label} requires a non-empty :id"
+    end
+  end
+
+  defp normalize_required_collection_label!(map, fallback, label) do
+    case option(map, :label, fallback) do
+      value when is_binary(value) and value != "" -> value
+      value when is_atom(value) and not is_nil(value) -> Atom.to_string(value)
+      value when is_integer(value) -> Integer.to_string(value)
+      _other -> raise ArgumentError, "collection_picker #{label} requires a non-empty :label"
+    end
   end
 
   defp normalize_thread_participants!(nil), do: []

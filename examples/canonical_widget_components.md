@@ -10,7 +10,7 @@ AshUI resource authority.
 | Family | Example canonical kinds | Resource-authoring note |
 |---|---|---|
 | Content, identity, and disclosure | `inline_rich_text_heading`, `avatar`, `disclosure` | Use semantic text segments, identity props, and open state as props on element resources. |
-| Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer` | Keep form and composer actions on the owning element through `ui_actions`. |
+| Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `collection_picker` | Keep form, composer, and picker actions on the owning element through `ui_actions`. |
 | Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card` | Use row identity, artifact metadata, or thread identity as props; avoid custom row shells for cataloged artifact rows. |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `workflow_progress_status_card` | Keep progress and workflow state in props that canonical validation can check. |
 | Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `right_rail` | Preserve accessible names, open state, message text, and rail panel descriptors in canonical props. |
@@ -62,6 +62,22 @@ ui_element do
   })
 
   metadata(%{id: "review_filter_segmented_group"})
+end
+```
+
+```elixir
+ui_element do
+  type(:collection_picker)
+
+  props(%{
+    picker_id: "sources",
+    query: "adr",
+    filters: [%{id: "all", label: "All", selected?: true}],
+    items: [%{id: "adr-0007", label: "ADR-0007", description: "Canonical widget components"}],
+    suggestions: [%{id: "suggestion-1", label: "Add ADR-0008", source: "review"}]
+  })
+
+  metadata(%{id: "source_collection_picker"})
 end
 ```
 

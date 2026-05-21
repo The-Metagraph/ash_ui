@@ -1309,6 +1309,45 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "collection_picker adapter dispatch" do
+    test "generates dedicated collection_picker fallback markup" do
+      iur = %{
+        "type" => "collection_picker",
+        "id" => "source-picker-adapter-test",
+        "props" => %{
+          "collection_picker" => %{
+            "picker_id" => "sources",
+            "title" => "Sources",
+            "query" => "adr",
+            "filters" => [%{"id" => "all", "label" => "All", "selected?" => true}],
+            "items" => [
+              %{
+                "id" => "adr-1",
+                "label" => "ADR 1",
+                "description" => "Architecture decision"
+              }
+            ],
+            "suggestions" => [%{"id" => "suggestion-1", "label" => "Add ADR 2"}]
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-collection-picker"
+      assert heex =~ ~s(data-widget-type="collection_picker")
+      assert heex =~ ~s(data-picker-id="sources")
+      assert heex =~ "Sources"
+      assert heex =~ "ADR 1"
+      assert heex =~ "Architecture decision"
+      assert heex =~ "Add ADR 2"
+      refute heex =~ "bundle_rail"
+      refute heex =~ "on_search_change"
+    end
+  end
+
   describe "workflow_progress_status_card adapter dispatch" do
     test "generates dedicated workflow_progress_status_card markup" do
       iur = %{

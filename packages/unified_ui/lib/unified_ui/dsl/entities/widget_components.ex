@@ -85,7 +85,8 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         validation_state: [type: :atom, required: false],
         summary: [type: :string, required: false]
       ),
-      chat_composer_entity()
+      chat_composer_entity(),
+      collection_picker_entity()
     ]
   end
 
@@ -379,6 +380,32 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
           summary: [type: :string, required: false]
         )
     }
+  end
+
+  defp collection_picker_entity do
+    leaf(
+      :collection_picker,
+      @form_control_family,
+      picker_id: [type: :string, required: true],
+      title: [type: :string, required: false],
+      query: [type: :string, required: false, default: ""],
+      placeholder: [type: :string, required: false, default: "Search collection"],
+      filters: [type: :any, required: false, default: []],
+      items: [type: :any, required: false, default: []],
+      suggestions: [type: :any, required: false, default: []],
+      empty_label: [type: :string, required: false, default: "No matching items."],
+      loading?: [type: :boolean, required: false, default: false],
+      density: [
+        type: {:in, [:compact, :comfortable, :spacious]},
+        required: false
+      ],
+      change_intent: [type: :atom, required: false],
+      selection_intent: [type: :atom, required: false],
+      filter_toggle_intent: [type: :atom, required: false],
+      suggestion_accept_intent: [type: :atom, required: false],
+      suggestion_dismiss_intent: [type: :atom, required: false],
+      summary: [type: :string, required: false]
+    )
   end
 
   defp list_repeat_entity do

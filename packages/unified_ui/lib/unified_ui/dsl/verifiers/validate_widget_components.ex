@@ -40,6 +40,35 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     runtime_module
     url
   ]
+  @collection_picker_forbidden_keys ~w[
+    bundle
+    bundle_id
+    bundle_item
+    bundle_item_card
+    bundle_rail
+    drag_drop_hook
+    event
+    event_target
+    helper
+    item_slot
+    live_action
+    module
+    on_accept_event
+    on_change
+    on_click
+    on_dismiss_event
+    on_search_change
+    on_toggle_event
+    path
+    phx-change
+    phx-click
+    phx_change
+    phx_click
+    phx_event
+    route
+    runtime_module
+    url
+  ]
   @query_preview_states [:loading, :ready, :empty, :error]
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
@@ -124,6 +153,41 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
       not is_integer(rows) or rows < 1 ->
         {:error, [:composition, :chat_composer, id],
          "chat_composer #{inspect(id)} rows must be a positive integer"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :collection_picker,
+        id: id,
+        picker_id: picker_id,
+        query: query,
+        filters: filters,
+        items: items,
+        suggestions: suggestions
+      }) do
+    cond do
+      not is_binary(picker_id) or picker_id == "" ->
+        {:error, [:composition, :collection_picker, id],
+         "collection_picker #{inspect(id)} picker_id must be a non-empty string"}
+
+      not is_binary(query || "") ->
+        {:error, [:composition, :collection_picker, id],
+         "collection_picker #{inspect(id)} query must be a string when present"}
+
+      not valid_collection_picker_filters?(filters || []) ->
+        {:error, [:composition, :collection_picker, id],
+         "collection_picker #{inspect(id)} filters must be generic id/label maps without host-specific event or route fields"}
+
+      not valid_collection_picker_items?(items || []) ->
+        {:error, [:composition, :collection_picker, id],
+         "collection_picker #{inspect(id)} items must be generic id/label maps without bundle-specific slots or host event fields"}
+
+      not valid_collection_picker_suggestions?(suggestions || []) ->
+        {:error, [:composition, :collection_picker, id],
+         "collection_picker #{inspect(id)} suggestions must be generic id/label maps with optional confidence in 0.0..1.0"}
 
       true ->
         :ok
@@ -486,6 +550,77 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
 
   defp valid_options?(_options), do: false
 
+  defp valid_collection_picker_filters?(filters) when is_list(filters) do
+    Enum.all?(filters, &valid_collection_picker_filter?/1)
+  end
+
+  defp valid_collection_picker_filters?(_filters), do: false
+
+  defp valid_collection_picker_filter?(filter) when is_map(filter) or is_list(filter) do
+    filter = normalize_map(filter)
+    selected? = field(filter, :selected?)
+    disabled? = field(filter, :disabled?)
+    count = field(filter, :count)
+
+    valid_scalar?(field(filter, :id)) and is_binary(field(filter, :label)) and
+      (is_nil(selected?) or is_boolean(selected?)) and
+      (is_nil(disabled?) or is_boolean(disabled?)) and
+      (is_nil(count) or valid_non_negative_integer?(count)) and
+      not has_forbidden_collection_picker_key_deep?(filter)
+  end
+
+  defp valid_collection_picker_filter?(_filter), do: false
+
+  defp valid_collection_picker_items?(items) when is_list(items) do
+    Enum.all?(items, &valid_collection_picker_item?/1)
+  end
+
+  defp valid_collection_picker_items?(_items), do: false
+
+  defp valid_collection_picker_item?(item) when is_map(item) or is_list(item) do
+    item = normalize_map(item)
+    selected? = field(item, :selected?)
+    disabled? = field(item, :disabled?)
+    draggable? = field(item, :draggable?)
+    description = field(item, :description)
+    meta = field(item, :meta)
+
+    valid_scalar?(field(item, :id)) and is_binary(field(item, :label)) and
+      (is_nil(description) or is_binary(description)) and
+      (is_nil(meta) or is_map(meta)) and
+      (is_nil(selected?) or is_boolean(selected?)) and
+      (is_nil(disabled?) or is_boolean(disabled?)) and
+      (is_nil(draggable?) or is_boolean(draggable?)) and
+      not has_forbidden_collection_picker_key_deep?(item)
+  end
+
+  defp valid_collection_picker_item?(_item), do: false
+
+  defp valid_collection_picker_suggestions?(suggestions) when is_list(suggestions) do
+    Enum.all?(suggestions, &valid_collection_picker_suggestion?/1)
+  end
+
+  defp valid_collection_picker_suggestions?(_suggestions), do: false
+
+  defp valid_collection_picker_suggestion?(suggestion)
+       when is_map(suggestion) or is_list(suggestion) do
+    suggestion = normalize_map(suggestion)
+    description = field(suggestion, :description)
+    source = field(suggestion, :source)
+    confidence = field(suggestion, :confidence)
+    disabled? = field(suggestion, :disabled?)
+
+    valid_scalar?(field(suggestion, :id)) and is_binary(field(suggestion, :label)) and
+      (is_nil(description) or is_binary(description)) and
+      (is_nil(source) or is_binary(source)) and
+      (is_nil(disabled?) or is_boolean(disabled?)) and
+      (is_nil(confidence) or
+         (is_number(confidence) and confidence >= 0.0 and confidence <= 1.0)) and
+      not has_forbidden_collection_picker_key_deep?(suggestion)
+  end
+
+  defp valid_collection_picker_suggestion?(_suggestion), do: false
+
   defp valid_form_fields?(fields) when is_list(fields) and fields != [] do
     Enum.all?(fields, fn
       field when is_map(field) or is_list(field) ->
@@ -764,6 +899,25 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     |> Map.keys()
     |> Enum.any?(&(to_string(&1) in @progress_card_forbidden_keys))
   end
+
+  defp has_forbidden_collection_picker_key?(map) when is_map(map) do
+    map
+    |> Map.keys()
+    |> Enum.any?(&(to_string(&1) in @collection_picker_forbidden_keys))
+  end
+
+  defp has_forbidden_collection_picker_key?(_map), do: false
+
+  defp has_forbidden_collection_picker_key_deep?(value) when is_map(value) do
+    has_forbidden_collection_picker_key?(value) or
+      Enum.any?(Map.values(value), &has_forbidden_collection_picker_key_deep?/1)
+  end
+
+  defp has_forbidden_collection_picker_key_deep?(value) when is_list(value) do
+    Enum.any?(value, &has_forbidden_collection_picker_key_deep?/1)
+  end
+
+  defp has_forbidden_collection_picker_key_deep?(_value), do: false
 
   defp valid_field_attributes?(nil), do: true
   defp valid_field_attributes?(attributes) when is_map(attributes), do: true

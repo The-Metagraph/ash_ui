@@ -171,17 +171,26 @@ defmodule LiveUi.Renderer do
   # which handles both the non-collapsible (always-expanded) and collapsible
   # (ARIA disclosure pattern) rendering modes.
   def render(%{element: %Element{kind: :sidebar_section}} = assigns) do
-    section_attrs = get_in(assigns.element.attributes, [:section]) || %{}
+    section_attrs = sidebar_section_attributes(assigns.element)
+    expanded? = boolean_default(map_value(section_attrs, :expanded?), true)
 
     assigns =
       assigns
-      |> assign(:section_label, Map.get(section_attrs, :label, ""))
-      |> assign(:collapsible, Map.get(section_attrs, :collapsible?, false))
-      |> assign(:expanded, Map.get(section_attrs, :expanded?, true))
-      |> assign(:on_toggle, Map.get(section_attrs, :on_toggle))
-      |> assign(:action_label, Map.get(section_attrs, :action_label))
-      |> assign(:action_glyph, Map.get(section_attrs, :action_glyph))
-      |> assign(:action_intent, Map.get(section_attrs, :action_intent))
+      |> assign(:section_label, map_value(section_attrs, :label, ""))
+      |> assign(:collapsible, boolean_default(map_value(section_attrs, :collapsible?), false))
+      |> assign(:expanded, expanded?)
+      |> assign(:action_label, map_value(section_attrs, :action_label))
+      |> assign(:action_glyph, map_value(section_attrs, :action_glyph))
+      |> assign(:action_intent, map_value(section_attrs, :action_intent))
+      |> assign(
+        :toggle_attrs,
+        sidebar_section_toggle_attrs(assigns.element, Map.get(assigns, :event_target), expanded?)
+      )
+      |> assign(
+        :action_attrs,
+        Map.new(interaction_event_attrs(assigns.element, Map.get(assigns, :event_target)))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
 
     ~H"""
     <LiveUi.Widgets.SidebarSection.component
@@ -189,14 +198,16 @@ defmodule LiveUi.Renderer do
       label={@section_label}
       collapsible?={@collapsible}
       expanded?={@expanded}
-      on_toggle={@on_toggle}
       action_label={@action_label}
       action_glyph={@action_glyph}
       action_intent={@action_intent}
+      toggle_attrs={@toggle_attrs}
+      action_attrs={@action_attrs}
       tone={style_tone(@element)}
       variant={theme_variant(@element)}
       state={style_state(@element)}
       class={style_class(@element)}
+      {@style_attrs}
     >
       <%= for child <- child_elements(@element, :default) do %>
         <.render element={child} event_target={@event_target} />
@@ -2659,6 +2670,33 @@ defmodule LiveUi.Renderer do
   end
 
   defp query_preview_interaction_attrs(_element, _event_target, _interaction, _query), do: %{}
+
+  defp sidebar_section_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:section, Map.get(element.attributes, "section", %{}))
+    |> case do
+      section when is_map(section) -> Map.new(section)
+      section when is_list(section) -> Map.new(section)
+      _other -> %{}
+    end
+  end
+
+  defp sidebar_section_toggle_attrs(%Element{} = element, event_target, expanded?) do
+    case {primary_interaction(element, :change), event_target} do
+      {%Interaction{} = interaction, target} when not is_nil(target) ->
+        %{
+          :"phx-click" => "canonical_change_interaction",
+          :"phx-target" => target,
+          :"phx-value-change-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "sidebar-section"),
+          :"phx-value-widget" => "sidebar_section",
+          :"phx-value-expanded" => to_string(not expanded?)
+        }
+
+      _ ->
+        %{}
+    end
+  end
 
   defp right_rail_panels(rail) do
     rail

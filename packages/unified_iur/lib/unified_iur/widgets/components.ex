@@ -693,6 +693,7 @@ defmodule UnifiedIUR.Widgets.Components do
   def sidebar_section(label, children \\ [], opts \\ [])
       when is_binary(label) and is_list(children) do
     opts = normalize_opts(opts)
+    opts = put_sidebar_section_interactions(opts, label)
 
     build_component(
       :sidebar_section,
@@ -707,7 +708,6 @@ defmodule UnifiedIUR.Widgets.Components do
           |> maybe_put(:action_glyph, option(opts, :action_glyph))
           |> maybe_put(:action_label, option(opts, :action_label))
           |> maybe_put(:action_intent, option(opts, :action_intent))
-          |> maybe_put(:on_toggle, option(opts, :on_toggle))
       },
       Map.put(opts, :children, children)
     )
@@ -1255,6 +1255,34 @@ defmodule UnifiedIUR.Widgets.Components do
   end
 
   defp normalize_artifact_count(_other), do: %{}
+
+  defp put_sidebar_section_interactions(opts, label) do
+    cond do
+      not option(opts, :collapsible?, false) ->
+        opts
+
+      explicit_interactions?(opts) ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, [sidebar_section_toggle_interaction(opts, label)])
+    end
+  end
+
+  defp sidebar_section_toggle_interaction(opts, label) do
+    Interaction.change(
+      intent:
+        option(opts, :toggle_intent, option(opts, :collapse_intent, :toggle_sidebar_section)),
+      element_id: option(opts, :id),
+      entity: option(opts, :section_id, option(opts, :id, label)),
+      mapping: %{expanded?: :expanded}
+    )
+  end
+
+  defp explicit_interactions?(opts) do
+    Map.has_key?(opts, :interactions) or Map.has_key?(opts, "interactions") or
+      Map.has_key?(opts, :interaction) or Map.has_key?(opts, "interaction")
+  end
 
   defp put_thread_open_interaction(opts, thread_id) do
     cond do

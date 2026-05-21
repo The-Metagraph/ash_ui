@@ -550,6 +550,36 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              repeat.children
   end
 
+  test "represents collapsible sidebar sections with semantic change interactions" do
+    section =
+      Components.sidebar_section("Docs", [],
+        id: "docs-section",
+        collapsible?: true,
+        expanded?: false,
+        on_toggle: "ui_relationship_toggle_section"
+      )
+
+    assert section.kind == :sidebar_section
+
+    assert section.attributes.component == %{
+             family: :layer_shell_and_callout,
+             kind: :sidebar_section
+           }
+
+    assert section.attributes.section == %{
+             label: "Docs",
+             collapsible?: true,
+             expanded?: false
+           }
+
+    assert [%Interaction{family: :change, intent: :toggle_sidebar_section} = interaction] =
+             section.attributes.interactions
+
+    assert interaction.source == %{element_id: "docs-section"}
+    assert interaction.target == %{entity: "docs-section"}
+    assert interaction.payload == %{mapping: %{expanded?: :expanded}}
+  end
+
   test "represents canonical right rail panels and children" do
     rail =
       Components.right_rail(

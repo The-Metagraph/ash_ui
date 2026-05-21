@@ -567,6 +567,9 @@ defmodule LiveUi.Stylesheet do
 
     [data-live-ui-widget="tabs"] [role="tab"] {
       appearance: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
       border: 1px solid color-mix(in srgb, var(--live-ui-theme-border-strong) 88%, transparent);
       border-radius: 999px;
       background: color-mix(in srgb, var(--live-ui-theme-surface-base) 88%, white 12%);
@@ -575,6 +578,17 @@ defmodule LiveUi.Stylesheet do
       font: inherit;
       cursor: pointer;
       transition: border-color 140ms ease, background 140ms ease, transform 120ms ease;
+    }
+
+    [data-live-ui-widget="tabs"] .live-ui-tabs-item-count {
+      min-width: 1.45em;
+      padding: 0.08rem 0.42rem;
+      border-radius: 999px;
+      background: color-mix(in srgb, currentColor 12%, transparent);
+      font-size: 0.78em;
+      font-weight: 650;
+      line-height: 1.35;
+      text-align: center;
     }
 
     [data-live-ui-widget="tabs"] [role="tab"]:hover {

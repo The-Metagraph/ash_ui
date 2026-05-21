@@ -131,6 +131,13 @@ defmodule UnifiedIUR.Widgets.Navigation do
     Enum.map(items, fn item ->
       item = normalize_opts(item)
 
+      count = option(item, :count)
+
+      unless is_nil(count) or (is_integer(count) and count >= 0) do
+        raise ArgumentError,
+              "tabs item :count must be a non-negative integer or nil, got #{inspect(count)}"
+      end
+
       %{}
       |> maybe_put(:id, option(item, :id))
       |> maybe_put(:label, option(item, :label))
@@ -138,6 +145,7 @@ defmodule UnifiedIUR.Widgets.Navigation do
       |> maybe_put(:description, option(item, :description))
       |> maybe_put(:disabled?, option(item, :disabled?))
       |> maybe_put(:active?, option(item, :active?))
+      |> maybe_put(:count, count)
     end)
   end
 

@@ -139,7 +139,10 @@ defmodule LiveUi.Renderer do
           disabled={Map.get(item, :disabled)}
           {Map.get(item, :attrs, %{})}
         >
-          {Map.get(item, :label) || Map.get(item, "label") || ""}
+          <%= if glyph = map_value(item, :glyph) do %>
+            <span class="live-ui-mode-nav-item__glyph" aria-hidden="true">{glyph}</span>
+          <% end %>
+          <span class="live-ui-mode-nav-item__label">{map_value(item, :label, "")}</span>
         </button>
       <% end %>
     </nav>

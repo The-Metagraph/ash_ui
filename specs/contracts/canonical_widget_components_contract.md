@@ -44,6 +44,7 @@ Ash UI MUST adopt these canonical widget-component kinds:
 | `code_block_syntax_highlighted` | redline and code | - |
 | `chat_composer` | form control and composer | - |
 | `collection_picker` | form control and composer | - |
+| `mode_nav` | form control and composer | - |
 | `list_repeat` | composition behavior | `repeat`, `ui_relationship_repeat` |
 
 ## Requirements
@@ -88,6 +89,8 @@ Ash UI MUST map component props into the canonical attribute namespaces expected
 Acceptance criteria:
 
 - Component attributes match `UnifiedIUR.Widgets.Components` constructor output where practical.
+- `mode_nav` item descriptors may include optional `glyph` as a free string
+  decorative display affordance; labels remain the accessible item names.
 - Component family metadata is preserved when required by the upstream contract.
 - Ash-owned resource metadata stays under Ash-owned metadata keys.
 - Unknown passthrough props do not overwrite canonical namespaces.

@@ -901,9 +901,12 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     args = prop(tool_call, "args", prop(props, "args", %{}))
     result = prop(tool_call, "tool_result_summary", prop(props, "tool_result_summary"))
 
+    iur_id = iur["id"] || iur[:id] || "tool-call-card"
+    details_id = "#{iur_id}-details"
+
     args_html =
       if expanded? do
-        ~s(<section class="ash-tool-call-card__details"><h4 class="ash-tool-call-card__args-label">Args</h4><pre class="ash-tool-call-card__args"><code>#{html_escape(inspect(args, pretty: true, limit: :infinity, printable_limit: :infinity))}</code></pre></section>)
+        ~s(<section id="#{details_id}" class="ash-tool-call-card__details"><h4 class="ash-tool-call-card__args-label">Args</h4><pre class="ash-tool-call-card__args"><code>#{html_escape(inspect(args, pretty: true, limit: :infinity, printable_limit: :infinity))}</code></pre></section>)
       else
         ""
       end
@@ -925,7 +928,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
           <section class="#{css_classes(["ash-tool-call-card__result", error? && "has-error"])}">
             <header class="ash-tool-call-card__result-header">
               <span class="ash-tool-call-card__result-event">#{event_id}</span>
-              <span class="ash-tool-call-card__result-status ash-tool-call-card__result-status-#{result_status}">#{result_status}</span>
+              <span class="ash-tool-call-card__result-status ash-tool-call-card__result-status--#{result_status}">#{result_status}</span>
             </header>
             <p class="ash-tool-call-card__result-output">#{compact_output}</p>
             #{if diff_summary, do: "<p class=\"ash-tool-call-card__result-diff\">#{diff_summary}</p>", else: ""}
@@ -935,17 +938,17 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       end
 
     """
-    <article class="#{css_classes(["ash-tool-call-card", "ash-tool-call-card-#{status}", expanded? && "is-expanded", prop_class(iur)])}" data-live-ui-widget="tool-call-card" data-tool-kind="#{tool_kind}" data-status="#{status}"#{style_attr(prop_style(iur))}>
+    <article id="#{iur_id}" class="#{css_classes(["ash-tool-call-card", "ash-tool-call-card--#{status}", expanded? && "is-expanded", prop_class(iur)])}" data-live-ui-widget="tool-call-card" data-tool-kind="#{tool_kind}" data-status="#{status}"#{style_attr(prop_style(iur))}>
       <header class="ash-tool-call-card__header">
         <span class="ash-tool-call-card__glyph" aria-hidden="true">#{tool_kind}</span>
         <div class="ash-tool-call-card__identity">
           <h3 class="ash-tool-call-card__name">#{tool_name}</h3>
           <p class="ash-tool-call-card__target">#{target}</p>
         </div>
-        <span class="ash-tool-call-card__status-badge ash-tool-call-card__status-badge-#{status}">#{status}</span>
+        <span class="ash-tool-call-card__status-badge ash-tool-call-card__status-badge--#{status}">#{status}</span>
       </header>
       <p class="ash-tool-call-card__summary">#{summary}</p>
-      <button type="button" class="ash-tool-call-card__expand-toggle" aria-label="Toggle tool call #{tool_name} details" aria-expanded="#{expanded?}">Details</button>
+      <button type="button" class="ash-tool-call-card__expand-toggle" aria-label="Toggle tool call #{tool_name} (#{status}) details" aria-expanded="#{expanded?}" aria-controls="#{details_id}">Details</button>
       #{args_html}
       #{result_html}
     </article>

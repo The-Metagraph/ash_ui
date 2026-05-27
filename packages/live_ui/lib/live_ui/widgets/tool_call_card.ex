@@ -74,7 +74,7 @@ defmodule LiveUi.Widgets.ToolCallCard do
       <button
         type="button"
         class="live-ui-tool-call-card__expand-toggle"
-        aria-label={"Toggle tool call #{@tool_name} details"}
+        aria-label={"Toggle tool call #{@tool_name} (#{@status}) details"}
         aria-expanded={if @expanded?, do: "true", else: "false"}
         aria-controls={"#{@id}-details"}
         {expand_button_attrs(@expand_attrs)}

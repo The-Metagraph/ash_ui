@@ -83,7 +83,7 @@ defmodule LiveUi.Widgets.ToolCallCardTest do
         )
 
       assert html =~ "live-ui-tool-call-card__expand-toggle"
-      assert html =~ ~s(aria-label="Toggle tool call Bash details")
+      assert html =~ ~s|aria-label="Toggle tool call Bash (pending) details"|
       assert html =~ ~s(phx-click="expand_toggled")
     end
 

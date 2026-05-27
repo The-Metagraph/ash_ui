@@ -114,8 +114,8 @@ defmodule LiveUi.Widgets.ProposeNewDocCard do
           Conversation seed
         </button>
         <pre
-          :if={@seed_expanded?}
           id={@seed_id}
+          hidden={not @seed_expanded?}
           class="live-ui-propose-new-doc-card__conversation-seed"
         ><%= preview_text(@conversation_seed_md) %></pre>
       </section>

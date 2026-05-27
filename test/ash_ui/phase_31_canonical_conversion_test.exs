@@ -62,6 +62,13 @@ defmodule AshUI.Phase31CanonicalConversionTest do
          %{id: "finding-1", n: 1, snippet: "Conformance missing", confidence: 0.91}
        ]
      }, :query_preview},
+    {:propose_new_doc_card, :layer_shell_and_callout,
+     %{
+       target_path: "docs/proposed.md",
+       title: "Proposed brief",
+       body_md_preview: "Short draft preview.",
+       status: :pending
+     }, :propose_new_doc},
     {:redline_inline, :redline_and_code, %{segments: [%{state: :insert, text: "new"}]}, :redline},
     {:code_block_syntax_highlighted, :redline_and_code,
      %{language: :elixir, tokens: [%{type: :keyword, text: "def"}]}, :code},

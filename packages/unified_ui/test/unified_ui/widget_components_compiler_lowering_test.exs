@@ -143,6 +143,20 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
         dismiss_intent(:dismiss_query_preview)
       end
 
+      propose_new_doc_card :doc_proposal do
+        target_path("docs/proposed.md")
+        title("Proposed brief")
+        body_md_preview("Short draft preview.")
+        body_md("Short draft preview.\n\nFull draft body.")
+        status(:pending)
+        conversation_seed_md("Operator requested a brief.")
+        actor_handle("@pascal")
+        proposed_at("2026-05-27T10:00:00Z")
+        accept_intent(:accept_doc_proposal)
+        reject_intent(:reject_doc_proposal)
+        preview_intent(:preview_doc_proposal)
+      end
+
       right_rail :workspace_rail do
         side(:right)
 
@@ -188,6 +202,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     progress = Tree.find_by_id(iur, :quality_bar)
     panel = Tree.find_by_id(iur, :details_panel)
     query_preview = Tree.find_by_id(iur, :query_preview)
+    proposal = Tree.find_by_id(iur, :doc_proposal)
     rail = Tree.find_by_id(iur, :workspace_rail)
     code = Tree.find_by_id(iur, :code_sample)
 
@@ -293,6 +308,25 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              save_label: "Save query"
            }
 
+    assert proposal.attributes.component == %{
+             family: :layer_shell_and_callout,
+             kind: :propose_new_doc_card
+           }
+
+    assert proposal.attributes.propose_new_doc == %{
+             target_path: "docs/proposed.md",
+             title: "Proposed brief",
+             body_md_preview: "Short draft preview.",
+             body_md: "Short draft preview.\n\nFull draft body.",
+             conversation_seed_md: "Operator requested a brief.",
+             actor_handle: "@pascal",
+             proposed_at: "2026-05-27T10:00:00Z",
+             status: :pending,
+             type: :document_creation,
+             action_class: :document_creation,
+             actions: [:accept, :reject, :preview]
+           }
+
     assert rail.attributes.component == %{
              family: :layer_shell_and_callout,
              kind: :right_rail
@@ -333,6 +367,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     panel = Tree.find_by_id(iur, :details_panel)
     callout = Tree.find_by_id(iur, :incident_callout)
     query_preview = Tree.find_by_id(iur, :query_preview)
+    proposal = Tree.find_by_id(iur, :doc_proposal)
     rail = Tree.find_by_id(iur, :workspace_rail)
 
     assert [%Interaction{family: :selection, intent: :select_status} = selection] =
@@ -386,6 +421,12 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              {:close, :dismiss_query_preview},
              {:open, :open_query_preview},
              {:command, :save_query}
+           ]
+
+    assert Enum.map(proposal.attributes.interactions, &{&1.family, &1.intent}) == [
+             {:command, :accept_doc_proposal},
+             {:command, :reject_doc_proposal},
+             {:command, :preview_doc_proposal}
            ]
 
     assert [

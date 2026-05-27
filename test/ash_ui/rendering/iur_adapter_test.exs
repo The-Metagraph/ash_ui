@@ -318,6 +318,81 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert error.message =~ "thread_card requires a non-empty :thread_id"
     end
 
+    test "routes propose_new_doc_card kind through layer_shell_and_callout family with canonical actions" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "propose-doc-screen",
+          name: "propose_doc_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:propose_new_doc_card,
+              id: "proposal-1",
+              props: %{
+                "target_path" => "docs/proposed.md",
+                "title" => "Proposed brief",
+                "body_md_preview" => "Short draft preview.",
+                "status" => "pending",
+                "conversation_seed_md" => "Operator requested a brief.",
+                "actor_handle" => "@pascal",
+                "proposed_at" => "2026-05-27T10:00:00Z"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :propose_new_doc_card
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :layer_shell_and_callout
+
+      assert child.element.attributes.propose_new_doc == %{
+               target_path: "docs/proposed.md",
+               title: "Proposed brief",
+               body_md_preview: "Short draft preview.",
+               conversation_seed_md: "Operator requested a brief.",
+               actor_handle: "@pascal",
+               proposed_at: "2026-05-27T10:00:00Z",
+               status: :pending,
+               type: :document_creation,
+               action_class: :document_creation,
+               actions: [:accept, :reject, :preview]
+             }
+
+      assert [
+               %UnifiedIUR.Interaction{family: :command, intent: :accept_proposed_doc},
+               %UnifiedIUR.Interaction{family: :command, intent: :reject_proposed_doc},
+               %UnifiedIUR.Interaction{family: :command, intent: :preview_proposed_doc}
+             ] = child.element.attributes.interactions
+
+      assert :ok = UnifiedIUR.Validate.element(child.element)
+    end
+
+    test "returns structured conversion errors for invalid propose_new_doc_card payloads" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "propose-doc-screen-invalid",
+          name: "propose_doc_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:propose_new_doc_card,
+              id: "proposal-invalid",
+              props: %{
+                "target_path" => "docs/proposed.md",
+                "title" => "Proposed brief",
+                "body_md_preview" => "Short draft preview.",
+                "status" => "open"
+              }
+            )
+          ]
+        )
+
+      assert {:error, {:conversion_failed, %ArgumentError{} = error}} =
+               IURAdapter.to_canonical(ash_iur)
+
+      assert error.message =~ "propose_new_doc_card :status must be one of"
+    end
+
     test "routes workflow_progress_status_card kind through workflow_progress_and_status family" do
       ash_iur =
         IUR.new(:screen,

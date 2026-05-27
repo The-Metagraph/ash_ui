@@ -70,6 +70,8 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
     url
   ]
   @query_preview_states [:loading, :ready, :empty, :error]
+  @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
+  @propose_new_doc_actions [:accept, :reject, :preview]
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
   def verify(dsl) do
@@ -441,6 +443,51 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
       not valid_positive_integer?(max_findings_shown) ->
         {:error, [:composition, :composer_query_preview, id],
          "composer_query_preview #{inspect(id)} max_findings_shown must be a positive integer"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :propose_new_doc_card,
+        id: id,
+        target_path: target_path,
+        title: title,
+        body_md_preview: body_md_preview,
+        body_md: body_md,
+        status: status,
+        conversation_seed_md: conversation_seed_md,
+        actor_handle: actor_handle,
+        proposed_at: proposed_at,
+        actions: actions
+      }) do
+    cond do
+      not non_blank_string?(target_path) ->
+        {:error, [:composition, :propose_new_doc_card, id],
+         "propose_new_doc_card #{inspect(id)} target_path must be a non-empty string"}
+
+      not non_blank_string?(title) ->
+        {:error, [:composition, :propose_new_doc_card, id],
+         "propose_new_doc_card #{inspect(id)} title must be a non-empty string"}
+
+      not non_blank_string?(body_md_preview) and not non_blank_string?(body_md) ->
+        {:error, [:composition, :propose_new_doc_card, id],
+         "propose_new_doc_card #{inspect(id)} body_md_preview or body_md must be a non-empty string"}
+
+      not optional_string?(body_md_preview) or not optional_string?(body_md) or
+        not optional_string?(conversation_seed_md) or not optional_string?(actor_handle) or
+          not optional_string?(proposed_at) ->
+        {:error, [:composition, :propose_new_doc_card, id],
+         "propose_new_doc_card #{inspect(id)} markdown, actor, and timestamp fields must be strings when present"}
+
+      status not in @propose_new_doc_statuses ->
+        {:error, [:composition, :propose_new_doc_card, id],
+         "propose_new_doc_card #{inspect(id)} status must be one of #{inspect(@propose_new_doc_statuses)}"}
+
+      not valid_propose_new_doc_actions?(actions) ->
+        {:error, [:composition, :propose_new_doc_card, id],
+         "propose_new_doc_card #{inspect(id)} actions must be a list containing only accept, reject, or preview"}
 
       true ->
         :ok
@@ -932,6 +979,16 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   defp valid_scalar?(""), do: false
   defp valid_scalar?(value) when is_atom(value) or is_binary(value) or is_number(value), do: true
   defp valid_scalar?(_value), do: false
+
+  defp non_blank_string?(value), do: is_binary(value) and String.trim(value) != ""
+  defp optional_string?(nil), do: true
+  defp optional_string?(value), do: is_binary(value)
+
+  defp valid_propose_new_doc_actions?(actions) when is_list(actions) do
+    actions != [] and Enum.all?(actions, &(&1 in @propose_new_doc_actions))
+  end
+
+  defp valid_propose_new_doc_actions?(_actions), do: false
 
   defp positive_number?(value) when is_number(value), do: value > 0
   defp positive_number?(_value), do: false

@@ -1309,6 +1309,68 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "propose_new_doc_card adapter dispatch" do
+    test "generates dedicated propose_new_doc_card fallback markup" do
+      iur = %{
+        "type" => "propose_new_doc_card",
+        "id" => "proposal-adapter-test",
+        "props" => %{
+          "propose_new_doc" => %{
+            "target_path" => "docs/proposed.md",
+            "title" => "Proposed brief",
+            "body_md_preview" => "Short draft preview.",
+            "body_md" => "Short draft preview.\n\nFull draft body.",
+            "conversation_seed_md" => "Operator requested a brief.",
+            "actor_handle" => "@pascal",
+            "proposed_at" => "2026-05-27T10:00:00Z",
+            "status" => "pending"
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-propose-new-doc-card"
+      assert heex =~ ~s(data-live-ui-widget="propose-new-doc-card")
+      assert heex =~ ~s(data-status="pending")
+      assert heex =~ ~s(data-target-path="docs/proposed.md")
+      assert heex =~ "Proposed brief"
+      assert heex =~ "docs/proposed.md"
+      assert heex =~ "Short draft preview."
+      assert heex =~ "Show full draft"
+      assert heex =~ "Conversation seed"
+      assert heex =~ ~s(aria-label="Accept proposed document Proposed brief")
+      assert heex =~ ~s(aria-label="Reject proposed document Proposed brief")
+      assert heex =~ ~s(aria-label="Preview proposed document Proposed brief")
+    end
+
+    test "locks accept and reject actions for resolved proposals" do
+      iur = %{
+        "type" => "propose_new_doc_card",
+        "id" => "proposal-adapter-accepted",
+        "props" => %{
+          "propose_new_doc" => %{
+            "target_path" => "docs/proposed.md",
+            "title" => "Proposed brief",
+            "body_md_preview" => "Short draft preview.",
+            "status" => "accepted"
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-propose-new-doc-card__locked-message"
+      refute heex =~ "ash-propose-new-doc-card__accept"
+      refute heex =~ "ash-propose-new-doc-card__reject"
+      assert heex =~ "ash-propose-new-doc-card__preview"
+    end
+  end
+
   describe "collection_picker adapter dispatch" do
     test "generates dedicated collection_picker fallback markup" do
       iur = %{

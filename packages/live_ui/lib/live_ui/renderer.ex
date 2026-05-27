@@ -877,6 +877,46 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:propose_new_doc_card` is a canonical layer-shell callout. Keep this
+  # native clause before the generic component fallback so decision actions keep
+  # canonical interaction transport.
+  def render(%{element: %Element{kind: :propose_new_doc_card}} = assigns) do
+    proposal = propose_new_doc_attributes(assigns.element)
+
+    assigns =
+      assigns
+      |> assign(:proposal, proposal)
+      |> assign(
+        :action_attrs,
+        propose_new_doc_action_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.ProposeNewDocCard.component
+      id={element_id(@element, "propose-new-doc-card")}
+      target_path={string_value(map_value(@proposal, :target_path), "")}
+      title={string_value(map_value(@proposal, :title), "")}
+      body_md_preview={string_value(map_value(@proposal, :body_md_preview, map_value(@proposal, :body_md)), "")}
+      body_md={string_optional(map_value(@proposal, :body_md))}
+      status={map_value(@proposal, :status, :pending)}
+      conversation_seed_md={string_optional(map_value(@proposal, :conversation_seed_md))}
+      actor_handle={string_optional(map_value(@proposal, :actor_handle))}
+      proposed_at={string_optional(map_value(@proposal, :proposed_at))}
+      expanded?={boolean_default(map_value(@proposal, :expanded?), false)}
+      seed_expanded?={boolean_default(map_value(@proposal, :seed_expanded?), false)}
+      accept_attrs={Map.get(@action_attrs, :accept, %{})}
+      reject_attrs={Map.get(@action_attrs, :reject, %{})}
+      preview_attrs={Map.get(@action_attrs, :preview, %{})}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -2673,6 +2713,59 @@ defmodule LiveUi.Renderer do
   end
 
   defp query_preview_interaction_attrs(_element, _event_target, _interaction, _query), do: %{}
+
+  defp propose_new_doc_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:propose_new_doc, Map.get(element.attributes, "propose_new_doc", %{}))
+    |> case do
+      proposal when is_map(proposal) -> proposal
+      proposal when is_list(proposal) -> Map.new(proposal)
+      _other -> %{}
+    end
+  end
+
+  defp propose_new_doc_action_attrs(%Element{} = element, event_target) do
+    %{
+      accept: propose_new_doc_interaction_attrs(element, event_target, :accept),
+      reject: propose_new_doc_interaction_attrs(element, event_target, :reject),
+      preview: propose_new_doc_interaction_attrs(element, event_target, :preview)
+    }
+  end
+
+  defp propose_new_doc_interaction_attrs(%Element{} = element, event_target, action)
+       when not is_nil(event_target) do
+    case propose_new_doc_interaction(element, action) do
+      %Interaction{} = interaction ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => event_target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "propose-new-doc-card"),
+          :"phx-value-widget" => "propose_new_doc_card",
+          :"phx-value-action" => Atom.to_string(action),
+          :"phx-value-target_path" =>
+            element |> propose_new_doc_attributes() |> map_value(:target_path, "") |> to_string()
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp propose_new_doc_interaction_attrs(_element, _event_target, _action), do: %{}
+
+  defp propose_new_doc_interaction(%Element{} = element, action) do
+    element.attributes
+    |> Map.get(:interactions, [])
+    |> List.wrap()
+    |> Enum.find(fn
+      %Interaction{family: :command, payload: payload, intent: intent} ->
+        map_value(payload, :command) == action or intent == action or intent == to_string(action)
+
+      _other ->
+        false
+    end)
+  end
 
   defp sidebar_section_attributes(%Element{} = element) do
     element.attributes

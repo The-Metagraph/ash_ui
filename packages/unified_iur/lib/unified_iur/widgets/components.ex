@@ -75,10 +75,12 @@ defmodule UnifiedIUR.Widgets.Components do
     :sidebar_item,
     :right_rail,
     :command_palette,
-    :composer_query_preview
+    :composer_query_preview,
+    :propose_new_doc_card
   ]
 
   @query_preview_states [:loading, :ready, :empty, :error]
+  @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
 
   @redline_code_kinds [
     :redline_inline,
@@ -1158,6 +1160,69 @@ defmodule UnifiedIUR.Widgets.Components do
     )
   end
 
+  @spec propose_new_doc_card(opts()) :: Element.t()
+  def propose_new_doc_card(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    target_path =
+      required_non_blank_string!(
+        opts,
+        :target_path,
+        "propose_new_doc_card requires a non-empty :target_path string"
+      )
+
+    title =
+      required_non_blank_string!(
+        opts,
+        :title,
+        "propose_new_doc_card requires a non-empty :title string"
+      )
+
+    body_md = optional_string!(option(opts, :body_md), :body_md)
+
+    body_md_preview =
+      option(opts, :body_md_preview, body_md)
+      |> required_string_value!(
+        :body_md_preview,
+        "propose_new_doc_card requires a non-empty :body_md_preview string or :body_md string"
+      )
+
+    status = normalize_propose_new_doc_status!(option(opts, :status))
+
+    actions =
+      normalize_propose_new_doc_actions!(option(opts, :actions, [:accept, :reject, :preview]))
+
+    opts = put_propose_new_doc_interactions(opts, target_path, actions)
+
+    build_component(
+      :propose_new_doc_card,
+      :layer_shell_and_callout,
+      %{
+        propose_new_doc:
+          %{
+            target_path: target_path,
+            title: title,
+            body_md_preview: body_md_preview,
+            status: status,
+            type: :document_creation,
+            action_class: :document_creation,
+            actions: actions
+          }
+          |> maybe_put(:body_md, body_md)
+          |> maybe_put(
+            :conversation_seed_md,
+            optional_string!(option(opts, :conversation_seed_md), :conversation_seed_md)
+          )
+          |> maybe_put(
+            :actor_handle,
+            optional_string!(option(opts, :actor_handle), :actor_handle)
+          )
+          |> maybe_put(:proposed_at, optional_string!(option(opts, :proposed_at), :proposed_at))
+      },
+      opts
+    )
+  end
+
   defp build_component(kind, family, kind_attributes, opts) do
     opts = normalize_opts(opts)
 
@@ -1344,6 +1409,38 @@ defmodule UnifiedIUR.Widgets.Components do
       )
     ]
   end
+
+  defp put_propose_new_doc_interactions(opts, target_path, actions) do
+    cond do
+      explicit_interactions?(opts) ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, propose_new_doc_interactions(opts, target_path, actions))
+    end
+  end
+
+  defp propose_new_doc_interactions(opts, target_path, actions) do
+    actions
+    |> Enum.map(fn action ->
+      Interaction.command(
+        intent: propose_new_doc_intent(opts, action),
+        element_id: option(opts, :id),
+        entity: target_path,
+        command: action,
+        value: target_path
+      )
+    end)
+  end
+
+  defp propose_new_doc_intent(opts, :accept),
+    do: option(opts, :accept_intent, :accept_proposed_doc)
+
+  defp propose_new_doc_intent(opts, :reject),
+    do: option(opts, :reject_intent, :reject_proposed_doc)
+
+  defp propose_new_doc_intent(opts, :preview),
+    do: option(opts, :preview_intent, :preview_proposed_doc)
 
   defp put_collection_picker_interactions(opts, picker_id) do
     cond do
@@ -1550,6 +1647,66 @@ defmodule UnifiedIUR.Widgets.Components do
     raise ArgumentError, "thread_card :progress_pct must be a number"
   end
 
+  defp normalize_propose_new_doc_status!(status) when status in @propose_new_doc_statuses,
+    do: status
+
+  defp normalize_propose_new_doc_status!(status) when is_binary(status) do
+    status
+    |> String.to_existing_atom()
+    |> normalize_propose_new_doc_status!()
+  rescue
+    ArgumentError ->
+      raise ArgumentError,
+            "propose_new_doc_card :status must be one of #{inspect(@propose_new_doc_statuses)}"
+  end
+
+  defp normalize_propose_new_doc_status!(_status) do
+    raise ArgumentError,
+          "propose_new_doc_card :status must be one of #{inspect(@propose_new_doc_statuses)}"
+  end
+
+  defp normalize_propose_new_doc_actions!(actions) when is_list(actions) do
+    actions =
+      Enum.map(actions, fn
+        action when action in [:accept, :reject, :preview] ->
+          action
+
+        action when is_binary(action) ->
+          normalize_propose_new_doc_action!(action)
+
+        action ->
+          raise ArgumentError,
+                "propose_new_doc_card actions must be one of [:accept, :reject, :preview], got: #{inspect(action)}"
+      end)
+
+    if actions == [] do
+      raise ArgumentError, "propose_new_doc_card actions must include at least one action"
+    end
+
+    actions
+  end
+
+  defp normalize_propose_new_doc_actions!(_actions) do
+    raise ArgumentError, "propose_new_doc_card :actions must be a list"
+  end
+
+  defp normalize_propose_new_doc_action!(action) do
+    case action do
+      "accept" ->
+        :accept
+
+      "reject" ->
+        :reject
+
+      "preview" ->
+        :preview
+
+      _other ->
+        raise ArgumentError,
+              "propose_new_doc_card actions must be one of [:accept, :reject, :preview], got: #{inspect(action)}"
+    end
+  end
+
   defp normalize_query_preview_state!(state) when state in @query_preview_states, do: state
 
   defp normalize_query_preview_state!(state) when is_binary(state) do
@@ -1637,6 +1794,29 @@ defmodule UnifiedIUR.Widgets.Components do
       value when is_binary(value) and value != "" -> value
       _other -> raise ArgumentError, message
     end
+  end
+
+  defp required_non_blank_string!(opts, key, message) do
+    case option(opts, key) do
+      value when is_binary(value) ->
+        if String.trim(value) == "", do: raise(ArgumentError, message), else: value
+
+      _other ->
+        raise ArgumentError, message
+    end
+  end
+
+  defp required_string_value!(value, _key, message) when is_binary(value) do
+    if String.trim(value) == "", do: raise(ArgumentError, message), else: value
+  end
+
+  defp required_string_value!(_value, _key, message), do: raise(ArgumentError, message)
+
+  defp optional_string!(nil, _key), do: nil
+  defp optional_string!(value, _key) when is_binary(value), do: value
+
+  defp optional_string!(value, key) do
+    raise ArgumentError, "propose_new_doc_card :#{key} must be a string, got: #{inspect(value)}"
   end
 
   defp validate_positive_integer!(value, field) do

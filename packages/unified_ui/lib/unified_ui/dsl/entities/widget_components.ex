@@ -14,6 +14,7 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   @composition_behavior_family :composition_behavior
   @presence_states [:active, :away, :offline, :focus, :do_not_disturb]
   @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
+  @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
 
   @spec entities() :: [Spark.Dsl.Entity.t()]
   def entities do
@@ -240,6 +241,23 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         open_intent: [type: :atom, required: false],
         save_intent: [type: :atom, required: false],
         dismiss_intent: [type: :atom, required: false],
+        summary: [type: :string, required: false]
+      ),
+      leaf(
+        :propose_new_doc_card,
+        @layer_family,
+        target_path: [type: :string, required: true],
+        title: [type: :string, required: true],
+        body_md_preview: [type: :string, required: false],
+        body_md: [type: :string, required: false],
+        status: [type: {:in, @propose_new_doc_statuses}, required: true],
+        conversation_seed_md: [type: :string, required: false],
+        actor_handle: [type: :string, required: false],
+        proposed_at: [type: :string, required: false],
+        actions: [type: :any, required: false, default: [:accept, :reject, :preview]],
+        accept_intent: [type: :atom, required: false],
+        reject_intent: [type: :atom, required: false],
+        preview_intent: [type: :atom, required: false],
         summary: [type: :string, required: false]
       ),
       right_rail_entity()

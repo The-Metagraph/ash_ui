@@ -51,7 +51,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :sidebar_item,
              :right_rail,
              :command_palette,
-             :composer_query_preview
+             :composer_query_preview,
+             :propose_new_doc_card
            ]
 
     assert Components.redline_code_kinds() == [
@@ -355,6 +356,43 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     end
   end
 
+  test "validates canonical propose new doc card shape" do
+    assert_raise ArgumentError, ~r/non-empty :target_path/, fn ->
+      Components.propose_new_doc_card(
+        title: "Proposed brief",
+        body_md_preview: "Draft body",
+        status: :pending
+      )
+    end
+
+    assert_raise ArgumentError, ~r/body_md_preview string or :body_md string/, fn ->
+      Components.propose_new_doc_card(
+        target_path: "docs/proposed.md",
+        title: "Proposed brief",
+        status: :pending
+      )
+    end
+
+    assert_raise ArgumentError, ~r/status must be one of/, fn ->
+      Components.propose_new_doc_card(
+        target_path: "docs/proposed.md",
+        title: "Proposed brief",
+        body_md_preview: "Draft body",
+        status: :open
+      )
+    end
+
+    assert_raise ArgumentError, ~r/actions must be one of/, fn ->
+      Components.propose_new_doc_card(
+        target_path: "docs/proposed.md",
+        title: "Proposed brief",
+        body_md_preview: "Draft body",
+        status: :pending,
+        actions: [:accept, :delete]
+      )
+    end
+  end
+
   test "represents workflow, layer, callout, redline, and code components" do
     stepper =
       Components.pipeline_stepper_horizontal(
@@ -408,6 +446,19 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         findings: [
           %{id: "finding-1", n: 1, snippet: "Conformance missing", confidence: 0.91}
         ]
+      )
+
+    proposal =
+      Components.propose_new_doc_card(
+        id: "proposal-1",
+        target_path: "docs/proposed.md",
+        title: "Proposed brief",
+        body_md_preview: "Short draft preview.",
+        body_md: "Short draft preview.\n\nFull draft body.",
+        conversation_seed_md: "Seed request",
+        actor_handle: "@pascal",
+        proposed_at: "2026-05-27T10:00:00Z",
+        status: :pending
       )
 
     redline = Components.redline_inline([%{state: :insert, text: "new"}])
@@ -501,6 +552,31 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              %Interaction{family: :open, intent: :open_query_preview},
              %Interaction{family: :command, intent: :save_query}
            ] = query_preview.attributes.interactions
+
+    assert proposal.attributes.component == %{
+             family: :layer_shell_and_callout,
+             kind: :propose_new_doc_card
+           }
+
+    assert proposal.attributes.propose_new_doc == %{
+             target_path: "docs/proposed.md",
+             title: "Proposed brief",
+             body_md_preview: "Short draft preview.",
+             body_md: "Short draft preview.\n\nFull draft body.",
+             conversation_seed_md: "Seed request",
+             actor_handle: "@pascal",
+             proposed_at: "2026-05-27T10:00:00Z",
+             status: :pending,
+             type: :document_creation,
+             action_class: :document_creation,
+             actions: [:accept, :reject, :preview]
+           }
+
+    assert [
+             %Interaction{family: :command, intent: :accept_proposed_doc},
+             %Interaction{family: :command, intent: :reject_proposed_doc},
+             %Interaction{family: :command, intent: :preview_proposed_doc}
+           ] = proposal.attributes.interactions
 
     assert redline.attributes.redline == %{segments: [%{state: :insert, text: "new"}]}
     assert redline.attributes.text_safety == %{content: :plain_text}

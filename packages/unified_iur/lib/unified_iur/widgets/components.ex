@@ -63,6 +63,7 @@ defmodule UnifiedIUR.Widgets.Components do
     :workflow_stage_list_vertical,
     :meter_thin,
     :unread_badge,
+    :live_session_card,
     :workflow_progress_status_card
   ]
 
@@ -84,6 +85,7 @@ defmodule UnifiedIUR.Widgets.Components do
   @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
   @tool_call_kinds [:read, :edit, :write, :bash, :multiedit, :other]
   @tool_call_statuses [:pending, :approved, :denied, :complete, :failed]
+  @live_session_statuses [:running]
 
   @redline_code_kinds [
     :redline_inline,
@@ -856,6 +858,95 @@ defmodule UnifiedIUR.Widgets.Components do
     )
   end
 
+  @spec live_session_card(opts()) :: Element.t()
+  def live_session_card(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    session_id =
+      required_string!(
+        opts,
+        :session_id,
+        "live_session_card requires a non-empty :session_id string"
+      )
+
+    unless uuid_string?(session_id) do
+      raise ArgumentError, "live_session_card :session_id must be a uuid string"
+    end
+
+    actor_handle =
+      required_string!(
+        opts,
+        :actor_handle,
+        "live_session_card requires a non-empty :actor_handle string"
+      )
+
+    unless non_blank_string?(actor_handle) do
+      raise ArgumentError, "live_session_card requires a non-blank :actor_handle string"
+    end
+
+    status = normalize_live_session_status!(option(opts, :status))
+    status_version = required_non_negative_integer!(opts, :status_version)
+    tools_count = required_non_negative_integer!(opts, :tools_count)
+    edits_count = required_non_negative_integer!(opts, :edits_count)
+    tokens_consumed = required_non_negative_integer!(opts, :tokens_consumed)
+    started_at = option(opts, :started_at)
+
+    unless datetime_like?(started_at) do
+      raise ArgumentError, "live_session_card requires a :started_at datetime"
+    end
+
+    pinned? = option(opts, :pinned?, false)
+
+    unless is_boolean(pinned?) do
+      raise ArgumentError, "live_session_card :pinned? must be a boolean"
+    end
+
+    synthetic_id = live_session_card_id(session_id, status_version)
+
+    case option(opts, :id) do
+      nil ->
+        :ok
+
+      ^synthetic_id ->
+        :ok
+
+      _other ->
+        raise ArgumentError,
+              "live_session_card id must be deterministic #{inspect(synthetic_id)}"
+    end
+
+    opts =
+      opts
+      |> Map.put(:id, synthetic_id)
+      |> put_live_session_interactions(session_id)
+
+    build_component(
+      :live_session_card,
+      :workflow_progress_and_status,
+      %{
+        live_session:
+          %{
+            session_id: session_id,
+            actor_handle: actor_handle,
+            status: status,
+            status_version: status_version,
+            tools_count: tools_count,
+            edits_count: edits_count,
+            tokens_consumed: tokens_consumed,
+            started_at: started_at,
+            recent_events:
+              normalize_live_session_recent_events!(option(opts, :recent_events, [])),
+            pinned?: pinned?,
+            actions: live_session_actions()
+          }
+          |> maybe_put(:current_step, optional_binary!(opts, :current_step))
+          |> maybe_put(:current_task_title, optional_binary!(opts, :current_task_title))
+          |> maybe_put(:now_streaming, optional_binary!(opts, :now_streaming))
+      },
+      opts
+    )
+  end
+
   @spec workflow_progress_status_card(opts()) :: Element.t()
   def workflow_progress_status_card(opts \\ []) do
     opts = normalize_opts(opts)
@@ -1153,6 +1244,113 @@ defmodule UnifiedIUR.Widgets.Components do
 
     %{selected?: selected?}
   end
+
+  defp normalize_live_session_status!(status) when status in @live_session_statuses, do: status
+
+  defp normalize_live_session_status!(status) when is_binary(status) do
+    status
+    |> String.to_existing_atom()
+    |> normalize_live_session_status!()
+  rescue
+    ArgumentError ->
+      raise ArgumentError,
+            "live_session_card :status must be one of #{inspect(@live_session_statuses)}"
+  end
+
+  defp normalize_live_session_status!(_status) do
+    raise ArgumentError,
+          "live_session_card :status must be one of #{inspect(@live_session_statuses)}"
+  end
+
+  defp required_non_negative_integer!(opts, key) do
+    value = option(opts, key)
+
+    unless non_negative_integer?(value) do
+      raise ArgumentError, "live_session_card :#{key} must be a non-negative integer"
+    end
+
+    value
+  end
+
+  defp optional_binary!(opts, key) do
+    value = option(opts, key)
+
+    cond do
+      is_nil(value) -> nil
+      is_binary(value) -> value
+      true -> raise ArgumentError, "live_session_card :#{key} must be a string"
+    end
+  end
+
+  defp normalize_live_session_recent_events!(nil), do: []
+
+  defp normalize_live_session_recent_events!(events) when is_list(events) do
+    if length(events) > 5 do
+      raise ArgumentError, "live_session_card :recent_events accepts at most 5 items"
+    end
+
+    Enum.map(events, &normalize_live_session_recent_event!/1)
+  end
+
+  defp normalize_live_session_recent_events!(_events) do
+    raise ArgumentError, "live_session_card :recent_events must be a list"
+  end
+
+  defp normalize_live_session_recent_event!(event) when is_map(event) or is_list(event) do
+    event = normalize_map(event)
+    kind = option(event, :kind)
+    body = option(event, :body, option(event, :body_fragment, option(event, :fragment)))
+
+    unless (is_atom(kind) and not is_nil(kind)) or non_blank_string?(kind) do
+      raise ArgumentError, "live_session_card recent_events require :kind"
+    end
+
+    unless is_binary(body) do
+      raise ArgumentError, "live_session_card recent_events require a :body string"
+    end
+
+    %{
+      kind: kind,
+      body: body
+    }
+    |> maybe_put(:event_id, option(event, :event_id))
+    |> maybe_put(:occurred_at, option(event, :occurred_at))
+  end
+
+  defp normalize_live_session_recent_event!(_event) do
+    raise ArgumentError, "live_session_card recent_events must be maps"
+  end
+
+  defp live_session_card_id(session_id, status_version) do
+    "live_session:#{session_id}:#{status_version}"
+  end
+
+  defp live_session_actions do
+    %{
+      pin: %{event: :pin_toggled},
+      interrupt: %{event: :interrupted},
+      expanded_recent: %{event: :expanded_recent}
+    }
+  end
+
+  defp uuid_string?(value) when is_binary(value) do
+    Regex.match?(
+      ~r/\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z/,
+      value
+    )
+  end
+
+  defp uuid_string?(_value), do: false
+
+  defp datetime_like?(%DateTime{}), do: true
+  defp datetime_like?(%NaiveDateTime{}), do: true
+
+  defp datetime_like?(value) when is_binary(value) and value != "" do
+    match?({:ok, _dt, _offset}, DateTime.from_iso8601(value)) or
+      match?({:ok, _ndt}, NaiveDateTime.from_iso8601(value))
+  end
+
+  defp datetime_like?(_value), do: false
 
   @spec command_palette(
           [keyword() | map()],
@@ -1475,6 +1673,39 @@ defmodule UnifiedIUR.Widgets.Components do
       interaction ->
         Interaction.new(interaction)
     end
+  end
+
+  defp put_live_session_interactions(opts, session_id) do
+    cond do
+      explicit_interactions?(opts) ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, live_session_interactions(opts, session_id))
+    end
+  end
+
+  defp live_session_interactions(opts, session_id) do
+    [
+      live_session_command_interaction(opts, session_id, :pin_toggled, :pin_intent),
+      live_session_command_interaction(opts, session_id, :interrupted, :interrupt_intent),
+      live_session_command_interaction(
+        opts,
+        session_id,
+        :expanded_recent,
+        :expanded_recent_intent
+      )
+    ]
+  end
+
+  defp live_session_command_interaction(opts, session_id, command, intent_key) do
+    Interaction.command(
+      intent: option(opts, intent_key, command),
+      element_id: option(opts, :id),
+      entity: session_id,
+      command: command,
+      value: session_id
+    )
   end
 
   defp put_query_preview_interactions(opts, composer_id, query) do

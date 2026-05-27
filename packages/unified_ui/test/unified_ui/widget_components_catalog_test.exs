@@ -41,6 +41,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :workflow_stage_list_vertical,
                :meter_thin,
                :unread_badge,
+               :live_session_card,
                :workflow_progress_status_card
              ],
              layer_shell_and_callout: [
@@ -75,6 +76,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert :composer_query_preview in kinds
     assert :propose_new_doc_card in kinds
     assert :collection_picker in kinds
+    assert :live_session_card in kinds
     assert :workflow_progress_status_card in kinds
     assert :tool_call_card in kinds
   end

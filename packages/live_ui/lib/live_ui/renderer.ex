@@ -495,6 +495,58 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:live_session_card` is a canonical component kind, so keep this native
+  # renderer clause before the generic `@component_kinds` fallback.
+  def render(%{element: %Element{kind: :live_session_card}} = assigns) do
+    live_session = get_in(assigns.element.attributes, [:live_session]) || %{}
+    event_target = Map.get(assigns, :event_target)
+
+    assigns =
+      assigns
+      |> assign(:style_attrs, style_rest(assigns.element))
+      |> assign(:live_session, live_session)
+      |> assign(:recent_events, list_value(map_value(live_session, :recent_events, [])))
+      |> assign(
+        :pin_attrs,
+        command_interaction_attrs(assigns.element, event_target, :pin_toggled)
+      )
+      |> assign(
+        :interrupt_attrs,
+        command_interaction_attrs(assigns.element, event_target, :interrupted)
+      )
+      |> assign(
+        :recent_attrs,
+        command_interaction_attrs(assigns.element, event_target, :expanded_recent)
+      )
+
+    ~H"""
+    <LiveUi.Widgets.LiveSessionCard.component
+      id={element_id(@element, "live-session-card")}
+      session_id={string_value(map_value(@live_session, :session_id), "")}
+      actor_handle={string_value(map_value(@live_session, :actor_handle), "")}
+      status={map_value(@live_session, :status, :running)}
+      status_version={integer_value(map_value(@live_session, :status_version), 0)}
+      tools_count={integer_value(map_value(@live_session, :tools_count), 0)}
+      edits_count={integer_value(map_value(@live_session, :edits_count), 0)}
+      tokens_consumed={integer_value(map_value(@live_session, :tokens_consumed), 0)}
+      started_at={map_value(@live_session, :started_at)}
+      current_step={string_optional(map_value(@live_session, :current_step))}
+      current_task_title={string_optional(map_value(@live_session, :current_task_title))}
+      now_streaming={string_optional(map_value(@live_session, :now_streaming))}
+      recent_events={@recent_events}
+      pinned?={boolean_default(map_value(@live_session, :pinned?), false)}
+      pin_attrs={@pin_attrs}
+      interrupt_attrs={@interrupt_attrs}
+      recent_attrs={@recent_attrs}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   # NOTE: `:workflow_progress_status_card` is a canonical component kind, so keep this native
   # renderer clause before the generic `@component_kinds` fallback.
   def render(%{element: %Element{kind: :workflow_progress_status_card}} = assigns) do
@@ -2083,6 +2135,36 @@ defmodule LiveUi.Renderer do
     end
   end
 
+  defp command_interaction_attrs(%Element{} = element, event_target, command) do
+    case {command_interaction(element, command), event_target} do
+      {%Interaction{} = interaction, target} when not is_nil(target) ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, Atom.to_string(element.kind)),
+          :"phx-value-widget" => Atom.to_string(element.kind),
+          :"phx-value-command" => to_string(command)
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp command_interaction(%Element{} = element, command) do
+    element.attributes
+    |> Map.get(:interactions, [])
+    |> List.wrap()
+    |> Enum.find(fn
+      %Interaction{family: :command, payload: payload} ->
+        to_string(map_value(payload, :command)) == to_string(command)
+
+      _interaction ->
+        false
+    end)
+  end
+
   defp primary_change_interaction(%Element{} = element) do
     primary_interaction(element, :change)
   end
@@ -2947,6 +3029,9 @@ defmodule LiveUi.Renderer do
 
   defp map_value(list, key, default) when is_list(list), do: Keyword.get(list, key, default)
   defp map_value(_other, _key, default), do: default
+
+  defp list_value(value) when is_list(value), do: value
+  defp list_value(_value), do: []
 
   defp normalize_key(nil), do: "panel"
 

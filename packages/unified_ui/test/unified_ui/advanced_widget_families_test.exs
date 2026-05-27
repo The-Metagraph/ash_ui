@@ -178,6 +178,7 @@ defmodule UnifiedUi.AdvancedWidgetFamiliesTest do
              :segmented_progress_bar,
              :workflow_stage_list_vertical,
              :meter_thin,
+             :live_session_card,
              :workflow_progress_status_card,
              :sticky_frosted_header,
              :slide_over_panel,

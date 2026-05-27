@@ -193,6 +193,11 @@ defmodule UnifiedIUR.Validate do
       guidance:
         "Represent workflow_progress_status_card with subject id, name, progress, status_counts, dependencies, and renderer-independent metadata."
     },
+    invalid_live_session_card: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent live_session_card with a running session id, actor handle, monotonic status version, prop-sourced meters, streaming text, recent event fragments, and semantic control events."
+    },
     invalid_workflow_status_count: %{
       construct_family: :widget_components,
       guidance:
@@ -224,6 +229,10 @@ defmodule UnifiedIUR.Validate do
   @query_preview_states [:loading, :ready, :empty, :error]
   @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
   @propose_new_doc_actions [:accept, :reject, :preview]
+  @live_session_statuses [:running]
+  @live_session_action_names ~w[pin interrupt expanded_recent]
+  @live_session_action_keys [:pin, :interrupt, :expanded_recent]
+  @live_session_event_names ~w[pin_toggled interrupted expanded_recent]
   @collection_picker_forbidden_keys ~w[
     bundle
     bundle_id
@@ -759,6 +768,23 @@ defmodule UnifiedIUR.Validate do
     |> validate_subject_shape()
   end
 
+  defp validate_component_contracts(%Element{
+         id: id,
+         kind: :live_session_card,
+         attributes: attributes
+       }) do
+    live_session = Map.get(attributes, :live_session, %{})
+
+    []
+    |> Kernel.++(validate_live_session_shape(live_session, id))
+    |> Kernel.++(
+      validate_live_session_interactions(
+        Map.get(attributes, :interactions, []),
+        [:attributes, :interactions]
+      )
+    )
+  end
+
   defp validate_component_contracts(_element), do: []
 
   defp validate_tool_call_shape(tool_call) when is_map(tool_call) do
@@ -981,6 +1007,356 @@ defmodule UnifiedIUR.Validate do
   defp tool_result_event_id(summary) do
     fetch(summary, :event_id, fetch(summary, :result_event_id))
   end
+
+  defp validate_live_session_shape(live_session, element_id) when is_map(live_session) do
+    session_id = fetch(live_session, :session_id)
+    actor_handle = fetch(live_session, :actor_handle)
+    status = fetch(live_session, :status)
+    status_version = fetch(live_session, :status_version)
+    expected_id = live_session_card_id(session_id, status_version)
+
+    []
+    |> maybe_add(
+      not uuid_string?(session_id),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card requires session_id as a uuid string",
+        path: [:attributes, :live_session, :session_id],
+        details: %{session_id: inspect(session_id)}
+      )
+    )
+    |> maybe_add(
+      not non_blank_string?(actor_handle),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card requires actor_handle as a non-blank string",
+        path: [:attributes, :live_session, :actor_handle],
+        details: %{actor_handle: inspect(actor_handle)}
+      )
+    )
+    |> maybe_add(
+      status not in @live_session_statuses,
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card status must be :running",
+        path: [:attributes, :live_session, :status],
+        details: %{status: inspect(status)}
+      )
+    )
+    |> maybe_add(
+      not non_negative_integer?(status_version),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card status_version must be a non-negative integer",
+        path: [:attributes, :live_session, :status_version],
+        details: %{status_version: inspect(status_version)}
+      )
+    )
+    |> maybe_add(
+      not is_nil(expected_id) and element_id != expected_id,
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card id must be live_session:<session_id>:<status_version>",
+        path: [:id],
+        details: %{id: inspect(element_id), expected_id: expected_id}
+      )
+    )
+    |> Kernel.++(
+      validate_live_session_meter(
+        fetch(live_session, :tools_count),
+        [:attributes, :live_session, :tools_count]
+      )
+    )
+    |> Kernel.++(
+      validate_live_session_meter(
+        fetch(live_session, :edits_count),
+        [:attributes, :live_session, :edits_count]
+      )
+    )
+    |> Kernel.++(
+      validate_live_session_meter(
+        fetch(live_session, :tokens_consumed),
+        [:attributes, :live_session, :tokens_consumed]
+      )
+    )
+    |> maybe_add(
+      not datetime_like?(fetch(live_session, :started_at)),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card started_at must be a datetime",
+        path: [:attributes, :live_session, :started_at],
+        details: %{started_at: inspect(fetch(live_session, :started_at))}
+      )
+    )
+    |> Kernel.++(
+      validate_optional_live_session_string(
+        fetch(live_session, :current_step),
+        [:attributes, :live_session, :current_step],
+        "current_step"
+      )
+    )
+    |> Kernel.++(
+      validate_optional_live_session_string(
+        fetch(live_session, :current_task_title),
+        [:attributes, :live_session, :current_task_title],
+        "current_task_title"
+      )
+    )
+    |> Kernel.++(
+      validate_optional_live_session_string(
+        fetch(live_session, :now_streaming),
+        [:attributes, :live_session, :now_streaming],
+        "now_streaming"
+      )
+    )
+    |> Kernel.++(
+      validate_live_session_recent_events(
+        fetch(live_session, :recent_events, []),
+        [:attributes, :live_session, :recent_events]
+      )
+    )
+    |> maybe_add(
+      has_key?(live_session, :pinned?) and not is_boolean(fetch(live_session, :pinned?)),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card pinned? must be a boolean",
+        path: [:attributes, :live_session, :pinned?],
+        details: %{pinned?: inspect(fetch(live_session, :pinned?))}
+      )
+    )
+    |> Kernel.++(
+      validate_live_session_actions(
+        fetch(live_session, :actions),
+        [:attributes, :live_session, :actions]
+      )
+    )
+  end
+
+  defp validate_live_session_shape(_live_session, _element_id) do
+    [
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card attributes.live_session must be a map",
+        path: [:attributes, :live_session]
+      )
+    ]
+  end
+
+  defp validate_live_session_meter(value, path) do
+    maybe_add(
+      [],
+      not non_negative_integer?(value),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card meter values must be non-negative integers",
+        path: path,
+        details: %{value: inspect(value)}
+      )
+    )
+  end
+
+  defp validate_optional_live_session_string(nil, _path, _field), do: []
+
+  defp validate_optional_live_session_string(value, path, field) do
+    maybe_add(
+      [],
+      not is_binary(value),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card #{field} must be a string",
+        path: path,
+        details: %{value: inspect(value)}
+      )
+    )
+  end
+
+  defp validate_live_session_recent_events(events, path) when is_list(events) do
+    maybe_add(
+      [],
+      length(events) > 5,
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card recent_events accepts at most 5 items",
+        path: path,
+        details: %{count: length(events)}
+      )
+    ) ++
+      (events
+       |> Enum.take(5)
+       |> Enum.with_index()
+       |> Enum.flat_map(fn {event, index} ->
+         validate_live_session_recent_event(event, path ++ [index])
+       end))
+  end
+
+  defp validate_live_session_recent_events(_events, path) do
+    [
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card recent_events must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_live_session_recent_event(event, path) when is_map(event) or is_list(event) do
+    event = normalize_map(event)
+    kind = fetch(event, :kind)
+    body = fetch(event, :body, fetch(event, :body_fragment, fetch(event, :fragment)))
+
+    []
+    |> maybe_add(
+      not ((is_atom(kind) and not is_nil(kind)) or non_blank_string?(kind)),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card recent_events require kind",
+        path: path ++ [:kind],
+        details: %{kind: inspect(kind)}
+      )
+    )
+    |> maybe_add(
+      not is_binary(body),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card recent_events require body as a string",
+        path: path ++ [:body],
+        details: %{body: inspect(body)}
+      )
+    )
+  end
+
+  defp validate_live_session_recent_event(_event, path) do
+    [
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card recent_events must be maps",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_live_session_actions(nil, _path), do: []
+
+  defp validate_live_session_actions(actions, path) when is_map(actions) do
+    action_names = Enum.map(Map.keys(actions), &to_string/1)
+    unknown = Enum.reject(action_names, &(&1 in @live_session_action_names))
+
+    unknown_errors =
+      maybe_add(
+        [],
+        unknown != [],
+        Error.new(
+          :invalid_live_session_card,
+          "live_session_card actions contain unknown names",
+          path: path,
+          details: %{unknown: unknown}
+        )
+      )
+
+    action_errors =
+      @live_session_action_keys
+      |> Enum.flat_map(fn key ->
+        case fetch(actions, key) do
+          nil -> []
+          action -> validate_live_session_action(action, to_string(key), path ++ [key])
+        end
+      end)
+
+    unknown_errors ++ action_errors
+  end
+
+  defp validate_live_session_actions(_actions, path) do
+    [
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card actions must be a map",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_live_session_action(action, action_name, path)
+       when is_map(action) or is_list(action) do
+    action = normalize_map(action)
+    event = fetch(action, :event)
+
+    maybe_add(
+      [],
+      not live_session_event_name?(event),
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card action #{action_name} has an unknown event",
+        path: path ++ [:event],
+        details: %{event: inspect(event)}
+      )
+    )
+  end
+
+  defp validate_live_session_action(_action, action_name, path) do
+    [
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card action #{action_name} must be a map",
+        path: path
+      )
+    ]
+  end
+
+  defp validate_live_session_interactions(interactions, path) when is_list(interactions) do
+    commands =
+      interactions
+      |> Enum.filter(&match?(%Interaction{family: :command}, &1))
+      |> Enum.map(fn %Interaction{payload: payload} -> fetch(payload, :command) end)
+
+    unknown =
+      commands
+      |> Enum.map(&to_string/1)
+      |> Enum.reject(&(&1 in @live_session_event_names))
+
+    missing =
+      Enum.reject(@live_session_event_names, fn expected ->
+        Enum.any?(commands, &(to_string(&1) == expected))
+      end)
+
+    []
+    |> maybe_add(
+      unknown != [],
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card interactions contain unknown command events",
+        path: path,
+        details: %{unknown: unknown}
+      )
+    )
+    |> maybe_add(
+      missing != [],
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card interactions must include pin_toggled, interrupted, and expanded_recent",
+        path: path,
+        details: %{missing: missing}
+      )
+    )
+  end
+
+  defp validate_live_session_interactions(_interactions, path) do
+    [
+      Error.new(
+        :invalid_live_session_card,
+        "live_session_card interactions must be a list",
+        path: path
+      )
+    ]
+  end
+
+  defp live_session_event_name?(event), do: to_string(event) in @live_session_event_names
+
+  defp live_session_card_id(session_id, status_version)
+       when is_binary(session_id) and is_integer(status_version) do
+    "live_session:#{session_id}:#{status_version}"
+  end
+
+  defp live_session_card_id(_session_id, _status_version), do: nil
 
   defp validate_subject_shape(subject) when is_map(subject) do
     []
@@ -2605,6 +2981,25 @@ defmodule UnifiedIUR.Validate do
   defp non_blank_string?(value), do: is_binary(value) and String.trim(value) != ""
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0
   defp positive_integer?(value), do: is_integer(value) and value > 0
+
+  defp uuid_string?(value) when is_binary(value) do
+    Regex.match?(
+      ~r/\A[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\z/,
+      value
+    )
+  end
+
+  defp uuid_string?(_value), do: false
+
+  defp datetime_like?(%DateTime{}), do: true
+  defp datetime_like?(%NaiveDateTime{}), do: true
+
+  defp datetime_like?(value) when is_binary(value) and value != "" do
+    match?({:ok, _dt, _offset}, DateTime.from_iso8601(value)) or
+      match?({:ok, _ndt}, NaiveDateTime.from_iso8601(value))
+  end
+
+  defp datetime_like?(_value), do: false
 
   defp active_panel_in_panels?(active_panel, panels) when is_list(panels) do
     Enum.any?(panels, fn

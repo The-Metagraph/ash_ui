@@ -235,6 +235,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :live_session_card,
+      family: :workflow_progress_and_status,
+      summary:
+        "Composite running-session status card with actor identity, meters, live assistant text, recent events, and control actions.",
+      aliases: []
+    },
+    %{
       kind: :command_palette,
       family: :layer_shell_and_callout,
       summary:

@@ -17,6 +17,7 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
   @tool_call_kinds [:read, :edit, :write, :bash, :multiedit, :other]
   @tool_call_statuses [:pending, :approved, :denied, :complete, :failed]
+  @live_session_statuses [:running]
 
   @spec entities() :: [Spark.Dsl.Entity.t()]
   def entities do
@@ -190,6 +191,27 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         maximum: [type: :any, required: false, default: 100],
         label: [type: :string, required: false],
         state: [type: :atom, required: false],
+        summary: [type: :string, required: false]
+      ),
+      leaf(
+        :live_session_card,
+        @workflow_family,
+        session_id: [type: :string, required: true],
+        actor_handle: [type: :string, required: true],
+        status: [type: {:in, @live_session_statuses}, required: true],
+        status_version: [type: :integer, required: true],
+        tools_count: [type: :integer, required: true],
+        edits_count: [type: :integer, required: true],
+        tokens_consumed: [type: :integer, required: true],
+        started_at: [type: :any, required: true],
+        current_step: [type: :string, required: false],
+        current_task_title: [type: :string, required: false],
+        now_streaming: [type: :string, required: false],
+        recent_events: [type: :any, required: false, default: []],
+        pinned?: [type: :boolean, required: false, default: false],
+        pin_intent: [type: :atom, required: false],
+        interrupt_intent: [type: :atom, required: false],
+        expanded_recent_intent: [type: :atom, required: false],
         summary: [type: :string, required: false]
       ),
       leaf(

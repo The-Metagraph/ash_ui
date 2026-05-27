@@ -4,6 +4,7 @@ defmodule LiveUi.Widgets.WorkflowProgressAndStatus do
   """
 
   @modules [
+    LiveUi.Widgets.LiveSessionCard,
     LiveUi.Widgets.WorkflowProgressStatusCard
   ]
 

@@ -1090,6 +1090,92 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "live_session_card"} = iur, _opts) do
+    props = iur["props"] || %{}
+    live_session = prop(props, "live_session", props) |> normalize_item()
+
+    session_id = escaped_text_prop(live_session, "session_id", "")
+    actor_handle = escaped_text_prop(live_session, "actor_handle", "")
+    status = escaped_text_prop(live_session, "status", "running")
+    status_version = numeric_value(live_session, "status_version", 0)
+    tools_count = numeric_value(live_session, "tools_count", 0)
+    edits_count = numeric_value(live_session, "edits_count", 0)
+    tokens_consumed = numeric_value(live_session, "tokens_consumed", 0)
+    started_at = escaped_text_prop(live_session, "started_at", "")
+    current_step = escaped_text_prop(live_session, "current_step")
+    current_task_title = escaped_text_prop(live_session, "current_task_title")
+    now_streaming = escaped_text_prop(live_session, "now_streaming")
+    pinned? = truthy_prop(live_session, "pinned?", false)
+    iur_id = iur["id"] || iur[:id] || "live-session-card"
+
+    recent_events =
+      live_session
+      |> prop("recent_events", [])
+      |> List.wrap()
+      |> Enum.take(5)
+      |> Enum.map_join(fn event ->
+        event = normalize_item(event)
+        kind = escaped_text_prop(event, "kind", "")
+        body = escaped_text_prop(event, ["body", "body_fragment", "fragment"], "")
+
+        """
+        <li class="ash-live-session-card__recent-item" data-event-kind="#{kind}">
+          <span class="ash-live-session-card__recent-kind">#{kind}</span>
+          <span class="ash-live-session-card__recent-body">#{body}</span>
+        </li>
+        """
+      end)
+
+    task_html =
+      cond do
+        current_task_title ->
+          ~s(<p class="ash-live-session-card__task">#{current_task_title}</p>)
+
+        current_step ->
+          ~s(<p class="ash-live-session-card__task">#{current_step}</p>)
+
+        true ->
+          ""
+      end
+
+    now_streaming_html =
+      if now_streaming do
+        """
+        <div class="ash-live-session-card__now-streaming" aria-live="polite" aria-atomic="true">
+          <span class="ash-live-session-card__live-indicator" aria-hidden="true">LIVE</span>
+          <span class="ash-live-session-card__now-streaming-text">#{now_streaming}</span>
+        </div>
+        """
+      else
+        ""
+      end
+
+    """
+    <article id="#{html_attr(iur_id)}" class="#{css_classes(["ash-live-session-card", "ash-live-session-card--#{status}", pinned? && "is-pinned", prop_class(iur)])}" data-live-ui-widget="live-session-card" data-session-id="#{session_id}" data-status-version="#{status_version}" data-pinned="#{pinned?}"#{style_attr(prop_style(iur))}>
+      <header class="ash-live-session-card__header">
+        <span class="ash-live-session-card__avatar" aria-hidden="true">#{String.first(actor_handle) || "?"}</span>
+        <div class="ash-live-session-card__identity">
+          <h3 class="ash-live-session-card__actor">#{actor_handle}</h3>
+          #{task_html}
+        </div>
+        <span class="ash-live-session-card__status-badge" role="status">#{String.upcase(status)}</span>
+        <time class="ash-live-session-card__duration" datetime="#{started_at}">running</time>
+      </header>
+      <div class="ash-live-session-card__meters">
+        <div class="ash-live-session-card__meter" data-meter="tools"><span class="ash-live-session-card__meter-value">#{tools_count}</span><span class="ash-live-session-card__meter-label">tools</span></div>
+        <div class="ash-live-session-card__meter" data-meter="edits"><span class="ash-live-session-card__meter-value">#{edits_count}</span><span class="ash-live-session-card__meter-label">edits</span></div>
+        <div class="ash-live-session-card__meter" data-meter="tokens"><span class="ash-live-session-card__meter-value">#{tokens_consumed}</span><span class="ash-live-session-card__meter-label">tokens</span></div>
+      </div>
+      #{now_streaming_html}
+      <ol class="ash-live-session-card__recent" aria-label="Recent activity for #{actor_handle}" data-live-ui-intent="expanded_recent">#{recent_events}</ol>
+      <footer class="ash-live-session-card__actions">
+        <button type="button" class="ash-live-session-card__pin" aria-label="Pin #{actor_handle} running session" aria-pressed="#{pinned?}" data-live-ui-intent="pin_toggled">#{if(pinned?, do: "Pinned", else: "Pin")}</button>
+        <button type="button" class="ash-live-session-card__interrupt" aria-label="Interrupt #{actor_handle} running session" data-live-ui-intent="interrupted">Interrupt</button>
+      </footer>
+    </article>
+    """
+  end
+
   defp generate_heex(%{"type" => "confidence_indicator"} = iur, _opts) do
     props = iur["props"] || %{}
 

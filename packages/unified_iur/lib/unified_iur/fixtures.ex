@@ -1252,6 +1252,16 @@ defmodule UnifiedIUR.Fixtures do
            tokens_consumed: 8192,
            started_at: "2026-05-28T10:00:00Z",
            current_task_title: "Fix coverage fixtures"
+         )},
+        {:content,
+         Components.escalation_card(
+           id: "component-escalation-card",
+           target_project_id: "ariston-ui",
+           severity: :p2,
+           text: "Accessibility coverage gap detected on chat surface.",
+           actor_handle: "@codex",
+           proposed_action: "Add aria-live region to chat timeline",
+           escalated_at: "2026-05-27T10:00:00Z"
          )}
       ],
       id: "component-safety-fixture"

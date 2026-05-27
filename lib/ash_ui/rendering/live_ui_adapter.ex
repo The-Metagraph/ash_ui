@@ -788,6 +788,83 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "escalation_card"} = iur, _opts) do
+    props = iur["props"] || %{}
+    escalation = props |> prop("escalation", props) |> normalize_item()
+
+    target_project_id =
+      escaped_text_prop(
+        escalation,
+        "target_project_id",
+        escaped_text_prop(props, "target_project_id", "")
+      )
+
+    text =
+      escaped_text_prop(
+        escalation,
+        "text",
+        escaped_text_prop(props, ["text", "description"], "")
+      )
+
+    severity =
+      escaped_text_prop(escalation, "severity", escaped_text_prop(props, "severity", "p2"))
+
+    actor_handle = escaped_text_prop(escalation, "actor_handle")
+    proposed_action = escaped_text_prop(escalation, "proposed_action")
+
+    acknowledged? =
+      truthy_prop(escalation, "acknowledged?", truthy_prop(props, "acknowledged?", false))
+
+    iur_id = html_attr(iur["id"] || iur[:id] || "escalation-card")
+    severity_label = String.upcase(severity)
+
+    meta_html =
+      if target_project_id != "" || proposed_action do
+        project_row =
+          if target_project_id != "" do
+            "<dt>Target project</dt><dd>#{target_project_id}</dd>"
+          else
+            ""
+          end
+
+        action_row =
+          if proposed_action do
+            "<dt>Proposed action</dt><dd>#{proposed_action}</dd>"
+          else
+            ""
+          end
+
+        ~s(<dl class="ash-escalation-card__meta">#{project_row}#{action_row}</dl>)
+      else
+        ""
+      end
+
+    footer_html =
+      if acknowledged? do
+        ~s(<p class="ash-escalation-card__acknowledged" role="status">Acknowledged</p>)
+      else
+        """
+        <footer class="ash-escalation-card__actions">
+          <button type="button" class="ash-escalation-card__acknowledge" aria-label="Acknowledge #{severity} escalation">Acknowledge</button>
+          <button type="button" class="ash-escalation-card__route-to-rail" aria-label="Route #{severity} escalation to rail">Route to rail</button>
+        </footer>
+        """
+      end
+
+    """
+    <article id="#{iur_id}" class="#{css_classes(["ash-escalation-card", "ash-escalation-card--#{severity}", prop_class(iur)])}" data-live-ui-widget="escalation-card" data-severity="#{severity}" data-acknowledged="#{acknowledged?}"#{style_attr(prop_style(iur))} role="alert" aria-labelledby="#{iur_id}-title">
+      <header class="ash-escalation-card__header">
+        <span class="ash-escalation-card__severity-badge" role="status">#{severity_label}</span>
+        <h3 id="#{iur_id}-title" class="ash-escalation-card__title">Escalation</h3>
+        #{if actor_handle, do: "<span class=\"ash-escalation-card__actor\">#{actor_handle}</span>", else: ""}
+      </header>
+      <p class="ash-escalation-card__text">#{text}</p>
+      #{meta_html}
+      #{footer_html}
+    </article>
+    """
+  end
+
   defp generate_heex(%{"type" => "list_item_multi_column"} = iur, opts) do
     props = iur["props"] || %{}
     active? = truthy_prop(props, "active?", truthy_prop(props, "active", false))

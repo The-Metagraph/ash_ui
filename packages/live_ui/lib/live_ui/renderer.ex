@@ -1013,6 +1013,46 @@ defmodule LiveUi.Renderer do
     """
   end
 
+  # NOTE: `:escalation_card` is a canonical layer-shell callout. Keep this
+  # native clause before the generic component fallback so acknowledge and
+  # route_to_rail actions keep canonical interaction transport.
+  def render(%{element: %Element{kind: :escalation_card}} = assigns) do
+    escalation = escalation_attributes(assigns.element)
+
+    assigns =
+      assigns
+      |> assign(:escalation, escalation)
+      |> assign(
+        :action_attrs,
+        escalation_action_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.EscalationCard.component
+      id={element_id(@element, "escalation-card")}
+      target_project_id={string_value(map_value(@escalation, :target_project_id), "")}
+      severity={map_value(@escalation, :severity, :p2)}
+      text={string_value(map_value(@escalation, :text), "")}
+      related_finding_id={string_optional(map_value(@escalation, :related_finding_id))}
+      proposed_action={string_optional(map_value(@escalation, :proposed_action))}
+      target_finding_id={string_optional(map_value(@escalation, :target_finding_id))}
+      target_severity={map_value(@escalation, :target_severity)}
+      originating_severity={map_value(@escalation, :originating_severity)}
+      actor_handle={string_optional(map_value(@escalation, :actor_handle))}
+      escalated_at={string_optional(map_value(@escalation, :escalated_at))}
+      acknowledged?={boolean_default(map_value(@escalation, :acknowledged?), false)}
+      ack_attrs={Map.get(@action_attrs, :acknowledge, %{})}
+      route_attrs={Map.get(@action_attrs, :route_to_rail, %{})}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
   def render(%{element: %Element{kind: kind}} = assigns) when kind in @component_kinds do
     assigns = assign(assigns, :style_attrs, style_rest(assigns.element))
 
@@ -2909,6 +2949,60 @@ defmodule LiveUi.Renderer do
         false
     end)
   end
+
+  defp escalation_attributes(%Element{} = element) do
+    element.attributes
+    |> Map.get(:escalation, Map.get(element.attributes, "escalation", %{}))
+    |> case do
+      escalation when is_map(escalation) -> escalation
+      escalation when is_list(escalation) -> Map.new(escalation)
+      _other -> %{}
+    end
+  end
+
+  defp escalation_action_attrs(%Element{} = element, event_target) do
+    %{
+      acknowledge: escalation_interaction_attrs(element, event_target, :acknowledge),
+      route_to_rail: escalation_interaction_attrs(element, event_target, :route_to_rail)
+    }
+  end
+
+  defp escalation_interaction_attrs(%Element{} = element, event_target, action)
+       when not is_nil(event_target) do
+    case escalation_interaction(element, action) do
+      %Interaction{} = interaction ->
+        %{
+          :"phx-click" => "canonical_interaction",
+          :"phx-target" => event_target,
+          :"phx-value-interaction" => encode_interaction(interaction),
+          :"phx-value-element_id" => element_id(element, "escalation-card"),
+          :"phx-value-widget" => "escalation_card",
+          :"phx-value-action" => Atom.to_string(action),
+          :"phx-value-target_project_id" =>
+            element |> escalation_attributes() |> map_value(:target_project_id, "") |> to_string()
+        }
+
+      _ ->
+        %{}
+    end
+  end
+
+  defp escalation_interaction_attrs(_element, _event_target, _action), do: %{}
+
+  defp escalation_interaction(%Element{} = element, action) do
+    element.attributes
+    |> Map.get(:interactions, [])
+    |> List.wrap()
+    |> Enum.find(fn
+      %Interaction{family: :command, payload: payload, intent: intent} ->
+        map_value(payload, :command) == action or intent == action or intent == to_string(action)
+
+      _other ->
+        false
+    end)
+  end
+
+  defp escalation_interaction(_element, _action), do: nil
 
   defp sidebar_section_attributes(%Element{} = element) do
     element.attributes

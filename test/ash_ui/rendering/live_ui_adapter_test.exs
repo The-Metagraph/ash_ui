@@ -1413,6 +1413,64 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "escalation_card adapter dispatch" do
+    test "generates dedicated escalation_card fallback markup with severity class" do
+      iur = %{
+        "type" => "escalation_card",
+        "id" => "escalation-adapter-test",
+        "props" => %{
+          "escalation" => %{
+            "target_project_id" => "ariston-ui",
+            "severity" => "p1",
+            "text" => "Critical coverage gap detected.",
+            "actor_handle" => "@codex",
+            "proposed_action" => "Add aria-live region"
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-escalation-card"
+      assert heex =~ "ash-escalation-card--p1"
+      assert heex =~ ~s(data-live-ui-widget="escalation-card")
+      assert heex =~ ~s(data-severity="p1")
+      assert heex =~ "P1"
+      assert heex =~ "Critical coverage gap detected."
+      assert heex =~ "@codex"
+      assert heex =~ ~s(aria-label="Acknowledge p1 escalation")
+      assert heex =~ ~s(aria-label="Route p1 escalation to rail")
+      assert heex =~ ~s(role="alert")
+      assert heex =~ ~s(role="status")
+    end
+
+    test "shows acknowledged status and hides action buttons when acknowledged" do
+      iur = %{
+        "type" => "escalation_card",
+        "id" => "escalation-adapter-ack",
+        "props" => %{
+          "escalation" => %{
+            "target_project_id" => "ariston-ui",
+            "severity" => "p2",
+            "text" => "Gap.",
+            "acknowledged?" => true
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-escalation-card__acknowledged"
+      assert heex =~ "Acknowledged"
+      refute heex =~ ~s(aria-label="Acknowledge p2 escalation")
+      refute heex =~ ~s(aria-label="Route p2 escalation to rail")
+    end
+  end
+
   describe "collection_picker adapter dispatch" do
     test "generates dedicated collection_picker fallback markup" do
       iur = %{

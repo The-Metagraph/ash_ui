@@ -1159,7 +1159,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
           #{task_html}
         </div>
         <span class="ash-live-session-card__status-badge" role="status">#{String.upcase(status)}</span>
-        <time class="ash-live-session-card__duration" datetime="#{started_at}">running</time>
+        <time class="ash-live-session-card__duration" datetime="#{started_at}">#{adapter_duration_label(started_at)}</time>
       </header>
       <div class="ash-live-session-card__meters">
         <div class="ash-live-session-card__meter" data-meter="tools"><span class="ash-live-session-card__meter-value">#{tools_count}</span><span class="ash-live-session-card__meter-label">tools</span></div>
@@ -1169,7 +1169,7 @@ defmodule AshUI.Rendering.LiveUIAdapter do
       #{now_streaming_html}
       <ol class="ash-live-session-card__recent" aria-label="Recent activity for #{actor_handle}" data-live-ui-intent="expanded_recent">#{recent_events}</ol>
       <footer class="ash-live-session-card__actions">
-        <button type="button" class="ash-live-session-card__pin" aria-label="Pin #{actor_handle} running session" aria-pressed="#{pinned?}" data-live-ui-intent="pin_toggled">#{if(pinned?, do: "Pinned", else: "Pin")}</button>
+        <button type="button" class="ash-live-session-card__pin" aria-label="#{if pinned?, do: "Unpin", else: "Pin"} #{actor_handle} running session" aria-pressed="#{pinned?}" data-live-ui-intent="pin_toggled">#{if(pinned?, do: "Pinned", else: "Pin")}</button>
         <button type="button" class="ash-live-session-card__interrupt" aria-label="Interrupt #{actor_handle} running session" data-live-ui-intent="interrupted">Interrupt</button>
       </footer>
     </article>
@@ -3232,6 +3232,24 @@ defmodule AshUI.Rendering.LiveUIAdapter do
   end
 
   defp html_attr(value), do: html_escape(value)
+
+  defp adapter_duration_label(started_at) when is_binary(started_at) do
+    case DateTime.from_iso8601(started_at) do
+      {:ok, dt, _offset} ->
+        diff_seconds = max(DateTime.diff(DateTime.utc_now(), dt, :second), 0)
+
+        cond do
+          diff_seconds < 60 -> "#{diff_seconds}s"
+          diff_seconds < 3_600 -> "#{div(diff_seconds, 60)}m"
+          true -> "#{div(diff_seconds, 3_600)}h"
+        end
+
+      _ ->
+        "running"
+    end
+  end
+
+  defp adapter_duration_label(_started_at), do: "running"
 
   defp html_escape(nil), do: ""
 

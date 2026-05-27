@@ -880,6 +880,78 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "tool_call_card"} = iur, _opts) do
+    props = iur["props"] || %{}
+    tool_call = props |> prop("tool_call", %{}) |> normalize_item()
+
+    tool_name =
+      escaped_text_prop(
+        tool_call,
+        "tool_name",
+        escaped_text_prop(props, ["tool_name", "name"], "Tool")
+      )
+
+    tool_kind =
+      escaped_text_prop(tool_call, "tool_kind", escaped_text_prop(props, "tool_kind", "other"))
+
+    target = escaped_text_prop(tool_call, "target", escaped_text_prop(props, "target", ""))
+    summary = escaped_text_prop(tool_call, "summary", escaped_text_prop(props, "summary", ""))
+    status = escaped_text_prop(tool_call, "status", escaped_text_prop(props, "status", "pending"))
+    expanded? = truthy_prop(tool_call, "expanded?", truthy_prop(props, "expanded?", false))
+    args = prop(tool_call, "args", prop(props, "args", %{}))
+    result = prop(tool_call, "tool_result_summary", prop(props, "tool_result_summary"))
+
+    args_html =
+      if expanded? do
+        ~s(<section class="ash-tool-call-card__details"><h4 class="ash-tool-call-card__args-label">Args</h4><pre class="ash-tool-call-card__args"><code>#{html_escape(inspect(args, pretty: true, limit: :infinity, printable_limit: :infinity))}</code></pre></section>)
+      else
+        ""
+      end
+
+    result_html =
+      case result do
+        nil ->
+          ""
+
+        result ->
+          result = normalize_item(result)
+          event_id = escaped_text_prop(result, ["event_id", "result_event_id"], "")
+          result_status = escaped_text_prop(result, "status", "")
+          compact_output = escaped_text_prop(result, ["compact_output", "summary"], "")
+          diff_summary = escaped_text_prop(result, "diff_summary")
+          error? = truthy_prop(result, "error?", truthy_prop(result, "error", false))
+
+          """
+          <section class="#{css_classes(["ash-tool-call-card__result", error? && "has-error"])}">
+            <header class="ash-tool-call-card__result-header">
+              <span class="ash-tool-call-card__result-event">#{event_id}</span>
+              <span class="ash-tool-call-card__result-status ash-tool-call-card__result-status-#{result_status}">#{result_status}</span>
+            </header>
+            <p class="ash-tool-call-card__result-output">#{compact_output}</p>
+            #{if diff_summary, do: "<p class=\"ash-tool-call-card__result-diff\">#{diff_summary}</p>", else: ""}
+            #{if error?, do: "<p class=\"ash-tool-call-card__result-error\">Error</p>", else: ""}
+          </section>
+          """
+      end
+
+    """
+    <article class="#{css_classes(["ash-tool-call-card", "ash-tool-call-card-#{status}", expanded? && "is-expanded", prop_class(iur)])}" data-live-ui-widget="tool-call-card" data-tool-kind="#{tool_kind}" data-status="#{status}"#{style_attr(prop_style(iur))}>
+      <header class="ash-tool-call-card__header">
+        <span class="ash-tool-call-card__glyph" aria-hidden="true">#{tool_kind}</span>
+        <div class="ash-tool-call-card__identity">
+          <h3 class="ash-tool-call-card__name">#{tool_name}</h3>
+          <p class="ash-tool-call-card__target">#{target}</p>
+        </div>
+        <span class="ash-tool-call-card__status-badge ash-tool-call-card__status-badge-#{status}">#{status}</span>
+      </header>
+      <p class="ash-tool-call-card__summary">#{summary}</p>
+      <button type="button" class="ash-tool-call-card__expand-toggle" aria-label="Toggle tool call #{tool_name} details" aria-expanded="#{expanded?}">Details</button>
+      #{args_html}
+      #{result_html}
+    </article>
+    """
+  end
+
   defp generate_heex(%{"type" => "pipeline_stepper_horizontal"} = iur, _opts) do
     props = iur["props"] || %{}
     steps = prop(props, "steps", [])

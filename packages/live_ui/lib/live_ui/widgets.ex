@@ -15,6 +15,7 @@ defmodule LiveUi.Widgets do
           | :display
           | :content_identity_and_disclosure
           | :form_control_and_composer
+          | :row_and_artifact
           | :composition_behavior
           | :layer_shell_and_callout
           | :workflow_progress_and_status
@@ -35,6 +36,7 @@ defmodule LiveUi.Widgets do
       :display,
       :content_identity_and_disclosure,
       :form_control_and_composer,
+      :row_and_artifact,
       :composition_behavior,
       :layer_shell_and_callout,
       :workflow_progress_and_status
@@ -51,6 +53,7 @@ defmodule LiveUi.Widgets do
       display_modules() ++
       content_identity_and_disclosure_modules() ++
       form_control_and_composer_modules() ++
+      row_and_artifact_modules() ++
       composition_behavior_modules() ++
       layer_shell_and_callout_modules() ++
       workflow_progress_and_status_modules()
@@ -99,6 +102,11 @@ defmodule LiveUi.Widgets do
   @spec form_control_and_composer_modules() :: [widget_module()]
   def form_control_and_composer_modules do
     LiveUi.Widgets.FormControlAndComposer.modules()
+  end
+
+  @spec row_and_artifact_modules() :: [widget_module()]
+  def row_and_artifact_modules do
+    LiveUi.Widgets.RowAndArtifact.modules()
   end
 
   @spec composition_behavior_modules() :: [widget_module()]

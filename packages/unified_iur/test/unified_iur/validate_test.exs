@@ -350,4 +350,120 @@ defmodule UnifiedIUR.ValidateTest do
              :invalid_artifact_count
            ]
   end
+
+  test "recognizes and validates canonical tool_call_card vocabulary" do
+    valid_tool_call =
+      Components.tool_call_card(
+        id: "tool-call-1",
+        tool_name: "Bash",
+        tool_kind: :bash,
+        target: "mix test",
+        summary: "Run the focused test suite.",
+        status: :complete,
+        args: %{cmd: "mix test"},
+        paired_result_event_id: "tool-result-1",
+        tool_result_summary: %{
+          event_id: "tool-result-1",
+          status: :complete,
+          compact_output: "Tests passed.",
+          error?: false
+        }
+      )
+
+    assert :tool_call_card in Components.kinds()
+    assert :ok = Validate.element(valid_tool_call)
+  end
+
+  test "rejects malformed raw tool_call_card payloads with structured diagnostics" do
+    invalid_tool_call =
+      Element.new(:widget, :tool_call_card,
+        attributes: %{
+          component: %{family: :row_and_artifact, kind: :tool_call_card},
+          tool_call: %{
+            tool_name: " ",
+            tool_kind: :delete,
+            target: "",
+            summary: nil,
+            status: :running,
+            args: []
+          }
+        }
+      )
+
+    assert {:error, errors} = Validate.element(invalid_tool_call)
+    assert Enum.all?(errors, &(&1.code == :invalid_tool_call_card))
+  end
+
+  test "rejects invalid tool_result_summary children" do
+    duplicate_results =
+      Element.new(:widget, :tool_call_card,
+        attributes: valid_tool_call_attrs("result-1"),
+        children: [
+          {:tool_result_summary, tool_result_summary_element("result-1")},
+          {:tool_result_summary, tool_result_summary_element("result-2")}
+        ]
+      )
+
+    missing_event_id =
+      Element.new(:widget, :tool_call_card,
+        attributes: valid_tool_call_attrs(nil),
+        children: [
+          {:tool_result_summary,
+           Element.new(:widget, :tool_result_summary,
+             attributes: %{
+               tool_result_summary: %{status: :complete, compact_output: "ok"}
+             }
+           )}
+        ]
+      )
+
+    mismatched_pair =
+      Element.new(:widget, :tool_call_card,
+        attributes: valid_tool_call_attrs("expected-result"),
+        children: [
+          {:tool_result_summary, tool_result_summary_element("actual-result")}
+        ]
+      )
+
+    assert {:error, duplicate_errors} = Validate.element(duplicate_results)
+    assert Enum.any?(duplicate_errors, &(&1.code == :invalid_tool_result_summary))
+
+    assert {:error, missing_errors} = Validate.element(missing_event_id)
+    assert Enum.any?(missing_errors, &(&1.code == :invalid_tool_result_summary))
+
+    assert {:error, mismatch_errors} = Validate.element(mismatched_pair)
+    assert Enum.any?(mismatch_errors, &(&1.code == :invalid_tool_result_summary))
+  end
+
+  defp valid_tool_call_attrs(paired_result_event_id) do
+    %{
+      component: %{family: :row_and_artifact, kind: :tool_call_card},
+      tool_call:
+        %{
+          tool_name: "Read",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read the file.",
+          status: :complete,
+          args: %{},
+          expanded?: false
+        }
+        |> maybe_put(:paired_result_event_id, paired_result_event_id)
+    }
+  end
+
+  defp tool_result_summary_element(event_id) do
+    Element.new(:widget, :tool_result_summary,
+      attributes: %{
+        tool_result_summary: %{
+          event_id: event_id,
+          status: :complete,
+          compact_output: "ok"
+        }
+      }
+    )
+  end
+
+  defp maybe_put(map, _key, nil), do: map
+  defp maybe_put(map, key, value), do: Map.put(map, key, value)
 end

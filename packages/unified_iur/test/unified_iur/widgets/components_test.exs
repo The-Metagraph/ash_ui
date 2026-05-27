@@ -27,7 +27,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
     assert Components.row_artifact_kinds() == [
              :list_item_multi_column,
              :artifact_row,
-             :thread_card
+             :thread_card,
+             :tool_call_card
            ]
 
     assert Components.artifact_kinds() == [:pr, :doc, :spec, :file, :grain, :generic]
@@ -176,6 +177,28 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         progress_pct: 0.4
       )
 
+    tool_call =
+      Components.tool_call_card(
+        id: "tool-call-read",
+        tool_name: "Read",
+        tool_kind: :read,
+        target: "lib/ash_ui.ex",
+        summary: "Read the package entrypoint.",
+        status: :complete,
+        args: %{path: "lib/ash_ui.ex"},
+        expanded?: true,
+        actor_handle: "@codex",
+        duration_ms: 42,
+        paired_result_event_id: "event-result-1",
+        tool_result_summary: %{
+          event_id: "event-result-1",
+          status: :complete,
+          compact_output: "Loaded 120 lines.",
+          diff_summary: "No changes.",
+          error?: false
+        }
+      )
+
     assert segmented.attributes.selection == %{
              presentation: :segmented_button_group,
              multiple?: false,
@@ -268,6 +291,45 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
            ]
 
     assert [%Interaction{family: :open, intent: :open_thread}] = thread.attributes.interactions
+
+    assert tool_call.attributes.component == %{
+             family: :row_and_artifact,
+             kind: :tool_call_card
+           }
+
+    assert tool_call.attributes.tool_call == %{
+             tool_name: "Read",
+             tool_kind: :read,
+             target: "lib/ash_ui.ex",
+             summary: "Read the package entrypoint.",
+             status: :complete,
+             args: %{path: "lib/ash_ui.ex"},
+             expanded?: true,
+             actor_handle: "@codex",
+             duration_ms: 42,
+             paired_result_event_id: "event-result-1"
+           }
+
+    assert [%Interaction{family: :command, intent: :expand_toggled}] =
+             tool_call.attributes.interactions
+
+    assert [
+             %{
+               slot: :tool_result_summary,
+               element: %Element{
+                 kind: :tool_result_summary,
+                 attributes: %{
+                   tool_result_summary: %{
+                     event_id: "event-result-1",
+                     status: :complete,
+                     compact_output: "Loaded 120 lines.",
+                     diff_summary: "No changes.",
+                     error?: false
+                   }
+                 }
+               }
+             }
+           ] = tool_call.children
   end
 
   test "validates canonical thread card identity and progress" do
@@ -299,6 +361,143 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
         seed_quote: "Quote",
         progress_pct: 1.5
       )
+    end
+  end
+
+  describe "tool_call_card payload validation" do
+    test "rejects missing required fields" do
+      assert_raise ArgumentError, ~r/non-blank :tool_name/, fn ->
+        Components.tool_call_card(
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :pending,
+          args: %{}
+        )
+      end
+
+      assert_raise ArgumentError, ~r/requires a :summary string/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          status: :pending,
+          args: %{}
+        )
+      end
+    end
+
+    test "rejects blank tool_name and target" do
+      assert_raise ArgumentError, ~r/non-blank :tool_name/, fn ->
+        Components.tool_call_card(
+          tool_name: " ",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :pending,
+          args: %{}
+        )
+      end
+
+      assert_raise ArgumentError, ~r/non-blank :target/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :read,
+          target: " ",
+          summary: "Read file",
+          status: :pending,
+          args: %{}
+        )
+      end
+    end
+
+    test "rejects non-map args" do
+      assert_raise ArgumentError, ~r/:args must be a map/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :pending,
+          args: [path: "lib/ash_ui.ex"]
+        )
+      end
+    end
+
+    test "rejects unknown tool_kind" do
+      assert_raise ArgumentError, ~r/:tool_kind must be one of/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :delete,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :pending,
+          args: %{}
+        )
+      end
+    end
+
+    test "rejects unknown status" do
+      assert_raise ArgumentError, ~r/:status must be one of/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :running,
+          args: %{}
+        )
+      end
+    end
+
+    test "rejects more than one tool_result_summary" do
+      assert_raise ArgumentError, ~r/at most one :tool_result_summary/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :complete,
+          args: %{},
+          tool_result_summary: [
+            %{event_id: "result-1", status: :complete, compact_output: "ok"},
+            %{event_id: "result-2", status: :complete, compact_output: "ok"}
+          ]
+        )
+      end
+    end
+
+    test "rejects tool_result_summary without an event id" do
+      assert_raise ArgumentError, ~r/non-blank :event_id/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :complete,
+          args: %{},
+          tool_result_summary: %{status: :complete, compact_output: "ok"}
+        )
+      end
+    end
+
+    test "rejects mismatched paired result event id" do
+      assert_raise ArgumentError, ~r/event_id must match :paired_result_event_id/, fn ->
+        Components.tool_call_card(
+          tool_name: "Read",
+          tool_kind: :read,
+          target: "lib/ash_ui.ex",
+          summary: "Read file",
+          status: :complete,
+          args: %{},
+          paired_result_event_id: "result-expected",
+          tool_result_summary: %{
+            event_id: "result-actual",
+            status: :complete,
+            compact_output: "ok"
+          }
+        )
+      end
     end
   end
 

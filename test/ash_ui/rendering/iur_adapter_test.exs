@@ -368,6 +368,50 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert :ok = UnifiedIUR.Validate.element(child.element)
     end
 
+    test "routes tool_call_card kind through row_and_artifact family with canonical expand interaction" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "tool-call-card-screen",
+          name: "tool_call_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:tool_call_card,
+              id: "tool-call-1",
+              props: %{
+                "tool_name" => "Bash",
+                "tool_kind" => "bash",
+                "target" => "mix test",
+                "summary" => "Run the focused suite.",
+                "status" => "pending",
+                "args" => %{"cmd" => "mix test"},
+                "expanded?" => false
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :tool_call_card
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :row_and_artifact
+
+      assert child.element.attributes.tool_call == %{
+               tool_name: "Bash",
+               tool_kind: :bash,
+               target: "mix test",
+               summary: "Run the focused suite.",
+               status: :pending,
+               args: %{cmd: "mix test"},
+               expanded?: false
+             }
+
+      assert [%UnifiedIUR.Interaction{family: :command, intent: :expand_toggled}] =
+               child.element.attributes.interactions
+
+      assert :ok = UnifiedIUR.Validate.element(child.element)
+    end
+
     test "returns structured conversion errors for invalid propose_new_doc_card payloads" do
       ash_iur =
         IUR.new(:screen,
@@ -391,6 +435,33 @@ defmodule AshUI.Rendering.IURAdapterTest do
                IURAdapter.to_canonical(ash_iur)
 
       assert error.message =~ "propose_new_doc_card :status must be one of"
+    end
+
+    test "returns structured conversion errors for invalid tool_call_card payloads" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "tool-call-card-screen-invalid",
+          name: "tool_call_card_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:tool_call_card,
+              id: "tool-call-invalid",
+              props: %{
+                "tool_name" => "Bash",
+                "tool_kind" => "bash",
+                "target" => "mix test",
+                "summary" => "Run tests",
+                "status" => "pending",
+                "args" => ["cmd", "mix test"]
+              }
+            )
+          ]
+        )
+
+      assert {:error, {:conversion_failed, %ArgumentError{} = error}} =
+               IURAdapter.to_canonical(ash_iur)
+
+      assert error.message =~ "tool_call_card :args must be a map"
     end
 
     test "routes workflow_progress_status_card kind through workflow_progress_and_status family" do

@@ -363,6 +363,13 @@ defmodule AshUI.Rendering.IURAdapter do
     |> Map.fetch!(:attributes)
   end
 
+  defp base_attributes(:tool_call_card, props) do
+    props
+    |> tool_call_card_opts()
+    |> IURComponents.tool_call_card()
+    |> Map.fetch!(:attributes)
+  end
+
   defp base_attributes(:pipeline_stepper_horizontal = kind, props) do
     component_attributes(
       kind,
@@ -1075,6 +1082,47 @@ defmodule AshUI.Rendering.IURAdapter do
     |> compact_map()
   end
 
+  defp tool_call_card_opts(props) do
+    tool_call = props |> fetch(:tool_call, %{}) |> normalize_map()
+
+    %{
+      id: first_present(props, [:_element_id, :id]),
+      tool_name:
+        first_present(tool_call, [:tool_name]) ||
+          first_present(props, [:tool_name, :name, :label]),
+      tool_kind:
+        normalize_existing_atom(
+          first_present(tool_call, [:tool_kind]) || first_present(props, [:tool_kind]) || :other
+        ),
+      target: first_present(tool_call, [:target]) || first_present(props, [:target, :path]),
+      summary:
+        first_present(tool_call, [:summary]) || first_present(props, [:summary, :description]),
+      status:
+        normalize_existing_atom(
+          first_present(tool_call, [:status]) || first_present(props, [:status]) || :pending
+        ),
+      args: tool_call_args_value(tool_call, props),
+      expanded?:
+        boolean_present(tool_call, [:expanded?], boolean_present(props, [:expanded?], false)),
+      actor_handle:
+        first_present(tool_call, [:actor_handle]) || first_present(props, [:actor_handle]),
+      started_at: first_present(tool_call, [:started_at]) || first_present(props, [:started_at]),
+      duration_ms:
+        first_present(tool_call, [:duration_ms]) || first_present(props, [:duration_ms]),
+      approval_event_id:
+        first_present(tool_call, [:approval_event_id]) ||
+          first_present(props, [:approval_event_id]),
+      paired_result_event_id:
+        first_present(tool_call, [:paired_result_event_id]) ||
+          first_present(props, [:paired_result_event_id]),
+      expand_intent: first_present(props, [:expand_intent]) || :expand_toggled,
+      expand_interaction: fetch(props, :expand_interaction),
+      interactions: fetch(props, :interactions),
+      interaction: fetch(props, :interaction)
+    }
+    |> compact_map()
+  end
+
   defp composer_query_preview_opts(props) do
     preview = props |> fetch(:query_preview, %{}) |> normalize_map()
 
@@ -1360,6 +1408,14 @@ defmodule AshUI.Rendering.IURAdapter do
 
   defp normalize_optional_map(value) do
     normalize_map(value)
+  end
+
+  defp tool_call_args_value(tool_call, props) do
+    cond do
+      not is_nil(first_present(tool_call, [:args])) -> first_present(tool_call, [:args])
+      not is_nil(fetch(props, :args)) -> fetch(props, :args)
+      true -> %{}
+    end
   end
 
   defp normalize_redline_segments(segments) when is_list(segments) do

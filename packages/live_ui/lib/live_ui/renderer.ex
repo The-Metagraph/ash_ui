@@ -76,6 +76,7 @@ defmodule LiveUi.Renderer do
        :supervision_tree_viewer,
        :table,
        :thread_card,
+       :tool_call_card,
        :tabs,
        :text,
        :text_input,
@@ -638,6 +639,49 @@ defmodule LiveUi.Renderer do
       progress_pct={map_value(@thread, :progress_pct)}
       last_activity_at={map_value(@thread, :last_activity_at)}
       open_attrs={@open_attrs}
+      tone={style_tone(@element)}
+      variant={theme_variant(@element)}
+      state={style_state(@element)}
+      class={style_class(@element)}
+      {@style_attrs}
+    />
+    """
+  end
+
+  # NOTE: `:tool_call_card` is a row/artifact component and member of
+  # `@component_kinds`; keep this native clause before the generic component
+  # fallback so expansion and paired-result rendering use the dedicated widget.
+  def render(%{element: %Element{kind: :tool_call_card}} = assigns) do
+    tool_call = get_in(assigns.element.attributes, [:tool_call]) || %{}
+
+    assigns =
+      assigns
+      |> assign(:tool_call, tool_call)
+      |> assign(:tool_call_args, tool_call_args(tool_call))
+      |> assign(:tool_result_summary, tool_result_summary(assigns.element))
+      |> assign(
+        :expand_attrs,
+        interaction_event_attrs(assigns.element, Map.get(assigns, :event_target))
+      )
+      |> assign(:style_attrs, style_rest(assigns.element))
+
+    ~H"""
+    <LiveUi.Widgets.ToolCallCard.component
+      id={element_id(@element, "tool-call-card")}
+      tool_name={string_value(map_value(@tool_call, :tool_name), "")}
+      tool_kind={map_value(@tool_call, :tool_kind, :other)}
+      target={string_value(map_value(@tool_call, :target), "")}
+      summary={string_value(map_value(@tool_call, :summary), "")}
+      status={map_value(@tool_call, :status, :pending)}
+      args={@tool_call_args}
+      expanded?={boolean_default(map_value(@tool_call, :expanded?), false)}
+      actor_handle={string_optional(map_value(@tool_call, :actor_handle))}
+      started_at={map_value(@tool_call, :started_at)}
+      duration_ms={integer_optional(map_value(@tool_call, :duration_ms))}
+      approval_event_id={string_optional(map_value(@tool_call, :approval_event_id))}
+      paired_result_event_id={string_optional(map_value(@tool_call, :paired_result_event_id))}
+      tool_result_summary={@tool_result_summary}
+      expand_attrs={@expand_attrs}
       tone={style_tone(@element)}
       variant={theme_variant(@element)}
       state={style_state(@element)}
@@ -1965,6 +2009,23 @@ defmodule LiveUi.Renderer do
     |> Element.children_for_slot(slot)
     |> Enum.map(& &1.element)
     |> Enum.reject(&is_nil/1)
+  end
+
+  defp tool_result_summary(%Element{} = element) do
+    element
+    |> child_elements(:tool_result_summary)
+    |> List.first()
+    |> case do
+      %Element{attributes: attributes} -> Map.get(attributes, :tool_result_summary)
+      _other -> nil
+    end
+  end
+
+  defp tool_call_args(tool_call) do
+    case map_value(tool_call, :args, %{}) do
+      args when is_map(args) -> args
+      _other -> %{}
+    end
   end
 
   defp overlay_children(%Element{} = element) do

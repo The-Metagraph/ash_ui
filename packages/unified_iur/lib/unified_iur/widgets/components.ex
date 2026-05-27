@@ -44,7 +44,8 @@ defmodule UnifiedIUR.Widgets.Components do
   @row_artifact_kinds [
     :list_item_multi_column,
     :artifact_row,
-    :thread_card
+    :thread_card,
+    :tool_call_card
   ]
 
   @artifact_kinds [
@@ -81,6 +82,8 @@ defmodule UnifiedIUR.Widgets.Components do
 
   @query_preview_states [:loading, :ready, :empty, :error]
   @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
+  @tool_call_kinds [:read, :edit, :write, :bash, :multiedit, :other]
+  @tool_call_statuses [:pending, :approved, :denied, :complete, :failed]
 
   @redline_code_kinds [
     :redline_inline,
@@ -399,6 +402,79 @@ defmodule UnifiedIUR.Widgets.Components do
         participants: normalize_thread_participants!(option(opts, :participants, []))
       },
       opts
+    )
+  end
+
+  @spec tool_call_card(opts()) :: Element.t()
+  def tool_call_card(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    tool_name = option(opts, :tool_name)
+    tool_kind = option(opts, :tool_kind)
+    target = option(opts, :target)
+    summary = option(opts, :summary)
+    status = option(opts, :status)
+    args = option(opts, :args)
+    expanded? = option(opts, :expanded?, false) || false
+    duration_ms = option(opts, :duration_ms)
+    paired_result_event_id = option(opts, :paired_result_event_id)
+    tool_result_summary = normalize_tool_result_summary_child!(opts, paired_result_event_id)
+
+    unless non_blank_string?(tool_name) do
+      raise ArgumentError, "tool_call_card requires a non-blank :tool_name string"
+    end
+
+    unless tool_kind in @tool_call_kinds do
+      raise ArgumentError, "tool_call_card :tool_kind must be one of #{inspect(@tool_call_kinds)}"
+    end
+
+    unless non_blank_string?(target) do
+      raise ArgumentError, "tool_call_card requires a non-blank :target string"
+    end
+
+    unless is_binary(summary) do
+      raise ArgumentError, "tool_call_card requires a :summary string"
+    end
+
+    unless status in @tool_call_statuses do
+      raise ArgumentError, "tool_call_card :status must be one of #{inspect(@tool_call_statuses)}"
+    end
+
+    unless is_map(args) do
+      raise ArgumentError, "tool_call_card :args must be a map"
+    end
+
+    unless is_boolean(expanded?) do
+      raise ArgumentError, "tool_call_card :expanded? must be a boolean"
+    end
+
+    unless is_nil(duration_ms) or non_negative_integer?(duration_ms) do
+      raise ArgumentError, "tool_call_card :duration_ms must be a non-negative integer"
+    end
+
+    opts = put_tool_call_expand_interaction(opts, tool_name)
+
+    build_component(
+      :tool_call_card,
+      :row_and_artifact,
+      %{
+        tool_call:
+          %{
+            tool_name: tool_name,
+            tool_kind: tool_kind,
+            target: target,
+            summary: summary,
+            status: status,
+            args: Map.new(args),
+            expanded?: expanded?
+          }
+          |> maybe_put(:actor_handle, option(opts, :actor_handle))
+          |> maybe_put(:started_at, option(opts, :started_at))
+          |> maybe_put(:duration_ms, duration_ms)
+          |> maybe_put(:approval_event_id, option(opts, :approval_event_id))
+          |> maybe_put(:paired_result_event_id, paired_result_event_id)
+      },
+      Map.put(opts, :children, List.wrap(tool_result_summary))
     )
   end
 
@@ -1375,6 +1451,32 @@ defmodule UnifiedIUR.Widgets.Components do
     end
   end
 
+  defp put_tool_call_expand_interaction(opts, tool_name) do
+    cond do
+      explicit_interactions?(opts) ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, [tool_call_expand_interaction(opts, tool_name)])
+    end
+  end
+
+  defp tool_call_expand_interaction(opts, tool_name) do
+    case option(opts, :expand_interaction) do
+      nil ->
+        Interaction.command(
+          intent: option(opts, :expand_intent, :expand_toggled),
+          element_id: option(opts, :id),
+          entity: tool_name,
+          command: :expand_toggled,
+          value: option(opts, :target)
+        )
+
+      interaction ->
+        Interaction.new(interaction)
+    end
+  end
+
   defp put_query_preview_interactions(opts, composer_id, query) do
     cond do
       Map.has_key?(opts, :interactions) or Map.has_key?(opts, "interactions") or
@@ -1707,6 +1809,86 @@ defmodule UnifiedIUR.Widgets.Components do
     end
   end
 
+  defp normalize_tool_result_summary_child!(opts, paired_result_event_id) do
+    summaries = tool_result_summary_inputs(opts)
+
+    case summaries do
+      [] ->
+        nil
+
+      [summary] ->
+        summary = normalize_tool_result_summary!(summary)
+        event_id = Map.fetch!(summary, :event_id)
+
+        if non_blank_string?(paired_result_event_id) and event_id != paired_result_event_id do
+          raise ArgumentError,
+                "tool_call_card :tool_result_summary event_id must match :paired_result_event_id"
+        end
+
+        {:tool_result_summary,
+         Element.new(:widget, :tool_result_summary,
+           id: event_id,
+           attributes: %{tool_result_summary: summary}
+         )}
+
+      _more ->
+        raise ArgumentError, "tool_call_card accepts at most one :tool_result_summary child"
+    end
+  end
+
+  defp tool_result_summary_inputs(opts) do
+    cond do
+      not is_nil(option(opts, :tool_result_summaries)) ->
+        option(opts, :tool_result_summaries)
+        |> List.wrap()
+
+      is_nil(option(opts, :tool_result_summary)) ->
+        []
+
+      keyword_list?(option(opts, :tool_result_summary)) ->
+        [option(opts, :tool_result_summary)]
+
+      is_list(option(opts, :tool_result_summary)) ->
+        option(opts, :tool_result_summary)
+
+      true ->
+        [option(opts, :tool_result_summary)]
+    end
+  end
+
+  defp normalize_tool_result_summary!(summary) when is_map(summary) or is_list(summary) do
+    summary = normalize_map(summary)
+    event_id = option(summary, :event_id, option(summary, :result_event_id))
+    status = option(summary, :status)
+    compact_output = option(summary, :compact_output, option(summary, :summary))
+
+    unless non_blank_string?(event_id) do
+      raise ArgumentError, "tool_result_summary requires a non-blank :event_id string"
+    end
+
+    unless status in @tool_call_statuses do
+      raise ArgumentError,
+            "tool_result_summary :status must be one of #{inspect(@tool_call_statuses)}"
+    end
+
+    unless is_binary(compact_output) do
+      raise ArgumentError, "tool_result_summary requires a :compact_output string"
+    end
+
+    %{
+      event_id: event_id,
+      status: status,
+      compact_output: compact_output
+    }
+    |> maybe_put(:diff_summary, option(summary, :diff_summary))
+    |> maybe_put(:error?, option(summary, :error?, option(summary, :error)))
+  end
+
+  defp normalize_tool_result_summary!(_summary) do
+    raise ArgumentError, "tool_result_summary must be a map"
+  end
+
+
   defp normalize_query_preview_state!(state) when state in @query_preview_states, do: state
 
   defp normalize_query_preview_state!(state) when is_binary(state) do
@@ -1842,8 +2024,10 @@ defmodule UnifiedIUR.Widgets.Components do
   defp empty_map_to_nil(value), do: value
 
   defp non_empty_string?(value), do: is_binary(value) and byte_size(value) > 0
+  defp non_blank_string?(value), do: is_binary(value) and String.trim(value) != ""
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0
   defp positive_integer?(value), do: is_integer(value) and value > 0
+  defp keyword_list?(value), do: is_list(value) and Keyword.keyword?(value)
 
   defp normalized_confidence?(value) when is_integer(value) or is_float(value) do
     value >= 0.0 and value <= 1.0

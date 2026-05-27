@@ -412,6 +412,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert :ok = UnifiedIUR.Validate.element(child.element)
     end
 
+
     test "returns structured conversion errors for invalid propose_new_doc_card payloads" do
       ash_iur =
         IUR.new(:screen,
@@ -463,6 +464,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert error.message =~ "tool_call_card :args must be a map"
     end
+
 
     test "routes workflow_progress_status_card kind through workflow_progress_and_status family" do
       ash_iur =

@@ -99,7 +99,7 @@ authoring boundaries and normalize before renderer-facing output.
 | Content, identity, and disclosure | `inline_rich_text_heading`, `disclosure`, `kicker`, `avatar`, `presence_dot` | none |
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `collection_picker`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
 | Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card`, `tool_call_card` | none |
-| Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `workflow_progress_status_card` | none |
+| Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `live_session_card`, `workflow_progress_status_card` | none |
 | Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail`, `composer_query_preview`, `propose_new_doc_card` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
 | Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
@@ -137,6 +137,14 @@ such as `subject_id`, `name`, `path`, `progress_pct`, `active_count`,
 `open_action`. The canonical renderer-facing output groups those values under
 `attributes.subject`; it does not expose map placement names, route helpers,
 LiveView event fields, or application-specific card names.
+
+`live_session_card` is the canonical card for an actively running assistant
+session. Author props such as `session_id`, `actor_handle`, `status`,
+`status_version`, `tools_count`, `edits_count`, `tokens_consumed`,
+`started_at`, optional `current_step`, `current_task_title`,
+`now_streaming`, `recent_events`, and `pinned?`. Use canonical
+`pin_toggled`, `interrupted`, and `expanded_recent` interactions. Keep
+LiveView event fields and route helpers in the host layer.
 
 `composer_query_preview` is the reusable inline preview band for query results
 adjacent to a composer. Author generic props such as `composer_id`, `query`,

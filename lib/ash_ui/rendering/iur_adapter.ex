@@ -94,11 +94,14 @@ defmodule AshUI.Rendering.IURAdapter do
     kind = map_element_kind(element.type)
     type = map_element_type(kind)
     props = if map_size(element.props || %{}) > 0, do: element.props, else: element.attributes
+    fallback_id = element.id || generate_id()
+    element_id = element_id_for_kind(kind, convert_props(props), fallback_id)
+    attribute_element_id = if kind == :live_session_card, do: element_id, else: element.id
 
     Element.new(type, kind,
-      id: element.id || generate_id(),
+      id: element_id,
       metadata: convert_metadata(element),
-      attributes: convert_attributes(kind, props, element.id),
+      attributes: convert_attributes(kind, props, attribute_element_id),
       children: convert_children(element.children)
     )
   end
@@ -154,6 +157,26 @@ defmodule AshUI.Rendering.IURAdapter do
        do: :layer
 
   defp map_element_type(_kind), do: :widget
+
+  defp element_id_for_kind(:live_session_card, props, fallback_id) do
+    live_session = props |> fetch(:live_session, %{}) |> normalize_map()
+
+    session_id =
+      first_present(live_session, [:session_id]) ||
+        first_present(props, [:session_id])
+
+    status_version =
+      first_present(live_session, [:status_version]) ||
+        first_present(props, [:status_version])
+
+    if is_binary(session_id) and not is_nil(status_version) do
+      "live_session:#{session_id}:#{status_version}"
+    else
+      fallback_id
+    end
+  end
+
+  defp element_id_for_kind(_kind, _props, fallback_id), do: fallback_id
 
   # Convert props with name transformations
   defp convert_props(props) when is_map(props) do
@@ -367,6 +390,13 @@ defmodule AshUI.Rendering.IURAdapter do
     props
     |> tool_call_card_opts()
     |> IURComponents.tool_call_card()
+    |> Map.fetch!(:attributes)
+  end
+
+  defp base_attributes(:live_session_card, props) do
+    props
+    |> live_session_card_opts()
+    |> IURComponents.live_session_card()
     |> Map.fetch!(:attributes)
   end
 
@@ -1337,6 +1367,60 @@ defmodule AshUI.Rendering.IURAdapter do
       dependency_select_intent: first_present(props, [:dependency_select_intent]),
       dependency_select_interaction: first_present(props, [:dependency_select_interaction]),
       open_action: normalize_optional_map(first_present(props, [:open_action]))
+    }
+    |> compact_map()
+  end
+
+  defp live_session_card_opts(props) do
+    live_session = props |> fetch(:live_session, %{}) |> normalize_map()
+
+    %{
+      session_id:
+        first_present(live_session, [:session_id]) ||
+          first_present(props, [:session_id]),
+      actor_handle:
+        first_present(live_session, [:actor_handle]) ||
+          first_present(props, [:actor_handle]),
+      status:
+        normalize_existing_atom(
+          first_present(live_session, [:status]) ||
+            first_present(props, [:status]) ||
+            :running
+        ),
+      status_version:
+        first_present(live_session, [:status_version]) ||
+          first_present(props, [:status_version]),
+      tools_count:
+        first_present(live_session, [:tools_count]) ||
+          first_present(props, [:tools_count]),
+      edits_count:
+        first_present(live_session, [:edits_count]) ||
+          first_present(props, [:edits_count]),
+      tokens_consumed:
+        first_present(live_session, [:tokens_consumed]) ||
+          first_present(props, [:tokens_consumed]),
+      started_at:
+        first_present(live_session, [:started_at]) ||
+          first_present(props, [:started_at]),
+      current_step:
+        first_present(live_session, [:current_step]) ||
+          first_present(props, [:current_step]),
+      current_task_title:
+        first_present(live_session, [:current_task_title]) ||
+          first_present(props, [:current_task_title]),
+      now_streaming:
+        first_present(live_session, [:now_streaming]) ||
+          first_present(props, [:now_streaming]),
+      recent_events:
+        first_present(live_session, [:recent_events]) ||
+          fetch(props, :recent_events, []),
+      pinned?:
+        boolean_present(live_session, [:pinned?], boolean_present(props, [:pinned?], false)),
+      pin_intent: first_present(props, [:pin_intent]) || :pin_toggled,
+      interrupt_intent: first_present(props, [:interrupt_intent]) || :interrupted,
+      expanded_recent_intent: first_present(props, [:expanded_recent_intent]) || :expanded_recent,
+      interactions: fetch(props, :interactions),
+      interaction: fetch(props, :interaction)
     }
     |> compact_map()
   end

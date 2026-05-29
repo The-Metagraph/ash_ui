@@ -48,6 +48,17 @@ defmodule AshUI.Phase31CanonicalConversionTest do
      %{stages: [%{id: :authored, label: "Authored"}]}, :workflow},
     {:meter_thin, :workflow_progress_and_status, %{current: 50, minimum: 0, maximum: 100},
      :meter},
+    {:live_session_card, :workflow_progress_and_status,
+     %{
+       session_id: "550e8400-e29b-41d4-a716-446655440000",
+       actor_handle: "@opus",
+       status: :running,
+       status_version: 1,
+       tools_count: 1,
+       edits_count: 0,
+       tokens_consumed: 100,
+       started_at: ~U[2026-05-27 15:00:00Z]
+     }, :live_session},
     {:sticky_frosted_header, :layer_shell_and_callout, %{title: "Workspace"}, :shell},
     {:slide_over_panel, :layer_shell_and_callout, %{label: "Details", open?: true}, :panel},
     {:event_callout, :layer_shell_and_callout, %{message: "Deployment paused"}, :callout},

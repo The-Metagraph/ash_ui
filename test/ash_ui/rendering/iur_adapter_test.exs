@@ -574,6 +574,80 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert error.message =~ "progress must be in 0.0..100.0"
     end
+
+    test "routes live_session_card kind through workflow_progress_and_status family with synthetic id" do
+      session_id = "550e8400-e29b-41d4-a716-446655440000"
+
+      ash_iur =
+        IUR.new(:screen,
+          id: "live-session-screen",
+          name: "live_session_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:live_session_card,
+              id: "ignored-source-id",
+              props: %{
+                "session_id" => session_id,
+                "actor_handle" => "@opus",
+                "status" => :running,
+                "status_version" => 3,
+                "tools_count" => 4,
+                "edits_count" => 2,
+                "tokens_consumed" => 9_000,
+                "started_at" => ~U[2026-05-27 15:00:00Z],
+                "now_streaming" => "Writing tests.",
+                "recent_events" => [
+                  %{"kind" => "assistant_text", "body" => "Working."}
+                ],
+                "pinned?" => true
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+
+      assert child.element.id == "live_session:#{session_id}:3"
+      assert child.element.kind == :live_session_card
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :workflow_progress_and_status
+      assert child.element.attributes.live_session.session_id == session_id
+      assert child.element.attributes.live_session.status == :running
+      assert child.element.attributes.live_session.tools_count == 4
+      assert child.element.attributes.live_session.edits_count == 2
+      assert child.element.attributes.live_session.tokens_consumed == 9_000
+      assert child.element.attributes.live_session.pinned? == true
+      assert :ok = UnifiedIUR.Validate.element(child.element)
+    end
+
+    test "returns structured conversion errors for invalid live_session_card payloads" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "live-session-screen-invalid",
+          name: "live_session_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:live_session_card,
+              props: %{
+                "session_id" => "not-a-uuid",
+                "actor_handle" => "@opus",
+                "status" => :running,
+                "status_version" => 1,
+                "tools_count" => 0,
+                "edits_count" => 0,
+                "tokens_consumed" => 0,
+                "started_at" => ~U[2026-05-27 15:00:00Z]
+              }
+            )
+          ]
+        )
+
+      assert {:error, {:conversion_failed, %ArgumentError{} = error}} =
+               IURAdapter.to_canonical(ash_iur)
+
+      assert error.message =~ "session_id must be a uuid"
+    end
   end
 
   describe "error handling" do

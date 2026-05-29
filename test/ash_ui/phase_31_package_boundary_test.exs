@@ -58,6 +58,7 @@ defmodule AshUI.Phase31PackageBoundaryTest do
                :workflow_stage_list_vertical,
                :meter_thin,
                :unread_badge,
+               :live_session_card,
                :workflow_progress_status_card
              ]
 

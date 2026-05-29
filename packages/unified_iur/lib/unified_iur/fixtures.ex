@@ -1240,6 +1240,18 @@ defmodule UnifiedIUR.Fixtures do
            status: :complete,
            args: %{file_path: "lib/ariston_ui/workspace.ex"},
            expanded?: false
+         )},
+        {:content,
+         Components.live_session_card(
+           session_id: "550e8400-e29b-41d4-a716-446655440000",
+           actor_handle: "@opus",
+           status: :running,
+           status_version: 1,
+           tools_count: 5,
+           edits_count: 2,
+           tokens_consumed: 8192,
+           started_at: "2026-05-28T10:00:00Z",
+           current_task_title: "Fix coverage fixtures"
          )}
       ],
       id: "component-safety-fixture"

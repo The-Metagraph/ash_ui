@@ -1502,4 +1502,49 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
       assert heex =~ ~s(data-selected="true")
     end
   end
+
+  describe "live_session_card adapter dispatch" do
+    test "generates dedicated live_session_card markup" do
+      iur = %{
+        "type" => "live_session_card",
+        "id" => "live_session:550e8400-e29b-41d4-a716-446655440000:3",
+        "props" => %{
+          "live_session" => %{
+            "session_id" => "550e8400-e29b-41d4-a716-446655440000",
+            "actor_handle" => "@opus",
+            "status" => "running",
+            "status_version" => 3,
+            "tools_count" => 4,
+            "edits_count" => 2,
+            "tokens_consumed" => 9000,
+            "started_at" => "2026-05-27T15:00:00Z",
+            "current_task_title" => "Implement live session card",
+            "now_streaming" => "Writing adapter tests.",
+            "recent_events" => [
+              %{"kind" => "assistant_text", "body" => "Working."}
+            ],
+            "pinned?" => true
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-live-session-card"
+      assert heex =~ ~s(data-live-ui-widget="live-session-card")
+      assert heex =~ ~s(data-session-id="550e8400-e29b-41d4-a716-446655440000")
+      assert heex =~ ~s(data-status-version="3")
+      assert heex =~ ~s(data-pinned="true")
+      assert heex =~ "4"
+      assert heex =~ "2"
+      assert heex =~ "9000"
+      assert heex =~ "Writing adapter tests."
+      assert heex =~ "assistant_text"
+      assert heex =~ "data-live-ui-intent=\"pin_toggled\""
+      assert heex =~ "data-live-ui-intent=\"interrupted\""
+      assert heex =~ "data-live-ui-intent=\"expanded_recent\""
+    end
+  end
 end

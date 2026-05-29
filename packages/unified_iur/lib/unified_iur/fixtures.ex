@@ -1188,6 +1188,37 @@ defmodule UnifiedIUR.Fixtures do
            depends_on: [],
            depended_by: ["metagraph-analysis", "ariston-ui"],
            selected?: false
+         )},
+        {:content,
+         Components.collection_picker(
+           id: "component-collection-picker",
+           picker_id: "adr-picker",
+           title: "ADRs",
+           query: "boundary",
+           filters: [%{id: :all, label: "All", selected?: true, count: 3}],
+           items: [%{id: :adr_0001, label: "ADR 0001", description: "Stream workspace doc body"}],
+           suggestions: []
+         )},
+        {:content,
+         Components.thread_card(
+           id: "component-thread-card",
+           thread_id: "thread:spec-review-0001",
+           title: "Spec review discussion",
+           seed_quote: "Should the runtime own this transition?",
+           reply_count: 3,
+           participants: [%{actor_name: "Pascal", avatar: %{initials: "PC"}}],
+           progress_pct: 0.6
+         )},
+        {:content,
+         Components.composer_query_preview(
+           id: "component-query-preview",
+           composer_id: "composer-main",
+           query: "release blockers",
+           preview_state: :ready,
+           explanation: "Two likely blockers found.",
+           findings: [
+             %{id: "finding-1", n: 1, snippet: "Conformance missing", confidence: 0.88}
+           ]
          )}
       ],
       id: "component-safety-fixture"

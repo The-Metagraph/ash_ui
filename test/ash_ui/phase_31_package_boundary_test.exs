@@ -45,7 +45,12 @@ defmodule AshUI.Phase31PackageBoundaryTest do
                :mode_nav
              ]
 
-      assert families.row_and_artifact == [:list_item_multi_column, :artifact_row, :thread_card]
+      assert families.row_and_artifact == [
+               :list_item_multi_column,
+               :artifact_row,
+               :thread_card,
+               :tool_call_card
+             ]
 
       assert families.workflow_progress_and_status == [
                :pipeline_stepper_horizontal,

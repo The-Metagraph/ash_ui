@@ -1241,6 +1241,48 @@ defmodule AshUI.Rendering.LiveUIAdapterTest do
     end
   end
 
+  describe "tool_call_card adapter dispatch" do
+    test "generates dedicated tool_call_card fallback markup" do
+      iur = %{
+        "type" => "tool_call_card",
+        "id" => "tool-call-card-adapter-test",
+        "props" => %{
+          "tool_call" => %{
+            "tool_name" => "Bash",
+            "tool_kind" => "bash",
+            "target" => "mix test",
+            "summary" => "Run the focused suite.",
+            "status" => "complete",
+            "args" => %{"cmd" => "mix test"},
+            "expanded?" => true,
+            "tool_result_summary" => %{
+              "event_id" => "result-1",
+              "status" => "complete",
+              "compact_output" => "Tests passed.",
+              "diff_summary" => "No source diff.",
+              "error?" => false
+            }
+          }
+        },
+        "children" => [],
+        "metadata" => %{}
+      }
+
+      {:ok, heex} = LiveUIAdapter.render(iur, force_fallback: true)
+
+      assert heex =~ "ash-tool-call-card"
+      assert heex =~ ~s(data-live-ui-widget="tool-call-card")
+      assert heex =~ ~s(data-tool-kind="bash")
+      assert heex =~ ~s(data-status="complete")
+      assert heex =~ "Bash"
+      assert heex =~ "mix test"
+      assert heex =~ "Run the focused suite."
+      assert heex =~ "ash-tool-call-card__args"
+      assert heex =~ "Tests passed."
+      assert heex =~ "No source diff."
+    end
+  end
+
   describe "composer_query_preview adapter dispatch" do
     test "generates dedicated composer_query_preview fallback markup" do
       iur = %{

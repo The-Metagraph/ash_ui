@@ -124,6 +124,16 @@ defmodule UnifiedIUR.Validate do
       construct_family: :widget_components,
       guidance: "Represent artifact counts as a list of maps with key, value, and optional label."
     },
+    invalid_tool_call_card: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent tool_call_card with required tool identity, status, target, summary, args, and renderer-independent expansion intent."
+    },
+    invalid_tool_result_summary: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent tool_result_summary as the single paired result child with event id, status, compact output, and optional diff or error marker."
+    },
     invalid_rail_contract: %{
       construct_family: :widget_components,
       guidance:
@@ -208,6 +218,8 @@ defmodule UnifiedIUR.Validate do
   @redline_states [:keep, :insert, :delete, :accepted, :rejected]
   @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
   @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
+  @tool_call_kinds [:read, :edit, :write, :bash, :multiedit, :other]
+  @tool_call_statuses [:pending, :approved, :denied, :complete, :failed]
   @rail_sides [:right]
   @query_preview_states [:loading, :ready, :empty, :error]
   @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
@@ -641,6 +653,26 @@ defmodule UnifiedIUR.Validate do
     )
   end
 
+  defp validate_component_contracts(%Element{
+         kind: :tool_call_card,
+         attributes: attributes,
+         children: children
+       }) do
+    tool_call = Map.get(attributes, :tool_call, %{})
+
+    []
+    |> Kernel.++(validate_tool_call_shape(tool_call))
+    |> Kernel.++(
+      validate_tool_call_result_children(children, fetch(tool_call, :paired_result_event_id))
+    )
+  end
+
+  defp validate_component_contracts(%Element{kind: :tool_result_summary, attributes: attributes}) do
+    attributes
+    |> Map.get(:tool_result_summary, %{})
+    |> validate_tool_result_summary_shape([:attributes, :tool_result_summary])
+  end
+
   defp validate_component_contracts(%Element{kind: :meter_thin, attributes: attributes}) do
     meter = Map.get(attributes, :meter, %{})
     current = fetch(meter, :current)
@@ -728,6 +760,227 @@ defmodule UnifiedIUR.Validate do
   end
 
   defp validate_component_contracts(_element), do: []
+
+  defp validate_tool_call_shape(tool_call) when is_map(tool_call) do
+    []
+    |> maybe_add(
+      not non_blank_string?(fetch(tool_call, :tool_name)),
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card requires tool_name as a non-blank string",
+        path: [:attributes, :tool_call, :tool_name],
+        details: %{tool_name: inspect(fetch(tool_call, :tool_name))}
+      )
+    )
+    |> maybe_add(
+      fetch(tool_call, :tool_kind) not in @tool_call_kinds,
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card tool_kind must be one of #{inspect(@tool_call_kinds)}",
+        path: [:attributes, :tool_call, :tool_kind],
+        details: %{tool_kind: inspect(fetch(tool_call, :tool_kind))}
+      )
+    )
+    |> maybe_add(
+      not non_blank_string?(fetch(tool_call, :target)),
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card requires target as a non-blank string",
+        path: [:attributes, :tool_call, :target],
+        details: %{target: inspect(fetch(tool_call, :target))}
+      )
+    )
+    |> maybe_add(
+      not is_binary(fetch(tool_call, :summary)),
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card requires summary as a string",
+        path: [:attributes, :tool_call, :summary],
+        details: %{summary: inspect(fetch(tool_call, :summary))}
+      )
+    )
+    |> maybe_add(
+      fetch(tool_call, :status) not in @tool_call_statuses,
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card status must be one of #{inspect(@tool_call_statuses)}",
+        path: [:attributes, :tool_call, :status],
+        details: %{status: inspect(fetch(tool_call, :status))}
+      )
+    )
+    |> maybe_add(
+      not is_map(fetch(tool_call, :args)),
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card args must be a map",
+        path: [:attributes, :tool_call, :args],
+        details: %{args: inspect(fetch(tool_call, :args))}
+      )
+    )
+    |> maybe_add(
+      has_key?(tool_call, :expanded?) and not is_boolean(fetch(tool_call, :expanded?)),
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card expanded? must be a boolean",
+        path: [:attributes, :tool_call, :expanded?],
+        details: %{expanded?: inspect(fetch(tool_call, :expanded?))}
+      )
+    )
+    |> maybe_add(
+      has_key?(tool_call, :duration_ms) and
+        not non_negative_integer?(fetch(tool_call, :duration_ms)),
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card duration_ms must be a non-negative integer",
+        path: [:attributes, :tool_call, :duration_ms],
+        details: %{duration_ms: inspect(fetch(tool_call, :duration_ms))}
+      )
+    )
+  end
+
+  defp validate_tool_call_shape(_tool_call) do
+    [
+      Error.new(
+        :invalid_tool_call_card,
+        "tool_call_card attributes.tool_call must be a map",
+        path: [:attributes, :tool_call]
+      )
+    ]
+  end
+
+  defp validate_tool_call_result_children(children, paired_result_event_id)
+       when is_list(children) do
+    present_children =
+      children
+      |> Enum.with_index()
+      |> Enum.filter(fn
+        {%Child{element: %Element{}}, _index} -> true
+        _other -> false
+      end)
+
+    result_children =
+      Enum.filter(present_children, fn {%Child{} = child, _index} ->
+        tool_result_summary_child?(child)
+      end)
+
+    non_result_errors =
+      present_children
+      |> Enum.reject(fn {%Child{} = child, _index} -> tool_result_summary_child?(child) end)
+      |> Enum.map(fn {_child, index} ->
+        Error.new(
+          :invalid_tool_result_summary,
+          "tool_call_card accepts only a tool_result_summary child",
+          path: [:children, index]
+        )
+      end)
+
+    count_errors =
+      maybe_add(
+        [],
+        length(result_children) > 1,
+        Error.new(
+          :invalid_tool_result_summary,
+          "tool_call_card accepts at most one tool_result_summary child",
+          path: [:children],
+          details: %{count: length(result_children)}
+        )
+      )
+
+    child_errors =
+      result_children
+      |> Enum.take(1)
+      |> Enum.flat_map(fn {%Child{element: element}, index} ->
+        summary = Map.get(element.attributes, :tool_result_summary, %{})
+        event_id = tool_result_event_id(summary)
+
+        validate_tool_result_summary_shape(summary, [
+          :children,
+          index,
+          :attributes,
+          :tool_result_summary
+        ]) ++
+          maybe_add(
+            [],
+            non_blank_string?(paired_result_event_id) and event_id != paired_result_event_id,
+            Error.new(
+              :invalid_tool_result_summary,
+              "tool_result_summary event_id must match paired_result_event_id",
+              path: [:children, index, :attributes, :tool_result_summary, :event_id],
+              details: %{
+                event_id: inspect(event_id),
+                paired_result_event_id: paired_result_event_id
+              }
+            )
+          )
+      end)
+
+    non_result_errors ++ count_errors ++ child_errors
+  end
+
+  defp validate_tool_call_result_children(_children, _paired_result_event_id), do: []
+
+  defp tool_result_summary_child?(%Child{
+         slot: slot,
+         element: %Element{kind: :tool_result_summary}
+       })
+       when slot in [:tool_result_summary, "tool_result_summary"],
+       do: true
+
+  defp tool_result_summary_child?(_child), do: false
+
+  defp validate_tool_result_summary_shape(summary, path) when is_map(summary) do
+    []
+    |> maybe_add(
+      not non_blank_string?(tool_result_event_id(summary)),
+      Error.new(
+        :invalid_tool_result_summary,
+        "tool_result_summary requires event_id as a non-blank string",
+        path: path ++ [:event_id],
+        details: %{event_id: inspect(tool_result_event_id(summary))}
+      )
+    )
+    |> maybe_add(
+      fetch(summary, :status) not in @tool_call_statuses,
+      Error.new(
+        :invalid_tool_result_summary,
+        "tool_result_summary status must be one of #{inspect(@tool_call_statuses)}",
+        path: path ++ [:status],
+        details: %{status: inspect(fetch(summary, :status))}
+      )
+    )
+    |> maybe_add(
+      not is_binary(fetch(summary, :compact_output)),
+      Error.new(
+        :invalid_tool_result_summary,
+        "tool_result_summary requires compact_output as a string",
+        path: path ++ [:compact_output],
+        details: %{compact_output: inspect(fetch(summary, :compact_output))}
+      )
+    )
+    |> maybe_add(
+      has_key?(summary, :error?) and not is_boolean(fetch(summary, :error?)),
+      Error.new(
+        :invalid_tool_result_summary,
+        "tool_result_summary error? must be a boolean",
+        path: path ++ [:error?],
+        details: %{error?: inspect(fetch(summary, :error?))}
+      )
+    )
+  end
+
+  defp validate_tool_result_summary_shape(_summary, path) do
+    [
+      Error.new(
+        :invalid_tool_result_summary,
+        "tool_result_summary attributes must be a map",
+        path: path
+      )
+    ]
+  end
+
+  defp tool_result_event_id(summary) do
+    fetch(summary, :event_id, fetch(summary, :result_event_id))
+  end
 
   defp validate_subject_shape(subject) when is_map(subject) do
     []

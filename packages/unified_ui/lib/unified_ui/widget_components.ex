@@ -107,6 +107,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :tool_call_card,
+      family: :row_and_artifact,
+      summary:
+        "Assistant tool-call artifact with status, target, args, expansion state, and optional paired result summary.",
+      aliases: []
+    },
+    %{
       kind: :sticky_frosted_header,
       family: :layer_shell_and_callout,
       summary: "Sticky shell header with leading, title, and trailing child positions.",

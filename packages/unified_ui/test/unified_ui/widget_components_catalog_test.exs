@@ -29,7 +29,12 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :collection_picker,
                :mode_nav
              ],
-             row_and_artifact: [:list_item_multi_column, :artifact_row, :thread_card],
+             row_and_artifact: [
+               :list_item_multi_column,
+               :artifact_row,
+               :thread_card,
+               :tool_call_card
+             ],
              workflow_progress_and_status: [
                :pipeline_stepper_horizontal,
                :segmented_progress_bar,
@@ -71,6 +76,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert :propose_new_doc_card in kinds
     assert :collection_picker in kinds
     assert :workflow_progress_status_card in kinds
+    assert :tool_call_card in kinds
   end
 
   test "canonical name lookup accepts AshUi aliases with diagnostics" do

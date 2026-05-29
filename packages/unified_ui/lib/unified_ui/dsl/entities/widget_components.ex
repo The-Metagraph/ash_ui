@@ -15,6 +15,8 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
   @presence_states [:active, :away, :offline, :focus, :do_not_disturb]
   @artifact_kinds [:pr, :doc, :spec, :file, :grain, :generic]
   @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
+  @tool_call_kinds [:read, :edit, :write, :bash, :multiedit, :other]
+  @tool_call_statuses [:pending, :approved, :denied, :complete, :failed]
 
   @spec entities() :: [Spark.Dsl.Entity.t()]
   def entities do
@@ -131,6 +133,24 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         last_activity_at: [type: :any, required: false],
         open_intent: [type: :any, required: false],
         summary: [type: :string, required: false]
+      ),
+      leaf(
+        :tool_call_card,
+        @row_artifact_family,
+        tool_name: [type: :string, required: true],
+        tool_kind: [type: {:in, @tool_call_kinds}, required: true],
+        target: [type: :string, required: true],
+        summary: [type: :string, required: true],
+        status: [type: {:in, @tool_call_statuses}, required: true],
+        args: [type: :any, required: true],
+        expanded?: [type: :boolean, required: false, default: false],
+        actor_handle: [type: :string, required: false],
+        started_at: [type: :any, required: false],
+        duration_ms: [type: :integer, required: false],
+        approval_event_id: [type: :string, required: false],
+        paired_result_event_id: [type: :string, required: false],
+        tool_result_summary: [type: :any, required: false],
+        expand_intent: [type: :atom, required: false]
       )
     ]
   end

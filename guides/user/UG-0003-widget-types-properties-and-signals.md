@@ -98,7 +98,7 @@ authoring boundaries and normalize before renderer-facing output.
 |---|---|---|
 | Content, identity, and disclosure | `inline_rich_text_heading`, `disclosure`, `kicker`, `avatar`, `presence_dot` | none |
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `collection_picker`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
-| Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card` | none |
+| Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card`, `tool_call_card` | none |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `workflow_progress_status_card` | none |
 | Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail`, `composer_query_preview`, `propose_new_doc_card` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
@@ -160,6 +160,13 @@ document proposal. Author props such as `target_path`, `title`,
 canonical `accept`, `reject`, `preview`, `body_toggled`, and
 `conversation_seed_toggled` interactions for operator actions. Keep LiveView
 event fields, route helpers, and product-specific copy in the host layer.
+
+`tool_call_card` is the canonical card for a single assistant tool call in a
+conversation timeline. Author props such as `tool_name`, `tool_kind`, `target`,
+`summary`, `status`, optional `args`, `expanded?`, `actor_handle`,
+`started_at`, `duration_ms`, and an optional `tool_result_summary` map for the
+paired result child. Use canonical `expand_toggled` interaction for expansion.
+Keep LiveView event fields and route helpers in the host layer.
 
 You can also author `custom:*` types. They are accepted as widget types, but the
 shipped validation/runtime does not automatically give them built-in signal

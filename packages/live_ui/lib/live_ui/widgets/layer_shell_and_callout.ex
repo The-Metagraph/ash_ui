@@ -6,7 +6,8 @@ defmodule LiveUi.Widgets.LayerShellAndCallout do
   @modules [
     LiveUi.Widgets.RightRail,
     LiveUi.Widgets.SidebarSection,
-    LiveUi.Widgets.ComposerQueryPreview
+    LiveUi.Widgets.ComposerQueryPreview,
+    LiveUi.Widgets.ProposeNewDocCard
   ]
 
   @spec modules() :: [module()]

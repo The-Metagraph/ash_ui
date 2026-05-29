@@ -318,6 +318,7 @@ defmodule UnifiedUi.Phase2IntegrationTest do
              :slide_over_panel,
              :event_callout,
              :composer_query_preview,
+             :propose_new_doc_card,
              :right_rail,
              :redline_inline,
              :code_block_syntax_highlighted,

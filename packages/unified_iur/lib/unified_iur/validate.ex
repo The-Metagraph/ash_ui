@@ -153,6 +153,11 @@ defmodule UnifiedIUR.Validate do
       guidance:
         "Represent composer_query_preview findings as opaque result descriptors with id, ordinal, snippet, and confidence."
     },
+    invalid_propose_new_doc_card: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent propose_new_doc_card with target_path, title, preview or full markdown body, status, and renderer-independent accept, reject, and preview actions."
+    },
     invalid_collection_picker: %{
       construct_family: :widget_components,
       guidance:
@@ -205,6 +210,8 @@ defmodule UnifiedIUR.Validate do
   @artifact_badge_tones [:positive, :warning, :danger, :info, :neutral]
   @rail_sides [:right]
   @query_preview_states [:loading, :ready, :empty, :error]
+  @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
+  @propose_new_doc_actions [:accept, :reject, :preview]
   @collection_picker_forbidden_keys ~w[
     bundle
     bundle_id
@@ -691,6 +698,15 @@ defmodule UnifiedIUR.Validate do
     attributes
     |> Map.get(:query_preview, %{})
     |> validate_query_preview_shape()
+  end
+
+  defp validate_component_contracts(%Element{
+         kind: :propose_new_doc_card,
+         attributes: attributes
+       }) do
+    attributes
+    |> Map.get(:propose_new_doc, %{})
+    |> validate_propose_new_doc_shape()
   end
 
   defp validate_component_contracts(%Element{
@@ -1509,6 +1525,150 @@ defmodule UnifiedIUR.Validate do
     ]
   end
 
+  defp validate_propose_new_doc_shape(proposal) when is_map(proposal) do
+    []
+    |> maybe_add(
+      not non_blank_string?(fetch(proposal, :target_path)),
+      Error.new(
+        :invalid_propose_new_doc_card,
+        "propose_new_doc_card requires target_path as a non-empty string",
+        path: [:attributes, :propose_new_doc, :target_path],
+        details: %{target_path: inspect(fetch(proposal, :target_path))}
+      )
+    )
+    |> maybe_add(
+      not non_blank_string?(fetch(proposal, :title)),
+      Error.new(
+        :invalid_propose_new_doc_card,
+        "propose_new_doc_card requires title as a non-empty string",
+        path: [:attributes, :propose_new_doc, :title],
+        details: %{title: inspect(fetch(proposal, :title))}
+      )
+    )
+    |> maybe_add(
+      missing_propose_new_doc_body?(proposal),
+      Error.new(
+        :invalid_propose_new_doc_card,
+        "propose_new_doc_card requires body_md_preview or body_md as a non-empty string",
+        path: [:attributes, :propose_new_doc, :body_md_preview],
+        details: %{
+          body_md_preview: inspect(fetch(proposal, :body_md_preview)),
+          body_md: inspect(fetch(proposal, :body_md))
+        }
+      )
+    )
+    |> maybe_add(
+      invalid_optional_string?(proposal, :body_md_preview),
+      propose_new_doc_string_error(proposal, :body_md_preview)
+    )
+    |> maybe_add(
+      invalid_optional_string?(proposal, :body_md),
+      propose_new_doc_string_error(proposal, :body_md)
+    )
+    |> maybe_add(
+      invalid_optional_string?(proposal, :conversation_seed_md),
+      propose_new_doc_string_error(proposal, :conversation_seed_md)
+    )
+    |> maybe_add(
+      invalid_optional_string?(proposal, :actor_handle),
+      propose_new_doc_string_error(proposal, :actor_handle)
+    )
+    |> maybe_add(
+      invalid_optional_string?(proposal, :proposed_at),
+      propose_new_doc_string_error(proposal, :proposed_at)
+    )
+    |> maybe_add(
+      fetch(proposal, :status) not in @propose_new_doc_statuses,
+      Error.new(
+        :invalid_propose_new_doc_card,
+        "propose_new_doc_card status must be one of #{inspect(@propose_new_doc_statuses)}",
+        path: [:attributes, :propose_new_doc, :status],
+        details: %{status: inspect(fetch(proposal, :status))}
+      )
+    )
+    |> maybe_add(
+      invalid_propose_new_doc_marker?(proposal, :type),
+      propose_new_doc_marker_error(proposal, :type)
+    )
+    |> maybe_add(
+      invalid_propose_new_doc_marker?(proposal, :action_class),
+      propose_new_doc_marker_error(proposal, :action_class)
+    )
+    |> Kernel.++(
+      validate_propose_new_doc_actions(fetch(proposal, :actions, @propose_new_doc_actions))
+    )
+  end
+
+  defp validate_propose_new_doc_shape(_proposal) do
+    [
+      Error.new(
+        :invalid_propose_new_doc_card,
+        "propose_new_doc_card attributes.propose_new_doc must be a map",
+        path: [:attributes, :propose_new_doc]
+      )
+    ]
+  end
+
+  defp missing_propose_new_doc_body?(proposal) do
+    not non_blank_string?(fetch(proposal, :body_md_preview)) and
+      not non_blank_string?(fetch(proposal, :body_md))
+  end
+
+  defp invalid_optional_string?(proposal, key) do
+    has_key?(proposal, key) and not is_binary(fetch(proposal, key))
+  end
+
+  defp propose_new_doc_string_error(proposal, key) do
+    Error.new(
+      :invalid_propose_new_doc_card,
+      "propose_new_doc_card #{key} must be a string",
+      path: [:attributes, :propose_new_doc, key],
+      details: %{value: inspect(fetch(proposal, key))}
+    )
+  end
+
+  defp invalid_propose_new_doc_marker?(proposal, key) do
+    has_key?(proposal, key) and fetch(proposal, key) != :document_creation
+  end
+
+  defp propose_new_doc_marker_error(proposal, key) do
+    Error.new(
+      :invalid_propose_new_doc_card,
+      "propose_new_doc_card #{key} must be :document_creation",
+      path: [:attributes, :propose_new_doc, key],
+      details: %{value: inspect(fetch(proposal, key))}
+    )
+  end
+
+  defp validate_propose_new_doc_actions(actions) when is_list(actions) do
+    actions
+    |> Enum.with_index()
+    |> Enum.flat_map(fn
+      {action, _index} when action in @propose_new_doc_actions ->
+        []
+
+      {action, index} ->
+        [
+          Error.new(
+            :invalid_propose_new_doc_card,
+            "propose_new_doc_card actions must be accept, reject, or preview",
+            path: [:attributes, :propose_new_doc, :actions, index],
+            details: %{action: inspect(action)}
+          )
+        ]
+    end)
+  end
+
+  defp validate_propose_new_doc_actions(_actions) do
+    [
+      Error.new(
+        :invalid_propose_new_doc_card,
+        "propose_new_doc_card actions must be a list",
+        path: [:attributes, :propose_new_doc, :actions]
+      )
+    ]
+  end
+
   defp validate_collection_picker_shape(picker) when is_map(picker) do
     []
     |> maybe_add(
@@ -2189,6 +2349,7 @@ defmodule UnifiedIUR.Validate do
     do: not (is_number(value) and value >= 0.0 and value <= 100.0)
 
   defp non_empty_string?(value), do: is_binary(value) and value != ""
+  defp non_blank_string?(value), do: is_binary(value) and String.trim(value) != ""
   defp non_negative_integer?(value), do: is_integer(value) and value >= 0
   defp positive_integer?(value), do: is_integer(value) and value > 0
 

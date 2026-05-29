@@ -1048,6 +1048,24 @@ defmodule UnifiedUi.Compiler.Pipeline do
             ])
           )
 
+        :propose_new_doc_card ->
+          Widgets.Components.propose_new_doc_card(
+            common_opts(node, attachments, [
+              :target_path,
+              :title,
+              :body_md_preview,
+              :body_md,
+              :status,
+              :conversation_seed_md,
+              :actor_handle,
+              :proposed_at,
+              :actions,
+              :accept_intent,
+              :reject_intent,
+              :preview_intent
+            ])
+          )
+
         :right_rail ->
           lower_right_rail(node, context, visited, attachments)
 

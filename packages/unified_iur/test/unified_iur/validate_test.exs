@@ -198,6 +198,79 @@ defmodule UnifiedIUR.ValidateTest do
     assert Enum.all?(finding_errors, &(&1.code == :invalid_query_preview_finding))
   end
 
+  test "validates canonical propose new doc card shape" do
+    valid_proposal =
+      Components.propose_new_doc_card(
+        id: :proposal,
+        target_path: "docs/proposed.md",
+        title: "Proposed brief",
+        body_md_preview: "Short draft preview.",
+        status: :pending
+      )
+
+    missing_target =
+      Element.new(:widget, :propose_new_doc_card,
+        attributes: %{
+          component: %{family: :layer_shell_and_callout, kind: :propose_new_doc_card},
+          propose_new_doc: %{
+            title: "Proposed brief",
+            body_md_preview: "Short draft preview.",
+            status: :pending
+          }
+        }
+      )
+
+    unknown_status =
+      Element.new(:widget, :propose_new_doc_card,
+        attributes: %{
+          component: %{family: :layer_shell_and_callout, kind: :propose_new_doc_card},
+          propose_new_doc: %{
+            target_path: "docs/proposed.md",
+            title: "Proposed brief",
+            body_md_preview: "Short draft preview.",
+            status: :open
+          }
+        }
+      )
+
+    non_string_field =
+      Element.new(:widget, :propose_new_doc_card,
+        attributes: %{
+          component: %{family: :layer_shell_and_callout, kind: :propose_new_doc_card},
+          propose_new_doc: %{
+            target_path: "docs/proposed.md",
+            title: "Proposed brief",
+            body_md_preview: %{bad: "shape"},
+            status: :pending
+          }
+        }
+      )
+
+    invalid_action =
+      Element.new(:widget, :propose_new_doc_card,
+        attributes: %{
+          component: %{family: :layer_shell_and_callout, kind: :propose_new_doc_card},
+          propose_new_doc: %{
+            target_path: "docs/proposed.md",
+            title: "Proposed brief",
+            body_md_preview: "Short draft preview.",
+            status: :pending,
+            actions: [:accept, :delete]
+          }
+        }
+      )
+
+    assert :ok = Validate.element(valid_proposal)
+    assert {:error, [target_error]} = Validate.element(missing_target)
+    assert target_error.code == :invalid_propose_new_doc_card
+    assert {:error, [status_error]} = Validate.element(unknown_status)
+    assert status_error.code == :invalid_propose_new_doc_card
+    assert {:error, string_errors} = Validate.element(non_string_field)
+    assert Enum.all?(string_errors, &(&1.code == :invalid_propose_new_doc_card))
+    assert {:error, [action_error]} = Validate.element(invalid_action)
+    assert action_error.code == :invalid_propose_new_doc_card
+  end
+
   test "validates canonical collection picker shape" do
     valid_picker =
       Components.collection_picker(

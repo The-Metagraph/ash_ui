@@ -517,6 +517,13 @@ defmodule AshUI.Rendering.IURAdapter do
     |> Map.fetch!(:attributes)
   end
 
+  defp base_attributes(:propose_new_doc_card, props) do
+    props
+    |> propose_new_doc_card_opts()
+    |> IURComponents.propose_new_doc_card()
+    |> Map.fetch!(:attributes)
+  end
+
   defp base_attributes(:redline_inline = kind, props) do
     component_attributes(
       kind,
@@ -1107,6 +1114,42 @@ defmodule AshUI.Rendering.IURAdapter do
       dismiss_intent: first_present(props, [:dismiss_intent]),
       open_intent: first_present(props, [:open_intent]),
       save_intent: first_present(props, [:save_intent]),
+      interactions: fetch(props, :interactions),
+      interaction: fetch(props, :interaction)
+    }
+    |> compact_map()
+  end
+
+  defp propose_new_doc_card_opts(props) do
+    proposal = props |> fetch(:propose_new_doc, %{}) |> normalize_map()
+
+    %{
+      id: first_present(props, [:_element_id, :id]),
+      target_path:
+        first_present(proposal, [:target_path]) || first_present(props, [:target_path]),
+      title: first_present(proposal, [:title]) || first_present(props, [:title, :label, :name]),
+      body_md_preview:
+        first_present(proposal, [:body_md_preview]) ||
+          first_present(props, [:body_md_preview, :preview, :summary]),
+      body_md: first_present(proposal, [:body_md]) || first_present(props, [:body_md, :body]),
+      status:
+        normalize_existing_atom(
+          first_present(proposal, [:status]) || first_present(props, [:status]) || :pending
+        ),
+      conversation_seed_md:
+        first_present(proposal, [:conversation_seed_md]) ||
+          first_present(props, [:conversation_seed_md]),
+      actor_handle:
+        first_present(proposal, [:actor_handle]) || first_present(props, [:actor_handle]),
+      proposed_at:
+        first_present(proposal, [:proposed_at]) || first_present(props, [:proposed_at]),
+      actions:
+        first_present(proposal, [:actions]) ||
+          first_present(props, [:actions]) ||
+          [:accept, :reject, :preview],
+      accept_intent: first_present(props, [:accept_intent]),
+      reject_intent: first_present(props, [:reject_intent]),
+      preview_intent: first_present(props, [:preview_intent]),
       interactions: fetch(props, :interactions),
       interaction: fetch(props, :interaction)
     }

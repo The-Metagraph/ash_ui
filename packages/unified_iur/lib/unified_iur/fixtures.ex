@@ -1188,6 +1188,16 @@ defmodule UnifiedIUR.Fixtures do
            depends_on: [],
            depended_by: ["metagraph-analysis", "ariston-ui"],
            selected?: false
+         )},
+        {:content,
+         Components.propose_new_doc_card(
+           id: "component-propose-new-doc",
+           target_path: "docs/proposed-spec.md",
+           title: "Proposed Spec",
+           body_md_preview: "An agent-authored spec for the accessibility surface.",
+           status: :pending,
+           actor_handle: "@codex",
+           proposed_at: "2026-05-27T10:00:00Z"
          )}
       ],
       id: "component-safety-fixture"

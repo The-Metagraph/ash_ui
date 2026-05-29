@@ -100,7 +100,7 @@ authoring boundaries and normalize before renderer-facing output.
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `collection_picker`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
 | Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card` | none |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `workflow_progress_status_card` | none |
-| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail`, `composer_query_preview` | none |
+| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail`, `composer_query_preview`, `propose_new_doc_card` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
 | Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
 
@@ -152,6 +152,14 @@ for query updates, item selection, filter toggles, and suggestion actions. It
 is not a rail by itself: place it inside `right_rail` when the picker belongs
 in a secondary panel, and keep bundle-specific cards, drag hooks, and LiveView
 event names in the renderer or host layer.
+
+`propose_new_doc_card` is the canonical callout card for an agent-authored
+document proposal. Author props such as `target_path`, `title`,
+`body_md_preview`, `status`, optional `body_md`, `conversation_seed_md`,
+`actor_handle`, `proposed_at`, `expanded?`, and `seed_expanded?`. Use
+canonical `accept`, `reject`, `preview`, `body_toggled`, and
+`conversation_seed_toggled` interactions for operator actions. Keep LiveView
+event fields, route helpers, and product-specific copy in the host layer.
 
 You can also author `custom:*` types. They are accepted as widget types, but the
 shipped validation/runtime does not automatically give them built-in signal

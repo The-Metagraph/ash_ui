@@ -704,6 +704,90 @@ defmodule AshUI.Rendering.LiveUIAdapter do
     """
   end
 
+  defp generate_heex(%{"type" => "propose_new_doc_card"} = iur, _opts) do
+    props = iur["props"] || %{}
+    proposal = props |> prop("propose_new_doc", props) |> normalize_item()
+
+    target_path =
+      escaped_text_prop(proposal, "target_path", escaped_text_prop(props, "target_path", ""))
+
+    title =
+      escaped_text_prop(
+        proposal,
+        "title",
+        escaped_text_prop(props, ["title", "label"], "Document")
+      )
+
+    body_md_preview =
+      escaped_text_prop(
+        proposal,
+        "body_md_preview",
+        escaped_text_prop(proposal, "body_md", escaped_text_prop(props, "body_md_preview", ""))
+      )
+
+    body_md = escaped_text_prop(proposal, "body_md")
+    status = escaped_text_prop(proposal, "status", escaped_text_prop(props, "status", "pending"))
+    actor_handle = escaped_text_prop(proposal, "actor_handle")
+    proposed_at = escaped_text_prop(proposal, "proposed_at")
+    seed = escaped_text_prop(proposal, "conversation_seed_md")
+    iur_id = html_attr(iur["id"] || iur[:id] || "propose-new-doc-card")
+    body_id = "#{iur_id}-body"
+    seed_id = "#{iur_id}-conversation-seed"
+
+    full_body? = body_md not in [nil, ""] and body_md != body_md_preview
+
+    body_toggle =
+      if full_body? do
+        ~s(<button type="button" class="ash-propose-new-doc-card__body-toggle" aria-expanded="false" aria-controls="#{body_id}">Show full draft</button>)
+      else
+        ""
+      end
+
+    seed_html =
+      if seed do
+        """
+        <section class="ash-propose-new-doc-card__conversation">
+          <button type="button" class="ash-propose-new-doc-card__conversation-toggle" aria-expanded="false" aria-controls="#{seed_id}">Conversation seed</button>
+        </section>
+        """
+      else
+        ""
+      end
+
+    decision_html =
+      if status == "pending" do
+        """
+        <button type="button" class="ash-propose-new-doc-card__accept" aria-label="Accept proposed document #{title}">Accept</button>
+        <button type="button" class="ash-propose-new-doc-card__reject" aria-label="Reject proposed document #{title}">Reject</button>
+        """
+      else
+        ~s(<p class="ash-propose-new-doc-card__locked-message" role="status">This proposal is #{status}.</p>)
+      end
+
+    """
+    <article id="#{iur_id}" class="#{css_classes(["ash-propose-new-doc-card", "ash-propose-new-doc-card--#{status}", prop_class(iur)])}" data-live-ui-widget="propose-new-doc-card" data-status="#{status}" data-target-path="#{target_path}" aria-label="Proposed document #{title}, #{status}"#{style_attr(prop_style(iur))}>
+      <header class="ash-propose-new-doc-card__header">
+        <div class="ash-propose-new-doc-card__identity">
+          <h3 class="ash-propose-new-doc-card__title">#{title}</h3>
+          #{if actor_handle, do: "<span class=\"ash-propose-new-doc-card__actor\">#{actor_handle}</span>", else: ""}
+          #{if proposed_at, do: "<time class=\"ash-propose-new-doc-card__proposed-at\" datetime=\"#{proposed_at}\">#{proposed_at}</time>", else: ""}
+        </div>
+        <span class="ash-propose-new-doc-card__status-badge ash-propose-new-doc-card__status-badge--#{status}" role="status">#{status}</span>
+      </header>
+      <p class="ash-propose-new-doc-card__target-path font-mono">#{target_path}</p>
+      <section id="#{body_id}" class="ash-propose-new-doc-card__body" aria-label="Draft preview for #{title}">
+        <pre class="ash-propose-new-doc-card__body-preview">#{body_md_preview}</pre>
+      </section>
+      #{body_toggle}
+      #{seed_html}
+      <footer class="ash-propose-new-doc-card__actions">
+        #{decision_html}
+        <button type="button" class="ash-propose-new-doc-card__preview" aria-label="Preview proposed document #{title}">Preview</button>
+      </footer>
+    </article>
+    """
+  end
+
   defp generate_heex(%{"type" => "list_item_multi_column"} = iur, opts) do
     props = iur["props"] || %{}
     active? = truthy_prop(props, "active?", truthy_prop(props, "active", false))

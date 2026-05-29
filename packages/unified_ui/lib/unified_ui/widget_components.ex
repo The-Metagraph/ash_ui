@@ -242,6 +242,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :propose_new_doc_card,
+      family: :layer_shell_and_callout,
+      summary:
+        "Inline document-creation proposal callout with target path, preview body, decision status, and canonical accept, reject, and preview actions.",
+      aliases: []
+    },
+    %{
       kind: :workflow_progress_status_card,
       family: :workflow_progress_and_status,
       summary:

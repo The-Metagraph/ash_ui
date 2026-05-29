@@ -2246,7 +2246,6 @@ defmodule UnifiedIUR.Widgets.Components do
     raise ArgumentError, "tool_result_summary must be a map"
   end
 
-
   defp normalize_query_preview_state!(state) when state in @query_preview_states, do: state
 
   defp normalize_query_preview_state!(state) when is_binary(state) do

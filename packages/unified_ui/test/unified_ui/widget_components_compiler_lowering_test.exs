@@ -157,6 +157,17 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
         preview_intent(:preview_doc_proposal)
       end
 
+      escalation_card :blocker_escalation do
+        target_project_id("ariston-ui")
+        text("Accessibility coverage gap on chat surface.")
+        severity(:p2)
+        proposed_action("Add aria-live region to chat timeline")
+        actor_handle("@codex")
+        escalated_at("2026-05-28T10:00:00Z")
+        acknowledge_intent(:acknowledge_escalation)
+        route_intent(:route_escalation)
+      end
+
       right_rail :workspace_rail do
         side(:right)
 
@@ -203,6 +214,7 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
     panel = Tree.find_by_id(iur, :details_panel)
     query_preview = Tree.find_by_id(iur, :query_preview)
     proposal = Tree.find_by_id(iur, :doc_proposal)
+    escalation = Tree.find_by_id(iur, :blocker_escalation)
     rail = Tree.find_by_id(iur, :workspace_rail)
     code = Tree.find_by_id(iur, :code_sample)
 
@@ -326,6 +338,15 @@ defmodule UnifiedUi.WidgetComponentsCompilerLoweringTest do
              action_class: :document_creation,
              actions: [:accept, :reject, :preview]
            }
+
+    assert escalation.attributes.component == %{
+             family: :layer_shell_and_callout,
+             kind: :escalation_card
+           }
+
+    assert escalation.attributes.escalation.target_project_id == "ariston-ui"
+    assert escalation.attributes.escalation.text == "Accessibility coverage gap on chat surface."
+    assert escalation.attributes.escalation.severity == :p2
 
     assert rail.attributes.component == %{
              family: :layer_shell_and_callout,

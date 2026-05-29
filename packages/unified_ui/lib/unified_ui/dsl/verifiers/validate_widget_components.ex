@@ -72,6 +72,7 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
   @query_preview_states [:loading, :ready, :empty, :error]
   @propose_new_doc_statuses [:pending, :accepted, :rejected, :archived]
   @propose_new_doc_actions [:accept, :reject, :preview]
+  @escalation_severities [:p1, :p2, :p3]
 
   @spec verify(map()) :: :ok | {:error, Spark.Error.DslError.t()}
   def verify(dsl) do
@@ -488,6 +489,52 @@ defmodule UnifiedUi.Dsl.Verifiers.ValidateWidgetComponents do
       not valid_propose_new_doc_actions?(actions) ->
         {:error, [:composition, :propose_new_doc_card, id],
          "propose_new_doc_card #{inspect(id)} actions must be a list containing only accept, reject, or preview"}
+
+      true ->
+        :ok
+    end
+  end
+
+  def validate_node(%Node{
+        kind: :escalation_card,
+        id: id,
+        target_project_id: target_project_id,
+        text: text,
+        severity: severity,
+        related_finding_id: related_finding_id,
+        proposed_action: proposed_action,
+        target_finding_id: target_finding_id,
+        target_severity: target_severity,
+        originating_severity: originating_severity,
+        actor_handle: actor_handle,
+        escalated_at: escalated_at
+      }) do
+    cond do
+      not non_blank_string?(target_project_id) ->
+        {:error, [:composition, :escalation_card, id],
+         "escalation_card #{inspect(id)} target_project_id must be a non-empty string"}
+
+      not non_blank_string?(text) ->
+        {:error, [:composition, :escalation_card, id],
+         "escalation_card #{inspect(id)} text must be a non-empty string"}
+
+      severity not in @escalation_severities ->
+        {:error, [:composition, :escalation_card, id],
+         "escalation_card #{inspect(id)} severity must be one of #{inspect(@escalation_severities)}"}
+
+      not optional_string?(related_finding_id) or not optional_string?(proposed_action) or
+        not optional_string?(target_finding_id) or not optional_string?(actor_handle) or
+          not optional_string?(escalated_at) ->
+        {:error, [:composition, :escalation_card, id],
+         "escalation_card #{inspect(id)} optional string fields must be strings when present"}
+
+      not (is_nil(target_severity) or target_severity in @escalation_severities) ->
+        {:error, [:composition, :escalation_card, id],
+         "escalation_card #{inspect(id)} target_severity must be one of #{inspect(@escalation_severities)}"}
+
+      not (is_nil(originating_severity) or originating_severity in @escalation_severities) ->
+        {:error, [:composition, :escalation_card, id],
+         "escalation_card #{inspect(id)} originating_severity must be one of #{inspect(@escalation_severities)}"}
 
       true ->
         :ok

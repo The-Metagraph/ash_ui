@@ -176,6 +176,7 @@ defmodule UnifiedUi.OperationalWidgetComponentsTest do
              :event_callout,
              :composer_query_preview,
              :propose_new_doc_card,
+             :escalation_card,
              :right_rail
            ]
 

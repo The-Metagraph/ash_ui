@@ -54,7 +54,8 @@ defmodule UnifiedIUR.Widgets.ComponentsTest do
              :right_rail,
              :command_palette,
              :composer_query_preview,
-             :propose_new_doc_card
+             :propose_new_doc_card,
+             :escalation_card
            ]
 
     assert Components.redline_code_kinds() == [

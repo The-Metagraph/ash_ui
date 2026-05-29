@@ -302,6 +302,23 @@ defmodule UnifiedUi.Dsl.Entities.WidgetComponents do
         preview_intent: [type: :atom, required: false],
         summary: [type: :string, required: false]
       ),
+      leaf(
+        :escalation_card,
+        @layer_family,
+        target_project_id: [type: :string, required: true],
+        text: [type: :string, required: true],
+        severity: [type: {:in, [:p1, :p2, :p3]}, required: true],
+        related_finding_id: [type: :string, required: false],
+        proposed_action: [type: :string, required: false],
+        target_finding_id: [type: :string, required: false],
+        target_severity: [type: {:in, [:p1, :p2, :p3]}, required: false],
+        originating_severity: [type: {:in, [:p1, :p2, :p3]}, required: false],
+        actor_handle: [type: :string, required: false],
+        escalated_at: [type: :string, required: false],
+        acknowledge_intent: [type: :atom, required: false],
+        route_intent: [type: :atom, required: false],
+        summary: [type: :string, required: false]
+      ),
       right_rail_entity()
     ]
   end

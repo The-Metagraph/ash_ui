@@ -412,6 +412,7 @@ defmodule AshUI.Rendering.IURAdapterTest do
       assert :ok = UnifiedIUR.Validate.element(child.element)
     end
 
+
     test "returns structured conversion errors for invalid propose_new_doc_card payloads" do
       ash_iur =
         IUR.new(:screen,
@@ -463,6 +464,73 @@ defmodule AshUI.Rendering.IURAdapterTest do
 
       assert error.message =~ "tool_call_card :args must be a map"
     end
+
+    test "routes escalation_card kind through layer_shell_and_callout family with canonical actions" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "escalation-screen",
+          name: "escalation_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:escalation_card,
+              id: "esc-1",
+              props: %{
+                "target_project_id" => "ariston-ui",
+                "severity" => "p2",
+                "text" => "Coverage gap detected.",
+                "actor_handle" => "@codex",
+                "proposed_action" => "Add aria-live region"
+              }
+            )
+          ]
+        )
+
+      assert {:ok, canonical} = IURAdapter.to_canonical(ash_iur)
+      [child] = canonical.children
+      assert child.element.kind == :escalation_card
+      assert child.element.type == :widget
+      assert child.element.attributes.component.family == :layer_shell_and_callout
+
+      esc = child.element.attributes.escalation
+
+      assert esc.target_project_id == "ariston-ui"
+      assert esc.severity == :p2
+      assert esc.text == "Coverage gap detected."
+      assert esc.actor_handle == "@codex"
+      assert esc.proposed_action == "Add aria-live region"
+
+      assert [
+               %UnifiedIUR.Interaction{family: :command, intent: :acknowledge_escalation},
+               %UnifiedIUR.Interaction{family: :command, intent: :route_escalation_to_rail}
+             ] = child.element.attributes.interactions
+
+      assert :ok = UnifiedIUR.Validate.element(child.element)
+    end
+
+    test "returns structured conversion errors for invalid escalation_card payloads" do
+      ash_iur =
+        IUR.new(:screen,
+          id: "escalation-screen-invalid",
+          name: "escalation_screen",
+          attributes: %{},
+          children: [
+            IUR.new(:escalation_card,
+              id: "esc-invalid",
+              props: %{
+                "target_project_id" => "ariston-ui",
+                "severity" => "critical",
+                "text" => "Test."
+              }
+            )
+          ]
+        )
+
+      assert {:error, {:conversion_failed, %ArgumentError{} = error}} =
+               IURAdapter.to_canonical(ash_iur)
+
+      assert error.message =~ "severity must be one of"
+    end
+
 
     test "routes workflow_progress_status_card kind through workflow_progress_and_status family" do
       ash_iur =

@@ -78,7 +78,8 @@ defmodule UnifiedIUR.Widgets.Components do
     :right_rail,
     :command_palette,
     :composer_query_preview,
-    :propose_new_doc_card
+    :propose_new_doc_card,
+    :escalation_card
   ]
 
   @query_preview_states [:loading, :ready, :empty, :error]
@@ -86,6 +87,7 @@ defmodule UnifiedIUR.Widgets.Components do
   @tool_call_kinds [:read, :edit, :write, :bash, :multiedit, :other]
   @tool_call_statuses [:pending, :approved, :denied, :complete, :failed]
   @live_session_statuses [:running]
+  @escalation_severities [:p1, :p2, :p3]
 
   @redline_code_kinds [
     :redline_inline,
@@ -1497,6 +1499,71 @@ defmodule UnifiedIUR.Widgets.Components do
     )
   end
 
+  @spec escalation_card(opts()) :: Element.t()
+  def escalation_card(opts \\ []) do
+    opts = normalize_opts(opts)
+
+    target_project_id =
+      required_non_blank_string!(
+        opts,
+        :target_project_id,
+        "escalation_card requires a non-empty :target_project_id string"
+      )
+
+    text =
+      required_non_blank_string!(
+        opts,
+        :text,
+        "escalation_card requires a non-empty :text string"
+      )
+
+    severity = normalize_escalation_severity!(option(opts, :severity))
+
+    opts = put_escalation_interactions(opts, target_project_id)
+
+    build_component(
+      :escalation_card,
+      :layer_shell_and_callout,
+      %{
+        escalation:
+          %{
+            target_project_id: target_project_id,
+            text: text,
+            severity: severity
+          }
+          |> maybe_put(
+            :related_finding_id,
+            optional_string!(option(opts, :related_finding_id), :related_finding_id)
+          )
+          |> maybe_put(
+            :proposed_action,
+            optional_string!(option(opts, :proposed_action), :proposed_action)
+          )
+          |> maybe_put(
+            :target_finding_id,
+            optional_string!(option(opts, :target_finding_id), :target_finding_id)
+          )
+          |> maybe_put(
+            :target_severity,
+            normalize_optional_escalation_severity(option(opts, :target_severity))
+          )
+          |> maybe_put(
+            :originating_severity,
+            normalize_optional_escalation_severity(option(opts, :originating_severity))
+          )
+          |> maybe_put(
+            :actor_handle,
+            optional_string!(option(opts, :actor_handle), :actor_handle)
+          )
+          |> maybe_put(
+            :escalated_at,
+            optional_string!(option(opts, :escalated_at), :escalated_at)
+          )
+      },
+      opts
+    )
+  end
+
   defp build_component(kind, family, kind_attributes, opts) do
     opts = normalize_opts(opts)
 
@@ -1774,6 +1841,66 @@ defmodule UnifiedIUR.Widgets.Components do
 
   defp propose_new_doc_intent(opts, :preview),
     do: option(opts, :preview_intent, :preview_proposed_doc)
+
+  defp put_escalation_interactions(opts, target_project_id) do
+    cond do
+      explicit_interactions?(opts) ->
+        opts
+
+      true ->
+        Map.put(opts, :interactions, escalation_interactions(opts, target_project_id))
+    end
+  end
+
+  defp escalation_interactions(opts, target_project_id) do
+    [
+      Interaction.command(
+        intent: option(opts, :acknowledge_intent, :acknowledge_escalation),
+        element_id: option(opts, :id),
+        entity: target_project_id,
+        command: :acknowledge,
+        value: target_project_id
+      ),
+      Interaction.command(
+        intent: option(opts, :route_intent, :route_escalation_to_rail),
+        element_id: option(opts, :id),
+        entity: target_project_id,
+        command: :route_to_rail,
+        value: target_project_id
+      )
+    ]
+  end
+
+  defp normalize_escalation_severity!(severity) when severity in @escalation_severities,
+    do: severity
+
+  defp normalize_escalation_severity!(severity) when is_binary(severity) do
+    severity
+    |> String.to_existing_atom()
+    |> normalize_escalation_severity!()
+  rescue
+    ArgumentError ->
+      raise ArgumentError,
+            "escalation_card :severity must be one of #{inspect(@escalation_severities)}"
+  end
+
+  defp normalize_escalation_severity!(_severity) do
+    raise ArgumentError,
+          "escalation_card :severity must be one of #{inspect(@escalation_severities)}"
+  end
+
+  defp normalize_optional_escalation_severity(nil), do: nil
+  defp normalize_optional_escalation_severity(sev) when sev in @escalation_severities, do: sev
+
+  defp normalize_optional_escalation_severity(sev) when is_binary(sev) do
+    sev
+    |> String.to_existing_atom()
+    |> normalize_optional_escalation_severity()
+  rescue
+    ArgumentError -> nil
+  end
+
+  defp normalize_optional_escalation_severity(_), do: nil
 
   defp put_collection_picker_interactions(opts, picker_id) do
     cond do
@@ -2118,7 +2245,6 @@ defmodule UnifiedIUR.Widgets.Components do
   defp normalize_tool_result_summary!(_summary) do
     raise ArgumentError, "tool_result_summary must be a map"
   end
-
 
   defp normalize_query_preview_state!(state) when state in @query_preview_states, do: state
 

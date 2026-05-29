@@ -168,6 +168,11 @@ defmodule UnifiedIUR.Validate do
       guidance:
         "Represent propose_new_doc_card with target_path, title, preview or full markdown body, status, and renderer-independent accept, reject, and preview actions."
     },
+    invalid_escalation_card: %{
+      construct_family: :widget_components,
+      guidance:
+        "Represent escalation_card with a non-empty target_project_id, non-empty text, and severity in [:p1, :p2, :p3]. Optional fields include related_finding_id, proposed_action, actor_handle, escalated_at, target_finding_id, target_severity, and originating_severity."
+    },
     invalid_collection_picker: %{
       construct_family: :widget_components,
       guidance:
@@ -233,6 +238,7 @@ defmodule UnifiedIUR.Validate do
   @live_session_action_names ~w[pin interrupt expanded_recent]
   @live_session_action_keys [:pin, :interrupt, :expanded_recent]
   @live_session_event_names ~w[pin_toggled interrupted expanded_recent]
+  @escalation_severities [:p1, :p2, :p3]
   @collection_picker_forbidden_keys ~w[
     bundle
     bundle_id
@@ -748,6 +754,15 @@ defmodule UnifiedIUR.Validate do
     attributes
     |> Map.get(:propose_new_doc, %{})
     |> validate_propose_new_doc_shape()
+  end
+
+  defp validate_component_contracts(%Element{
+         kind: :escalation_card,
+         attributes: attributes
+       }) do
+    attributes
+    |> Map.get(:escalation, %{})
+    |> validate_escalation_shape()
   end
 
   defp validate_component_contracts(%Element{
@@ -2296,6 +2311,103 @@ defmodule UnifiedIUR.Validate do
         path: [:attributes, :propose_new_doc, :actions]
       )
     ]
+  end
+
+  defp validate_escalation_shape(escalation) when is_map(escalation) do
+    []
+    |> maybe_add(
+      not non_blank_string?(fetch(escalation, :target_project_id)),
+      Error.new(
+        :invalid_escalation_card,
+        "escalation_card requires target_project_id as a non-empty string",
+        path: [:attributes, :escalation, :target_project_id],
+        details: %{target_project_id: inspect(fetch(escalation, :target_project_id))}
+      )
+    )
+    |> maybe_add(
+      not non_blank_string?(fetch(escalation, :text)),
+      Error.new(
+        :invalid_escalation_card,
+        "escalation_card requires text as a non-empty string",
+        path: [:attributes, :escalation, :text],
+        details: %{text: inspect(fetch(escalation, :text))}
+      )
+    )
+    |> maybe_add(
+      fetch(escalation, :severity) not in @escalation_severities,
+      Error.new(
+        :invalid_escalation_card,
+        "escalation_card severity must be one of #{inspect(@escalation_severities)}",
+        path: [:attributes, :escalation, :severity],
+        details: %{severity: inspect(fetch(escalation, :severity))}
+      )
+    )
+    |> maybe_add(
+      escalation_optional_string_invalid?(escalation, :related_finding_id),
+      escalation_string_error(escalation, :related_finding_id)
+    )
+    |> maybe_add(
+      escalation_optional_string_invalid?(escalation, :proposed_action),
+      escalation_string_error(escalation, :proposed_action)
+    )
+    |> maybe_add(
+      escalation_optional_string_invalid?(escalation, :actor_handle),
+      escalation_string_error(escalation, :actor_handle)
+    )
+    |> maybe_add(
+      escalation_optional_string_invalid?(escalation, :escalated_at),
+      escalation_string_error(escalation, :escalated_at)
+    )
+    |> maybe_add(
+      escalation_optional_string_invalid?(escalation, :target_finding_id),
+      escalation_string_error(escalation, :target_finding_id)
+    )
+    |> maybe_add(
+      escalation_optional_severity_invalid?(escalation, :target_severity),
+      escalation_optional_severity_error(escalation, :target_severity)
+    )
+    |> maybe_add(
+      escalation_optional_severity_invalid?(escalation, :originating_severity),
+      escalation_optional_severity_error(escalation, :originating_severity)
+    )
+  end
+
+  defp validate_escalation_shape(_escalation) do
+    [
+      Error.new(
+        :invalid_escalation_card,
+        "escalation_card attributes.escalation must be a map",
+        path: [:attributes, :escalation]
+      )
+    ]
+  end
+
+  defp escalation_optional_string_invalid?(escalation, key) do
+    has_key?(escalation, key) and not is_nil(fetch(escalation, key)) and
+      not is_binary(fetch(escalation, key))
+  end
+
+  defp escalation_string_error(escalation, key) do
+    Error.new(
+      :invalid_escalation_card,
+      "escalation_card #{key} must be a string",
+      path: [:attributes, :escalation, key],
+      details: %{value: inspect(fetch(escalation, key))}
+    )
+  end
+
+  defp escalation_optional_severity_invalid?(escalation, key) do
+    val = fetch(escalation, key)
+    not is_nil(val) and val not in @escalation_severities
+  end
+
+  defp escalation_optional_severity_error(escalation, key) do
+    Error.new(
+      :invalid_escalation_card,
+      "escalation_card #{key} must be one of #{inspect(@escalation_severities)} when present",
+      path: [:attributes, :escalation, key],
+      details: %{value: inspect(fetch(escalation, key))}
+    )
   end
 
   defp validate_collection_picker_shape(picker) when is_map(picker) do

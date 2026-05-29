@@ -1066,6 +1066,24 @@ defmodule UnifiedUi.Compiler.Pipeline do
             ])
           )
 
+        :escalation_card ->
+          Widgets.Components.escalation_card(
+            common_opts(node, attachments, [
+              :target_project_id,
+              :text,
+              :severity,
+              :related_finding_id,
+              :proposed_action,
+              :target_finding_id,
+              :target_severity,
+              :originating_severity,
+              :actor_handle,
+              :escalated_at,
+              :acknowledge_intent,
+              :route_intent
+            ])
+          )
+
         :right_rail ->
           lower_right_rail(node, context, visited, attachments)
 

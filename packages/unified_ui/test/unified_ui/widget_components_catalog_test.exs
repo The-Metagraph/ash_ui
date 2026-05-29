@@ -55,7 +55,8 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
                :right_rail,
                :command_palette,
                :composer_query_preview,
-               :propose_new_doc_card
+               :propose_new_doc_card,
+               :escalation_card
              ],
              redline_and_code: [:redline_inline, :code_block_syntax_highlighted],
              composition_behavior: [:list_repeat]
@@ -75,6 +76,7 @@ defmodule UnifiedUi.WidgetComponentsCatalogTest do
     assert :command_palette in kinds
     assert :composer_query_preview in kinds
     assert :propose_new_doc_card in kinds
+    assert :escalation_card in kinds
     assert :collection_picker in kinds
     assert :live_session_card in kinds
     assert :workflow_progress_status_card in kinds

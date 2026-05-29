@@ -320,6 +320,7 @@ defmodule UnifiedUi.Phase2IntegrationTest do
              :event_callout,
              :composer_query_preview,
              :propose_new_doc_card,
+             :escalation_card,
              :right_rail,
              :redline_inline,
              :code_block_syntax_highlighted,

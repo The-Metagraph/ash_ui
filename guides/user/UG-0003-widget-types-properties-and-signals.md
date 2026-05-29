@@ -100,7 +100,7 @@ authoring boundaries and normalize before renderer-facing output.
 | Form control and composer | `runtime_form_shell`, `segmented_button_group`, `chat_composer`, `collection_picker`, `mode_nav` | `phoenix_form` -> `runtime_form_shell` |
 | Row and artifact | `list_item_multi_column`, `artifact_row`, `thread_card`, `tool_call_card` | none |
 | Workflow, progress, and status | `pipeline_stepper_horizontal`, `segmented_progress_bar`, `workflow_stage_list_vertical`, `meter_thin`, `unread_badge`, `live_session_card`, `workflow_progress_status_card` | none |
-| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail`, `composer_query_preview`, `propose_new_doc_card` | none |
+| Layer shell and callout | `sticky_frosted_header`, `slide_over_panel`, `event_callout`, `top_strip`, `sidebar_shell`, `sidebar_section`, `sidebar_item`, `command_palette`, `right_rail`, `composer_query_preview`, `propose_new_doc_card`, `escalation_card` | none |
 | Redline and code | `redline_inline`, `code_block_syntax_highlighted` | none |
 | Composition behavior | `list_repeat` | `repeat` -> `list_repeat`, `ui_relationship_repeat` -> `list_repeat` |
 
@@ -175,6 +175,13 @@ conversation timeline. Author props such as `tool_name`, `tool_kind`, `target`,
 `started_at`, `duration_ms`, and an optional `tool_result_summary` map for the
 paired result child. Use canonical `expand_toggled` interaction for expansion.
 Keep LiveView event fields and route helpers in the host layer.
+
+`escalation_card` is the canonical callout card for a cross-team escalation
+raised by an MCP tool. Author props such as `target_project_id`, `severity`,
+`text`, optional `proposed_action`, `related_finding_id`, `actor_handle`,
+`escalated_at`, and `acknowledged?`. Use canonical `acknowledge` and
+`route_to_rail` interactions for operator routing. Keep LiveView event fields
+and route helpers in the host layer.
 
 You can also author `custom:*` types. They are accepted as widget types, but the
 shipped validation/runtime does not automatically give them built-in signal

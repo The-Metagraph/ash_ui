@@ -561,6 +561,13 @@ defmodule AshUI.Rendering.IURAdapter do
     |> Map.fetch!(:attributes)
   end
 
+  defp base_attributes(:escalation_card, props) do
+    props
+    |> escalation_card_opts()
+    |> IURComponents.escalation_card()
+    |> Map.fetch!(:attributes)
+  end
+
   defp base_attributes(:redline_inline = kind, props) do
     component_attributes(
       kind,
@@ -1228,6 +1235,56 @@ defmodule AshUI.Rendering.IURAdapter do
       accept_intent: first_present(props, [:accept_intent]),
       reject_intent: first_present(props, [:reject_intent]),
       preview_intent: first_present(props, [:preview_intent]),
+      interactions: fetch(props, :interactions),
+      interaction: fetch(props, :interaction)
+    }
+    |> compact_map()
+  end
+
+  defp escalation_card_opts(props) do
+    escalation = props |> fetch(:escalation, %{}) |> normalize_map()
+
+    %{
+      id: first_present(props, [:_element_id, :id]),
+      target_project_id:
+        first_present(escalation, [:target_project_id]) ||
+          first_present(props, [:target_project_id, :project_id, :project]),
+      text:
+        first_present(escalation, [:text]) ||
+          first_present(props, [:text, :description, :message]),
+      severity:
+        normalize_existing_atom(
+          first_present(escalation, [:severity]) ||
+            first_present(props, [:severity]) ||
+            :p2
+        ),
+      related_finding_id:
+        first_present(escalation, [:related_finding_id]) ||
+          first_present(props, [:related_finding_id]),
+      proposed_action:
+        first_present(escalation, [:proposed_action]) ||
+          first_present(props, [:proposed_action]),
+      target_finding_id:
+        first_present(escalation, [:target_finding_id]) ||
+          first_present(props, [:target_finding_id]),
+      target_severity:
+        normalize_existing_atom(
+          first_present(escalation, [:target_severity]) ||
+            first_present(props, [:target_severity])
+        ),
+      originating_severity:
+        normalize_existing_atom(
+          first_present(escalation, [:originating_severity]) ||
+            first_present(props, [:originating_severity])
+        ),
+      actor_handle:
+        first_present(escalation, [:actor_handle]) ||
+          first_present(props, [:actor_handle]),
+      escalated_at:
+        first_present(escalation, [:escalated_at]) ||
+          first_present(props, [:escalated_at]),
+      acknowledge_intent: first_present(props, [:acknowledge_intent]),
+      route_intent: first_present(props, [:route_intent]),
       interactions: fetch(props, :interactions),
       interaction: fetch(props, :interaction)
     }

@@ -263,6 +263,13 @@ defmodule UnifiedUi.WidgetComponents do
       aliases: []
     },
     %{
+      kind: :escalation_card,
+      family: :layer_shell_and_callout,
+      summary:
+        "Inline severity-tagged escalation callout targeting a project with canonical acknowledge and route actions.",
+      aliases: []
+    },
+    %{
       kind: :workflow_progress_status_card,
       family: :workflow_progress_and_status,
       summary:

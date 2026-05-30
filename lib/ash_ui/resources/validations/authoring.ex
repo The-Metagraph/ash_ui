@@ -21,7 +21,8 @@ defmodule AshUI.Resources.Validations.Authoring do
                   "select",
                   "list_repeat",
                   "context_selector",
-                  "file_tree_browser"
+                  "file_tree_browser",
+                  "list_item_multi_column"
                 ])
   @action_widgets MapSet.new([
                     "button",

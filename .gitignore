@@ -1,0 +1,29 @@
+# Elixir / Mix build artifacts
+/_build/
+/cover/
+/doc/
+/.fetch
+erl_crash.dump
+*.ez
+*.beam
+
+# Dependencies
+/deps/
+
+# Language server / editor
+/.elixir_ls/
+/.lexical/
+.DS_Store
+*~
+
+# Assets (if built)
+/assets/node_modules/
+/priv/static/assets/
+
+# Agent / orchestration scratch (created by tooling, not source)
+.claude/
+.claire/
+/agent-pool/
+/chat-backlog/
+/pr145-review/
+/ash_ui
